@@ -15,14 +15,17 @@ use Phil\Markup\Markup;
 use Phil\NewsletterBundle\Application\Content\ContentRenderer;
 use Phil\NewsletterBundle\Application\Content\SandboxedTemplates;
 use Phil\NewsletterBundle\Application\NewsletterUrls;
+use Phil\NewsletterBundle\Application\SendRuns;
 use Phil\NewsletterBundle\Application\SignedLinks;
 use Phil\NewsletterBundle\Application\Subscriptions;
 use Phil\NewsletterBundle\Domain\Model\MailingList;
+use Phil\NewsletterBundle\Domain\ValueObject\BreakerPolicy;
 use Phil\NewsletterBundle\Domain\ValueObject\Site;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalCampaignRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalDeliveryRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalEngagementRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalMailingListRepository;
+use Phil\NewsletterBundle\Infrastructure\Dbal\DbalSendRunRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalSubscriberRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalSuppressionRepository;
 use Phil\NewsletterBundle\Infrastructure\Dbal\DbalTemplateRepository;
@@ -70,6 +73,8 @@ final class Newsletter
 
     public DbalSuppressionRepository $suppressions;
 
+    public DbalSendRunRepository $runs;
+
     public SignedLinks $links;
 
     public Subscriptions $subscriptions;
@@ -94,6 +99,7 @@ final class Newsletter
         $this->templates = new DbalTemplateRepository($this->connection);
         $this->engagement = new DbalEngagementRepository($this->connection);
         $this->suppressions = new DbalSuppressionRepository($this->connection, $this->clock, self::KEY);
+        $this->runs = new DbalSendRunRepository($this->connection);
         $this->links = new SignedLinks(self::KEY, $this->clock);
         $this->subscriptions = new Subscriptions($this->lists, $this->subscribers, $this->suppressions, $this->deliveries, $this->engagement, new EmailValidator(disposable: DisposableDomains::of(['mailinator.com']), topLevelDomains: TopLevelDomains::of(['com', 'org', 'net', 'ca'])), $this->bus, $this->events, $this->clock);
     }
@@ -104,6 +110,14 @@ final class Newsletter
         $this->lists->save($list);
 
         return $list;
+    }
+
+    /**
+     * The send runs, with the circuit breaker given; none by default, so that a test reaches it only on purpose.
+     */
+    public function sendRuns(?BreakerPolicy $breaker = null): SendRuns
+    {
+        return new SendRuns($this->runs, $this->deliveries, $this->bus, $this->events, $this->clock, $breaker);
     }
 
     public function twig(): Environment

@@ -8,13 +8,15 @@ use DateTimeImmutable;
 use Phil\NewsletterBundle\Domain\Enum\CampaignStatus;
 use Phil\NewsletterBundle\Domain\Enum\ClickTracking;
 use Phil\NewsletterBundle\Domain\Exception\InvalidNewsletterValue;
+use Phil\NewsletterBundle\Domain\ValueObject\CampaignApproval;
 use Phil\NewsletterBundle\Domain\ValueObject\Site;
 
 /**
  * One message sent to a list, or to a segment of it: its subject, its preheader, its body in Markdown, the template
  * that lays it out, the sender profile it goes out with, and how its clicks are counted.
  *
- * It is edited while it is a draft, scheduled, then sent once; a draft or a scheduled campaign may be cancelled.
+ * It is edited while it is a draft, approved, scheduled, then sent once; a draft or a scheduled campaign may be
+ * cancelled. An edit withdraws its approval: what goes out is what was approved.
  */
 final class Campaign
 {
@@ -24,6 +26,11 @@ final class Campaign
 
     public private(set) ?DateTimeImmutable $sentAt = null;
 
+    public private(set) ?CampaignApproval $approval = null;
+
+    /**
+     * @param string|null $author the user identifier of who wrote it, which the four-eyes rule compares to the approver's
+     */
     public function __construct(
         public readonly string $id,
         public readonly Site $site,
@@ -35,18 +42,24 @@ final class Campaign
         public private(set) ?string $template = null,
         public private(set) ?string $senderProfile = null,
         public private(set) ClickTracking $clickTracking = ClickTracking::Aggregate,
+        public readonly ?string $author = null,
     ) {
         $this->checkSubject($subject);
+
+        if (null !== $author && ('' === trim($author) || mb_strlen($author) > 191)) {
+            throw InvalidNewsletterValue::because('The author of a campaign is not blank and holds at most 191 characters.');
+        }
     }
 
     /**
      * Restores a campaign as a store keeps it.
      */
-    public static function restore(self $campaign, CampaignStatus $status, ?DateTimeImmutable $scheduledAt, ?DateTimeImmutable $sentAt): self
+    public static function restore(self $campaign, CampaignStatus $status, ?DateTimeImmutable $scheduledAt, ?DateTimeImmutable $sentAt, ?CampaignApproval $approval = null): self
     {
         $campaign->status = $status;
         $campaign->scheduledAt = $scheduledAt;
         $campaign->sentAt = $sentAt;
+        $campaign->approval = $approval;
 
         return $campaign;
     }
@@ -65,6 +78,37 @@ final class Campaign
         $this->template = $template;
         $this->senderProfile = $senderProfile;
         $this->clickTracking = $clickTracking;
+        $this->approval = null;
+    }
+
+    /**
+     * Approves the campaign for sending, as it stands.
+     *
+     * @param bool $fourEyes whether the approver must be someone other than its author; a campaign without an author
+     *                       is then never approved
+     *
+     * @throws InvalidNewsletterValue when the campaign is neither a draft nor scheduled, or the four-eyes rule refuses the approver
+     */
+    public function approve(string $approver, DateTimeImmutable $at, bool $fourEyes): void
+    {
+        $this->expect([CampaignStatus::Draft, CampaignStatus::Scheduled], 'approved');
+
+        if ($fourEyes && (null === $this->author || $approver === $this->author)) {
+            throw InvalidNewsletterValue::because('Under the four-eyes rule, a campaign is approved by someone other than its author.');
+        }
+
+        $this->approval = new CampaignApproval($approver, $at);
+    }
+
+    public function withdrawApproval(): void
+    {
+        $this->expect([CampaignStatus::Draft, CampaignStatus::Scheduled], 'withdrawn from approval');
+        $this->approval = null;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approval instanceof CampaignApproval;
     }
 
     public function schedule(DateTimeImmutable $at): void
@@ -74,9 +118,19 @@ final class Campaign
         $this->scheduledAt = $at;
     }
 
-    public function start(): void
+    /**
+     * @param bool $approvalRequired whether the campaign is sent only once approved
+     *
+     * @throws InvalidNewsletterValue when the campaign is neither a draft nor scheduled, or awaits its approval
+     */
+    public function start(bool $approvalRequired = true): void
     {
         $this->expect([CampaignStatus::Draft, CampaignStatus::Scheduled], 'sent');
+
+        if ($approvalRequired && !$this->isApproved()) {
+            throw InvalidNewsletterValue::because('A campaign is sent once it is approved.');
+        }
+
         $this->status = CampaignStatus::Sending;
     }
 

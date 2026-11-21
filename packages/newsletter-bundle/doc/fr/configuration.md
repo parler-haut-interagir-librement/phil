@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8ad380117a9cb4fbd8cebfe94fa2d99d2e3fa2af995bf2e6b0e65dc62527fded -->
+<!-- phil-dev source-sha256=b01738995b5ed5b02c9e8b1320031326d5caf86b07e08f6d3c048dc93a766e2d -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_newsletter` :
@@ -40,6 +40,15 @@ phil_newsletter:
     webhooks:
         crm: { url: 'https://crm.example.com/hooks/newsletter', events: [confirmed, unsubscribed] }
     preview_role: ROLE_EDITOR
+    approval:
+        required: true
+        role: ROLE_NEWSLETTER_APPROVER
+        four_eyes: true
+    circuit_breaker:            # "circuit_breaker: false" turns it off
+        minimum: 100
+        transport_failure_rate: 10
+        bounce_rate: 5
+        complaint_rate: 0.3
 ```
 
 | Option | Valeur par défaut | Ce qu'elle fait |
@@ -64,6 +73,14 @@ phil_newsletter:
 | `subscription.rate_limit.resend_delay` | `5 minutes` | Le délai avant qu'une autre confirmation soit envoyée au même abonné. |
 | `webhooks.<name>` | aucun | Les récepteurs des événements d'audience ; un `events` vide les envoie tous. Exige `phil/standard-webhooks-bundle`. |
 | `preview_role` | `ROLE_ADMIN` | Le rôle auquel répond l'aperçu de l'éditeur. |
+| `approval.required` | `true` | Si une campagne n'est envoyée, ou démarrée à son heure, qu'une fois approuvée. Voir [Approbation](campaigns.md#approbation). |
+| `approval.role` | `ROLE_NEWSLETTER_APPROVER` | Le rôle qui approuve les campagnes. |
+| `approval.four_eyes` | `false` | Si l'approbateur doit être quelqu'un d'autre que l'auteur de la campagne. |
+| `circuit_breaker.enabled` | `true` | Met en pause une exécution d'envoi dont les échecs de transport, les rebonds ou les plaintes montent ; `circuit_breaker: false` le désactive. Voir [Les exécutions d'envoi et le disjoncteur](campaigns.md#les-exécutions-denvoi-et-le-disjoncteur). |
+| `circuit_breaker.minimum` | `100` | Les messages tentés, depuis le démarrage ou la reprise de l'exécution, avant que les parts soient lues. |
+| `circuit_breaker.transport_failure_rate` | `10` | La part des tentatives que le transport de courriel a refusées, en pourcentage, au-delà de laquelle l'exécution se met en pause. |
+| `circuit_breaker.bounce_rate` | `5` | La part des messages envoyés qui ont rebondi, en pourcentage, au-delà de laquelle l'exécution se met en pause. |
+| `circuit_breaker.complaint_rate` | `0.3` | La part des messages envoyés signalés comme pourriel, en pourcentage, au-delà de laquelle l'exécution se met en pause. |
 
 Chaque profil :
 

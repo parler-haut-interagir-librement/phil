@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5f09265ebe5cf031f91d24eb489cb04a60f0abf31d9ab9e3271914ea599e9dbb -->
+<!-- phil-dev source-sha256=4cccd83ae8fb53337a6bb064c9f397473b96aeb966e62de302eea78c0aad43ac -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension sont stables seulement à partir de sa version 1.0. D'ici là, une
@@ -20,7 +20,9 @@ version mineure peut les changer, et son CHANGELOG dit comment.
 
 Les dépôts sont aussi des services, par leurs interfaces sous `Phil\NewsletterBundle\Domain\Contract` :
 `MailingListRepository`, `SubscriberRepository`, `CampaignRepository`, `DeliveryRepository`, `TemplateRepository`,
-`EngagementRepository` et `SuppressionRepository`.
+`EngagementRepository`, `SuppressionRepository` et `SendRunRepository`. Un `SendRunRepository` ajoute à un compte dans le
+stockage, ne l'écrase jamais, et ne change l'état d'une exécution qu'à partir de l'état dans lequel il a été lu, pour que
+les *workers* d'une même exécution ne se fassent rien perdre les uns aux autres.
 
 ## Les événements
 
@@ -28,6 +30,10 @@ Les dépôts sont aussi des services, par leurs interfaces sous `Phil\Newsletter
 |---|---|
 | `Phil\NewsletterBundle\Application\Event\AudienceChanged` | Après la sauvegarde de chaque changement d'un abonné : son type, l'identifiant de l'abonné, le site, la liste et l'identifiant externe |
 | `Phil\NewsletterBundle\Application\Event\LinkClicked` | Après le comptage d'un clic par destinataire |
+| `Phil\NewsletterBundle\Application\Event\CampaignApproved` | Après la sauvegarde d'une approbation : l'identifiant de la campagne et l'instant |
+| `Phil\NewsletterBundle\Application\Event\SendRunPaused` | Après la mise en pause d'une exécution d'envoi, par son disjoncteur ou par un opérateur : les identifiants de l'exécution et de la campagne, le `PauseReason` et l'instant |
+| `Phil\NewsletterBundle\Application\Event\SendRunResumed` | Après la reprise d'une exécution d'envoi par un opérateur : les identifiants de l'exécution et de la campagne et l'instant |
+| `Phil\NewsletterBundle\Application\Event\SendRunCompleted` | Après que chaque message d'une exécution d'envoi a été envoyé ou ignoré : les identifiants de l'exécution et de la campagne et l'instant |
 
 ## Les gabarits
 

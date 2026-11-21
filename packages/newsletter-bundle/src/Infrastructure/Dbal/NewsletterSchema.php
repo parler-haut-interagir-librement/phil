@@ -8,15 +8,18 @@ use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Index\IndexType;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Schema\TableEditor;
 use Doctrine\DBAL\Schema\UniqueConstraint;
 use Doctrine\DBAL\Types\Types;
 
 /**
- * The tables of the newsletter, added to a schema that lacks them: the one a migration builds, or the one the ORM
- * generates, through `NewsletterSchemaListener`. Instants are Unix timestamps.
+ * The tables of the newsletter, added to a schema that lacks them — the one a migration builds, or the one the ORM
+ * generates, through `NewsletterSchemaListener` —, and the columns and indexes a later version adds to them. Instants
+ * are Unix timestamps.
  *
  * **Keys compare byte by byte.** The identifiers, sites, list and template keys, address keys and hashes take, given
  * the platform, the `utf8mb4` character set and the `utf8mb4_bin` collation on MySQL and MariaDB, whose default
@@ -49,15 +52,18 @@ final class NewsletterSchema
 
     public const string SUPPRESSIONS = 'phil_newsletter_suppression';
 
+    public const string SEND_RUNS = 'phil_newsletter_send_run';
+
     /**
      * The columns that compare byte by byte on MySQL and MariaDB.
      */
-    public const array BINARY_COLUMNS = ['id', 'site', 'list_key', 'email_key', 'external_id', 'subscriber_id', 'list_id', 'campaign_id', 'url_hash', 'template_key', 'email_hash'];
+    public const array BINARY_COLUMNS = ['id', 'site', 'list_key', 'email_key', 'external_id', 'subscriber_id', 'list_id', 'campaign_id', 'url_hash', 'template_key', 'email_hash', 'run_id'];
 
-    public const array TABLES = [self::LISTS, self::SUBSCRIBERS, self::MEMBERSHIPS, self::CAMPAIGNS, self::LINKS, self::DELIVERIES, self::TEMPLATES, self::CLICKS, self::RECIPIENT_CLICKS, self::REASONS, self::SUPPRESSIONS];
+    public const array TABLES = [self::LISTS, self::SUBSCRIBERS, self::MEMBERSHIPS, self::CAMPAIGNS, self::LINKS, self::DELIVERIES, self::TEMPLATES, self::CLICKS, self::RECIPIENT_CLICKS, self::REASONS, self::SUPPRESSIONS, self::SEND_RUNS];
 
     /**
-     * Adds the tables the schema lacks. Without a platform, the columns keep the connection's default collation: the
+     * Adds the tables the schema lacks, and the columns and indexes its tables of the newsletter lack: a column that a
+     * version adds to a table accepts a null, so that it is added to a table that holds rows. Without a platform, the columns keep the connection's default collation: the
      * schema listener always gives the platform of its connection.
      */
     public static function configure(Schema $schema, ?AbstractPlatform $platform = null): Schema
@@ -65,9 +71,28 @@ final class NewsletterSchema
         $editor = $schema->edit();
 
         foreach (self::tables($platform instanceof AbstractMySQLPlatform) as $table) {
-            if (!$schema->hasTable($table->getObjectName()->toString())) {
+            $name = $table->getObjectName()->toString();
+
+            if (!$schema->hasTable($name)) {
                 $editor->addTable($table);
+
+                continue;
             }
+
+            $existing = $schema->getTable($name);
+            $editor->modifyTable($table->getObjectName(), static function (TableEditor $modified) use ($table, $existing): void {
+                foreach ($table->getColumns() as $column) {
+                    if (!$existing->hasColumn($column->getObjectName()->toString())) {
+                        $modified->addColumn($column);
+                    }
+                }
+
+                foreach ($table->getIndexes() as $index) {
+                    if (IndexType::REGULAR === $index->getType() && !$existing->hasIndex($index->getObjectName()->toString())) {
+                        $modified->addIndex($index);
+                    }
+                }
+            });
         }
 
         return $editor->create();
@@ -95,6 +120,7 @@ final class NewsletterSchema
                 self::key('id', 36, $binary), self::string('site', 64, false, $binary), self::string('list_id', 36, false, $binary), self::string('subject', 200, false, $binary), self::column('body', Types::TEXT),
                 self::string('preheader', 255, false, $binary), self::string('segment', 64, true, $binary), self::string('template', 64, true, $binary), self::string('sender_profile', 64, true, $binary),
                 self::string('click_tracking', 16, false, $binary), self::string('status', 16, false, $binary), self::column('scheduled_at', Types::BIGINT, true), self::column('sent_at', Types::BIGINT, true),
+                self::string('author', 191, true, $binary), self::string('approved_by', 191, true, $binary), self::column('approved_at', Types::BIGINT, true),
             ], ['id'], [['status', 'scheduled_at']]),
             self::table(self::LINKS, [
                 self::key('campaign_id', 36, $binary), self::column('link_index', Types::INTEGER), self::string('url_hash', 64, false, $binary), self::column('url', Types::TEXT),
@@ -102,7 +128,8 @@ final class NewsletterSchema
             self::table(self::DELIVERIES, [
                 self::key('id', 32, $binary), self::string('subscriber_id', 36, false, $binary), self::string('campaign_id', 36, true, $binary), self::string('template', 64, true, $binary),
                 self::string('status', 16, false, $binary), self::column('attempts', Types::INTEGER), self::column('created_at', Types::BIGINT), self::column('sent_at', Types::BIGINT, true),
-            ], ['id'], [['campaign_id', 'status'], ['subscriber_id']]),
+                self::string('run_id', 32, true, $binary),
+            ], ['id'], [['campaign_id', 'status'], ['subscriber_id'], ['run_id', 'status', 'id']]),
             self::table(self::TEMPLATES, [
                 self::key('site', 64, $binary), self::key('template_key', 64, $binary), self::string('subject', 200, false, $binary), self::column('source', Types::TEXT), self::column('updated_at', Types::BIGINT),
             ], ['site', 'template_key']),
@@ -118,6 +145,13 @@ final class NewsletterSchema
             self::table(self::SUPPRESSIONS, [
                 self::key('site', 64, $binary), self::key('email_hash', 64, $binary), self::string('reason', 16, false, $binary), self::column('created_at', Types::BIGINT),
             ], ['site', 'email_hash']),
+            self::table(self::SEND_RUNS, [
+                self::key('id', 32, $binary), self::string('campaign_id', 36, false, $binary), self::column('run_number', Types::INTEGER), self::string('status', 16, false, $binary),
+                self::string('pause_reason', 32, true, $binary), self::column('queued', Types::INTEGER), self::column('sent', Types::INTEGER), self::column('failed', Types::INTEGER),
+                self::column('skipped', Types::INTEGER), self::column('bounced', Types::INTEGER), self::column('complained', Types::INTEGER), self::column('base_sent', Types::INTEGER),
+                self::column('base_failed', Types::INTEGER), self::column('base_bounced', Types::INTEGER), self::column('base_complained', Types::INTEGER), self::column('started_at', Types::BIGINT),
+                self::column('queued_at', Types::BIGINT, true), self::column('paused_at', Types::BIGINT, true), self::column('ended_at', Types::BIGINT, true),
+            ], ['id'], unique: [['campaign_id', 'run_number']]),
         ];
     }
 

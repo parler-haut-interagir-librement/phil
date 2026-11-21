@@ -4,9 +4,10 @@ Every class of the bundle, with its role.
 
 | Type | Kind | Role |
 |---|---|---|
+| `Phil\NewsletterBundle\Application\ApprovalPolicy` | `final readonly class` | Whether a campaign is sent only once approved, the role that approves it, and whether its approver must be someone other than its author |
 | `Phil\NewsletterBundle\Application\Bounces\BounceHandler` | `final readonly class` | What a bounce does to the subscriber it is about, whether it came back to the bounce mailbox — read by `phil/bounce-parser` |
 | `Phil\NewsletterBundle\Application\Bounces\BounceOutcome` | enum | What a bounce did to a subscriber |
-| `Phil\NewsletterBundle\Application\Campaigns` | `final readonly class` | Sending a campaign now or later, cancelling it, and what it gave |
+| `Phil\NewsletterBundle\Application\Campaigns` | `final readonly class` | Approving a campaign, sending it now or later under a send run, cancelling it, and what it gave |
 | `Phil\NewsletterBundle\Application\Content\ContentRenderer` | `final readonly class` | Turns what an editor wrote into a message |
 | `Phil\NewsletterBundle\Application\Content\LinkRewriter` | `final readonly class` | Rewrites the links of a message's body for click tracking |
 | `Phil\NewsletterBundle\Application\Content\RangeRefusal` | `final readonly class` | Refuses, when a sandboxed template compiles, the range operator `1..1000000` |
@@ -19,7 +20,12 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Application\Contract\SegmentResolver` | interface | Chooses the recipients of a campaign |
 | `Phil\NewsletterBundle\Application\Contract\SendThrottle` | interface | The pace of sending |
 | `Phil\NewsletterBundle\Application\Event\AudienceChanged` | `final readonly class` | Something happened to a subscriber |
+| `Phil\NewsletterBundle\Application\Event\CampaignApproved` | `final readonly class` | A campaign was approved for sending, once saved |
 | `Phil\NewsletterBundle\Application\Event\LinkClicked` | `final readonly class` | A subscriber clicked a link of a campaign that counts clicks per recipient |
+| `Phil\NewsletterBundle\Application\Event\SendRunCompleted` | `final readonly class` | Every message a send run queued was sent or skipped, once saved |
+| `Phil\NewsletterBundle\Application\Event\SendRunPaused` | `final readonly class` | A send run was paused, by its circuit breaker or by an operator, once saved |
+| `Phil\NewsletterBundle\Application\Event\SendRunResumed` | `final readonly class` | An operator resumed a paused send run, once saved |
+| `Phil\NewsletterBundle\Application\Exception\ApprovalRefused` | `final class` | An approval of a campaign the current user may not give |
 | `Phil\NewsletterBundle\Application\Exception\LinkRefused` | `final class` | A link of the newsletter that is not signed by it, is for something else, or expired |
 | `Phil\NewsletterBundle\Application\Exception\NotFound` | `final class` | A list, a subscriber, a campaign or a template that is not there |
 | `Phil\NewsletterBundle\Application\Exception\SubscriptionRefused` | `final class` | An address the newsletter refuses |
@@ -28,7 +34,7 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Application\Handler\DispatchDueCampaignsHandler` | `final readonly class` | Starts the scheduled campaigns whose time has come |
 | `Phil\NewsletterBundle\Application\Handler\FetchBouncesHandler` | `final readonly class` | Reads the bounce mailbox |
 | `Phil\NewsletterBundle\Application\Handler\NewsletterSchedule` | `final readonly class` | The schedule `newsletter` of Symfony Scheduler |
-| `Phil\NewsletterBundle\Application\Handler\SendCampaignHandler` | `final readonly class` | Queues the messages of a campaign |
+| `Phil\NewsletterBundle\Application\Handler\SendCampaignHandler` | `final readonly class` | Queues the messages of a campaign under its send run |
 | `Phil\NewsletterBundle\Application\Handler\SendConfirmationHandler` | `final readonly class` | Sends the confirmation of a double opt-in, with its signed link, valid seven days, after the domain check when a resolver is given |
 | `Phil\NewsletterBundle\Application\Handler\SendDeliveryHandler` | `final readonly class` | Sends one queued message, at its time |
 | `Phil\NewsletterBundle\Application\ListRecipients` | `final readonly class` | The bundle's own recipients |
@@ -39,6 +45,7 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Application\Message\SendConfirmation` | `final readonly class` | Asks a worker to send the confirmation of a double opt-in |
 | `Phil\NewsletterBundle\Application\Message\SendDelivery` | `final readonly class` | Asks a worker to send one queued message |
 | `Phil\NewsletterBundle\Application\NewsletterUrls` | `final readonly class` | The absolute addresses of the newsletter's pages, written into messages a worker sends without a request |
+| `Phil\NewsletterBundle\Application\SendRuns` | `final readonly class` | The send runs of campaigns: one per attempt at sending, its counts as its messages go out, and its circuit breaker |
 | `Phil\NewsletterBundle\Application\Sending\MessageComposer` | `final readonly class` | Builds the email of one delivery |
 | `Phil\NewsletterBundle\Application\Sending\SenderProfile` | `final readonly class` | Who a message comes from and how it goes out |
 | `Phil\NewsletterBundle\Application\Sending\SenderProfiles` | `final readonly class` | The sender profiles of the configuration, by name, and the one a list or a campaign without its own uses |
@@ -51,6 +58,7 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Domain\Contract\DeliveryRepository` | interface | Where the deliveries are kept |
 | `Phil\NewsletterBundle\Domain\Contract\EngagementRepository` | interface | Where clicks and the reasons people leave are counted |
 | `Phil\NewsletterBundle\Domain\Contract\MailingListRepository` | interface | Where the lists are kept |
+| `Phil\NewsletterBundle\Domain\Contract\SendRunRepository` | interface | Where the send runs are kept |
 | `Phil\NewsletterBundle\Domain\Contract\SubscriberRepository` | interface | Where the subscribers and their memberships are kept |
 | `Phil\NewsletterBundle\Domain\Contract\SuppressionRepository` | interface | The addresses never to mail again — bounced, complained —, kept as a keyed hash, so that the list outlives an erasure without keeping the address |
 | `Phil\NewsletterBundle\Domain\Contract\TemplateRepository` | interface | Where the templates administrators and members write are kept |
@@ -60,6 +68,9 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Domain\Enum\DeliveryStatus` | enum | What became of one message to one subscriber |
 | `Phil\NewsletterBundle\Domain\Enum\LinkPurpose` | enum | What a signed link of the newsletter is for |
 | `Phil\NewsletterBundle\Domain\Enum\MembershipStatus` | enum | A subscriber's place on one list: `pending`, `active`, `unsubscribed`, or `refused` when the domain receives no mail |
+| `Phil\NewsletterBundle\Domain\Enum\PauseReason` | enum | Why a send run was paused |
+| `Phil\NewsletterBundle\Domain\Enum\SendRunCounter` | enum | What a send run counts as its messages go out |
+| `Phil\NewsletterBundle\Domain\Enum\SendRunStatus` | enum | Where a send run stands |
 | `Phil\NewsletterBundle\Domain\Enum\SubscriberStatus` | enum | What a subscriber is to the site's newsletter as a whole |
 | `Phil\NewsletterBundle\Domain\Enum\UnsubscribeReason` | enum | Why someone left, as they chose it, kept without anything that names them |
 | `Phil\NewsletterBundle\Domain\Exception\InvalidNewsletterValue` | `final class` | A value the newsletter refuses |
@@ -68,8 +79,11 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Domain\Model\Delivery` | `final class` | One message to one subscriber |
 | `Phil\NewsletterBundle\Domain\Model\MailingList` | `final class` | A list people subscribe to, on one site |
 | `Phil\NewsletterBundle\Domain\Model\Membership` | `final class` | A subscriber's place on one list |
+| `Phil\NewsletterBundle\Domain\Model\SendRun` | `final class` | One attempt at sending a campaign |
 | `Phil\NewsletterBundle\Domain\Model\Subscriber` | `final class` | A person who subscribed on one site |
 | `Phil\NewsletterBundle\Domain\Model\Template` | `final class` | A template an administrator or a member wrote |
+| `Phil\NewsletterBundle\Domain\ValueObject\BreakerPolicy` | `final readonly class` | When a send run's circuit breaker pauses it |
+| `Phil\NewsletterBundle\Domain\ValueObject\CampaignApproval` | `final readonly class` | Who approved a campaign for sending, and when |
 | `Phil\NewsletterBundle\Domain\ValueObject\SendWindow` | `final readonly class` | The hours a sender profile sends in |
 | `Phil\NewsletterBundle\Domain\ValueObject\Site` | `final readonly class` | The site a list, a subscriber, a campaign or a template belongs to |
 | `Phil\NewsletterBundle\Infrastructure\Automations\AudienceTrigger` | `final readonly class` | The triggers `newsletter.subscribed`, `newsletter.confirmed`, `newsletter.unsubscribed`, `newsletter.paused` and `newsletter.resumed` |
@@ -83,6 +97,7 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Infrastructure\Dbal\DbalDeliveryRepository` | `final readonly class` | The deliveries in the table `phil_newsletter_delivery`, each created once by an insert that leaves a row of the same id alone |
 | `Phil\NewsletterBundle\Infrastructure\Dbal\DbalEngagementRepository` | `final readonly class` | The clicks in `phil_newsletter_click` (a total per link) and `phil_newsletter_recipient_click` (per recipient, when a campaign chose it), the reasons to leave in `phil_newsletter_unsubscribe_reason`, a total per site, list, reason and UTC day |
 | `Phil\NewsletterBundle\Infrastructure\Dbal\DbalMailingListRepository` | `final readonly class` | The lists in the table `phil_newsletter_list` |
+| `Phil\NewsletterBundle\Infrastructure\Dbal\DbalSendRunRepository` | `final readonly class` | The send runs in the table `phil_newsletter_send_run` |
 | `Phil\NewsletterBundle\Infrastructure\Dbal\DbalSubscriberRepository` | `final readonly class` | The subscribers in the table `phil_newsletter_subscriber`, their memberships in `phil_newsletter_membership` |
 | `Phil\NewsletterBundle\Infrastructure\Dbal\DbalSuppressionRepository` | `final readonly class` | The suppressed addresses in the table `phil_newsletter_suppression`, each as an HMAC-SHA256 of the site and the address under the application's key |
 | `Phil\NewsletterBundle\Infrastructure\Dbal\DbalTemplateRepository` | `final readonly class` | The templates in the table `phil_newsletter_template`; a shared template has an empty site |

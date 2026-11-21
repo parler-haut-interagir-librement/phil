@@ -12,14 +12,15 @@ use Phil\NewsletterBundle\Domain\Contract\CampaignRepository;
 use Phil\NewsletterBundle\Domain\Enum\CampaignStatus;
 use Phil\NewsletterBundle\Domain\Enum\ClickTracking;
 use Phil\NewsletterBundle\Domain\Model\Campaign;
+use Phil\NewsletterBundle\Domain\ValueObject\CampaignApproval;
 use Phil\NewsletterBundle\Domain\ValueObject\Site;
 
 /**
- * The campaigns in the table `phil_newsletter_campaign`, the links they track in `phil_newsletter_link`.
+ * The campaigns in the table `phil_newsletter_campaign`, with their author and approval, the links they track in `phil_newsletter_link`.
  */
 final readonly class DbalCampaignRepository implements CampaignRepository
 {
-    private const string COLUMNS = 'id, site, list_id, subject, body, preheader, segment, template, sender_profile, click_tracking, status, scheduled_at, sent_at';
+    private const string COLUMNS = 'id, site, list_id, subject, body, preheader, segment, template, sender_profile, click_tracking, status, scheduled_at, sent_at, author, approved_by, approved_at';
 
     public function __construct(
         private Connection $connection,
@@ -43,6 +44,9 @@ final readonly class DbalCampaignRepository implements CampaignRepository
             'status' => $campaign->status->value,
             'scheduled_at' => $campaign->scheduledAt?->getTimestamp(),
             'sent_at' => $campaign->sentAt?->getTimestamp(),
+            'author' => $campaign->author,
+            'approved_by' => $campaign->approval?->approver,
+            'approved_at' => $campaign->approval?->approvedAt->getTimestamp(),
         ], ['id']);
     }
 
@@ -93,6 +97,8 @@ final readonly class DbalCampaignRepository implements CampaignRepository
      */
     private function campaign(array $row): Campaign
     {
+        $approver = Sql::nullableString($row['approved_by']);
+
         return Campaign::restore(
             new Campaign(
                 Sql::string($row['id']),
@@ -105,10 +111,12 @@ final readonly class DbalCampaignRepository implements CampaignRepository
                 Sql::nullableString($row['template']),
                 Sql::nullableString($row['sender_profile']),
                 ClickTracking::from(Sql::string($row['click_tracking'])),
+                Sql::nullableString($row['author']),
             ),
             CampaignStatus::from(Sql::string($row['status'])),
             Sql::nullableInstant($row['scheduled_at']),
             Sql::nullableInstant($row['sent_at']),
+            null === $approver ? null : new CampaignApproval($approver, Sql::instant($row['approved_at'])),
         );
     }
 }

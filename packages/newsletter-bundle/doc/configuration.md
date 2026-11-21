@@ -39,6 +39,15 @@ phil_newsletter:
     webhooks:
         crm: { url: 'https://crm.example.com/hooks/newsletter', events: [confirmed, unsubscribed] }
     preview_role: ROLE_EDITOR
+    approval:
+        required: true
+        role: ROLE_NEWSLETTER_APPROVER
+        four_eyes: true
+    circuit_breaker:            # "circuit_breaker: false" turns it off
+        minimum: 100
+        transport_failure_rate: 10
+        bounce_rate: 5
+        complaint_rate: 0.3
 ```
 
 | Option | Default | What it does |
@@ -63,6 +72,14 @@ phil_newsletter:
 | `subscription.rate_limit.resend_delay` | `5 minutes` | The delay before another confirmation goes to the same subscriber. |
 | `webhooks.<name>` | none | Receivers of the audience events; `events` empty sends all. Needs `phil/standard-webhooks-bundle`. |
 | `preview_role` | `ROLE_ADMIN` | The role the preview of the editor answers. |
+| `approval.required` | `true` | Whether a campaign is sent, or started at its time, only once approved. See [Approval](campaigns.md#approval). |
+| `approval.role` | `ROLE_NEWSLETTER_APPROVER` | The role that approves campaigns. |
+| `approval.four_eyes` | `false` | Whether the approver must be someone other than the author of the campaign. |
+| `circuit_breaker.enabled` | `true` | Pauses a send run whose transport failures, bounces or complaints climb; `circuit_breaker: false` turns it off. See [Send runs and the circuit breaker](campaigns.md#send-runs-and-the-circuit-breaker). |
+| `circuit_breaker.minimum` | `100` | The messages tried, since the run started or was resumed, before the shares are read. |
+| `circuit_breaker.transport_failure_rate` | `10` | The share of attempts the mail transport refused, in percent, past which the run pauses. |
+| `circuit_breaker.bounce_rate` | `5` | The share of messages sent that bounced, in percent, past which the run pauses. |
+| `circuit_breaker.complaint_rate` | `0.3` | The share of messages sent reported as spam, in percent, past which the run pauses. |
 
 Each profile:
 

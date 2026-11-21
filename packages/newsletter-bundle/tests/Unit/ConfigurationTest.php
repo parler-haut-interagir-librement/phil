@@ -38,7 +38,30 @@ final class ConfigurationTest extends TestCase
             'subscription' => ['rate_limit' => ['enabled' => true, 'per_ip' => ['limit' => 10, 'interval' => '1 hour'], 'per_address' => ['limit' => 5, 'interval' => '1 hour'], 'resend_delay' => '5 minutes']],
             'webhooks' => [],
             'preview_role' => 'ROLE_ADMIN',
+            'approval' => ['required' => true, 'role' => 'ROLE_NEWSLETTER_APPROVER', 'four_eyes' => false],
+            'circuit_breaker' => ['enabled' => true, 'minimum' => 100, 'transport_failure_rate' => 10.0, 'bounce_rate' => 5.0, 'complaint_rate' => 0.3],
         ], $this->process([]));
+    }
+
+    public function testTheCircuitBreakerIsTurnedOffExplicitlyAndItsRatesArePercentages(): void
+    {
+        self::assertSame(['enabled' => false, 'minimum' => 100, 'transport_failure_rate' => 10.0, 'bounce_rate' => 5.0, 'complaint_rate' => 0.3], $this->process(['circuit_breaker' => false])['circuit_breaker']);
+
+        foreach ([['minimum' => 0], ['bounce_rate' => -0.1], ['complaint_rate' => 100.1], ['transport_failure_rate' => 101]] as $invalid) {
+            try {
+                $this->process(['circuit_breaker' => $invalid]);
+                self::fail('An invalid threshold was accepted.');
+            } catch (InvalidConfigurationException $invalidConfigurationException) {
+                self::assertStringContainsString('circuit_breaker', $invalidConfigurationException->getMessage());
+            }
+        }
+
+        try {
+            $this->process(['approval' => ['role' => '']]);
+            self::fail('An empty role was accepted.');
+        } catch (InvalidConfigurationException $invalidConfigurationException) {
+            self::assertStringContainsString('approval.role', $invalidConfigurationException->getMessage());
+        }
     }
 
     public function testTheDefaultsOfAProfile(): void

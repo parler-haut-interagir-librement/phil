@@ -41,7 +41,22 @@ phil_newsletter:
 
 `NewsletterSchema::configure()` adds the tables to a schema. With the ORM, `NewsletterSchemaListener`, registered on
 its `postGenerateSchema` event when DoctrineBundle is there, adds them to the schema it generates, and
-`doctrine:migrations:diff` writes the migration. See [Storage](storage.md).
+`doctrine:migrations:diff` writes the migration, and the one of each later version. See [Storage](storage.md).
+
+## The approvers
+
+A campaign is sent once a user of `ROLE_NEWSLETTER_APPROVER` approved it. Give the role to the people who approve, in
+the application's security:
+
+```yaml
+# config/packages/security.yaml
+security:
+    role_hierarchy:
+        ROLE_EDITOR_IN_CHIEF: [ROLE_NEWSLETTER_APPROVER]
+```
+
+`approval.role` names another role, `approval.four_eyes` asks for an approver other than the author, and
+`approval.required: false` sends without approval. See [Campaigns](campaigns.md#approval).
 
 ## The workers
 

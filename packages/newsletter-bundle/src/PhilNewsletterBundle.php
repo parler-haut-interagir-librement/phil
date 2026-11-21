@@ -17,7 +17,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  * A site's newsletter: lists, double opt-in, campaigns written in Markdown and laid out by the house layout or by
  * templates rendered in a sandbox, sending through Symfony Mailer at the pace of sender profiles, one-click
  * unsubscription, a preference center, bounces from an IMAP mailbox and from providers' webhooks, clicks counted in a
- * total by default, audience webhooks, and the send and list actions of `phil/automations`.
+ * total by default, audience webhooks, and the send and list actions of `phil/automations`. A campaign is sent once
+ * approved, under a send run that its circuit breaker pauses when transport failures, bounces or complaints climb.
  *
  * ```yaml
  * phil_newsletter:
@@ -143,6 +144,25 @@ final class PhilNewsletterBundle extends AbstractBundle
                     ->end()
                 ->end()
                 ->scalarNode('preview_role')->info('The role the preview of the Markdown editor answers.')->defaultValue('ROLE_ADMIN')->end()
+                ->arrayNode('approval')
+                    ->info('Whether a campaign is sent only once approved, and by whom.')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('required')->info('Whether a campaign is sent, or started at its time, only once approved.')->defaultTrue()->end()
+                        ->scalarNode('role')->info('The role that approves campaigns.')->defaultValue('ROLE_NEWSLETTER_APPROVER')->cannotBeEmpty()->end()
+                        ->booleanNode('four_eyes')->info('Whether the approver must be someone other than the author of the campaign.')->defaultFalse()->end()
+                    ->end()
+                ->end()
+                ->arrayNode('circuit_breaker')
+                    ->info('Pauses a send run once, of at least "minimum" messages tried since it started or was resumed, the share of transport failures, bounces or complaints crosses its threshold, in percent; an operator resumes it. "circuit_breaker: false" turns it off.')
+                    ->canBeDisabled()
+                    ->children()
+                        ->integerNode('minimum')->info('The messages tried before the shares are read.')->defaultValue(100)->min(1)->end()
+                        ->floatNode('transport_failure_rate')->info('The share of attempts the mail transport refused.')->defaultValue(10.0)->min(0.0)->max(100.0)->end()
+                        ->floatNode('bounce_rate')->info('The share of messages sent that bounced.')->defaultValue(5.0)->min(0.0)->max(100.0)->end()
+                        ->floatNode('complaint_rate')->info('The share of messages sent reported as spam.')->defaultValue(0.3)->min(0.0)->max(100.0)->end()
+                    ->end()
+                ->end()
             ->end();
     }
 

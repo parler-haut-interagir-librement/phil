@@ -22,8 +22,9 @@ final class NewsletterSchemaNullabilityTest extends TestCase
     {
         $expected = [
             NewsletterSchema::SUBSCRIBERS => ['confirmed_at', 'external_id', 'paused_until'],
-            NewsletterSchema::CAMPAIGNS => ['scheduled_at', 'segment', 'sender_profile', 'sent_at', 'template'],
-            NewsletterSchema::DELIVERIES => ['campaign_id', 'sent_at', 'template'],
+            NewsletterSchema::CAMPAIGNS => ['approved_at', 'approved_by', 'author', 'scheduled_at', 'segment', 'sender_profile', 'sent_at', 'template'],
+            NewsletterSchema::DELIVERIES => ['campaign_id', 'run_id', 'sent_at', 'template'],
+            NewsletterSchema::SEND_RUNS => ['ended_at', 'pause_reason', 'paused_at', 'queued_at'],
         ];
         ksort($expected);
 

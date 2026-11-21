@@ -36,6 +36,27 @@ interface DeliveryRepository
     public function countByStatus(string $campaignId): array;
 
     /**
+     * How many deliveries the send run queued.
+     */
+    public function countOfRun(string $runId): int;
+
+    /**
+     * The ids of the deliveries of a send run still to send, queued or failed, in pages by id.
+     *
+     * @param string|null $after the last id of the page before
+     *
+     * @return list<string>
+     */
+    public function pendingOfRun(string $runId, ?string $after, int $limit): array;
+
+    /**
+     * Skips the deliveries of a send run still to send.
+     *
+     * @return int how many were skipped
+     */
+    public function skipPendingOfRun(string $runId): int;
+
+    /**
      * Forgets the deliveries of a subscriber.
      *
      * @return int how many were forgotten

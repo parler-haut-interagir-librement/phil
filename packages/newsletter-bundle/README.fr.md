@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2c6f484866697732a4b5a63826ebc58d390d350fb299567de266bc57a8438dd1 -->
+<!-- phil-dev source-sha256=cc571e7285572e3704a15f0118d9d4c39394025c4be2f7ac335800749722170b -->
 # phil/newsletter-bundle
 
 **L'infolettre d'un site dans Symfony : on s'abonne, on confirme, on choisit ses listes, on se met en pause ou on s'en va ; les éditeurs écrivent en Markdown ; les messages partent par Symfony Mailer à un rythme que les fournisseurs de courriel acceptent.**
@@ -9,9 +9,12 @@ administrateur ou un membre a écrit, produit dans le bac à sable de Twig. Chaq
 clic que les clients de courriel montrent comme un bouton, et renvoie vers un centre de préférences où un abonné choisit
 ses listes, fait une pause de quelques semaines ou s'en va, en disant pourquoi s'il le souhaite — une raison comptée
 sans rien qui désigne la personne. Les messages partent de profils d'expéditeur : une adresse, un transport de Mailer,
-les heures d'envoi, un plafond quotidien et un rythme par domaine de destinataire. Les rebonds reviennent dans une boîte
-IMAP lue par `phil/bounce-parser`, ou par le webhook d'un fournisseur au moyen de RemoteEvent de Symfony, et une adresse
-qui a rebondi ou s'est plainte n'est plus jamais écrite. Les clics sont comptés dans un total par lien par défaut ;
+les heures d'envoi, un plafond quotidien et un rythme par domaine de destinataire. Une campagne part une fois qu'un
+utilisateur du rôle approbateur l'a approuvée — quelqu'un d'autre que son auteur, selon la règle des quatre yeux —, sous
+une exécution d'envoi qui compte ce qu'il advient de chaque message et qui se met en pause, jusqu'à ce qu'un opérateur la
+reprenne, quand les échecs de transport, les rebonds ou les plaintes dépassent leurs seuils. Les rebonds reviennent dans
+une boîte IMAP lue par `phil/bounce-parser`, ou par le webhook d'un fournisseur au moyen de RemoteEvent de Symfony, et
+une adresse qui a rebondi ou s'est plainte n'est plus jamais écrite. Les clics sont comptés dans un total par lien par défaut ;
 les compter par destinataire est un choix explicite d'une campagne, et les machines qui ouvrent les liens avant les
 personnes sont écartées sans lire d'adresse IP ni d'agent utilisateur. Rien ne suit l'ouverture d'un message.
 
@@ -35,6 +38,9 @@ le bundle fonctionne sur des *workers* de longue durée.
 | Le formulaire d'abonnement, la confirmation, la désinscription en un clic (RFC 8058), le centre de préférences avec pause et raison anonyme | Implémenté et testé |
 | Campagnes en Markdown, la mise en page de la maison, gabarits produits dans `Twig\Sandbox\Sandbox`, l'éditeur Markdown et son aperçu | Implémenté et testé |
 | L'envoi par Messenger et Symfony Mailer, profils d'expéditeur à un transport chacun, fenêtres d'envoi, plafonds quotidiens, rythme par domaine de destinataire | Implémenté et testé |
+| L'approbation avant l'envoi, par un rôle configurable, avec une règle facultative des quatre yeux ; une modification la retire | Implémenté et testé |
+| Les exécutions d'envoi, une par tentative, comptées par chaque *worker* ; un disjoncteur qui met une exécution en pause quand les échecs de transport, les rebonds ou les plaintes montent, jusqu'à ce qu'un opérateur la reprenne | Implémenté et testé |
+| Une montée progressive du rythme après une pause, une reprise automatique, des essais sur une partie du public avant le reste | Hors du bundle : l'application les construit sur les exécutions d'envoi |
 | Le suivi des clics dans un total par défaut ou par destinataire, machines écartées | Implémenté et testé |
 | Rebonds d'une boîte IMAP et de `phil/bounce-parser`, VERP, webhooks de fournisseurs par RemoteEvent, suppression | Implémenté et testé |
 | Les déclencheurs et les actions de `phil/automations`, le module de vie privée de `phil/privacy-bundle`, les webhooks d'audience | Implémenté et testé |
@@ -49,11 +55,11 @@ le bundle fonctionne sur des *workers* de longue durée.
 | [Installation](doc/fr/installation.md) | Les prérequis, la recette, l'enregistrement, les routes, les tables, les *workers*. |
 | [Configuration](doc/fr/configuration.md) | Chaque option, avec un exemple. |
 | [Abonnements](doc/fr/subscriptions.md) | Les listes, la double confirmation, les limites du formulaire, les pages, le départ, la pause, les raisons, les sites. |
-| [Campagnes](doc/fr/campaigns.md) | L'écriture, l'éditeur Markdown, les mises en page, les gabarits en bac à sable, l'envoi, les profils d'expéditeur. |
+| [Campagnes](doc/fr/campaigns.md) | L'écriture, l'approbation, l'éditeur Markdown, les mises en page, les gabarits en bac à sable, l'envoi, les exécutions d'envoi et le disjoncteur, les profils d'expéditeur, la mise à niveau. |
 | [Suivi](doc/fr/tracking.md) | Les clics en total ou par destinataire, les machines écartées, ce qui n'est jamais suivi. |
 | [Rebonds](doc/fr/bounces.md) | La boîte IMAP, VERP, les webhooks de fournisseurs, les rebonds souples et durs, la suppression. |
 | [Intégrations](doc/fr/integrations.md) | Les automatisations, les demandes de vie privée, les webhooks d'audience, les segments. |
-| [Stockage](doc/fr/storage.md) | Les tables, ce qu'elles contiennent, et ce qu'elles ne contiennent jamais. |
+| [Stockage](doc/fr/storage.md) | Les tables, ce qu'elles contiennent, ce qu'elles ne contiennent jamais, et leurs migrations. |
 | [Points d'extension](doc/fr/extension-points.md) | Les services à remplacer, les ports à implémenter, et quand ils sont stables. |
 | [Tests](doc/fr/testing.md) | Les tests du bundle, et les serveurs que lisent ses tests d'intégration. |
 | [Référence](doc/fr/reference.md) | Chaque classe et chaque service du bundle. |

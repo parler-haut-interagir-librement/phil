@@ -9,11 +9,14 @@ use Phil\BounceParser\BounceKind;
 use Phil\BounceParser\BounceParser;
 use Phil\BounceParser\Verp;
 use Phil\NewsletterBundle\Application\Contract\CurrentSite;
+use Phil\NewsletterBundle\Application\SendRuns;
 use Phil\NewsletterBundle\Application\Subscriptions;
 use Phil\NewsletterBundle\Domain\Contract\DeliveryRepository;
 use Phil\NewsletterBundle\Domain\Contract\SubscriberRepository;
 use Phil\NewsletterBundle\Domain\Contract\SuppressionRepository;
 use Phil\NewsletterBundle\Domain\Enum\AudienceEventType;
+use Phil\NewsletterBundle\Domain\Enum\DeliveryStatus;
+use Phil\NewsletterBundle\Domain\Enum\SendRunCounter;
 use Phil\NewsletterBundle\Domain\Model\Delivery;
 use Phil\NewsletterBundle\Domain\Model\Subscriber;
 use Psr\Clock\ClockInterface;
@@ -26,7 +29,8 @@ use SensitiveParameter;
  *
  * The delivery is found by the signed VERP tag of the return path, else the subscriber by the failed address on the
  * current site. A hard bounce or a complaint suppresses the address; soft bounces are counted, and the address is
- * suppressed at the threshold; a request to leave unsubscribes; anything else changes nothing.
+ * suppressed at the threshold; a request to leave unsubscribes; anything else changes nothing. The bounce or complaint
+ * of a delivery is counted once in its send run, for the run's circuit breaker.
  */
 final readonly class BounceHandler
 {
@@ -42,6 +46,7 @@ final readonly class BounceHandler
         #[SensitiveParameter]
         private string $verpKey = '',
         private int $softBounceThreshold = 3,
+        private ?SendRuns $runs = null,
     ) {
     }
 
@@ -120,9 +125,10 @@ final readonly class BounceHandler
 
         $this->subscribers->save($subscriber);
 
-        if ($delivery instanceof Delivery && BounceOutcome::Counted !== $outcome) {
+        if ($delivery instanceof Delivery && BounceOutcome::Counted !== $outcome && DeliveryStatus::Bounced !== $delivery->status) {
             $delivery->bounced();
             $this->deliveries->save($delivery);
+            $this->runs?->record($delivery->runId, BounceOutcome::Complained === $outcome ? SendRunCounter::Complained : SendRunCounter::Bounced);
         }
 
         if (BounceOutcome::Counted !== $outcome) {
