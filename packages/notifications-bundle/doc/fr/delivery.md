@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=32cc5b12ae06bbff15bf19388cf83cfd2d16b0d4515b100cc0b6e6602e3e995c -->
+<!-- phil-dev source-sha256=a9e8bbec8860e39a40423d446bb67ba00e90c2e54c41aff0e43110a123f5f360 -->
 # Livraison
 
 Ce qui arrive à une notification pour un destinataire une fois son message traité : la fenêtre des doublons, la limite
@@ -39,18 +39,17 @@ réponse de son fournisseur soit connue avant que le canal suivant soit considé
 
 | Canal | Envoyé par |
 |---|---|
-| `sms`, `sms/<transport>`, `push`, `push/<transport>` | Le `TexterInterface` de Symfony Notifier |
-| `chat`, `chat/<transport>` | Le `ChatterInterface` de Symfony Notifier |
+| `sms`, `sms/<transport>`, `push`, `push/<transport>` | Les transports du texter de Symfony Notifier (`texter.transports`), quand un transport de texter est configuré |
+| `chat`, `chat/<transport>` | Les transports du chatter de Symfony Notifier (`chatter.transports`), quand un transport de chatter est configuré |
 | `email`, `email/<transport>` | Les transports de Symfony Mailer (`mailer.transports`), le transport étant choisi par l'en-tête `X-Transport` : un courriel en texte brut, le titre comme objet, depuis `delivery.from` ou l'adresse des `headers` du mailer |
 | `web_push` | Le `WebPushSender` |
 
-**Gardez `framework.notifier.message_bus` désactivé** (`false`) pour ces canaux. Avec un bus, le texter et le chatter y
-mettent le message au lieu de l'envoyer, son sort n'est connu que plus tard dans un *worker*, et le repli ne peut plus
-passer au suivant : la tentative compte comme acceptée. N'acheminez jamais non plus `SendEmailMessage`, `SmsMessage` ou
-`ChatMessage` vers un transport : le message en file contient l'adresse ou le numéro de téléphone du destinataire et
-tout le texte, gardés par le transport — et par sa file des échecs — aussi longtemps que le message. Le canal courriel et
-le résumé du bundle passent par les transports de Mailer, jamais par `MailerInterface`, pour qu'aucun
-`SendEmailMessage` ne soit distribué. Acheminez plutôt `SendNotification`, qui ne porte que des identifiants :
+Chaque canal de ce mode passe par des transports, jamais par `MailerInterface`, le texter ou le chatter, qui mettent le
+message sur un bus quand `framework.notifier.message_bus` est réglé ou que `SendEmailMessage` est acheminé : aucun
+`SendEmailMessage`, `SmsMessage` ou `ChatMessage` contenant l'adresse ou le numéro de téléphone du destinataire et tout
+le texte n'est mis en file, et la réponse du fournisseur est connue avant que le repli passe au suivant. Le mode
+`fan_out` passe par Symfony Notifier lui-même, qui suit bien `framework.notifier.message_bus` : gardez-le désactivé
+(`false`), et acheminez `SendNotification`, qui ne porte que des identifiants :
 
 ```yaml
 framework:

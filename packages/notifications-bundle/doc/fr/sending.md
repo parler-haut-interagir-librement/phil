@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ae0665f0ae6d403b27866a820d32b781850a79d5eedf3d06e0e103db72e619ce -->
+<!-- phil-dev source-sha256=1cf926f17eb995f94bef8bf66fdf4490c037c58f99b48a6ff990caa1dfec7460 -->
 # Envoi
 
 ## Types
@@ -79,10 +79,20 @@ framework:
 Une livraison qui n'a joint aucun canal et pourrait réussir plus tard lance `DeliveryFailed`, et le *worker* retente le
 message ; voir [Livraison](delivery.md#le-résultat).
 
-N'acheminez que `SendNotification`. Acheminer `SendEmailMessage`, `SmsMessage` ou `ChatMessage` vers un transport met
-l'adresse ou le numéro de téléphone du destinataire et tout le texte dans la file, et dans sa file des échecs, aussi
-longtemps que le message y reste ; cela cache aussi un refus de fournisseur au mode `first_success`. Dans le mode
-`fan_out`, Symfony Notifier envoie le courriel par `MailerInterface`, qui distribue un `SendEmailMessage` quand il est
-acheminé : laissez-le sans acheminement, et gardez `framework.notifier.message_bus` désactivé.
+N'acheminez que `SendNotification`. Les expéditeurs du bundle — les canaux courriel, SMS, push et chat du mode
+`first_success` et le résumé — envoient par les transports de Symfony Mailer (`mailer.transports`) et ceux du texter et
+du chatter de Notifier (`texter.transports`, `chatter.transports`), jamais par `MailerInterface`, le texter ou le
+chatter : quoi que l'application achemine et quoi que dise `framework.notifier.message_bus`, ils ne mettent ni adresse,
+ni numéro de téléphone, ni texte rendu dans une file Messenger, et le refus d'un fournisseur est connu quand ils
+rendent la main.
+
+Le mode `fan_out` confie les autres canaux à Symfony Notifier lui-même, dont les canaux suivent la configuration de
+l'application : avec `framework.notifier.message_bus` réglé et `SendEmailMessage`, `SmsMessage` ou `ChatMessage`
+acheminés vers un transport, l'adresse ou le numéro de téléphone du destinataire et tout le texte attendent dans la
+file, et dans sa file des échecs, aussi longtemps que le message y reste. Laissez ces messages sans acheminement et
+gardez `framework.notifier.message_bus` désactivé. Une application qui les achemine malgré tout pour ses propres
+messages garde des renseignements personnels dans son transport Messenger et dans sa file des échecs : il lui faut une
+règle de conservation pour la file des échecs — `messenger:failed:show` pour regarder, `messenger:failed:remove` pour
+purger — et un mot dans sa politique de confidentialité.
 
 Chaque service de la livraison ne garde aucun état entre les messages, comme l'exige un *worker*.
