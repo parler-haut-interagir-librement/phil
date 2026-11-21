@@ -28,6 +28,11 @@ The next version is 0.3.0-alpha: a level every sign-in has to reach, and a cold-
 
 - `SignInListener` and `ReplayGuardedBackChannelLogout` take the assurance scale and the replay floor as optional last
   arguments.
+- [Security](doc/security.md) says that the `oidc_login` authenticator checks the `iss` of the authorization response
+  (RFC 9207) against the mix-up attack, and functional tests prove it through the bundle's firewall: the issuer of the
+  provider signs in; another issuer, or a missing `iss` from a provider that announces
+  `authorization_response_iss_parameter_supported`, is refused before the code is exchanged. The functional tests empty
+  the `cache.security.discovery` pool when they boot their kernel.
 
 ## 0.2.1-alpha - 2026-11-18
 
