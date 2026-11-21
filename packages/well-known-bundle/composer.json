@@ -40,7 +40,8 @@
         "symfony/framework-bundle": "^8.2"
     },
     "suggest": {
-        "phil/monitoring-bundle": "To check that the security.txt has not expired, and to be told before it does"
+        "phil/monitoring-bundle": "To check that the security.txt has not expired, and to be told before it does",
+        "phil/privacy-bundle": "To honour the Global Privacy Control, and state it at /.well-known/gpc.json"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

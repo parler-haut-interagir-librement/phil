@@ -19,6 +19,8 @@ phil_well_known:
     change_password:
         route: account_password
         parameters: { tab: security }
+    gpc:
+        last_update: '2026-11-21'
     webfinger:
         resources:
             'acct:contact@example.com':
@@ -90,6 +92,17 @@ built, a container built before the date and kept after it serves a file that ha
 | `url` | `null` | Or a URL: `https://`, or a path starting with `/` but not `//` |
 
 One of `route` and `url` is required.
+
+## gpc
+
+| Option | Default | Role |
+|---|---|---|
+| `enabled` | `true` | `false` serves no `gpc.json` |
+| `last_update` | `null` | The date the statement last changed, an RFC 3339 full-date such as `2026-11-21`; a date and a time, or a day the calendar lacks, are refused |
+
+Unlike the other sections, `gpc` is on by default, and serves its document once two things hold: `last_update` is
+given, and the kernel registers phil/privacy-bundle, which honours the signal. Without that bundle, no route is added.
+See [Documents](documents.md#gpcjson).
 
 ## webfinger
 

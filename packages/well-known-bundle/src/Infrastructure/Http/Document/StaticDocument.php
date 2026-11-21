@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * A document whose body is fixed when the container is built: `did.json`, `did-configuration.json`,
+ * A document whose body is fixed when the container is built: `gpc.json`, `did.json`, `did-configuration.json`,
  * `apple-app-site-association`, `assetlinks.json`, and the `documents` of the configuration.
  */
 final readonly class StaticDocument implements WellKnownDocument

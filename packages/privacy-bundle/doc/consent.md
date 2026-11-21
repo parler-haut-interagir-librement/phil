@@ -50,7 +50,8 @@ it, and a functional test fails on a cookie it does not declare. A frame of anot
   whatever a cookie says, and its user is not asked. The page says so, and its boxes are disabled. Every occurrence of
   the header is read, each split on its commas and trimmed: `Sec-GPC: 0, 1`, or a second `Sec-GPC: 1` after a
   `Sec-GPC: 0`, is the signal; an empty value is not. `ConsentContext::sendsGlobalPrivacyControl()` gives the answer
-  for any request.
+  for any request. With phil/well-known-bundle, the site also states it at `/.well-known/gpc.json`, once
+  `phil_well_known.gpc.last_update` is set.
 - **A choice counts for one version of the text.** Change `consent.version` and every earlier choice stops counting, and
   everyone is asked again.
 

@@ -55,6 +55,21 @@ site with it, instead of serving a file that has expired. Without phil/monitorin
 The W3C's well-known URL for changing passwords: a `302` to the route or URL of the configuration, so that password
 managers send their users to the right page.
 
+## gpc.json
+
+The W3C's Global Privacy Control lets a site say, at `/.well-known/gpc.json`, that it honours the `Sec-GPC` signal
+browsers send:
+
+```json
+{"gpc":true,"lastUpdate":"2026-11-21"}
+```
+
+The document is served as `application/json`, with CORS, only while the kernel registers phil/privacy-bundle, which
+refuses every optional category of consent to a browser that sends the signal; the bundle detects it among the
+bundles of the kernel, and does not require it. `lastUpdate` is `gpc.last_update` of the configuration: change it when
+what the site does with the signal changes. A site that honours the signal some other way serves its own document with
+`documents`.
+
 ## WebFinger
 
 RFC 7033: see [WebFinger](webfinger.md).
