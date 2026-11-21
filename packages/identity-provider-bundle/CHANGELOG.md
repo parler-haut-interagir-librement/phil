@@ -8,7 +8,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.4.0-alpha: the accounts take identifiers of up to 36 characters, a canonical address, a state in
 place of `disabled_at` and a table of addresses, to migrate with two updates; a table of revoked families to migrate;
-the instants are written in UTC, a database written in another time zone to convert once.
+the instants are written in UTC, a database written in another time zone to convert once; a client assertion names
+the issuer alone in its `aud`, and a client without PKCE sends a `nonce`.
 See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
 
 ### Added
@@ -88,6 +89,14 @@ See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
   apply it.
 - Every instant column of the bundle's tables is mapped as `datetime_utc_immutable`, and every instant a query passes
   is typed so: the SQL type is the same, and `doctrine:migrations:diff` writes no change.
+- The `aud` of a client assertion is the issuer alone, as a string (draft-ietf-oauth-rfc7523bis):
+  `ProviderSettings::assertionAudiences()` gives the issuer, and an assertion for the token endpoint or with its
+  audiences in an array is `invalid_client`. `oidc.client_authentication.legacy_assertion_audiences`, off by default,
+  and `ProviderSettings::$legacyAssertionAudiences`, last and optional, accept both again.
+- `AuthorizationRequestParser` refuses, with `invalid_request` sent back to the client, a request that carries neither
+  a PKCE challenge nor a `nonce` (RFC 9700, section 2.1.1): a client registered with `--pkce-optional` sends a `nonce`.
+  `oidc.require_nonce_without_pkce`, on by default, `ProviderSettings::$nonceWithoutPkce` and the second argument of
+  `AuthorizationRequestParser`, both optional, lift the rule for a test suite; the conformance application does.
 
 ### Fixed
 

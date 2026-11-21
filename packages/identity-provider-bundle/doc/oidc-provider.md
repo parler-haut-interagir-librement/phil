@@ -63,7 +63,10 @@ redirect address; a client that only asks tokens for itself registers resources 
 
 Every client sends a PKCE challenge, unless a confidential client is registered with `--pkce-optional`: the Basic
 profile of OpenID Connect allows a confidential client without PKCE, which then relies on its secret and on the `nonce`
-its ID token carries back. A challenge sent anyway is checked the same way, and a public client can never go without.
+its ID token carries back. Such a client sends a `nonce` with every request that carries no challenge, or the request
+goes back to it with `invalid_request` (RFC 9700, section 2.1.1): without either, nothing would bind the code to the
+session that asked for it; `oidc.require_nonce_without_pkce: false` lifts that rule, for a test suite only. A challenge
+sent anyway is checked the same way, the `nonce` then optional, and a public client can never go without.
 
 ## Client authentication
 
@@ -86,6 +89,7 @@ phil_identity_provider:
             methods: [private_key_jwt, none]
             clock_skew: 60
             assertion_max_lifetime: 300
+            legacy_assertion_audiences: false
 ```
 
 A client assertion (RFC 7523, OpenID Connect Core, section 9) is a JSON Web Token signed with one of the client's keys,
@@ -93,8 +97,11 @@ the one its `kid` names, with that key's own algorithm, and read under the bound
 Signatures](#json-web-signatures):
 
 - `iss` and `sub` are the client's identifier; `client_id`, when sent, must be the same;
-- `aud` names the issuer, or the token endpoint at the issuer's origin — `https://id.example.com/oidc/token` for the
-  issuer `https://id.example.com` —, never an address built from the request;
+- `aud` is the issuer, as a string — `https://id.example.com` —, never an address built from the request
+  (draft-ietf-oauth-rfc7523bis): an assertion made for the token endpoint cannot be replayed at another endpoint of the
+  provider, nor one made for another server here. A client written for RFC 7523, which names the token endpoint —
+  `https://id.example.com/oidc/token` — or puts its audiences in an array, is accepted only with
+  `legacy_assertion_audiences: true`, off by default, until it is updated;
 - `exp` is required, past by no more than `clock_skew`, and no further ahead than `assertion_max_lifetime`; `iat` and
   `nbf`, when present, are ahead by no more than `clock_skew`;
 - `jti` is required, at most 256 bytes, and used once: the provider records the SHA-256 of the client and the `jti` in
@@ -115,7 +122,8 @@ publish the next key beside the current one, let the client switch, then keep th
    redirected, so that the provider cannot send people anywhere;
 2. a parameter given twice, a request object (`request_not_supported`, `request_uri_not_supported`), a response type
    other than `code`, a response mode other than `query`, no `openid` scope, a PKCE challenge that is not `S256`, out of
-   shape, or missing when the client requires one, a `prompt` other than `none`, `login` and `consent` — the provider
+   shape, or missing when the client requires one, no `nonce` in a request without a PKCE challenge (RFC 9700,
+   section 2.1.1), a `prompt` other than `none`, `login` and `consent` — the provider
    shows no account chooser, so `select_account` is refused rather than ignored —, `prompt=none` with another value, an
    out-of-shape `max_age` go back to the client with the error, the state and the issuer (RFC 9207);
 3. scopes the provider or the client does not know are dropped.

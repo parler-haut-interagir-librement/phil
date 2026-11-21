@@ -79,6 +79,12 @@ Argon2id (`sodium`). Generate the migration of the tables with `bin/console doct
   the Notifier component, never through Messenger: `MailerAccountMailer` takes the transports and the body renderer
   of Twig instead of `MailerInterface`, and the bundle hands `NotifierSmsSender` a texter without a bus. See [Why
   account emails and SMS never go through Messenger](links-and-sms.md#why-account-emails-and-sms-never-go-through-messenger).
+- A client assertion names the issuer alone in its `aud`, as a string (draft-ietf-oauth-rfc7523bis): an assertion
+  for the token endpoint, or with its audiences in an array, is refused with `invalid_client`. Update those clients, or
+  set `oidc.client_authentication.legacy_assertion_audiences: true` while they are updated.
+  `ProviderSettings::assertionAudiences()` gives the issuer alone unless that option is on.
+- A client registered with `--pkce-optional` sends a `nonce` with every authorization request that carries no PKCE
+  challenge; a request with neither goes back to it with `invalid_request` (RFC 9700, section 2.1.1).
 
 ## Where the links point
 

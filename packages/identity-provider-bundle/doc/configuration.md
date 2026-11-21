@@ -144,6 +144,8 @@ phil_identity_provider:
 | `oidc.client_authentication.methods` | all four | The methods clients may authenticate by: `client_secret_basic`, `client_secret_post`, `private_key_jwt`, `none`. See [Client authentication](oidc-provider.md#client-authentication). |
 | `oidc.client_authentication.clock_skew` | `60` | Seconds a time of a client assertion may be off, 0 to 300. |
 | `oidc.client_authentication.assertion_max_lifetime` | `300` | The furthest ahead, in seconds, the expiry of a client assertion may be, 1 to 3600; its `jti` is kept that long. |
+| `oidc.client_authentication.legacy_assertion_audiences` | `false` | Whether a client assertion may also name the token endpoint at the issuer's origin, and its audiences in an array; off, its `aud` is the issuer, as a string (draft-ietf-oauth-rfc7523bis). |
+| `oidc.require_nonce_without_pkce` | `true` | Whether an authorization request without a PKCE challenge, from a client registered with `--pkce-optional`, must carry a `nonce` (RFC 9700, section 2.1.1); `false` only for a test suite that plays such a client without one. |
 | `oidc.refresh_token_bound_to_session` | `true` | Whether a refresh token issued in a session is refused once the session is closed or older than `oidc.session_max_age`, its family revoked. |
 | `oidc.session_max_age` | `null` | Seconds after a session opened past which its refresh tokens are no longer issued nor accepted; null for no bound but the end of the session. |
 | `oidc.id_token.acr` | `null` | The `acr` of every ID token; null for none. |

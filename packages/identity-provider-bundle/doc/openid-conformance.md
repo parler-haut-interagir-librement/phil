@@ -34,7 +34,8 @@ Docker, `git` and `curl` are needed, and port 8443 of the host must be free. `ru
    `https://op.phil.test` —, the monorepo mounted read-only;
 3. runs `bin/setup.php` in the provider: fresh tables on SQLite, a first signing key, a test account and two
    confidential clients registered with `--pkce-optional`, as the Basic profile plays clients without PKCE, all with
-   secrets generated for this run; it writes the configuration of the plans, with the steps the suite's browser
+   secrets generated for this run — the application sets `oidc.require_nonce_without_pkce: false`, since
+   `oidcc-ensure-request-without-nonce-succeeds-for-code-flow` plays such a client without a `nonce`; it writes the configuration of the plans, with the steps the suite's browser
    follows on the sign-in, re-authentication, consent and sign-out pages;
 4. plays the three plans and exports each one's log to `var/conformance/results`, one zip per plan.
 

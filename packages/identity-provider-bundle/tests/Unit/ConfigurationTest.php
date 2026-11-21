@@ -148,7 +148,9 @@ final class ConfigurationTest extends TestCase
                 'methods' => ['client_secret_basic', 'client_secret_post', 'private_key_jwt', 'none'],
                 'clock_skew' => 60,
                 'assertion_max_lifetime' => 300,
+                'legacy_assertion_audiences' => false,
             ],
+            'require_nonce_without_pkce' => true,
             'refresh_token_bound_to_session' => true,
             'session_max_age' => null,
             'id_token' => [

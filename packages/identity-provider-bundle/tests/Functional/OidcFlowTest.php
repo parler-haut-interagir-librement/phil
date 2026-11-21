@@ -271,8 +271,15 @@ final class OidcFlowTest extends FunctionalTestCase
         $key = PrivateKey::generate(SigningAlgorithm::ES256, 'k1');
         $this->service(ClientRegistry::class)->register('machine', 'Machine', [], jwks: [$key->publicJwk()], resources: ['https://api.example/', 'https://other.example/']);
         $now = time();
-        $assertion = static fn (array $claims = []): string => Jws::encode($claims + ['iss' => 'machine', 'sub' => 'machine', 'aud' => 'http://localhost/oidc/token', 'jti' => bin2hex(random_bytes(8)), 'exp' => $now + 60], $key);
+        $assertion = static fn (array $claims = []): string => Jws::encode($claims + ['iss' => 'machine', 'sub' => 'machine', 'aud' => 'http://localhost', 'jti' => bin2hex(random_bytes(8)), 'exp' => $now + 60], $key);
         $form = static fn (string $assertion, array $more = []): array => $more + ['grant_type' => 'client_credentials', 'resource' => 'https://api.example', 'client_assertion_type' => ClientAssertions::TYPE, 'client_assertion' => $assertion];
+
+        // The audience is the issuer alone, as a string (draft-ietf-oauth-rfc7523bis).
+        $this->client->request('POST', '/oidc/token', $form($assertion(['aud' => 'http://localhost/oidc/token'])));
+        self::assertResponseStatusCodeSame(401);
+        self::assertSame('invalid_client', $this->json()['error'] ?? null);
+        $this->client->request('POST', '/oidc/token', $form($assertion(['aud' => ['http://localhost']])));
+        self::assertResponseStatusCodeSame(401);
 
         $this->client->request('POST', '/oidc/token', $form($assertion()));
         self::assertResponseIsSuccessful();

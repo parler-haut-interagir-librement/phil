@@ -21,7 +21,9 @@ use SensitiveParameter;
  * the client signed with a private key whose public key it registered, the key its `kid` names, with the one algorithm
  * of that key.
  *
- * - `iss` and `sub` are the client's identifier; `aud` names the issuer, or the token endpoint at the issuer's origin.
+ * - `iss` and `sub` are the client's identifier; `aud` is the issuer, as a string (draft-ietf-oauth-rfc7523bis). With
+ *   `ProviderSettings::$legacyAssertionAudiences`, `aud` may also be an array, and name the token endpoint at the
+ *   issuer's origin.
  * - `exp` is required, not past by more than the clock skew, and no further ahead than the longest lifetime of an
  *   assertion; `iat` and `nbf`, when present, are not ahead by more than the skew.
  * - `jti` is required, at most MAX_JTI_LENGTH bytes, and used once: the assertion is recorded until it expires, the
@@ -54,7 +56,11 @@ final readonly class ClientAssertions
         $now = $this->clock->now()->getTimestamp();
         $skew = $this->settings->clockSkew;
         $audience = $claims['aud'] ?? null;
-        $named = \is_string($audience) ? [$audience] : array_filter(\is_array($audience) ? $audience : [], is_string(...));
+        $named = match (true) {
+            \is_string($audience) => [$audience],
+            $this->settings->legacyAssertionAudiences && \is_array($audience) => array_filter($audience, is_string(...)),
+            default => [],
+        };
         $expires = $claims['exp'] ?? null;
         $jti = $claims['jti'] ?? null;
 

@@ -134,6 +134,20 @@ final class PhilIdentityProviderBundleTest extends TestCase
         $arguments = $container->getDefinition(ProviderSettings::class)->getArguments();
         self::assertSame([...ProviderSettings::SCOPES, 'a', 'b'], $arguments[6]);
         self::assertSame([ClientAuthMethod::None, ClientAuthMethod::PrivateKeyJwt], $arguments[9]);
+        self::assertSame([false, true], [$arguments[19], $arguments[20]], 'The audience of an assertion is the issuer alone, and a request without PKCE carries a nonce, by default.');
+    }
+
+    public function testTheCompatibilityOfAssertionsAndTheNonceAreRead(): void
+    {
+        $container = $this->load([[
+            'store' => 'memory',
+            'modules' => ['oidc' => true],
+            'secrets' => ['allow_plaintext_secrets' => true],
+            'oidc' => ['issuer' => 'https://example.com', 'client_authentication' => ['legacy_assertion_audiences' => true], 'require_nonce_without_pkce' => false],
+        ]]);
+
+        $arguments = $container->getDefinition(ProviderSettings::class)->getArguments();
+        self::assertSame([true, false], [$arguments[19], $arguments[20]]);
     }
 
     public function testTheBackChannelLogoutNeedsItsServicesOnlyWhenTurnedOn(): void
