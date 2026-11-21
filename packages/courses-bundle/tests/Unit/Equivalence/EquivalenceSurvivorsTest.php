@@ -92,6 +92,7 @@ final class EquivalenceSurvivorsTest extends TestCase
         $store->equivalences->add($group->id, $english->id, 'en');
         $store->equivalences->add($group->id, $spanish->id, 'es');
         $store->equivalences->add($group->id, $french->id, 'fr');
+
         $ada = LearnerId::of('ada');
         $this->complete($store, $spanishPage, $ada);
         $this->complete($store, $frenchPage, $ada);
@@ -109,6 +110,7 @@ final class EquivalenceSurvivorsTest extends TestCase
         $store->equivalences->add($group->id, $english->id, 'en');
         $store->equivalences->add($group->id, $spanish->id, 'es');
         $store->equivalences->add($group->id, $french->id, 'fr');
+
         $ada = LearnerId::of('ada');
         $bob = LearnerId::of('bob');
 

@@ -629,6 +629,7 @@ final class ErasureRequestsTest extends TestCase
             }
         };
         $probe->connection = $this->bench->connection;
+
         $requests = $this->requestsWith([$probe]);
 
         $requests->run($requests->open(DataSubject::fromString('member-7'))->id, 'billing');
@@ -665,6 +666,7 @@ final class ErasureRequestsTest extends TestCase
     {
         $requests = $this->requests([$this->billing], []);
         $requests->giveUp(str_repeat('d', 32), 'billing');
+
         $request = $requests->open(DataSubject::fromString('member-7'));
         $requests->run($request->id, 'billing');
 

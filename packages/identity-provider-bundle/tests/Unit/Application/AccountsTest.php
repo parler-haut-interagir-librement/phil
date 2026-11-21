@@ -68,6 +68,7 @@ final class AccountsTest extends TestCase
         $services = new Services();
         $services->account();
         $services->account('bob@example.com');
+
         $counting = new CountingAccounts($services->accounts);
         $accounts = new Accounts($counting, $services->hasher, $services->rules, $services->journal, $services->clock);
 
