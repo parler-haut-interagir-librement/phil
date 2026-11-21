@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6932b92f990bafddab1e1456cecaf6b564f279cf01d21ed3a4ca1751237542c4 -->
+<!-- phil-dev source-sha256=7610882a6a0dceca76939253ead224a1c93b11084f6577ae48fc643f72af036c -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_identity_provider`. Chaque option a une valeur par défaut, sauf les
@@ -117,7 +117,7 @@ phil_identity_provider:
 | `passkeys.attestation.backup` | `allowed` | Si une clé d'accès qui peut être synchronisée avec d'autres appareils est `allowed` (permise), `required` (exigée) ou `forbidden` (interdite). |
 | `totp.issuer` | `null` | L'émetteur que montre l'application d'authentification ; le nom du site quand la valeur est nulle. |
 | `totp.window` | `1` | Les périodes de 30 secondes acceptées avant et après la période courante, de 0 à 10. |
-| `sms.sender` | `null` | Identifiant de service d'un `SmsSender` ; le texteur du composant Notifier quand la valeur est nulle. |
+| `sms.sender` | `null` | Identifiant de service d'un `SmsSender` ; un texteur sur les transports SMS du composant Notifier, sans bus, quand la valeur est nulle. |
 | `sms.from` | `''` | L'expéditeur des messages texte, quand le transport en permet un. |
 | `sms.message` | `Your code: {code}` | Le texte, `{code}` étant remplacé par le code. |
 | `sms.lifetime` | `600` | Secondes de validité d'un code. |

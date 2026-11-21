@@ -25,15 +25,13 @@ use Phil\IdentityProviderBundle\Infrastructure\Security\DeviceName;
 use Phil\IdentityProviderBundle\Infrastructure\Security\Proofs;
 use Phil\IdentityProviderBundle\Infrastructure\Security\StepUpVoter;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\ArrayChallengeStore;
+use Phil\IdentityProviderBundle\Tests\Unit\Fixture\RecordingTransport;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\Envelope;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\RawMessage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
@@ -128,16 +126,7 @@ final class InfrastructureDetailsTest extends TestCase
 
     public function testAnEmailCarriesItsSiteInTheSubjectAndItsSessionInTheContext(): void
     {
-        $mailer = new class implements MailerInterface {
-            /** @var list<RawMessage> */
-            public array $sent = [];
-
-            #[Override]
-            public function send(RawMessage $message, ?Envelope $envelope = null): void
-            {
-                $this->sent[] = $message;
-            }
-        };
+        $mailer = new RecordingTransport();
         $translator = new class implements TranslatorInterface {
             /** @var list<array{string, array<array-key, mixed>, ?string}> */
             public array $asked = [];
@@ -162,7 +151,7 @@ final class InfrastructureDetailsTest extends TestCase
         $createdAt = new DateTimeImmutable('2026-11-14 10:00:00');
         $account = Account::register('01JCZ6Q7Y3W0000000000000AA', 'ada@example.com', $createdAt, 'Ada');
 
-        $accountMailer = new MailerAccountMailer($mailer, $translator, 'accounts@example.com', 'Example');
+        $accountMailer = new MailerAccountMailer($mailer, $mailer, $translator, 'accounts@example.com', 'Example');
         $accountMailer->sendRiskySignIn($account, AccountSession::open('s', $account->id(), 'Safari on iOS', [], true, $createdAt));
         $accountMailer->sendVerification($account, 'https://x/verify');
 

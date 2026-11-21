@@ -35,6 +35,17 @@ abstract class FunctionalTestCase extends WebTestCase
     }
 
     #[Override]
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+        // Each application of the tests compiles its container the first time it boots, in the process of the tests: a
+        // package installed on its own, with the default 128 MB and the caches still cold, would end on the memory limit.
+        if ('-1' !== \ini_get('memory_limit') && self::bytes(\ini_get('memory_limit')) < 512 * 1024 * 1024) {
+            ini_set('memory_limit', '512M');
+        }
+    }
+
+    #[Override]
     protected function setUp(): void
     {
         $this->client = self::createClient();
@@ -47,6 +58,18 @@ abstract class FunctionalTestCase extends WebTestCase
         $tool->createSchema($metadata);
         // The counts of the limiters start afresh with each test.
         $this->service(AdapterInterface::class, 'cache.app')->clear();
+    }
+
+    private static function bytes(string $limit): int
+    {
+        $number = (int) $limit;
+
+        return match (strtolower(substr($limit, -1))) {
+            'g' => $number * 1024 ** 3,
+            'm' => $number * 1024 ** 2,
+            'k' => $number * 1024,
+            default => $number,
+        };
     }
 
     /**

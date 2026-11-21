@@ -66,6 +66,25 @@ abstract class ServerRepositoryTestCase extends DoctrineRepositoryTestCase
         self::assertFalse($this->grants()->rotateToken($mine, $now));
     }
 
+    public function testTheMarkOfARevokedFamilyReachesTheTokensTheOtherConnectionSaves(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $family = 'FAMILY0000000000000000000A';
+        $other = new DoctrineGrantRepository($this->second());
+
+        // Saved before the revocation: the other connection revokes it.
+        $this->grants()->saveToken(IssuedToken::issue('jti-1', TokenKind::Access, $family, 'app', self::ADA, [], null, $now, [], $now, $now->modify('+10 minutes')));
+        $other->revokeFamily($family, $now, $now->modify('+30 days'));
+        $this->clear();
+        self::assertTrue($this->grants()->token('jti-1')?->isRevoked());
+
+        // Saved after it: the mark is there to read, and revoking again reaches it.
+        $this->grants()->saveToken(IssuedToken::issue('jti-2', TokenKind::Access, $family, 'app', self::ADA, [], null, $now, [], $now, $now->modify('+10 minutes')));
+        self::assertTrue($this->grants()->isFamilyRevoked($family));
+        $this->grants()->revokeFamily($family, $now, $now->modify('+30 days'));
+        self::assertTrue($other->token('jti-2')?->isRevoked());
+    }
+
     public function testTwoConnectionsRecordAClientAssertionOnce(): void
     {
         $now = new DateTimeImmutable('2026-11-14 10:00:00');

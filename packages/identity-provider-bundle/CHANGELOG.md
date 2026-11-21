@@ -7,7 +7,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 ## Unreleased
 
 The next version is 0.4.0-alpha: the accounts take identifiers of up to 36 characters, a canonical address, a state in
-place of `disabled_at` and a table of addresses, to migrate with two updates.
+place of `disabled_at` and a table of addresses, to migrate with two updates; a table of revoked families to migrate;
+the instants are written in UTC, a database written in another time zone to convert once.
 See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
 
 ### Added
@@ -76,6 +77,31 @@ See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
 - An Ed25519 private key whose public half is not the one of its seed is refused.
 - The tests of `phil:identity-provider:seal-key` read its message without the line breaks of the console, which wraps
   its blocks at 80 columns: a long temporary path no longer splits `cannot be read` over two lines.
+- `MailerAccountMailer` takes the transports of the Mailer component (`Symfony\Component\Mailer\Transport\TransportInterface`)
+  and a `Symfony\Component\Mime\BodyRendererInterface` in place of `MailerInterface`; each account email has a text
+  part, `@PhilIdentityProvider/email/<message>.txt.twig`, that writes the link in full, and a `TrackingHeader` that
+  turns off the provider's tracking of opens and clicks. The default `SmsSender` is a `NotifierSmsSender` on a texter
+  of the SMS transports, without a bus, in place of the service `texter`.
+- `GrantRepository` gains `revokeFamily()` and `isFamilyRevoked()`; an implementation of its own adds them. The new
+  table `phil_identity_revoked_family` (`Domain\Model\Oidc\RevokedFamily`) keeps the marks of the families revoked,
+  removed by `phil:identity-provider:purge` once expired. Migration: run `bin/console doctrine:migrations:diff` and
+  apply it.
+- Every instant column of the bundle's tables is mapped as `datetime_utc_immutable`, and every instant a query passes
+  is typed so: the SQL type is the same, and `doctrine:migrations:diff` writes no change.
+
+### Fixed
+
+- The verification, reset and sign-in links went through `MailerInterface`, and the codes sent by text message through
+  the texter `texter`: where Messenger routes `SendEmailMessage` and `SmsMessage` to an asynchronous transport, as its
+  recipe does, the link or the code waited in the queue, in the failure transport and in their backups, where reading
+  it was enough to take the account. They are handed to the transports in the request, and nothing of them is queued.
+- When two requests presented one code or one refresh token, the one that lost could revoke the family after the
+  winner used the grant and before it saved its new tokens, which then stayed valid. The family is marked revoked
+  before its tokens are, and the winner reads the mark once its tokens are saved: they are revoked with the family and
+  the winner is refused.
+- The instants were written in the time zone of the process and read in the time zone of the reader: where the web
+  server and the workers or the console ran in different zones, an expiry read back was shifted, and a token past its
+  expiry could be accepted. They are written and read in UTC whatever the time zone of the process.
 
 ## 0.3.0-alpha - 2026-11-20
 

@@ -179,7 +179,7 @@ final class PhilIdentityProviderBundle extends AbstractBundle
             ->arrayNode('sms')
                 ->addDefaultsIfNotSet()
                 ->children()
-                    ->scalarNode('sender')->info('Service id of an SmsSender; the texter of the Notifier component when null.')->defaultNull()->end()
+                    ->scalarNode('sender')->info('Service id of an SmsSender; a texter on the SMS transports of the Notifier component, without a bus, when null.')->defaultNull()->end()
                     ->scalarNode('from')->info('The sender of the text messages, when the transport allows one.')->defaultValue('')->end()
                     ->scalarNode('message')->info('The text of the message, {code} replaced by the code.')->defaultValue('Your code: {code}')->cannotBeEmpty()->end()
                     ->integerNode('lifetime')->info('The seconds a code lasts.')->defaultValue(600)->min(60)->end()

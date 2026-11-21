@@ -1,10 +1,10 @@
-<!-- phil-dev source-sha256=50fcf8eb2bf9a14be6612c00e83f2b9552204dc6fab0537204495d152835d617 -->
+<!-- phil-dev source-sha256=ae0810cc7da06d58f319bab1f268159c5b52bb3c6a71a7d55ae9d5908e63c133 -->
 # Liens de connexion et numéros de téléphone
 
 ## Liens de connexion
 
 Le module `login_link` offre `/login/link` : l'adresse saisie, un lien de l'authentificateur `login_link` de Symfony
-Security qui lui est envoyé par le composant Mailer, et la même réponse que l'adresse ait un compte ou non. Le
+Security qui lui est envoyé par les transports du composant Mailer, et la même réponse que l'adresse ait un compte ou non. Le
 pare-feu configure l'authentificateur, sa route de vérification `phil_identity_provider_login_link_check`, sa durée de
 vie, ses utilisations et les propriétés sur lesquelles il signe — `userIdentifier` et `passwordChangedAt` empêchent
 un lien de survivre à un changement de mot de passe :
@@ -29,10 +29,46 @@ code ensuite.
 Le module `sms` vérifie un numéro de téléphone : `/account/phone` prend un numéro au format E.164 — les espaces, les
 tirets, les points et les parenthèses sont retirés —, envoie six chiffres par le port `SmsSender`, et vérifie le
 numéro quand le code revient. Le code est conservé haché dans la session avec le numéro, une expiration de
-`sms.lifetime` secondes et `sms.attempts` essais. Le `SmsSender` par défaut est le texteur du composant Notifier,
-vers le transport SMS que l'application a configuré ; `sms.sender` nomme plutôt un service à elle. Le débit d'envoi
-relève du limiteur de débit de l'application placé devant la route.
+`sms.lifetime` secondes et `sms.attempts` essais. Le `SmsSender` par défaut est un texteur du composant Notifier
+sur ses transports SMS, sans bus, vers le transport SMS que l'application a configuré ; `sms.sender` nomme plutôt un
+service à elle, qui garde aussi le code hors de toute file. Le débit d'envoi relève du limiteur de débit de l'application placé devant la route.
 
 Un numéro vérifié permet à l'application de joindre la personne, et figure dans les revendications de la portée
 `phone`. Les messages texte comme deuxième facteur sont prévus, non implémentés : un SMS peut être intercepté, et
 l'application d'authentification ou une clé d'accès est le deuxième facteur que le bundle offre.
+
+## Pourquoi les courriels de compte et les SMS ne passent jamais par Messenger
+
+Un lien de vérification, un lien de réinitialisation et un lien de connexion donnent chacun le compte à quiconque les
+détient, aussi longtemps qu'ils durent — jusqu'à une heure pour un lien de réinitialisation — ; un code envoyé par
+message texte prouve le numéro. Le bundle les remet à un transport dans la requête qui les demande, et aucun message de
+Messenger ne les porte jamais :
+
+- `MailerAccountMailer` rend chaque courriel — sa partie HTML et sa partie texte — avec le moteur de rendu du corps de
+  Twig, puis le remet aux transports du composant Mailer (`mailer.transports`). Il n'appelle jamais
+  `MailerInterface`, qui met un `SendEmailMessage` sur le bus quand Messenger l'achemine : le courriel attendrait non
+  rendu, son contexte et le lien qu'il contient, dans le transport, dans le transport des échecs après un essai
+  raté, et dans leurs sauvegardes. En lire un seul suffirait pour prendre les comptes.
+- Le `SmsSender` par défaut est un texteur sur les transports SMS du composant Notifier (`texter.transports`), sans
+  bus. Le texteur `texter` met un `SmsMessage` sur le bus quand Messenger l'achemine, avec le numéro et le code.
+
+La recette de Messenger achemine les deux vers le transport `async` :
+
+```yaml
+# config/packages/messenger.yaml
+framework:
+    messenger:
+        routing:
+            Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+            Symfony\Component\Notifier\Message\SmsMessage: async
+```
+
+Cet acheminement reste juste pour les autres courriels de l'application, et ne change rien pour ceux du bundle. Un
+service de l'application qui remplace `AccountMailer` ou `SmsSender` garde la même règle : il envoie sur-le-champ, ou
+il met sur le bus un message qui ne porte que des identifiants — le compte et le genre de lien —, et son gestionnaire
+construit le lien dans le *worker*.
+
+Chaque courriel écrit son lien en entier dans sa partie texte, `@PhilIdentityProvider/email/<message>.txt.twig`, pour
+qu'un lecteur qui n'affiche pas le HTML voie quand même le lien ; et porte un `TrackingHeader` qui désactive le suivi
+des ouvertures et des clics que le fournisseur du transport effectue, pour que le fournisseur ne réécrive pas le lien
+afin de compter ses clics.

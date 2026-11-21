@@ -1,0 +1,9 @@
+{# The text part of the message login_link: the greeting, what the link does and how long it lasts, then the link in full, on its own line, for the readers that show no HTML. #}
+{% set d = 'phil_identity_provider' %}
+{{ name is not null ? 'email.greeting_name'|trans({'%name%': name}, d) : 'email.greeting'|trans({}, d) }}
+
+{{ 'email.login_link.body'|trans({'%site%': site}, d) }}
+
+{{ url }}
+
+{{ 'email.ignore'|trans({}, d) }}

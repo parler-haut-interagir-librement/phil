@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Infrastructure\Doctrine;
 
 use DateTimeImmutable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
@@ -58,7 +59,7 @@ final readonly class DoctrineAccountSessionRepository implements AccountSessionR
     public function purge(DateTimeImmutable $before): int
     {
         $removed = $this->entityManager->createQuery(\sprintf('DELETE FROM %s s WHERE s.closedAt IS NOT NULL OR s.lastSeenAt < :before', AccountSession::class))
-            ->setParameter('before', $before)
+            ->setParameter('before', $before, Types::DATETIME_UTC_IMMUTABLE)
             ->execute();
 
         return \is_int($removed) ? $removed : 0;

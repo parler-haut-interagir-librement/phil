@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f8ceec1aa42b05a2a98daf00ea5cdfb1a4ddcb11502de706632dd53966b62ee1 -->
+<!-- phil-dev source-sha256=36f04ddc1ab92f29d0485ea07fe9806da551ee5ea748d7b6a749ef086be66a8e -->
 # Référence
 
 ## Types publics
@@ -75,9 +75,12 @@ Chaque nom commence par `phil_identity_provider`.
 
 `phil_identity_account`, `phil_identity_address`, `phil_identity_passkey`, `phil_identity_totp`,
 `phil_identity_recovery_codes`, `phil_identity_session`, `phil_identity_linked`, `phil_identity_client`,
-`phil_identity_consent`, `phil_identity_code`, `phil_identity_token`, `phil_identity_assertion`,
-`phil_identity_signing_key`, et `phil_identity_link_token` avec `links.mode: stored`. Chaque colonne `account_id`
-contient 36 caractères, l'identifiant de `accounts.id_generator`.
+`phil_identity_consent`, `phil_identity_code`, `phil_identity_token`, `phil_identity_revoked_family`,
+`phil_identity_assertion`, `phil_identity_signing_key`, et `phil_identity_link_token` avec `links.mode: stored`.
+Chaque colonne `account_id` contient 36 caractères, l'identifiant de `accounts.id_generator`.
+
+Chaque colonne d'instant est mappée en `datetime_utc_immutable` : écrite et lue en UTC, quel que soit le fuseau
+horaire du processus.
 
 ## Commandes
 
@@ -89,7 +92,7 @@ contient 36 caractères, l'identifiant de `accounts.id_generator`.
 | `phil:identity-provider:client:disable` | Désactive un client, ou renouvelle son secret avec `--rotate-secret`. |
 | `phil:identity-provider:rotate-keys` | Fait tourner les clés de signature de la base de données ; `--now` active tout de suite la clé en attente ; avec `oidc.signing_keys.automatic_rotation: false`, seuls `--force` ou `--now` font tourner les clés. |
 | `phil:identity-provider:seal-key` | Scelle un fichier de clé privée sous `secrets.kms_key`, pour la source `file` des clés de signature ; avec `secrets.kms_key` réglé. |
-| `phil:identity-provider:purge` | Retire les codes, les jetons, les assertions de client et les jetons de lien expirés et les sessions fermées ou inactives. |
+| `phil:identity-provider:purge` | Retire les codes, les jetons, les assertions de client, les jetons de lien et les marques de familles révoquées expirés et les sessions fermées ou inactives. |
 
 ## Événements
 

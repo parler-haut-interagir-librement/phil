@@ -24,7 +24,13 @@ final class InterleavedGrants implements GrantRepository
      */
     public ?Closure $meanwhile = null;
 
-    public function __construct(public readonly InMemoryGrantRepository $inner = new InMemoryGrantRepository())
+    /**
+     * Runs once, right after the next code used or refresh token rotated by this store, before the caller issues its
+     * tokens: the window between the use and the save of the new tokens.
+     */
+    public ?Closure $afterUse = null;
+
+    public function __construct(public readonly GrantRepository $inner = new InMemoryGrantRepository())
     {
     }
 
@@ -43,7 +49,7 @@ final class InterleavedGrants implements GrantRepository
     #[Override]
     public function consumeCode(AuthorizationCode $code, DateTimeImmutable $now): bool
     {
-        return $this->inner->consumeCode($code, $now);
+        return $this->used($this->inner->consumeCode($code, $now));
     }
 
     #[Override]
@@ -77,9 +83,21 @@ final class InterleavedGrants implements GrantRepository
     }
 
     #[Override]
+    public function revokeFamily(string $family, DateTimeImmutable $now, DateTimeImmutable $keepUntil): void
+    {
+        $this->inner->revokeFamily($family, $now, $keepUntil);
+    }
+
+    #[Override]
+    public function isFamilyRevoked(string $family): bool
+    {
+        return $this->inner->isFamilyRevoked($family);
+    }
+
+    #[Override]
     public function rotateToken(IssuedToken $token, DateTimeImmutable $now): bool
     {
-        return $this->inner->rotateToken($token, $now);
+        return $this->used($this->inner->rotateToken($token, $now));
     }
 
     #[Override]
@@ -92,6 +110,18 @@ final class InterleavedGrants implements GrantRepository
     public function purge(DateTimeImmutable $before): int
     {
         return $this->inner->purge($before);
+    }
+
+    private function used(bool $used): bool
+    {
+        $afterUse = $this->afterUse;
+
+        if ($used && $afterUse instanceof Closure) {
+            $this->afterUse = null;
+            $afterUse();
+        }
+
+        return $used;
     }
 
     /**

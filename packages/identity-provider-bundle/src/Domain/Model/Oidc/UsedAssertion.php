@@ -23,7 +23,7 @@ final class UsedAssertion
         #[ORM\Id]
         #[ORM\Column(name: 'id', length: 64, options: ['fixed' => true])]
         private readonly string $id,
-        #[ORM\Column(name: 'expires_at')]
+        #[ORM\Column(name: 'expires_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $expiresAt,
     ) {
     }

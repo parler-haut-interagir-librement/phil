@@ -37,9 +37,9 @@ final class LinkToken
         private readonly string $purpose,
         #[ORM\Column(name: 'fingerprint', length: self::FINGERPRINT_MAX_LENGTH)]
         private readonly string $fingerprint,
-        #[ORM\Column(name: 'expires_at')]
+        #[ORM\Column(name: 'expires_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $expiresAt,
-        #[ORM\Column(name: 'created_at')]
+        #[ORM\Column(name: 'created_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $createdAt,
     ) {
     }

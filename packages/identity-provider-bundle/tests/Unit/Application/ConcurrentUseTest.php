@@ -17,7 +17,9 @@ use Phil\IdentityProviderBundle\Application\Oidc\Tokens;
 use Phil\IdentityProviderBundle\Application\SecondFactors;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
+use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\SigningKey;
 use Phil\IdentityProviderBundle\Domain\Oidc\Pkce;
 use Phil\IdentityProviderBundle\Domain\Security\RecoveryCodes;
@@ -96,7 +98,7 @@ final class ConcurrentUseTest extends TestCase
             $first = $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER);
         };
 
-        $this->assertInvalidGrant(static fn (): array => $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER));
+        $this->assertInvalidGrant(static fn (): array => $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER), 'The code was already used.');
         self::assertArrayHasKey('access_token', $first);
         self::assertContains(IdentityEventType::TokenReuseDetected->value, $this->services->audit->actions());
         self::assertSame(['active' => false], $tokens->introspect($client, (string) $first['access_token']));
@@ -115,11 +117,60 @@ final class ConcurrentUseTest extends TestCase
             $first = $tokens->refresh($client, $refresh, null);
         };
 
-        $this->assertInvalidGrant(static fn (): array => $tokens->refresh($client, $refresh, null));
+        $this->assertInvalidGrant(static fn (): array => $tokens->refresh($client, $refresh, null), 'The refresh token was already used.');
         self::assertArrayHasKey('refresh_token', $first);
         self::assertContains(IdentityEventType::TokenReuseDetected->value, $this->services->audit->actions());
         self::assertSame(['active' => false], $tokens->introspect($client, (string) $first['refresh_token']));
         self::assertSame(['active' => false], $tokens->introspect($client, (string) $first['access_token']));
+    }
+
+    public function testARefreshReplayedBetweenTheRotationAndTheSaveRevokesTheTokensOfTheWinner(): void
+    {
+        $account = $this->services->account();
+        $client = $this->client();
+        $tokens = $this->tokens();
+        $response = $tokens->exchangeCode($client, $this->code($account), 'https://app.example/cb', self::VERIFIER);
+        $refresh = (string) $response['refresh_token'];
+        $family = $this->familyOf($refresh);
+        $this->grants->afterUse = function () use ($tokens, $client, $refresh): void {
+            $this->assertInvalidGrant(static fn (): array => $tokens->refresh($client, $refresh, null), 'The refresh token was already used.');
+        };
+
+        $this->assertInvalidGrant(static fn (): array => $tokens->refresh($client, $refresh, null));
+        self::assertContains(IdentityEventType::TokenReuseDetected->value, $this->services->audit->actions());
+        self::assertSame([], $this->activeIn($family), 'No token of the family outlives the revocation.');
+    }
+
+    public function testACodeReplayedBetweenItsUseAndTheSaveRevokesTheTokensOfTheWinner(): void
+    {
+        $account = $this->services->account();
+        $client = $this->client();
+        $code = $this->code($account);
+        $tokens = $this->tokens();
+        $this->grants->afterUse = function () use ($tokens, $client, $code): void {
+            $this->assertInvalidGrant(static fn (): array => $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER), 'The code was already used.');
+        };
+
+        $this->assertInvalidGrant(static fn (): array => $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER));
+        self::assertContains(IdentityEventType::TokenReuseDetected->value, $this->services->audit->actions());
+        self::assertSame([], $this->activeIn($this->familyOfCode($code)), 'No token of the family outlives the revocation.');
+    }
+
+    public function testAnAccessTokenRevokedByItsClientLeavesItsFamilyUnmarked(): void
+    {
+        $account = $this->services->account();
+        $client = $this->client();
+        $tokens = $this->tokens();
+        $response = $tokens->exchangeCode($client, $this->code($account), 'https://app.example/cb', self::VERIFIER);
+        $family = $this->familyOf((string) $response['refresh_token']);
+        $tokens->revoke($client, (string) $response['access_token']);
+
+        self::assertFalse($this->grants->isFamilyRevoked($family));
+        $second = $tokens->refresh($client, (string) $response['refresh_token'], null);
+        self::assertArrayHasKey('refresh_token', $second);
+
+        $tokens->revoke($client, (string) $second['refresh_token']);
+        self::assertTrue($this->grants->isFamilyRevoked($family), 'A refresh token revoked by its client takes its family with it.');
     }
 
     public function testATotpCodeVerifiedByTwoRequestsAtOnceIsAcceptedOnce(): void
@@ -316,13 +367,46 @@ final class ConcurrentUseTest extends TestCase
         return array_values(array_map(static fn (SigningKey $key): string => $key->kid(), array_filter($this->keyStore->inner->all(), $filter)));
     }
 
-    private function assertInvalidGrant(callable $operation): void
+    private function familyOf(string $refresh): string
+    {
+        $token = $this->grants->inner->token(IssuedToken::idOfRefresh($refresh));
+        self::assertNotNull($token);
+
+        return $token->family();
+    }
+
+    private function familyOfCode(string $code): string
+    {
+        $grant = $this->grants->inner->code(AuthorizationCode::idOf($code));
+        self::assertNotNull($grant);
+
+        return $grant->family();
+    }
+
+    /**
+     * @return list<string> the tokens of the family still active
+     */
+    private function activeIn(string $family): array
+    {
+        $now = $this->services->clock->now();
+
+        return array_values(array_map(
+            static fn (IssuedToken $token): string => $token->id(),
+            array_filter($this->grants->inner->family($family), static fn (IssuedToken $token): bool => $token->isActive($now)),
+        ));
+    }
+
+    private function assertInvalidGrant(callable $operation, ?string $description = null): void
     {
         try {
             $operation();
             self::fail('Accepted twice.');
         } catch (OAuthError $oAuthError) {
             self::assertSame('invalid_grant', $oAuthError->error);
+
+            if (null !== $description) {
+                self::assertSame($description, $oAuthError->description);
+            }
         }
     }
 }

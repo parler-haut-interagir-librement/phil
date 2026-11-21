@@ -54,29 +54,29 @@ final class Account
         #[ORM\Column(name: 'email_canonical', length: self::EMAIL_MAX_LENGTH)]
         private string $emailCanonical,
         // Not read-only: the store reads the row again over the object when it applies a change under a lock.
-        #[ORM\Column(name: 'created_at')]
+        #[ORM\Column(name: 'created_at', type: 'datetime_utc_immutable')]
         private DateTimeImmutable $createdAt,
         #[ORM\Column(name: 'display_name', length: self::NAME_MAX_LENGTH, nullable: true)]
         private ?string $displayName = null,
-        #[ORM\Column(name: 'email_verified_at', nullable: true)]
+        #[ORM\Column(name: 'email_verified_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $emailVerifiedAt = null,
         #[ORM\Column(name: 'password_hash', length: 255, nullable: true)]
         private ?string $passwordHash = null,
-        #[ORM\Column(name: 'password_changed_at', nullable: true)]
+        #[ORM\Column(name: 'password_changed_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $passwordChangedAt = null,
         #[ORM\Column(name: 'phone', length: self::PHONE_MAX_LENGTH, nullable: true)]
         private ?string $phone = null,
-        #[ORM\Column(name: 'phone_verified_at', nullable: true)]
+        #[ORM\Column(name: 'phone_verified_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $phoneVerifiedAt = null,
         #[ORM\Column(name: 'roles', type: 'json')]
         private array $roles = [],
         #[ORM\Column(name: 'failed_sign_ins', options: ['default' => 0])]
         private int $failedSignIns = 0,
-        #[ORM\Column(name: 'locked_until', nullable: true)]
+        #[ORM\Column(name: 'locked_until', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $lockedUntil = null,
         #[ORM\Column(name: 'state', length: AccountState::MAX_LENGTH, enumType: AccountState::class, options: ['default' => 'active'])]
         private AccountState $state = AccountState::Active,
-        #[ORM\Column(name: 'state_changed_at', nullable: true)]
+        #[ORM\Column(name: 'state_changed_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $stateChangedAt = null,
     ) {
     }

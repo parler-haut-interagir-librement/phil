@@ -48,17 +48,17 @@ final class IssuedToken
         private readonly array $scopes,
         #[ORM\Column(name: 'session_id', length: 43, nullable: true, options: ['fixed' => true])]
         private readonly ?string $sessionId,
-        #[ORM\Column(name: 'auth_time')]
+        #[ORM\Column(name: 'auth_time', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $authTime,
         #[ORM\Column(name: 'methods', type: 'json')]
         private readonly array $methods,
-        #[ORM\Column(name: 'issued_at')]
+        #[ORM\Column(name: 'issued_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $issuedAt,
-        #[ORM\Column(name: 'expires_at')]
+        #[ORM\Column(name: 'expires_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $expiresAt,
-        #[ORM\Column(name: 'rotated_at', nullable: true)]
+        #[ORM\Column(name: 'rotated_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $rotatedAt = null,
-        #[ORM\Column(name: 'revoked_at', nullable: true)]
+        #[ORM\Column(name: 'revoked_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $revokedAt = null,
         #[ORM\Column(name: 'audience', length: 255, nullable: true)]
         private readonly ?string $audience = null,

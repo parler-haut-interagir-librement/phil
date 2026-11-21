@@ -10,7 +10,8 @@ use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
 
 /**
- * The authorization codes and the tokens the provider issued, and the client assertions already presented.
+ * The authorization codes and the tokens the provider issued, the families of tokens revoked, and the client assertions
+ * already presented.
  */
 interface GrantRepository
 {
@@ -46,6 +47,18 @@ interface GrantRepository
     public function saveToken(IssuedToken ...$tokens): void;
 
     /**
+     * Marks the family revoked, kept until the date, then revokes every token of it saved so far. The mark comes
+     * first: a request that saves tokens in the family meanwhile finds it by `isFamilyRevoked()` once they are saved,
+     * and revokes them, so that no token of a revoked family stays active, without a lock.
+     */
+    public function revokeFamily(string $family, DateTimeImmutable $now, DateTimeImmutable $keepUntil): void;
+
+    /**
+     * Whether the family was marked revoked, read after the tokens of a request are saved in it.
+     */
+    public function isFamilyRevoked(string $family): bool;
+
+    /**
      * Marks the refresh token rotated, in one step, unless it already is rotated or revoked: of two requests that read
      * it active at once, only one is told it rotated it (RFC 9700, section 4.14).
      *
@@ -62,7 +75,7 @@ interface GrantRepository
     public function useAssertion(UsedAssertion $assertion): bool;
 
     /**
-     * Removes the codes, tokens and assertions expired before the date.
+     * Removes the codes, tokens, assertions and marks of revoked families expired before the date.
      *
      * @return int the rows removed
      */

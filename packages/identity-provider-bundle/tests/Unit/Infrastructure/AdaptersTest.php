@@ -23,15 +23,14 @@ use Phil\IdentityProviderBundle\Infrastructure\Security\DeviceName;
 use Phil\IdentityProviderBundle\Infrastructure\Security\Proofs;
 use Phil\IdentityProviderBundle\Infrastructure\Twig\KitComponents;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\FailingResponse;
+use Phil\IdentityProviderBundle\Tests\Unit\Fixture\RecordingTransport;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\KeyManagement\KeyLoader\InMemoryKeyLoader;
 use Symfony\Component\KeyManagement\Local\SodiumKms;
-use Symfony\Component\Mailer\Envelope;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\RawMessage;
+use Symfony\Component\Mailer\Header\TrackingHeader;
 use Symfony\Component\Notifier\Exception\TransportException;
 use Symfony\Component\Notifier\Message\MessageInterface;
 use Symfony\Component\Notifier\Message\SentMessage;
@@ -168,17 +167,9 @@ final class AdaptersTest extends TestCase
 
     public function testTheMailer(): void
     {
-        $mailer = new class implements MailerInterface {
-            /** @var list<RawMessage> */
-            public array $sent = [];
-
-            public function send(RawMessage $message, ?Envelope $envelope = null): void
-            {
-                $this->sent[] = $message;
-            }
-        };
+        $mailer = new RecordingTransport();
         $account = Account::register(self::ID, 'ada@example.com', new DateTimeImmutable('2026-11-14 10:00:00'), 'Ada');
-        $accountMailer = new MailerAccountMailer($mailer, new IdentityTranslator(), 'accounts@example.com', 'Example');
+        $accountMailer = new MailerAccountMailer($mailer, $mailer, new IdentityTranslator(), 'accounts@example.com', 'Example');
         $accountMailer->sendVerification($account, 'https://x/verify');
         $accountMailer->sendPasswordReset($account, 'https://x/reset');
         $accountMailer->sendLoginLink($account, 'https://x/login');
@@ -191,11 +182,18 @@ final class AdaptersTest extends TestCase
             ['email.risky_sign_in.subject', '@PhilIdentityProvider/email/risky_sign_in.html.twig', ['device' => 'Safari on iOS']],
         ];
 
+        self::assertCount(4, $mailer->sent);
+
         foreach ($expected as $position => [$subject, $template, $context]) {
-            $email = $mailer->sent[$position] ?? null;
+            $email = $mailer->sent[$position];
             self::assertInstanceOf(TemplatedEmail::class, $email);
             self::assertSame($subject, $email->getSubject());
             self::assertSame($template, $email->getHtmlTemplate());
+            self::assertSame(str_replace('.html.twig', '.txt.twig', $template), $email->getTextTemplate(), 'The text part writes the link in full.');
+            $tracking = TrackingHeader::fromHeaders($email->getHeaders());
+            self::assertInstanceOf(TrackingHeader::class, $tracking);
+            self::assertSame([false, false], [$tracking->getOpens(), $tracking->getClicks()], 'The provider follows neither opens nor clicks.');
+            self::assertSame($email, $mailer->rendered[$position] ?? null);
             self::assertSame('accounts@example.com', $email->getFrom()[0]->getAddress());
             self::assertSame('ada@example.com', $email->getTo()[0]->getAddress());
             self::assertSame(['site' => 'Example', 'name' => 'Ada'], array_intersect_key($email->getContext(), ['site' => 1, 'name' => 1]));

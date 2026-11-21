@@ -70,7 +70,7 @@ final readonly class DoctrineLinkTokenRepository implements LinkTokenRepository
         $query = $this->entityManager->createQuery(\sprintf('DELETE FROM %s t WHERE %s', LinkToken::class, $condition));
 
         foreach ($parameters as $name => $value) {
-            $query->setParameter($name, $value, $value instanceof DateTimeImmutable ? Types::DATETIME_IMMUTABLE : null);
+            $query->setParameter($name, $value, $value instanceof DateTimeImmutable ? Types::DATETIME_UTC_IMMUTABLE : null);
         }
 
         $removed = $query->execute();

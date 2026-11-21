@@ -27,7 +27,7 @@ final class RecoveryCodeSet
         private readonly string $accountId,
         #[ORM\Column(name: 'hashes', type: 'json')]
         private array $hashes,
-        #[ORM\Column(name: 'created_at')]
+        #[ORM\Column(name: 'created_at', type: 'datetime_utc_immutable')]
         private DateTimeImmutable $createdAt,
     ) {
     }

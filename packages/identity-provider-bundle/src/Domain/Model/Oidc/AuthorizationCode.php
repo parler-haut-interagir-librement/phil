@@ -42,7 +42,7 @@ final class AuthorizationCode
         private readonly ?string $nonce,
         #[ORM\Column(name: 'code_challenge', length: 128, nullable: true)]
         private readonly ?string $codeChallenge,
-        #[ORM\Column(name: 'auth_time')]
+        #[ORM\Column(name: 'auth_time', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $authTime,
         #[ORM\Column(name: 'methods', type: 'json')]
         private readonly array $methods,
@@ -50,9 +50,9 @@ final class AuthorizationCode
         private readonly ?string $sessionId,
         #[ORM\Column(name: 'family', length: 26, options: ['fixed' => true])]
         private readonly string $family,
-        #[ORM\Column(name: 'expires_at')]
+        #[ORM\Column(name: 'expires_at', type: 'datetime_utc_immutable')]
         private readonly DateTimeImmutable $expiresAt,
-        #[ORM\Column(name: 'used_at', nullable: true)]
+        #[ORM\Column(name: 'used_at', type: 'datetime_utc_immutable', nullable: true)]
         private ?DateTimeImmutable $usedAt = null,
     ) {
     }

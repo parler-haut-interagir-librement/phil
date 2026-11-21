@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=370b22443cd10f25b0e2a597661cc71ff0704c57682c5c79a5538a5be61c8ca7 -->
+<!-- phil-dev source-sha256=a42c973f0547a7db13fb3c080a92ebe2a3d98bcab70ca0d8b411e263ea926f9b -->
 # Installation
 
 ```sh
@@ -49,8 +49,8 @@ utilisateurs : Argon2id (`sodium`). Générez la migration des tables avec `bin/
   (`oidc.refresh_token_bound_to_session`, activée par défaut) ; réglez-la à `false` pour garder l'ancien comportement.
 - `TokenController::AUTH_METHODS` a disparu : le document de découverte lit les méthodes dans
   `oidc.client_authentication.methods`. `IssuedToken::accountId()` retourne null pour un jeton de l'octroi
-  `client_credentials`, et `GrantRepository` gagne `useAssertion()` : une implémentation maison l'ajoute.
-  `Tokens::bearer()` donne un troisième membre, le client du jeton.
+  `client_credentials`, et `GrantRepository` gagne `useAssertion()`, `revokeFamily()` et `isFamilyRevoked()` : une implémentation
+  maison les ajoute. `Tokens::bearer()` donne un troisième membre, le client du jeton.
 - Les comptes gagnent la table `phil_identity_address`, et `phil_identity_account` les colonnes `email_canonical`
   (unique), `state` et `state_changed_at` à la place de `disabled_at` ; chaque `account_id`, et l'`id` de
   `phil_identity_account`, contient jusqu'à 36 caractères au lieu de 26 fixes. Lancez
@@ -73,6 +73,20 @@ utilisateurs : Argon2id (`sodium`). Générez la migration des tables avec `bin/
   `PrivateKey` continue de fonctionner.
 - Avec `links.mode: stored`, le schéma gagne `phil_identity_link_token` : lancez `bin/console doctrine:migrations:diff`
   et migrez. Les liens envoyés avant le changement de mode cessent de fonctionner.
+- Avec le module `oidc`, le schéma gagne la table `phil_identity_revoked_family`, les marques des familles de jetons
+  révoquées : lancez `bin/console doctrine:migrations:diff` et migrez.
+- Chaque colonne d'instant — `expires_at`, `revoked_at`, `created_at` et les autres — prend le type Doctrine
+  `datetime_utc_immutable` : les instants sont écrits et lus en UTC, quel que soit le fuseau horaire du processus. Le
+  type SQL est le même, donc `doctrine:migrations:diff` n'écrit aucun changement. Une base écrite par des processus
+  dont le fuseau horaire n'était pas UTC contient des heures locales : convertissez ces colonnes en UTC une seule
+  fois, avant la mise en service de la mise à niveau — par exemple, sur MySQL,
+  `UPDATE phil_identity_token SET expires_at = CONVERT_TZ(expires_at, 'America/Toronto', '+00:00')` pour chaque
+  colonne d'instant des tables listées dans [Tables](reference.md#tables), avec le fuseau dans lequel les processus
+  tournaient. Une base écrite en UTC n'a besoin de rien.
+- Les courriels de compte passent par les transports du composant Mailer et les codes par les transports SMS du
+  composant Notifier, jamais par Messenger : `MailerAccountMailer` prend les transports et le moteur de rendu du
+  corps de Twig au lieu de `MailerInterface`, et le bundle donne à `NotifierSmsSender` un texteur sans bus. Voir
+  [Pourquoi les courriels de compte et les SMS ne passent jamais par Messenger](links-and-sms.md#pourquoi-les-courriels-de-compte-et-les-sms-ne-passent-jamais-par-messenger).
 
 ## Où mènent les liens
 

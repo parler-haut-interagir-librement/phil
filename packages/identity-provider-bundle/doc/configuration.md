@@ -115,7 +115,7 @@ phil_identity_provider:
 | `passkeys.attestation.backup` | `allowed` | Whether a passkey that may be synced to other devices is `allowed`, `required` or `forbidden`. |
 | `totp.issuer` | `null` | The issuer the authenticator application shows; the site name when null. |
 | `totp.window` | `1` | The periods of 30 seconds accepted before and after the current one, 0 to 10. |
-| `sms.sender` | `null` | Service id of an `SmsSender`; the texter of the Notifier component when null. |
+| `sms.sender` | `null` | Service id of an `SmsSender`; a texter on the SMS transports of the Notifier component, without a bus, when null. |
 | `sms.from` | `''` | The sender of the text messages, when the transport allows one. |
 | `sms.message` | `Your code: {code}` | The text, `{code}` replaced by the code. |
 | `sms.lifetime` | `600` | Seconds a code lasts. |
