@@ -1,0 +1,1 @@
+{"iss":"https://accounts.google.com/","aud":"client","iat":1795176000,"jti":"756E69","events":{"https://schemas.openid.net/secevent/risc/event-type/account-disabled":{"subject":{"subject_type":"iss-sub","iss":"https://accounts.google.com/","sub":"7375626A656374"},"reason":"hijacking"}}}
