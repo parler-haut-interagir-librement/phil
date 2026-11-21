@@ -41,6 +41,14 @@ one, once per order and SKU — see [Conventions](conventions.md).
 | `conventions.window_days` | How many days ahead a convention counts as near, 0 to 366; 30 by default |
 | `conventions.online_channels` | The channels whose orders are placed online, beside orders without a channel |
 
+## Events
+
+| Event | Dispatched by | When |
+|---|---|---|
+| `Domain\Event\UnitsShipped` | `Stock`, through the service `event_dispatcher` when there is one | Units left the shelf: once per `ship()` or `shipPart()` that moved units, a line per SKU and location |
+
+The event carries identifiers and counts only — see [Shipments](shipments.md#units-shipped).
+
 ## Repositories
 
 Each repository port is a public alias of the module's Doctrine adapter; an application points it at a service of
@@ -64,15 +72,15 @@ its own under the same contract. `DoctrineLogisticsRepository` implements them a
 
 | Service | How an application relies on it |
 |---|---|
-| `Stock` | Receives, counts, transfers and reserves; public — see [Stock](stock.md) |
+| `Stock` | Receives, counts, adjusts, transfers, reserves, ships and takes customer returns back; public — see [Stock](stock.md) |
 | `Shipments` | Ships in one parcel or several, with carrier and tracking; public — see [Shipments](shipments.md) |
 | `DeliveryOptions` | The delivery methods of a zone, their prices and estimated days; public — see [Delivery](delivery.md) |
 | `ShippingLabels` | The carriers' rates and labels, the cost of each shipment, an order's margin; public — see [Carriers](carriers.md) |
 | `ConventionStock` | The quantities prepared per convention, what is left to print, the route of an order placed online; public — see [Conventions](conventions.md) |
-| `Purchasing` | Purchase orders and their receipts; public — see [Purchasing](purchasing.md) |
+| `Purchasing` | Purchase orders, the unit cost and owner of their lines, and their receipts; public — see [Purchasing](purchasing.md) |
 | `SerialNumbers` | The serial number of each unit; public — see [Purchasing](purchasing.md) |
 | `ShippingDocuments` | Delivery notes and picking slips; public — see [Shipments](shipments.md) |
 | `ShippingWaves` | Orders planned to ship together on an estimated day; public — see [Shipments](shipments.md) |
 
 With `phil/commerce-returns-bundle`, a `Restocking` of the application's own puts returned units back in stock
-through `Stock`.
+through `Stock::returnFromCustomer()`.

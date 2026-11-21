@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f4eed656ef13fcd0f0a3f40422f5a1dcf27c12be654af4456633c25742f7b55b -->
+<!-- phil-dev source-sha256=119e6ac1552a04b7e0b700b89868503e88bab6f79243b7da40e85e6a58fb47fd -->
 <!-- phil-dev source-sha256=0 -->
 # Expéditions
 
@@ -18,6 +18,43 @@ $shipments->ship($order, $clock->now());   // everything left
   une ligne d'un autre type, ou un produit non suivi, part sans toucher au stock.
 - Expédier plus d'un *SKU* que n'en tiennent encore ses réservations est refusé ; libérer la commande ensuite ne rend
   que ce qui est encore réservé.
+
+## Les unités expédiées
+
+Quand des unités quittent la tablette, `Stock` envoie `UnitsShipped` par le répartiteur d'événements de l'application,
+selon sa classe : ce qu'écoute un registre de propriétaires, un rapport de ventes ou une notification.
+
+```php
+use Phil\CommerceLogisticsBundle\Domain\Event\UnitsShipped;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener]
+final readonly class RecordTheSale
+{
+    public function __invoke(UnitsShipped $event): void
+    {
+        foreach ($event->lines as $line) {
+            // $event->orderNumber, $line->sku, $line->location, $line->units, $event->occurredAt()
+        }
+    }
+}
+```
+
+- **Un événement par appel qui a déplacé des unités** : `Stock::ship()` annonce chaque unité de la commande qui est
+  partie, et `Stock::shipPart()` — que `Shipments::ship()` appelle une fois par ligne de produit — celles d'un seul
+  *SKU*. Un appel qui ne déplace rien — une commande déjà expédiée, un *SKU* non suivi — n'envoie rien.
+- **Une ligne par *SKU* et par emplacement**, avec les unités qui en sont parties ; `units()` donne le total. Le moment
+  est celui qu'on a donné à l'appel, en UTC.
+- **Aucune donnée personnelle** : le numéro de la commande, les *SKU*, les emplacements et les unités seulement. Un
+  écouteur lit le reste dans son propre stockage, et l'événement peut traverser un transport de Messenger tel quel.
+- **Après le journal, avant le commit.** L'événement est envoyé une fois les mouvements écrits dans l'unité de travail,
+  et avant que l'application la vide, comme les événements du noyau. Un écouteur qui écrit dans la base écrit dans la
+  même transaction : la vente et le mouvement sont validés ensemble, ou aucun des deux. Un vidage repris après un échec
+  n'envoie pas l'événement de nouveau, puisque c'est l'appel qui l'envoie, non le vidage ; un appel refait dans une
+  nouvelle unité de travail après une annulation annonce ce qu'il déplace alors. Un écouteur qui joint le monde
+  extérieur — un courriel, un webhook — le fait après la validation, par Messenger avec le *middleware* de transaction
+  de Doctrine par exemple.
+- Sans répartiteur d'événements, rien n'est envoyé, et les unités s'expédient comme avant.
 
 ## Bordereaux de livraison et listes de prélèvement
 

@@ -5,13 +5,14 @@
 | Requirement | Version | Why |
 |---|---|---|
 | PHP | 8.5 or later | The floor the module declares and is tested on |
-| `phil/commerce-bundle` | ^0.2@dev or ^0.3@dev | The core the module plugs into: its orders, `OrderProcessor`, `StockCommitments` and register of document types |
+| `phil/commerce-bundle` | ^0.4@dev | The core the module plugs into: its orders, `OrderProcessor`, `StockCommitments` and register of document types |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` and `DomainError` |
 | `phil/money` | ^0.1@dev | The prices of delivery methods and the costs of shipments |
 | `phil/url` | ^0.1@dev | The links of a carrier's answers, read as a browser reads them |
 | `ext-mbstring` | any | The length of an address's fields, in characters |
 | `doctrine/orm` | ^3.7 | The mapping attributes of the logistics entities, and the repository adapter |
 | `symfony/uid` | ^8.2 | The time-ordered UUIDs of movements and reservations |
+| `symfony/event-dispatcher-contracts` | ^3.6 | `UnitsShipped`, dispatched when the application has an event dispatcher |
 | `symfony/http-client-contracts` | ^3.6 | The HTTP client the Canada Post adapter asks through |
 | `symfony/clock`, `psr/clock` | ^8.2, ^1.0 | When the carrier's access token expires |
 | `symfony/service-contracts` | ^3.6 | The adapter forgets its token between the requests of a worker |

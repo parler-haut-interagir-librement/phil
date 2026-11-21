@@ -99,6 +99,24 @@ final class StockLevel
         return $difference;
     }
 
+    /**
+     * Changes what is on hand by a difference — a count's finding, a damaged unit written off —, never below zero.
+     * The difference applies to the level as it is read now: unlike `count()`, it does not overwrite a movement made
+     * since the level was last read.
+     */
+    public function adjust(int $difference): void
+    {
+        if (0 === $difference) {
+            throw StockRefused::quantity($difference);
+        }
+
+        if ($this->onHand + $difference < 0) {
+            throw StockRefused::belowZero($this->sku, $this->location, $difference, $this->onHand);
+        }
+
+        $this->onHand += $difference;
+    }
+
     public function reserve(int $quantity): void
     {
         if ($this->checked($quantity) > $this->available()) {

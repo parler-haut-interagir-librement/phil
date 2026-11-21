@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f027763760998e4abdbd31e7eb319a7a8756b3880ca36090393ca8e2af113bac -->
+<!-- phil-dev source-sha256=ace63db47c974166f8dcb4a986c93b7906e8dad7053f8bd06de67391b4ceae58 -->
 <!-- phil-dev source-sha256=0 -->
 # phil/commerce-logistics-bundle
 
@@ -7,10 +7,12 @@ les colis et leurs documents, la livraison facturée par zone, et les tarifs et 
 
 phil/commerce-logistics-bundle tient le côté physique d'une commande. Il garde le stock par *SKU* (unité de gestion de
 stock, ou *UGS*) et par emplacement, avec un journal de chaque mouvement : unités reçues, comptées et transférées,
-marchandises reçues contre des bons de commande, et numéro de série de chaque unité qui en a un. Il réserve les lignes
-de produits d'une commande passée dans les emplacements ouverts, par priorité, vend une UGS sans stock quand son
+marchandises reçues contre des bons de commande, numéro de série de chaque unité qui en a un, coût unitaire et
+propriétaire que donne une ligne de bon de commande, retours de clients remis sur une tablette, et ajustements par une
+différence. Il réserve les lignes de produits d'une commande passée dans les emplacements ouverts, par priorité, vend une UGS sans stock quand son
 indicateur le permet, les libère, et les expédie en un colis ou en plusieurs, chacun avec son transporteur, son numéro
-de suivi et son bordereau de livraison, après une liste de prélèvement, seuls ou dans une vague d'expédition planifiée.
+de suivi et son bordereau de livraison, après une liste de prélèvement, seuls ou dans une vague d'expédition planifiée ;
+les unités qui partent sont annoncées par un événement qu'écoute un registre ou un rapport.
 Il garde le stock préparé pour les conventions, taille par taille, et envoie à l'impression les chandails d'une
 commande passée en ligne quand une convention approche. Il offre des modes de livraison par zone (expédition,
 livraison locale, ramassage), chacun avec un prix, un seuil de gratuité et un nombre de jours estimé, et facture le mode
@@ -35,11 +37,11 @@ une colonne de version, qui refuse deux mouvements faits sur la même copie.
 
 | Partie | État |
 |---|---|
-| Les emplacements, les niveaux de stock, le journal, la réception, les comptages, les transferts | Implémenté et testé |
+| Les emplacements, les niveaux de stock, le journal, la réception, les comptages, les ajustements, les transferts, les retours de clients | Implémenté et testé |
 | Les réservations des commandes passées, libérées ou expédiées ; les commandes en attente ; le stock des ventes payées plus tard | Implémenté et testé |
 | Le stock des conventions, l'impression à la demande des commandes passées en ligne | Implémenté et testé |
-| Les bons de commande et leurs réceptions, les numéros de série | Implémenté et testé |
-| Les expéditions : une commande en un colis ou en plusieurs, le transporteur et le suivi | Implémenté et testé |
+| Les bons de commande, le coût unitaire et le propriétaire de leurs lignes, leurs réceptions ; les numéros de série | Implémenté et testé |
+| Les expéditions : une commande en un colis ou en plusieurs, le transporteur et le suivi ; `UnitsShipped` | Implémenté et testé |
 | Les bordereaux de livraison, les listes de prélèvement, les vagues d'expédition | Implémenté et testé |
 | Les modes de livraison par zone, le seuil de gratuité, les frais de livraison | Implémenté et testé |
 | Les tarifs et les étiquettes des transporteurs, le coût de chaque expédition, Postes Canada | Implémenté et testé ; les noms de champs de Postes Canada ne sont pas encore comparés à son document OpenAPI |
@@ -49,7 +51,7 @@ une colonne de version, qui refuse deux mouvements faits sur la même copie.
 | Document | Ce qu'il couvre |
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis, l'installation et l'enregistrement du module à côté du noyau. |
-| [Stock](doc/fr/stock.md) | Les emplacements, les niveaux, le journal, la réception, les comptages, les transferts, les réservations, les commandes en attente, les ventes payées plus tard, le stockage. |
+| [Stock](doc/fr/stock.md) | Les emplacements, les niveaux, le journal, la réception, les comptages, les ajustements, les transferts, les retours de clients, les réservations, les commandes en attente, les ventes payées plus tard, le stockage. |
 | [Conventions](doc/fr/conventions.md) | Le stock préparé par convention, ce qui reste à imprimer, les commandes passées en ligne envoyées à l'impression. |
 | [Achats](doc/fr/purchasing.md) | Les bons de commande et leurs réceptions ; le numéro de série de chaque unité. |
 | [Livraison](doc/fr/delivery.md) | Les modes de livraison, ce que paie une commande, le stockage. |
@@ -79,9 +81,9 @@ return [
 
 PHP 8.5 ou plus récent avec `ext-mbstring` ; `phil/commerce-bundle`, `phil/ddd-bundle`, `phil/money` et `phil/url` 0.1 ;
 Doctrine ORM 3.7 ; `symfony/uid`, `symfony/clock`, `symfony/config` et `symfony/dependency-injection` 8.2 ou plus
-récent ; `symfony/http-client-contracts` et `symfony/service-contracts` 3.6 ; `symfony/polyfill-php86` 1.37 ;
-`psr/clock` 1.0. L'adaptateur de
-Postes Canada a besoin d'un client HTTP, `symfony/http-client` par FrameworkBundle.
+récent ; `symfony/event-dispatcher-contracts`, `symfony/http-client-contracts` et `symfony/service-contracts` 3.6 ;
+`symfony/polyfill-php86` 1.37 ; `psr/clock` 1.0. L'adaptateur de Postes Canada a besoin d'un client HTTP,
+`symfony/http-client` par FrameworkBundle.
 
 ## Contribuer
 

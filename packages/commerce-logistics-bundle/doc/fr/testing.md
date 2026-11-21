@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=050979606df5745e18c437f9a6cbf3e3a6540c32d6ae213c62b8bb5dd649f066 -->
+<!-- phil-dev source-sha256=7d50730ac96384f50d05c5e0ce743097b25e942d6a3df637240ffcd332f8bdef -->
 <!-- phil-dev source-sha256=0 -->
 # Tests
 
@@ -7,6 +7,10 @@
 | Domaine | Ce qui est couvert |
 |---|---|
 | `Location`, `StockLevel`, `StockMovement`, `Reservation` | Chaque mouvement et ses bornes, les comptages sous les réservations, rien sous zéro, les réservations tenues une seule fois |
+| `UnitsShipped`, `ShippedLine` | Un événement par appel qui a déplacé des unités, une ligne par *SKU* et par emplacement, les unités en attente sur la ligne de leur niveau, le moment en UTC, rien pour une commande sans rien de retenu, le journal écrit d'abord, des unités expédiées sans répartiteur |
+| `Stock::returnFromCustomer()`, `Reservation::returnPart()` | Des unités remises sur n'importe quelle tablette sous le numéro de la commande, comme `returned` ; jamais plus que ce qui est parti et n'est pas revenu, sur les réservations de la commande pour le *SKU*, dans leur ordre ; un autre *SKU* n'est pas compté ; rien déplacé lors d'un refus |
+| `Stock::adjust()`, `StockLevel::adjust()` | Des différences à la hausse et à la baisse au journal comme `adjusted`, jusqu'à zéro et pas en dessous, une différence de zéro refusée avant toute recherche, moins en main que de réservé |
+| `PurchaseLine` | Le coût unitaire et le propriétaire reportés à la réception, des *SKU* numériques, des lignes d'unités seules qui ne stockent rien, chaque borne d'une ligne |
 | `DeliveryMethod` | Chaque règle, les zones et la devise desservies, le seuil de gratuité |
 | `Stock` | Le journal de chaque mouvement, les emplacements inconnus et identiques, les emplacements fermés, les réservations par priorité, les pénuries qui ne réservent rien, la libération et l'expédition une seule fois, les commandes en attente réservées au premier emplacement ouvert et expédiées seulement une fois reçues, rien déplacé quand un niveau manque d'unités en main |
 | `StockPolicy`, `DeferredStock` | Les commandes en attente permises et interdites, aucune sans stockage des politiques ; le stock d'une vente différée retenu et libéré au moment de l'horloge |
@@ -20,7 +24,7 @@
 | `Parcel`, `ShippingAddress`, `LabelRequest`, `ShippingCost`, `ShippingMargin` | Chaque borne, les adresses incomplètes refusées pour une étiquette, les champs d'une ligne, une marge qui est une perte |
 | `ShippingLabels` | Chaque transporteur interrogé, ceux qui ne répondent pas laissés de côté, le moins cher d'abord, l'échec d'un transporteur montré, un coût noté une seule fois, la marge dans la devise de la commande |
 | `CanadaPostCarrier`, `CanadaPostCredentials` | Les requêtes envoyées — le jeton, les en-têtes, les corps JSON, les délais — et les réponses lues, par le `MockHttpClient` de Symfony sur des réponses gardées dans `tests/Fixtures/CanadaPost` ; le jeton gardé, renouvelé et oublié ; chaque réponse non fiable refusée, les liens vers d'autres hôtes refusés, les réponses trop grandes coupées |
-| Mappage | Chaque colonne des seize tables |
+| Mappage | Chaque colonne des seize tables, `returned` à 0 par défaut |
 | `PhilCommerceLogisticsBundle` | Les services avec DoctrineBundle, rien sans lui sauf les types de documents, le mappage, les étiquettes des transporteurs et des imprimeurs, les étiquettes du noyau, la série et la fenêtre des conventions configurées, Postes Canada configuré ou non, le refus sans le noyau |
 
 Une suite fonctionnelle démarre un noyau avec FrameworkBundle, DoctrineBundle sur une base SQLite en mémoire, le noyau
@@ -29,13 +33,21 @@ facture sa livraison, et relit chaque niveau, chaque réservation et chaque lign
 deux expéditions et relit la marge de la commande ; elle stocke des commandes en attente, des conventions et des
 travaux d'impression, des bons de commande, des numéros de série, une liste de prélèvement numérotée par le registre du
 noyau et des vagues, et relit chacun par sa propre requête ; et elle engage le stock d'une précommande par les
-`DeferredSales` du noyau. Aucun test n'appelle un transporteur par le réseau. Quand le module est installé seul, là où
+`DeferredSales` du noyau. `StockPortsFlowTest` annonce une expédition partielle à un écouteur du répartiteur d'événements
+du noyau une seule fois, quel que soit le nombre de vidages qui suivent, reprend un retour de client, ajuste un niveau,
+et relit le coût unitaire et le propriétaire d'une ligne de bon de commande, et un bon de commande sans conditions
+stocké comme null. Aucun test n'appelle un transporteur par le réseau. Quand le module est installé seul, là où
 FrameworkBundle est un prérequis de développement, la suite est sautée.
 
-Une suite d'intégration, `tests/Integration`, fait rouler l'adaptateur Doctrine sur MySQL 8 et PostgreSQL 17 — ses
-tables créées à partir du mappage, des bons de commande avec des *SKU* numériques, des numéros de série, des
-conventions trouvées par leurs jours, des documents avec et sans expédition, des expéditions et des vagues relues —
-quand `PHIL_TEST_MYSQL_URL` et `PHIL_TEST_POSTGRESQL_URL` nomment un serveur, et elle est sautée sinon :
+Une suite d'intégration, `tests/Integration`, fait rouler l'adaptateur Doctrine sur SQLite, MySQL 8.4 et
+PostgreSQL 17 — ses tables créées à partir du mappage, des bons de commande avec des *SKU* numériques et les
+conditions de leurs lignes, des numéros de série, des conventions trouvées par leurs jours, des documents avec et sans
+expédition, des expéditions et des vagues relues ; deux ajustements d'un même niveau faits en même temps dans deux
+gestionnaires d'entités, le second refusé par la version du niveau puis repris, les deux comptés ; une base de
+0.1.0-alpha comparée au mappage, qui ajoute `returned` et `line_terms` et ne change rien d'autre, ses lignes relues
+après le changement. SQLite roule sur un fichier du répertoire temporaire, ou sur celui que nomme
+`PHIL_TEST_SQLITE_PATH` ; MySQL et PostgreSQL roulent quand `PHIL_TEST_MYSQL_URL` et `PHIL_TEST_POSTGRESQL_URL` nomment
+un serveur, et sont sautés sinon :
 
 ```sh
 eval "$(vendor/bin/phil-dev services env)"

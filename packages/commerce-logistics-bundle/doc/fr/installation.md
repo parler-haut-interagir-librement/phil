@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6e8889fd21fe3ebdeb693e2004d19c78690ae8d198636d50fd7c5c218107596f -->
+<!-- phil-dev source-sha256=90d22ce3aa029f48b81a3b03779f821ba8498ffd26984c698d96463455193d87 -->
 <!-- phil-dev source-sha256=0 -->
 # Installation
 
@@ -7,13 +7,14 @@
 | Prérequis | Version | Pourquoi |
 |---|---|---|
 | PHP | 8.5 ou plus récent | Le plancher que le module déclare et sur lequel il est testé |
-| `phil/commerce-bundle` | ^0.2@dev ou ^0.3@dev | Le noyau auquel le module se branche : ses commandes, `OrderProcessor`, `StockCommitments` et son registre des types de documents |
+| `phil/commerce-bundle` | ^0.4@dev | Le noyau auquel le module se branche : ses commandes, `OrderProcessor`, `StockCommitments` et son registre des types de documents |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` et `DomainError` |
 | `phil/money` | ^0.1@dev | Les prix des modes de livraison et les coûts des expéditions |
 | `phil/url` | ^0.1@dev | Les liens des réponses d'un transporteur, lus comme le fait un navigateur |
 | `ext-mbstring` | toute | La longueur des champs d'une adresse, en caractères |
 | `doctrine/orm` | ^3.7 | Les attributs de mappage des entités de logistique, et l'adaptateur des dépôts |
 | `symfony/uid` | ^8.2 | Les UUID ordonnés dans le temps des mouvements et des réservations |
+| `symfony/event-dispatcher-contracts` | ^3.6 | `UnitsShipped`, envoyé quand l'application a un répartiteur d'événements |
 | `symfony/http-client-contracts` | ^3.6 | Le client HTTP par lequel l'adaptateur de Postes Canada interroge |
 | `symfony/clock`, `psr/clock` | ^8.2, ^1.0 | Le moment où expire le jeton d'accès du transporteur |
 | `symfony/service-contracts` | ^3.6 | L'adaptateur oublie son jeton entre les requêtes d'un *worker* |

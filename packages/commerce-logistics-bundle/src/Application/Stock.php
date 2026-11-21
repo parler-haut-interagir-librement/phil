@@ -7,6 +7,8 @@ namespace Phil\CommerceLogisticsBundle\Application;
 use DateTimeImmutable;
 use Phil\CommerceBundle\Domain\Model\Order;
 use Phil\CommerceBundle\Domain\Order\OrderState;
+use Phil\CommerceLogisticsBundle\Domain\Event\ShippedLine;
+use Phil\CommerceLogisticsBundle\Domain\Event\UnitsShipped;
 use Phil\CommerceLogisticsBundle\Domain\Exception\StockRefused;
 use Phil\CommerceLogisticsBundle\Domain\Model\Location;
 use Phil\CommerceLogisticsBundle\Domain\Model\Reservation;
@@ -18,6 +20,7 @@ use Phil\CommerceLogisticsBundle\Domain\Repository\StockPolicyRepository;
 use Phil\CommerceLogisticsBundle\Domain\Repository\StockRepository;
 use Phil\CommerceLogisticsBundle\Domain\Stock\MovementKind;
 use Phil\CommerceLogisticsBundle\Domain\Stock\ReservationState;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Stock in and out, each movement written to the journal, and the reservations of placed orders.
@@ -25,7 +28,8 @@ use Phil\CommerceLogisticsBundle\Domain\Stock\ReservationState;
  * **A SKU is tracked once it has a stock level somewhere**: a product never received — a download, a service — is
  * never reserved. A SKU whose `StockPolicy` allows backorders sells without stock: its shortfall is reserved at its
  * first open location and leaves once goods are received. With `ConventionStock`, the convention items of an order
- * placed online while a convention is near go to print instead. Nothing is committed here.
+ * placed online while a convention is near go to print instead. Units that leave are announced by `UnitsShipped`,
+ * when an event dispatcher is given. Nothing is committed here.
  */
 final readonly class Stock
 {
@@ -34,6 +38,7 @@ final readonly class Stock
         private StockRepository $stock,
         private ?StockPolicyRepository $policies = null,
         private ?ConventionStock $conventions = null,
+        private ?EventDispatcherInterface $dispatcher = null,
     ) {
     }
 
@@ -78,6 +83,60 @@ final readonly class Stock
     {
         $level = $this->levelAt($sku, $location);
         $this->stock->record(StockMovement::of($level, MovementKind::Counted, $level->count($counted), 0, $reference, $at));
+    }
+
+    /**
+     * Changes what a level holds on hand by a difference — what a count found missing or extra, a damaged unit written
+     * off —, never below zero; the journal keeps it as `adjusted`. The difference applies to the level as it is read
+     * now: two adjustments of one level at once both count, the level's version refusing the second flush, which the
+     * caller retries.
+     */
+    public function adjust(string $sku, string $location, int $difference, DateTimeImmutable $at, ?string $reference = null): void
+    {
+        if (0 === $difference) {
+            throw StockRefused::quantity($difference);
+        }
+
+        $level = $this->levelAt($sku, $location);
+        $level->adjust($difference);
+
+        $this->stock->record(StockMovement::of($level, MovementKind::Adjusted, $difference, 0, $reference, $at));
+    }
+
+    /**
+     * Puts units a customer sent back on the shelf at a location, under the order's number; the journal keeps them as
+     * `returned`, apart from receipts. Never more units of a SKU than left with the order and did not come back yet.
+     */
+    public function returnFromCustomer(string $orderNumber, string $sku, string $location, int $quantity, DateTimeImmutable $at): void
+    {
+        if ($quantity < 1) {
+            throw StockRefused::quantity($quantity);
+        }
+
+        $reservations = array_filter(
+            $this->stock->reservationsOf($orderNumber),
+            static fn (Reservation $reservation): bool => $reservation->sku === $sku,
+        );
+        $returnable = array_sum(array_map(static fn (Reservation $reservation): int => $reservation->returnable(), $reservations));
+
+        if ($quantity > $returnable) {
+            throw StockRefused::overReturned($orderNumber, $sku, $quantity, $returnable);
+        }
+
+        $level = $this->levelAt($sku, $location);
+        $left = $quantity;
+
+        foreach ($reservations as $reservation) {
+            $part = min($left, $reservation->returnable());
+
+            if ($part > 0) {
+                $reservation->returnPart($part);
+                $left -= $part;
+            }
+        }
+
+        $level->receive($quantity);
+        $this->stock->record(StockMovement::of($level, MovementKind::Returned, $quantity, 0, $orderNumber, $at));
     }
 
     public function transfer(string $sku, string $from, string $to, int $quantity, DateTimeImmutable $at, ?string $reference = null): void
@@ -164,11 +223,16 @@ final readonly class Stock
         $held = $this->held($orderNumber);
         $this->checkOnHand(array_map(static fn (array $pair): array => [$pair[1], $pair[0]->remaining()], $held));
 
+        $lines = [];
+
         foreach ($held as [$reservation, $level]) {
             $shipped = $reservation->remaining();
             $reservation->ship($level);
             $this->stock->record(StockMovement::of($level, MovementKind::Shipped, -$shipped, -$shipped, $orderNumber, $at));
+            $lines[] = [$level, $shipped];
         }
+
+        $this->announce($orderNumber, $lines, $at);
     }
 
     /**
@@ -211,10 +275,15 @@ final readonly class Stock
 
         $this->checkOnHand(array_map(static fn (array $part): array => [$part[1], $part[2]], $parts));
 
+        $lines = [];
+
         foreach ($parts as [$reservation, $level, $part]) {
             $reservation->shipPart($level, $part);
             $this->stock->record(StockMovement::of($level, MovementKind::Shipped, -$part, -$part, $orderNumber, $at));
+            $lines[] = [$level, $part];
         }
+
+        $this->announce($orderNumber, $lines, $at);
 
         return $quantity;
     }
@@ -280,6 +349,28 @@ final readonly class Stock
                 throw StockRefused::notOnHand($level->sku, $level->location, $quantity, $level->onHand());
             }
         }
+    }
+
+    /**
+     * Dispatches one `UnitsShipped` for the units that left, a line per SKU and location; nothing when none left.
+     *
+     * @param list<array{StockLevel, int}> $parts
+     */
+    private function announce(string $orderNumber, array $parts, DateTimeImmutable $at): void
+    {
+        if (!$this->dispatcher instanceof EventDispatcherInterface || [] === $parts) {
+            return;
+        }
+
+        $units = [];
+
+        foreach ($parts as [$level, $quantity]) {
+            $key = $level->sku."\0".$level->location;
+            $units[$key] = [$level, ($units[$key][1] ?? 0) + $quantity];
+        }
+
+        $lines = array_map(static fn (array $unit): ShippedLine => new ShippedLine($unit[0]->sku, $unit[0]->location, $unit[1]), array_values($units));
+        $this->dispatcher->dispatch(new UnitsShipped($orderNumber, $lines, $at));
     }
 
     /**

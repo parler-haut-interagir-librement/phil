@@ -67,6 +67,16 @@ final class StockRefused extends DomainException implements DomainError
         return new self(\sprintf('%d of %s cannot leave %s: %d are on hand.', $asked, $sku, $location, $onHand));
     }
 
+    public static function belowZero(string $sku, string $location, int $difference, int $onHand): self
+    {
+        return new self(\sprintf('%s at %s cannot change by %d: %d are on hand.', $sku, $location, $difference, $onHand));
+    }
+
+    public static function overReturned(string $orderNumber, string $sku, int $asked, int $returnable): self
+    {
+        return new self(\sprintf('%d of %s cannot come back from the order %s: %d left with it and were not returned yet.', $asked, $sku, $orderNumber, $returnable));
+    }
+
     public static function serialNotInStock(string $sku, string $serial): self
     {
         return new self(\sprintf('The unit %s of %s is not in stock.', $serial, $sku));

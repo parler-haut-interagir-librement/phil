@@ -35,6 +35,7 @@
         "symfony/clock": "^8.2",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
         "symfony/http-client-contracts": "^3.6",
         "symfony/polyfill-php86": "^1.37",
         "symfony/service-contracts": "^3.6",

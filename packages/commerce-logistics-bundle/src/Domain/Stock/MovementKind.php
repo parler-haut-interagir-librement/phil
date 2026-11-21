@@ -11,10 +11,12 @@ enum MovementKind: string
 {
     case Received = 'received';
     case Counted = 'counted';
+    case Adjusted = 'adjusted';
     case TransferredOut = 'transferred_out';
     case TransferredIn = 'transferred_in';
     case Reserved = 'reserved';
     case Backordered = 'backordered';
     case Released = 'released';
     case Shipped = 'shipped';
+    case Returned = 'returned';
 }

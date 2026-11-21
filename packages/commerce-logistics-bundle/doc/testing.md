@@ -5,6 +5,10 @@
 | Area | What is covered |
 |---|---|
 | `Location`, `StockLevel`, `StockMovement`, `Reservation` | Every movement and its bounds, counts below the reservations, nothing below zero, reservations held once |
+| `UnitsShipped`, `ShippedLine` | One event per call that moved units, a line per SKU and location, backordered units on the line of their level, the moment in UTC, nothing for an order with nothing held, the journal written first, units shipped without a dispatcher |
+| `Stock::returnFromCustomer()`, `Reservation::returnPart()` | Units back on any shelf under the order's number, as `returned`; never more than left and did not come back, over the order's reservations of the SKU in their order; another SKU not counted; nothing moved on a refusal |
+| `Stock::adjust()`, `StockLevel::adjust()` | Differences up and down in the journal as `adjusted`, down to zero and not below, a difference of zero refused before any lookup, less on hand than reserved |
+| `PurchaseLine` | The unit cost and owner carried to the receipt, numeric SKUs, units-only lines storing nothing, every bound of a line |
 | `DeliveryMethod` | Every rule, zones and currency served, the free threshold |
 | `Stock` | The journal of each movement, unknown and same locations, closed locations, reservations by priority, shortages reserving nothing, release and shipment once, backorders reserved at the first open location and shipped only once received, nothing moved when a level lacks units on hand |
 | `StockPolicy`, `DeferredStock` | Backorders allowed and forbidden, none without a policy store; the stock of a deferred sale held and freed at the clock's moment |
@@ -18,7 +22,7 @@
 | `Parcel`, `ShippingAddress`, `LabelRequest`, `ShippingCost`, `ShippingMargin` | Every bound, incomplete addresses refused for a label, one-line fields, a margin that is a loss |
 | `ShippingLabels` | Every carrier asked, the silent ones left out, the cheapest first, one carrier's failure shown, a cost recorded once, the margin in the order's currency |
 | `CanadaPostCarrier`, `CanadaPostCredentials` | The requests sent — token, headers, JSON bodies, timeouts — and the answers read, through Symfony's `MockHttpClient` on answers kept in `tests/Fixtures/CanadaPost`; the token kept, renewed and reset; every answer it cannot trust refused, links to other hosts refused, answers too large cut off |
-| Mapping | Every column of the sixteen tables |
+| Mapping | Every column of the sixteen tables, `returned` 0 by default |
 | `PhilCommerceLogisticsBundle` | The services with DoctrineBundle, nothing without but the document types, the mapping, the carriers' and printers' tags, the core's tags, the series and the convention window configured, Canada Post configured or not, the refusal without the core |
 
 A functional suite boots a kernel with FrameworkBundle, DoctrineBundle on an in-memory SQLite database, the core and
@@ -26,11 +30,20 @@ the module: `LogisticsFlowTest` receives stock, reserves and ships an order acro
 delivery, and reads every level, reservation and journal line back; it stores the cost of two shipments and reads
 the order's margin back; it stores backorders, conventions and print jobs, purchase orders, serial numbers, a picking
 slip numbered by the core's register and waves, and reads each back through its own query; and it commits the stock of
-a preorder through the core's `DeferredSales`. No test calls a carrier over the network. Installed on its own, where FrameworkBundle is a
-development requirement, the suite is skipped.
+a preorder through the core's `DeferredSales`. `StockPortsFlowTest` announces a partial shipment to a listener of the
+kernel's event dispatcher once, however many flushes follow, takes a customer return back, adjusts a level, and reads
+back the unit cost and owner of a purchase order line, and a purchase order without terms stored as null. No test
+calls a carrier over the network. Installed on its own, where FrameworkBundle is a development requirement, the suite
+is skipped.
 
-An integration suite, `tests/Integration`, runs the Doctrine adapter on MySQL 8 and PostgreSQL 17 — its tables created from the mapping, purchase orders with numeric SKUs, serial numbers, conventions found by their days, documents with and without a shipment, shipments and waves read back —
-when `PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL` name a server, and is skipped otherwise:
+An integration suite, `tests/Integration`, runs the Doctrine adapter on SQLite, MySQL 8.4 and PostgreSQL 17 — its
+tables created from the mapping, purchase orders with numeric SKUs and the terms of their lines, serial numbers,
+conventions found by their days, documents with and without a shipment, shipments and waves read back; two
+adjustments of one level made at once in two entity managers, the second refused by the level's version and retried,
+both counted; a database of 0.1.0-alpha compared with the mapping, which adds `returned` and `line_terms` and changes
+nothing else, its rows read back after the change. SQLite runs on a file of the temporary directory, or the one
+`PHIL_TEST_SQLITE_PATH` names; MySQL and PostgreSQL run when `PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL` name a
+server, and are skipped otherwise:
 
 ```sh
 eval "$(vendor/bin/phil-dev services env)"

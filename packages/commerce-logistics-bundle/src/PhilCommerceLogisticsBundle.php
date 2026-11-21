@@ -171,7 +171,8 @@ final class PhilCommerceLogisticsBundle extends AbstractBundle
             ->arg('$onlineChannels', $conventions['online_channels'])
             ->arg('$printers', tagged_iterator(self::PRINT_ON_DEMAND_TAG))
             ->public();
-        $services->set(Stock::class)->autowire()->public();
+        // Shipped units are announced on the application's event dispatcher, when it has one.
+        $services->set(Stock::class)->autowire()->arg('$dispatcher', service('event_dispatcher')->nullOnInvalid())->public();
         $services->set(Shipments::class)->autowire()->public();
         $services->set(Purchasing::class)->autowire()->public();
         $services->set(SerialNumbers::class)->autowire()->public();

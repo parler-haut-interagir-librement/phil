@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=81445108863aad8bd632453488bdc15b80002ab8ab3e48d47a07d9516f85cac6 -->
+<!-- phil-dev source-sha256=b0053adf49ced596a3536f4571795e711bed004edddee15f000f6bfbfe7f0c59 -->
 <!-- phil-dev source-sha256=0 -->
 # Points d'extension
 
@@ -44,6 +44,14 @@ autoconfiguration ; `ConventionStock` les appelle tous, une fois par commande et
 | `conventions.window_days` | Combien de jours à l'avance une convention compte comme proche, de 0 à 366 ; 30 par défaut |
 | `conventions.online_channels` | Les canaux dont les commandes sont passées en ligne, avec les commandes sans canal |
 
+## Les événements
+
+| Événement | Envoyé par | Quand |
+|---|---|---|
+| `Domain\Event\UnitsShipped` | `Stock`, par le service `event_dispatcher` quand il y en a un | Des unités ont quitté la tablette : une fois par `ship()` ou `shipPart()` qui a déplacé des unités, une ligne par *SKU* et par emplacement |
+
+L'événement ne porte que des identifiants et des quantités — voyez [Expéditions](shipments.md#les-unités-expédiées).
+
 ## Les dépôts
 
 Chaque port de dépôt est un alias public de l'adaptateur Doctrine du module ; une application le fait pointer vers un
@@ -67,15 +75,15 @@ de ses propres services sous le même contrat. `DoctrineLogisticsRepository` les
 
 | Service | Comment une application l'utilise |
 |---|---|
-| `Stock` | Reçoit, compte, transfère et réserve ; public — voyez [Stock](stock.md) |
+| `Stock` | Reçoit, compte, ajuste, transfère, réserve, expédie et reprend les retours de clients ; public — voyez [Stock](stock.md) |
 | `Shipments` | Expédie en un colis ou en plusieurs, avec le transporteur et le suivi ; public — voyez [Expéditions](shipments.md) |
 | `DeliveryOptions` | Les modes de livraison d'une zone, leurs prix et leurs jours estimés ; public — voyez [Livraison](delivery.md) |
 | `ShippingLabels` | Les tarifs et les étiquettes des transporteurs, le coût de chaque expédition, la marge d'une commande ; public — voyez [Transporteurs](carriers.md) |
 | `ConventionStock` | Les quantités préparées par convention, ce qui reste à imprimer, le chemin d'une commande passée en ligne ; public — voyez [Conventions](conventions.md) |
-| `Purchasing` | Les bons de commande et leurs réceptions ; public — voyez [Achats](purchasing.md) |
+| `Purchasing` | Les bons de commande, le coût unitaire et le propriétaire de leurs lignes, et leurs réceptions ; public — voyez [Achats](purchasing.md) |
 | `SerialNumbers` | Le numéro de série de chaque unité ; public — voyez [Achats](purchasing.md) |
 | `ShippingDocuments` | Les bordereaux de livraison et les listes de prélèvement ; public — voyez [Expéditions](shipments.md) |
 | `ShippingWaves` | Les commandes planifiées pour partir ensemble un jour estimé ; public — voyez [Expéditions](shipments.md) |
 
 Avec `phil/commerce-returns-bundle`, un `Restocking` propre à l'application remet en stock les unités retournées par
-`Stock`.
+`Stock::returnFromCustomer()`.

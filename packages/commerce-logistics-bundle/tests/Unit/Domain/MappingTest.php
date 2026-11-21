@@ -90,6 +90,7 @@ final class MappingTest extends TestCase
         self::assertSame(['phil_commerce_logistics_reservation', ['id'], [
             'state' => ['state', 'string', 16, false, null],
             'shipped' => ['shipped', 'integer', null, false, null],
+            'returned' => ['returned', 'integer', null, false, null],
             'id' => ['id', 'string', 36, false, true],
             'orderNumber' => ['order_number', 'string', 64, false, null],
             'sku' => ['sku', 'string', 64, false, null],
@@ -97,6 +98,7 @@ final class MappingTest extends TestCase
             'quantity' => ['quantity', 'integer', null, false, null],
         ]], $this->table(Reservation::class));
         self::assertSame([['columns' => ['order_number']]], array_values($this->metadata(Reservation::class)->table['indexes'] ?? []));
+        self::assertSame(['default' => 0], $this->metadata(Reservation::class)->fieldMappings['returned']->options);
         self::assertSame(ReservationState::class, $this->metadata(Reservation::class)->fieldMappings['state']->enumType);
 
         self::assertSame(['phil_commerce_logistics_delivery_method', ['code'], [
@@ -212,6 +214,7 @@ final class MappingTest extends TestCase
         self::assertSame(['phil_commerce_logistics_purchase_order', ['number'], [
             'state' => ['state', 'string', 16, false, null],
             'received' => ['received', 'json', null, false, null],
+            'lineTerms' => ['line_terms', 'json', null, true, null],
             'number' => ['number', 'string', 64, false, null],
             'supplier' => ['supplier', 'string', 255, false, null],
             'location' => ['location', 'string', 64, false, null],
