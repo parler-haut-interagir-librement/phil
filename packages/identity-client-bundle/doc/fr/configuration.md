@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dbc73bceb2e4a0e37b01f4e02304252e0bc56b8523dbb1fc27747af66b160756 -->
+<!-- phil-dev source-sha256=f81410e3c5e2390c70d9c0d94dda35904e4c91ca291e3a42673c0107cafb3858 -->
 # Configuration
 
 Chaque clé de `phil_identity_client`, avec sa valeur par défaut. Seuls `issuer`, `client_id` et un identifiant de
@@ -38,14 +38,17 @@ phil_identity_client:
         origins: []
 
     session:
-        max_lifetime: 43200           # seconds; 0 or null for none
-        start_claim: session_start
+        max_lifetime: 43200           # seconds from the start of the session at the provider; 0 or null for none
+        start_claim: session_start    # the ID token claim that dates it; auth_time when the token lacks it
 
     back_channel_logout:
         enabled: true
         path: /oidc/back-channel-logout
         replay_ttl: 86400
         cache: cache.security
+        cold_start_floor:
+            enabled: false            # refuse what predates the last time the pool was found empty
+            not_before: ~             # a floor of its own, in seconds since the Unix epoch
 
     end_session:
         enabled: false                # sign out at the provider too, on local logout
@@ -54,6 +57,7 @@ phil_identity_client:
     elevation:
         max_age: ~                    # sent on every authorization request
         retry_after: 60
+        required_level: ~             # a level of `levels` with an acr, which every sign-in has to reach
         levels: {}
 
     refresh:
@@ -67,6 +71,29 @@ phil_identity_client:
     tokens:
         keep_access_token: false
         keep_id_token: false
+```
+
+## Valeurs d'un réseau
+
+Les valeurs sur lesquelles doit s'entendre un groupe d'applications connectées par un même fournisseur viennent de la
+configuration, jamais du code :
+
+| Clé | Ce sur quoi le fournisseur et ses clients s'entendent |
+|---|---|
+| `elevation.levels` | Les valeurs `acr` de l'échelle, de la plus faible à la plus forte |
+| `elevation.required_level` | Le niveau sous lequel aucune application du groupe ne connecte personne |
+| `session.start_claim`, `session.max_lifetime` | La revendication qui date une session chez le fournisseur, et combien de temps elle vit à partir de là |
+| `back_channel_logout.replay_ttl` | Combien de temps un `jti` accepté est retenu |
+| `back_channel_logout.cold_start_floor.not_before` | Un instant avant lequel rien n'est accepté, comme un changement de clés |
+
+Une variable d'environnement porte un entier avec le processeur `int:` :
+
+```yaml
+phil_identity_client:
+    back_channel_logout:
+        cold_start_floor:
+            enabled: true
+            not_before: '%env(int:OIDC_REPLAY_NOT_BEFORE)%'
 ```
 
 ## Ce qui est fixé

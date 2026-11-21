@@ -4,6 +4,31 @@ All notable changes to `phil/identity-client-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: a level every sign-in has to reach, and a cold-start floor of the replay store. See
+[Step-up](doc/step-up.md#the-required-level) and [Logout](doc/logout.md#the-cold-start-floor).
+
+### Added
+
+- `elevation.required_level`, the assurance level every sign-in and every session has to reach: its classes are asked
+  for in the `acr_values` of each authorization request, a sign-in whose `acr` does not reach it fails with
+  `AssuranceLevelNotReachedException`, and a session below it, such as one begun before the requirement was raised,
+  is ended. `AssuranceLevels::required()`, `reachesRequired()` and `requestedClasses()` expose it.
+- `back_channel_logout.cold_start_floor`, off by default: the `ReplayFloor` port and `CacheReplayFloor`, a sentinel
+  without expiry in the pool of the replay store. A pool found without it was emptied, and the floor becomes that
+  instant: a logout token whose `iat` precedes the floor is refused before its `jti` is looked up, and a local session
+  signed in before it is ended with `SessionPredatesReplayFloorException`. `not_before` sets a floor of its own, such as
+  a key rollover at the provider, in force once reached.
+- `SessionRequirementsListener`, which ends the sessions the required level or the floor no longer admits, and the
+  `LocalSessionEndReason` cases `AssuranceNotReached` and `ReplayFloor`.
+- The security token records when the application signed the user in, under `TokenAttribute::SIGNED_IN_AT`.
+
+### Changed
+
+- `SignInListener` and `ReplayGuardedBackChannelLogout` take the assurance scale and the replay floor as optional last
+  arguments.
+
 ## 0.2.1-alpha - 2026-11-18
 
 The replay guard renews its lock before it writes a claim. See

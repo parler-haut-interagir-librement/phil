@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityClientBundle\Infrastructure\DependencyInjection;
 
 use Phil\IdentityClientBundle\Application\Contract\RefreshOutcomes;
+use Phil\IdentityClientBundle\Application\Contract\ReplayFloor;
 use Phil\IdentityClientBundle\Application\Contract\ReplayStore;
 use Phil\IdentityClientBundle\Application\Contract\ReturnToPolicy;
 use Phil\IdentityClientBundle\Application\Contract\UserProvisioner;
@@ -21,9 +22,11 @@ use Phil\IdentityClientBundle\Infrastructure\Security\IdentityUserProvider;
 use Phil\IdentityClientBundle\Infrastructure\Security\ReplayGuardedBackChannelLogout;
 use Phil\IdentityClientBundle\Infrastructure\Security\SerializedTokenRefreshListener;
 use Phil\IdentityClientBundle\Infrastructure\Security\SessionCapListener;
+use Phil\IdentityClientBundle\Infrastructure\Security\SessionRequirementsListener;
 use Phil\IdentityClientBundle\Infrastructure\Security\SignInListener;
 use Phil\IdentityClientBundle\Infrastructure\Security\StatelessUserProvisioner;
 use Phil\IdentityClientBundle\Infrastructure\Security\TokenAttribute;
+use Phil\IdentityClientBundle\Infrastructure\Store\CacheReplayFloor;
 use Phil\IdentityClientBundle\Infrastructure\Store\CacheReplayStore;
 use Phil\IdentityClientBundle\Infrastructure\Store\EncryptedRefreshOutcomes;
 use Symfony\Component\DependencyInjection\Definition;
@@ -66,7 +69,7 @@ final class ClientServices
         $services->set(FirewallComposer::USER_PROVIDER_SERVICE, IdentityUserProvider::class)
             ->args([service(UserProvisioner::class), $config['issuer'], $config['claims']]);
 
-        $services->set(AssuranceLevels::class)->args([self::levels($config)]);
+        $services->set(AssuranceLevels::class)->args([self::levels($config), $config['elevation']['required_level']]);
         $services->set(AssuranceEvaluator::class)->args([service(AssuranceLevels::class), service('clock')]);
         $services->set(ElevationAttempts::class)->args([
             service(AssuranceLevels::class),
@@ -96,6 +99,8 @@ final class ClientServices
                 service('clock'),
                 $config['session']['start_claim'],
                 self::discardedAttributes($config),
+                service(AssuranceLevels::class),
+                service(ReplayFloor::class)->nullOnInvalid(),
             ])
             ->tag('kernel.event_listener', ['event' => AuthenticationTokenCreatedEvent::class, 'method' => 'onTokenCreated', 'dispatcher' => $firewallDispatcher])
             ->tag('kernel.event_listener', ['event' => LoginFailureEvent::class, 'method' => 'onLoginFailure', 'dispatcher' => $firewallDispatcher]);
@@ -112,6 +117,12 @@ final class ClientServices
 
         if ($config['back_channel_logout']['enabled']) {
             self::registerBackChannelLogout($services, $config);
+        }
+
+        if (null !== $config['elevation']['required_level'] || $config['back_channel_logout']['cold_start_floor']['enabled']) {
+            $services->set(SessionRequirementsListener::class)
+                ->args([service(AssuranceLevels::class), service(ReplayFloor::class)->nullOnInvalid()])
+                ->tag('kernel.event_listener', ['event' => CheckRefreshedUserEvent::class]);
         }
 
         if ($config['refresh']['enabled']) {
@@ -159,6 +170,12 @@ final class ClientServices
         $services->set(CacheReplayStore::class)->args([service($config['back_channel_logout']['cache']), service($config['lock_factory'])]);
         $services->alias(ReplayStore::class, CacheReplayStore::class);
 
+        $floor = $config['back_channel_logout']['cold_start_floor'];
+        if ($floor['enabled']) {
+            $services->set(CacheReplayFloor::class)->args([service($config['back_channel_logout']['cache']), service('clock'), $floor['not_before']]);
+            $services->alias(ReplayFloor::class, CacheReplayFloor::class);
+        }
+
         $services->set('phil_identity_client.back_channel_logout', ReplayGuardedBackChannelLogout::class)
             ->decorate(self::NATIVE_AUTHENTICATOR.'backchannel_logout.'.$firewall)
             ->args([
@@ -172,6 +189,7 @@ final class ClientServices
                 service('clock'),
                 service('logger'),
                 $config['back_channel_logout']['replay_ttl'],
+                service(ReplayFloor::class)->nullOnInvalid(),
             ]);
     }
 

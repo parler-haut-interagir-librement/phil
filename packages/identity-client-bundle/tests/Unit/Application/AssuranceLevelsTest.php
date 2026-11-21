@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityClientBundle\Tests\Unit\Application;
 
+use InvalidArgumentException;
 use Override;
 use Phil\IdentityClientBundle\Application\Elevation\AssuranceLevel;
 use Phil\IdentityClientBundle\Application\Elevation\AssuranceLevels;
@@ -70,5 +71,67 @@ final class AssuranceLevelsTest extends TestCase
         self::assertSame(['a', 'b', 'c'], $this->levels->acceptableClasses($this->basic));
         self::assertSame(['b', 'c'], $this->levels->acceptableClasses($this->strong));
         self::assertSame([], $this->levels->acceptableClasses($this->fresh));
+    }
+
+    public function testWithoutARequiredLevelAnyAuthenticationWillDo(): void
+    {
+        self::assertNull($this->levels->required());
+        self::assertTrue($this->levels->reachesRequired(null));
+        self::assertSame([], $this->levels->requestedClasses(null));
+        self::assertSame(['b', 'c'], $this->levels->requestedClasses($this->strong));
+        self::assertSame([], $this->levels->requestedClasses($this->fresh));
+    }
+
+    public function testTheRequiredLevelIsReachedByItsClassOrAStrongerOne(): void
+    {
+        $levels = $this->requiring('strong');
+
+        self::assertSame($this->strong, $levels->required());
+        self::assertTrue($levels->reachesRequired('b'));
+        self::assertTrue($levels->reachesRequired('c'));
+        self::assertFalse($levels->reachesRequired('a'));
+        self::assertFalse($levels->reachesRequired('other'));
+        self::assertFalse($levels->reachesRequired(null));
+    }
+
+    public function testASignInAsksForTheRequiredClasses(): void
+    {
+        self::assertSame(['b', 'c'], $this->requiring('strong')->requestedClasses(null));
+    }
+
+    public function testALevelWithoutClassAsksForTheRequiredOnes(): void
+    {
+        self::assertSame(['b', 'c'], $this->requiring('strong')->requestedClasses($this->fresh));
+    }
+
+    public function testAWeakerLevelIsNarrowedToTheRequiredClasses(): void
+    {
+        self::assertSame(['b', 'c'], $this->requiring('strong')->requestedClasses($this->basic));
+    }
+
+    public function testAStrongerLevelKeepsItsOwnClasses(): void
+    {
+        self::assertSame(['c'], $this->requiring('strong')->requestedClasses(new AssuranceLevel('top', 'c')));
+        self::assertSame(['b', 'c'], $this->requiring('strong')->requestedClasses($this->strongAndFresh));
+    }
+
+    public function testAnUnknownRequiredLevelIsRefused(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('The required assurance level "unknown" must be a level of the scale with an acr.');
+
+        $this->requiring('unknown');
+    }
+
+    public function testARequiredLevelWithoutClassIsRefused(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->requiring('fresh');
+    }
+
+    private function requiring(string $level): AssuranceLevels
+    {
+        return new AssuranceLevels([$this->basic, $this->strong, $this->strongAndFresh, $this->fresh, new AssuranceLevel('top', 'c')], $level);
     }
 }

@@ -10,6 +10,7 @@ use Phil\IdentityClientBundle\Application\Elevation\AssuranceLevel;
 use Phil\IdentityClientBundle\Application\Elevation\AssuranceLevels;
 use Phil\IdentityClientBundle\Application\Event\ElevationRefused;
 use Phil\IdentityClientBundle\Application\Event\UserSignedIn;
+use Phil\IdentityClientBundle\Application\Exception\AssuranceLevelNotReachedException;
 use Phil\IdentityClientBundle\Infrastructure\Security\AssuranceEvaluator;
 use Phil\IdentityClientBundle\Infrastructure\Security\ElevationAttempts;
 use Phil\IdentityClientBundle\Infrastructure\Security\SignInListener;
@@ -185,6 +186,47 @@ final class SignInListenerTest extends TestCase
         self::assertCount(1, $this->dispatcher->events);
     }
 
+    public function testTheSignInIsDated(): void
+    {
+        self::assertSame(self::NOW, $this->signIn(['session_start' => self::NOW - 10])->getAttribute(TokenAttribute::SIGNED_IN_AT));
+    }
+
+    public function testTheReplayFloorIsReadAtEachSignIn(): void
+    {
+        $floor = new FixedReplayFloor(self::NOW);
+        $token = TokenFixture::token();
+
+        $this->listener([], null, $floor)->onTokenCreated(new AuthenticationTokenCreatedEvent($token, $this->passport(['id_token' => FakeOidcProvider::encode(['alg' => 'RS256'], [], 'sig')])));
+
+        self::assertSame(1, $floor->reads);
+        self::assertSame(self::NOW, $token->getAttribute(TokenAttribute::SIGNED_IN_AT));
+    }
+
+    public function testASignInBelowTheRequiredLevelIsRefused(): void
+    {
+        $floor = new FixedReplayFloor(self::NOW);
+        $token = TokenFixture::token([TokenAttribute::ASSURANCE => 'a']);
+
+        try {
+            $this->listener([], 'strong', $floor)->onTokenCreated(new AuthenticationTokenCreatedEvent($token, $this->passport(['id_token' => FakeOidcProvider::encode(['alg' => 'RS256'], [], 'sig')])));
+            self::fail('A sign-in below the required level must be refused.');
+        } catch (AssuranceLevelNotReachedException) {
+            self::assertFalse($token->hasAttribute(TokenAttribute::SESSION_STARTED_AT));
+            self::assertFalse($token->hasAttribute(TokenAttribute::SIGNED_IN_AT));
+            self::assertSame(0, $floor->reads);
+            self::assertSame([], $this->dispatcher->events);
+        }
+    }
+
+    public function testASignInAtTheRequiredLevelCompletes(): void
+    {
+        $token = TokenFixture::token([TokenAttribute::ASSURANCE => 'b']);
+
+        $this->listener([], 'strong')->onTokenCreated(new AuthenticationTokenCreatedEvent($token, $this->passport(['id_token' => FakeOidcProvider::encode(['alg' => 'RS256'], [], 'sig')])));
+
+        self::assertCount(1, $this->dispatcher->events);
+    }
+
     public function testAFailedSignInFailsThePendingElevation(): void
     {
         $this->attempts->begin($this->session, 'strong');
@@ -235,8 +277,10 @@ final class SignInListenerTest extends TestCase
     /**
      * @param list<string> $discarded
      */
-    private function listener(array $discarded = []): SignInListener
+    private function listener(array $discarded = [], ?string $required = null, ?FixedReplayFloor $floor = null): SignInListener
     {
-        return new SignInListener(new OidcIdToken($this->clock), $this->storage, $this->stack, $this->attempts, $this->dispatcher, $this->clock, 'session_start', $discarded);
+        $levels = new AssuranceLevels([new AssuranceLevel('basic', 'a'), new AssuranceLevel('strong', 'b')], $required);
+
+        return new SignInListener(new OidcIdToken($this->clock), $this->storage, $this->stack, $this->attempts, $this->dispatcher, $this->clock, 'session_start', $discarded, $levels, $floor);
     }
 }

@@ -24,6 +24,28 @@ public function payout(): Response
 A level is reached by its class or a stronger one on the scale. An `acr` the scale does not list reaches nothing.
 `max_age` compares the last authentication proof with the clock.
 
+## The required level
+
+`elevation.required_level` names a level every sign-in has to reach:
+
+```yaml
+phil_identity_client:
+    elevation:
+        required_level: password
+        levels:
+            password: { acr: 'urn:example:password' }
+            two_factor: { acr: 'urn:example:two-factor' }
+```
+
+The level needs an `acr`. Each authorization request asks for its class and the stronger ones in `acr_values`; a
+step-up to a weaker level, or to one without a class, asks for the required classes instead. The provider may still
+answer with a weaker class: the `acr` it returns is checked, and a sign-in below the level fails with
+`AssuranceLevelNotReachedException`, landing on `paths.failure`. An `acr` the scale does not list, or none, reaches
+nothing.
+
+A session below the level, such as one begun before the requirement was raised, is ended on its next request.
+`LocalSessionEnded` reports it with `LocalSessionEndReason::AssuranceNotReached`.
+
 ## What the user sees
 
 `AssuranceVoter` denies and asks the firewall for a re-authentication. The browser goes to the provider with `acr_values`

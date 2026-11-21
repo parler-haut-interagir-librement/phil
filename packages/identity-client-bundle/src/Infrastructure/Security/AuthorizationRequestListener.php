@@ -15,7 +15,7 @@ use Symfony\Component\Security\Http\Event\OidcAuthorizationRequestEvent;
 
 /**
  * Prepares each authorization request: keeps the validated `return_to` in the session, where the provider never sees
- * it, and asks for the `acr_values` of the elevation under way.
+ * it, and asks for the `acr_values` of the elevation under way, or of the level every sign-in has to reach.
  */
 final readonly class AuthorizationRequestListener
 {
@@ -59,15 +59,15 @@ final readonly class AuthorizationRequestListener
     {
         $name = $request->attributes->get(AssuranceVoter::REQUEST_ATTRIBUTE);
         $level = \is_string($name) ? $this->levels->get($name) : null;
+        $classes = $this->levels->requestedClasses($level);
+        if ([] !== $classes) {
+            $event->setParam('acr_values', implode(' ', $classes));
+        }
+
         if (!$level instanceof AssuranceLevel) {
             $this->attempts->forget($request->getSession());
 
             return;
-        }
-
-        $classes = $this->levels->acceptableClasses($level);
-        if ([] !== $classes) {
-            $event->setParam('acr_values', implode(' ', $classes));
         }
 
         $this->attempts->begin($request->getSession(), $level->name);

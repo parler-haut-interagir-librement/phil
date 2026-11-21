@@ -8,4 +8,6 @@ enum LocalSessionEndReason: string
 {
     case ProviderLogout = 'provider_logout';
     case LifetimeExceeded = 'lifetime_exceeded';
+    case AssuranceNotReached = 'assurance_not_reached';
+    case ReplayFloor = 'replay_floor';
 }

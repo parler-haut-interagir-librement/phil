@@ -11,6 +11,7 @@ Each is an alias the application points at a service of its own.
 | `UserProvisioner` | `StatelessUserProvisioner` | Creates and finds the accounts; see [Provisioning](provisioning.md) |
 | `ReturnToPolicy` | `DeclaredOriginsReturnToPolicy` | Another rule for where a sign-in lands; returns null to discard |
 | `ReplayStore` | `CacheReplayStore` | Keeps accepted `jti` elsewhere; `claim()` stays atomic across servers |
+| `ReplayFloor` | `CacheReplayFloor`, with `back_channel_logout.cold_start_floor` | Keeps the floor beside a replay store of its own; `floor()` records a new floor when the store was emptied |
 | `RefreshOutcomes` | `EncryptedRefreshOutcomes` | Shares refresh results elsewhere; the outcome holds tokens, so it must not be stored in clear; `publish()` answers whether the store kept it |
 
 ## Events
@@ -21,7 +22,7 @@ Dispatched on the application's event dispatcher. They carry identifiers only: s
 |---|---|
 | `UserSignedIn` | A sign-in completed |
 | `ProviderSessionEnded` | A logout token was accepted |
-| `LocalSessionEnded` | A local session was invalidated, with its `LocalSessionEndReason` |
+| `LocalSessionEnded` | A local session was invalidated, with its `LocalSessionEndReason`: `ProviderLogout`, `LifetimeExceeded`, `AssuranceNotReached` or `ReplayFloor` |
 | `ElevationRequested` | The browser was sent back for a level |
 | `ElevationRefused` | The provider did not reach it |
 | `TokensRefreshed` | The provider rotated the tokens |
@@ -37,6 +38,9 @@ Symfony's `OidcAuthorizationRequestEvent` remains available to compute other par
 | `claims` | What reaches the provisioner |
 | `authorization_params` | Extra parameters of each authorization request |
 | `elevation.levels` | The assurance scale |
+| `elevation.required_level` | The level every sign-in and session has to reach |
+| `session.start_claim` | The claim that dates a session at the provider |
+| `back_channel_logout.cold_start_floor` | The floor of the replay store, and an instant of its own |
 | `return_to.origins` | Where a sign-in may land |
 | `paths` | Every route and landing page |
 

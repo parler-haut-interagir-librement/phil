@@ -9,7 +9,10 @@ use Phil\IdentityClientBundle\Application\Elevation\AssuranceLevels;
 use Phil\IdentityClientBundle\Infrastructure\Security\AssuranceEvaluator;
 use Phil\IdentityClientBundle\Infrastructure\Security\DeclaredOriginsReturnToPolicy;
 use Phil\IdentityClientBundle\Infrastructure\Security\SessionCapListener;
+use Phil\IdentityClientBundle\Infrastructure\Security\SessionRequirementsListener;
 use Phil\IdentityClientBundle\Infrastructure\Security\TokenAttribute;
+use Phil\IdentityClientBundle\Infrastructure\Store\CacheReplayFloor;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Security\Core\User\InMemoryUser;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
@@ -34,6 +37,8 @@ final readonly class HotPathsBench
 
     private CheckRefreshedUserEvent $event;
 
+    private SessionRequirementsListener $requirements;
+
     public function __construct()
     {
         $clock = new MockClock();
@@ -45,10 +50,15 @@ final readonly class HotPathsBench
         $this->token = new PostAuthenticationToken($user, 'main', []);
         $this->token->setAttribute(TokenAttribute::ASSURANCE, 'b');
         $this->token->setAttribute(TokenAttribute::SESSION_STARTED_AT, $clock->now()->getTimestamp());
+        $this->token->setAttribute(TokenAttribute::SIGNED_IN_AT, $clock->now()->getTimestamp());
         $this->token->setAuthenticationProofs(['pwd' => $clock->now()->getTimestamp()]);
 
         $this->cap = new SessionCapListener($clock, 43200);
         $this->event = new CheckRefreshedUserEvent($this->token, $user, $user);
+        $this->requirements = new SessionRequirementsListener(
+            new AssuranceLevels([new AssuranceLevel('basic', 'a'), $this->level], 'basic'),
+            new CacheReplayFloor(new ArrayAdapter(), $clock),
+        );
     }
 
     /**
@@ -89,5 +99,17 @@ final readonly class HotPathsBench
     public function benchSessionCap(): void
     {
         ($this->cap)($this->event);
+    }
+
+    /**
+     * The required level and the replay floor, read from an in-memory pool: what the listener adds to a request.
+     *
+     * @Revs(10000)
+     *
+     * @Iterations(5)
+     */
+    public function benchSessionRequirements(): void
+    {
+        ($this->requirements)($this->event);
     }
 }

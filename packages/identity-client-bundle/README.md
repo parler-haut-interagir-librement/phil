@@ -4,8 +4,9 @@
 
 phil/identity-client-bundle configures the `oidc_login` authenticator of Symfony from one block of configuration. It
 writes the firewall, pins the signature algorithm and adds what a relying party needs beyond the sign-in flow: a
-validated `return_to`, a back-channel logout that accepts each token once, a session cap, step-up by `acr_values` and
-`max_age`, and token refresh that never presents a rotated refresh token twice.
+validated `return_to`, a back-channel logout that accepts each token once, with a floor for a replay store that was
+emptied, a session cap, a required assurance level and step-up by `acr_values` and `max_age`, and token refresh that
+never presents a rotated refresh token twice.
 
 It is for Symfony applications that delegate authentication to an OpenID Connect provider. The flow itself, the state
 and nonce, discovery, the signature checks and client authentication all stay Symfony's own.
@@ -18,6 +19,8 @@ and nonce, discovery, the signature checks and client authentication all stay Sy
 | Provisioning on `sub`, kept claims, tokens dropped from the session | Implemented and tested |
 | `return_to` validated against declared origins | Implemented and tested |
 | Back-channel logout with `jti` replay guard, session cap | Implemented and tested |
+| Cold-start floor of the replay store | Implemented and tested |
+| Required assurance level, checked on the returned `acr` | Implemented and tested |
 | Step-up: voter, `acr_values`, `max_age`, RFC 9470 challenge | Implemented and tested |
 | Serialized token refresh | Implemented and tested |
 
@@ -31,8 +34,8 @@ An independent security review is expected before a first release.
 | [Configuration](doc/configuration.md) | Every key, and what it composes. |
 | [Provisioning](doc/provisioning.md) | `UserProvisioner`, the identity, what the session keeps. |
 | [Return to](doc/return-to.md) | The parameter, the policy, where a sign-in lands. |
-| [Logout](doc/logout.md) | Back-channel logout, the replay guard, the session cap. |
-| [Step-up](doc/step-up.md) | Assurance levels, the voter, the challenge. |
+| [Logout](doc/logout.md) | Back-channel logout, the replay guard, the session cap, the cold-start floor. |
+| [Step-up](doc/step-up.md) | Assurance levels, the required level, the voter, the challenge. |
 | [Token refresh](doc/token-refresh.md) | The lock, the shared outcome, family revocation. |
 | [Extension points](doc/extension-points.md) | Ports, events, services. |
 | [Security](doc/security.md) | The threats covered and what stays with the application. |

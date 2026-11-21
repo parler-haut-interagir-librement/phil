@@ -7,7 +7,9 @@ namespace Phil\IdentityClientBundle\Tests\Unit\Infrastructure;
 use DateTimeImmutable;
 use Phil\IdentityClientBundle\Application\Event\LocalSessionEnded;
 use Phil\IdentityClientBundle\Application\Event\LocalSessionEndReason;
+use Phil\IdentityClientBundle\Application\Exception\AssuranceLevelNotReachedException;
 use Phil\IdentityClientBundle\Application\Exception\SessionLifetimeExceededException;
+use Phil\IdentityClientBundle\Application\Exception\SessionPredatesReplayFloorException;
 use Phil\IdentityClientBundle\Infrastructure\Security\EndedSessionListener;
 use Phil\IdentityClientBundle\Infrastructure\Security\SessionCapListener;
 use Phil\IdentityClientBundle\Infrastructure\Security\TokenAttribute;
@@ -62,6 +64,16 @@ final class SessionListenersTest extends TestCase
     public function testAnExceededCapInvalidatesTheLocalOne(): void
     {
         $this->assertSessionEnded(new SessionLifetimeExceededException(), LocalSessionEndReason::LifetimeExceeded);
+    }
+
+    public function testAnUnreachedRequiredLevelInvalidatesTheLocalOne(): void
+    {
+        $this->assertSessionEnded(new AssuranceLevelNotReachedException(), LocalSessionEndReason::AssuranceNotReached);
+    }
+
+    public function testTheReplayFloorInvalidatesTheLocalOne(): void
+    {
+        $this->assertSessionEnded(new SessionPredatesReplayFloorException(), LocalSessionEndReason::ReplayFloor);
     }
 
     public function testAnotherDeauthenticationLeavesTheSession(): void

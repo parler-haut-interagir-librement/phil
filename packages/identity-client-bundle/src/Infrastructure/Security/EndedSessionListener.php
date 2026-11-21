@@ -6,14 +6,17 @@ namespace Phil\IdentityClientBundle\Infrastructure\Security;
 
 use Phil\IdentityClientBundle\Application\Event\LocalSessionEnded;
 use Phil\IdentityClientBundle\Application\Event\LocalSessionEndReason;
+use Phil\IdentityClientBundle\Application\Exception\AssuranceLevelNotReachedException;
 use Phil\IdentityClientBundle\Application\Exception\SessionLifetimeExceededException;
+use Phil\IdentityClientBundle\Application\Exception\SessionPredatesReplayFloorException;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\Event\TokenDeauthenticatedEvent;
 use Symfony\Component\Security\Http\Exception\OidcSessionEndedException;
 
 /**
- * Destroys the local session of a sign-in the provider ended or the cap expired, whatever else that session held.
+ * Destroys the local session of a sign-in the provider ended, the cap expired, the required assurance level or the
+ * replay floor no longer admits, whatever else that session held.
  */
 final readonly class EndedSessionListener
 {
@@ -43,6 +46,8 @@ final readonly class EndedSessionListener
         return match (true) {
             $exception instanceof OidcSessionEndedException => LocalSessionEndReason::ProviderLogout,
             $exception instanceof SessionLifetimeExceededException => LocalSessionEndReason::LifetimeExceeded,
+            $exception instanceof AssuranceLevelNotReachedException => LocalSessionEndReason::AssuranceNotReached,
+            $exception instanceof SessionPredatesReplayFloorException => LocalSessionEndReason::ReplayFloor,
             default => null,
         };
     }

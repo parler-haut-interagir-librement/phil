@@ -32,9 +32,9 @@ use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
  *     paths: array{check: string, start: string, landing: string, failure: string},
  *     return_to: array{parameter: string, origins: list<string>},
  *     session: array{max_lifetime: int, start_claim: string},
- *     back_channel_logout: array{enabled: bool, path: string, replay_ttl: int, cache: string},
+ *     back_channel_logout: array{enabled: bool, path: string, replay_ttl: int, cache: string, cold_start_floor: array{enabled: bool, not_before: ?int}},
  *     end_session: array{enabled: bool, post_logout_path: string},
- *     elevation: array{max_age: ?int, retry_after: int, levels: array<string, Level>},
+ *     elevation: array{max_age: ?int, retry_after: int, required_level: ?string, levels: array<string, Level>},
  *     refresh: array{enabled: bool, leeway: int, wait_timeout: float, lock_ttl: float, outcome_ttl: int, cache: string},
  *     tokens: array{keep_access_token: bool, keep_id_token: bool},
  * }
@@ -53,6 +53,10 @@ final class ClientConfiguration
             ->validate()
                 ->ifTrue(static fn (array $config): bool => 1 !== \count(array_filter([null !== $config['client_secret'], null !== $config['client_key'], true === $config['public_client']])))
                 ->thenInvalid('Set exactly one of phil_identity_client.client_secret, client_key or public_client: %s')
+            ->end()
+            ->validate()
+                ->ifTrue(self::floorWithoutBackChannel(...))
+                ->thenInvalid('phil_identity_client.back_channel_logout.cold_start_floor needs the back-channel logout, whose store it guards: %s')
             ->end()
             ->children()
                 ->scalarNode('firewall')->info('The firewall of security.firewalls to sign in on; it must be declared there.')->defaultValue('main')->cannotBeEmpty()->end()
@@ -110,6 +114,13 @@ final class ClientConfiguration
                         ->scalarNode('path')->defaultValue('/oidc/back-channel-logout')->cannotBeEmpty()->end()
                         ->integerNode('replay_ttl')->info('How long an accepted jti is remembered, in seconds.')->min(1)->defaultValue(self::DAY)->end()
                         ->scalarNode('cache')->info('The cache pool, shared by every server.')->defaultValue('cache.security')->cannotBeEmpty()->end()
+                        ->arrayNode('cold_start_floor')
+                            ->info('Refuses the logout tokens issued, and the local sessions begun, before the pool of the replay store was last found empty.')
+                            ->canBeEnabled()
+                            ->children()
+                                ->integerNode('not_before')->info('A floor of its own, in seconds since the Unix epoch, such as a key rollover at the provider; in force once reached.')->min(0)->defaultNull()->end()
+                            ->end()
+                        ->end()
                     ->end()
                 ->end()
                 ->arrayNode('end_session')
@@ -121,9 +132,14 @@ final class ClientConfiguration
                 ->end()
                 ->arrayNode('elevation')
                     ->addDefaultsIfNotSet()
+                    ->validate()
+                        ->ifTrue(self::requiredLevelWithoutClass(...))
+                        ->thenInvalid('elevation.required_level names a level of elevation.levels that has an acr: %s')
+                    ->end()
                     ->children()
                         ->integerNode('max_age')->info('The max_age of every authorization request.')->min(0)->defaultNull()->end()
                         ->integerNode('retry_after')->info('How long, in seconds, a level the provider declined is not asked for again.')->min(0)->defaultValue(60)->end()
+                        ->scalarNode('required_level')->info('The level every sign-in and every session has to reach; its acr is asked for on each authorization request.')->defaultNull()->end()
                         ->arrayNode('levels')
                             ->info('The assurance scale, weakest first; each is granted as OIDC_ASSURANCE:<name>.')
                             ->normalizeKeys(false)
@@ -162,5 +178,21 @@ final class ClientConfiguration
                     ->end()
                 ->end()
             ->end();
+    }
+
+    /**
+     * @param array{back_channel_logout: array{enabled: bool, cold_start_floor: array{enabled: bool}}} $config
+     */
+    private static function floorWithoutBackChannel(array $config): bool
+    {
+        return $config['back_channel_logout']['cold_start_floor']['enabled'] && !$config['back_channel_logout']['enabled'];
+    }
+
+    /**
+     * @param array{required_level: ?string, levels: array<string, Level>} $elevation
+     */
+    private static function requiredLevelWithoutClass(array $elevation): bool
+    {
+        return null !== $elevation['required_level'] && null === ($elevation['levels'][$elevation['required_level']]['acr'] ?? null);
     }
 }

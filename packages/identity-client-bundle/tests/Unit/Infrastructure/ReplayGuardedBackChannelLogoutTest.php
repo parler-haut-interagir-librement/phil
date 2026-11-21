@@ -126,7 +126,32 @@ final class ReplayGuardedBackChannelLogoutTest extends TestCase
         self::assertSame(['The back-channel logout token was refused.', 'The back-channel logout token was refused.'], $this->logger->messages);
     }
 
-    private function logout(string $token): void
+    public function testATokenIssuedBeforeTheFloorIsRefusedBeforeTheStoreIsTouched(): void
+    {
+        $floor = $this->clock->now()->getTimestamp() - 10;
+
+        try {
+            $this->logout($this->provider->logoutToken(['iat' => $floor - 0.5]), new FixedReplayFloor($floor));
+            self::fail('A token issued before the floor must be refused.');
+        } catch (AuthenticationException $authenticationException) {
+            self::assertSame('The logout token was issued before the replay floor.', $authenticationException->getMessage());
+            self::assertSame(['A back-channel logout token issued before the replay floor was refused.'], $this->logger->messages);
+        }
+
+        self::assertSame([], $this->replays->claims);
+        self::assertFalse($this->ended->has(FakeOidcProvider::SESSION_ID));
+    }
+
+    public function testATokenIssuedAtTheFloorIsAccepted(): void
+    {
+        $floor = $this->clock->now()->getTimestamp() - 10;
+
+        $this->logout($this->provider->logoutToken(['iat' => $floor]), new FixedReplayFloor($floor));
+
+        self::assertCount(1, $this->replays->claims);
+    }
+
+    private function logout(string $token, ?FixedReplayFloor $floor = null): void
     {
         $client = new MockHttpClient($this->provider);
         $discovery = new OidcDiscovery($client, new ArrayAdapter(), '.well-known/openid-configuration', FakeOidcProvider::ISSUER);
@@ -142,6 +167,7 @@ final class ReplayGuardedBackChannelLogoutTest extends TestCase
             $this->clock,
             $this->logger,
             86400,
+            $floor,
         )->logout($token);
     }
 }

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ebadd9fcf09a40e59dc9d13272cd7ee1520f495684563fce6e913aeac8c15907 -->
+<!-- phil-dev source-sha256=4e9885e77297126701afd6166b7a050aa7182a3de81db942107a0b10f57cf9c9 -->
 # Déconnexion
 
 ## Déconnexion par canal arrière
@@ -30,9 +30,48 @@ Un fournisseur qui renvoie une livraison dont il a perdu la réponse reçoit un 
 Un jeton de déconnexion peut se perdre. `session.max_lifetime` borne la session quoi qu'il arrive au canal arrière :
 12 heures par défaut, à compter du moment où la session a commencé chez le fournisseur.
 
-Ce moment est la revendication `session.start_claim` du jeton d'identité, sinon `auth_time`, sinon la connexion
-elle-même. Une date dans le futur est lue comme la connexion, et une élévation dans la même session du fournisseur ne le
-repousse jamais.
+Ce moment est la revendication `session.start_claim` du jeton d'identité, `session_start` par défaut, sinon
+`auth_time`, sinon la connexion elle-même. Une date dans le futur, ou une valeur qui n'est pas un nombre, est lue comme
+la connexion, et une élévation dans la même session du fournisseur ne le repousse jamais.
+
+```yaml
+phil_identity_client:
+    session:
+        max_lifetime: 43200          # 0 or null for none
+        start_claim: session_start
+```
+
+## Le plancher de démarrage à froid
+
+La réserve de rejeu et les sessions terminées vivent dans le pool `back_channel_logout.cache`. Un pool vidé, évincé ou
+remplacé les oublie : un jeton de déconnexion déjà accepté pourrait l'être de nouveau, et une session que le fournisseur
+a terminée reviendrait. `back_channel_logout.cold_start_floor` ferme cette fenêtre :
+
+```yaml
+phil_identity_client:
+    back_channel_logout:
+        cache: cache.state           # shared by every server, and never evicting
+        cold_start_floor:
+            enabled: true
+            not_before: ~            # seconds since the Unix epoch
+```
+
+`CacheReplayFloor` garde dans ce pool une entrée sans expiration, sa sentinelle, qui enregistre le plancher. Quand
+l'entrée manque, le pool a été vidé : le plancher devient cet instant, et l'entrée est écrite de nouveau. Alors :
+
+- un jeton de déconnexion dont le `iat` précède le plancher est refusé avec un `400`, avant la recherche de son `jti` ;
+- une session locale ouverte avant le plancher prend fin à sa requête suivante, et `LocalSessionEnded` le signale avec
+  `LocalSessionEndReason::ReplayFloor`. L'utilisateur se reconnecte.
+
+Chaque connexion lit le plancher avant d'être datée, de sorte qu'une session commencée sur un pool vidé ne soit jamais
+refusée par le plancher que ce pool enregistre ensuite.
+
+`not_before` relève le plancher à un instant à lui, comme un changement de clés chez le fournisseur, ou le plancher de
+la réserve de rejeu du fournisseur lui-même. Il est en vigueur une fois atteint, de sorte qu'on puisse le fixer
+d'avance. Le plancher est désactivé par défaut, et il exige la déconnexion par canal arrière.
+
+Le pool doit tout de même garder ses entrées pendant `replay_ttl` et ne jamais les évincer : le plancher distingue une
+réserve qui a été vidée d'une qui ne l'a pas été, pas une qui a perdu quelques entrées.
 
 ## Déconnexion locale
 

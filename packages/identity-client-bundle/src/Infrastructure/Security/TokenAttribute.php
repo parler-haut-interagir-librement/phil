@@ -25,6 +25,9 @@ final class TokenAttribute
 
     public const string SESSION_STARTED_AT = 'phil_identity_client_session_started_at';
 
+    /** When the application last signed the user in, which the replay floor is compared with. */
+    public const string SIGNED_IN_AT = 'phil_identity_client_signed_in_at';
+
     /**
      * The attributes a refresh can change.
      */
