@@ -26,7 +26,7 @@
         "ext-mbstring": "*",
         "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
-        "phil/notifications-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/notifications-bundle": "^0.1@dev || ^0.2@dev || ^0.3@dev",
         "phil/resource": "^0.1@dev",
         "phil/ujo": "^0.1@dev",
         "psr/clock": "^1.0",

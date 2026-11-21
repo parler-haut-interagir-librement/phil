@@ -4,6 +4,17 @@ All notable changes to `phil/user-secrets-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements accept `phil/privacy-bundle` 0.2 and 0.3, so that the package installs on its own beside
+  the published version of that bundle.
+
 ## 0.1.0-alpha - 2026-11-20
 
 ### Added

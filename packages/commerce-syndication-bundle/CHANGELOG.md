@@ -4,6 +4,15 @@ All notable changes to `phil/commerce-syndication-bundle` will be documented in 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Fixed
+
+- It requires `phil/commerce-bundle` 0.4, the version published on 2026-11-20, beside which its requirement of 0.2 or
+  0.3 kept it from installing.
+
 ## 0.1.0-alpha - 2026-11-20
 
 ### Added

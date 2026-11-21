@@ -40,14 +40,15 @@ version mineure publiée, à partir de la version dont il a besoin pour les corr
 
 ## `phil/spam-protection-bundle` — le pourriel dans les formulaires
 
-- **Contrainte :** `^0.2`. **Apporte :** `phil/spam-protection`, `phil/bot-detection-bundle`, `phil/rate-limit`.
+- **Contrainte :** `^0.3`. **Apporte :** `phil/spam-protection`, `phil/bot-detection-bundle`, `phil/rate-limit`.
 - **Rôle :** des soumissions de formulaire vérifiées sans captcha, sans tiers et sans pistage : un jeton signé, le
   temps de remplissage, une petite preuve de travail et des règles de contenu ; les détecteurs côté navigateur de
   `phil/bot-detection-bundle` donnent un verdict qui décide de la friction que rencontre un visiteur.
 - **Ajoute :** l'option de formulaire `spam_protection`, les contrôleurs Stimulus.
 - **Pourquoi dans ce profil :** les formulaires publics sont ce que ce profil protège, et le pourriel en est l'abus le
   plus courant.
-- **Exige :** `ext-sodium` et `ext-filter`.
+- **Exige :** `ext-sodium`, `ext-filter` et, en production, une connexion Doctrine ou une fabrique de verrous que
+  tous les serveurs partagent pour les jetons déjà employés.
 
 ## `phil/upload-scan-bundle` — les fichiers que les gens téléversent
 

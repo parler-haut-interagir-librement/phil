@@ -4,6 +4,17 @@ All notable changes to `phil/organizations-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements accept `phil/privacy-bundle` 0.2 and 0.3, so that the package installs on its own beside
+  the published version of that bundle.
+
 ## 0.2.0-alpha - 2026-11-20
 
 The units of an organization, in a tree whose roles hold below them. A minor version and

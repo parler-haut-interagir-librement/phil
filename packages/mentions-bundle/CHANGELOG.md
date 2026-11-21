@@ -4,6 +4,15 @@ All notable changes to `phil/mentions-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+### Fixed
+
+- `phil/notifications-bundle` 0.3 is accepted beside 0.1 and 0.2: the package did not install beside the version
+  published on 2026-11-20.
+
 ## 0.2.0-alpha - 2026-11-18
 
 Subjects, members and authors of the mentions compare byte by byte on MySQL and

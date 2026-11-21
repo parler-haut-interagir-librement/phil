@@ -4,6 +4,17 @@ All notable changes to `phil/notifications-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements accept `phil/standard-webhooks-bundle` 0.2, so that the package installs on its own
+  beside the published version of that bundle.
+
 ## 0.3.0-alpha - 2026-11-20
 
 A type can try its channels one after the other until a provider accepts the notification, and every delivery can

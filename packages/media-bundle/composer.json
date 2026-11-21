@@ -51,7 +51,7 @@
         "easycorp/easyadmin-bundle": "^5.8",
         "league/flysystem-local": "^3.30",
         "league/flysystem-memory": "^3.29",
-        "phil/browser-security-bundle": "^0.1@dev",
+        "phil/browser-security-bundle": "^0.1@dev || ^0.2@dev",
         "phil/creation-disclosure": "^0.1@dev",
         "phil/svg-sanitizer": "^0.1@dev",
         "phpunit/phpunit": "^13.4",

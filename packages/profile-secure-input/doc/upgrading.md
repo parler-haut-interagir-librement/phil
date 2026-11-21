@@ -24,7 +24,7 @@ constraints the profile gives, and removes the profile. Without `phil/upload-sca
 
 ```sh
 composer remove phil/profile-secure-input
-composer require phil/url-bundle:^0.1.3 phil/safe-http:^0.2 phil/rate-limit-bundle:^0.1 phil/spam-protection-bundle:^0.2
+composer require phil/url-bundle:^0.1.3 phil/safe-http:^0.2 phil/rate-limit-bundle:^0.1 phil/spam-protection-bundle:^0.3
 ```
 
 The bundles already registered stay in `config/bundles.php`; remove the line of the member left out, and its

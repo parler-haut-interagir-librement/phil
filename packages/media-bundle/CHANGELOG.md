@@ -4,6 +4,17 @@ All notable changes to `phil/media-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements accept `phil/browser-security-bundle` 0.2, so that the package installs on its own beside
+  the published version of that bundle.
+
 ## 0.2.0-alpha - 2026-11-18
 
 The keys of the media, versions and collections compare byte by byte on MySQL and

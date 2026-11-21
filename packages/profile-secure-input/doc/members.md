@@ -34,13 +34,14 @@ latest published minor version, from the release whose fixes the profile relies 
 
 ## `phil/spam-protection-bundle` — the spam in forms
 
-- **Constraint:** `^0.2`. **Brings:** `phil/spam-protection`, `phil/bot-detection-bundle`, `phil/rate-limit`.
+- **Constraint:** `^0.3`. **Brings:** `phil/spam-protection`, `phil/bot-detection-bundle`, `phil/rate-limit`.
 - **Role:** form submissions checked without a captcha, a third party or tracking: a signed token, the filling time,
   a small proof of work and content rules; the browser detectors of `phil/bot-detection-bundle` give a verdict that
   decides how much friction a visitor meets.
 - **Adds:** the form option `spam_protection`, the Stimulus controllers.
 - **Why in this profile:** public forms are what this profile protects, and spam is their most common abuse.
-- **Needs:** `ext-sodium` and `ext-filter`.
+- **Needs:** `ext-sodium`, `ext-filter`, and in production a Doctrine connection or a lock factory every server
+  shares for the tokens already used.
 
 ## `phil/upload-scan-bundle` — the files people upload
 

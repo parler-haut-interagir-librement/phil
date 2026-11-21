@@ -21,7 +21,7 @@
     "require": {
         "php": ">=8.5",
         "ext-filter": "*",
-        "phil/spam-protection-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/spam-protection-bundle": "^0.1@dev || ^0.2@dev || ^0.3@dev",
         "psr/log": "^3.0",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",

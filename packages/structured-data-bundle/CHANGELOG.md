@@ -4,6 +4,17 @@ All notable changes to `phil/structured-data-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements accept `phil/browser-security-bundle` 0.2, so that the package installs on its own beside
+  the published version of that bundle.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

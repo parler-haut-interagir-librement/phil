@@ -4,6 +4,16 @@ All notable changes to `phil/profile-secure-input` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Fixed
+
+- It follows `phil/spam-protection-bundle` 0.3, the minor published on 2026-11-20, instead of 0.2, beside which it did
+  not install. In production, the tokens already used need a Doctrine connection or a lock factory every server
+  shares.
+
 ## 0.1.1-alpha - 2026-11-20
 
 An application installs the profile without `doctrine/dbal` and without sessions. A

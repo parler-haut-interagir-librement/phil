@@ -23,7 +23,7 @@
         "php": ">=8.5",
         "ext-mbstring": "*",
         "doctrine/orm": "^3.7",
-        "phil/commerce-bundle": "^0.2@dev || ^0.3@dev",
+        "phil/commerce-bundle": "^0.4@dev",
         "phil/ddd-bundle": "^0.1@dev",
         "phil/money": "^0.1@dev",
         "symfony/config": "^8.2",

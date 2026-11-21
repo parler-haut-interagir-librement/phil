@@ -18,7 +18,7 @@
         "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
         "phil/circuit-breaker": "^0.1@dev",
-        "phil/circuit-breaker-bundle": "^0.1@dev",
+        "phil/circuit-breaker-bundle": "^0.1@dev || ^0.2@dev",
         "phil/ddd-bundle": "^0.1@dev",
         "phil/enums": "^0.3@dev",
         "psr/clock": "^1.0",

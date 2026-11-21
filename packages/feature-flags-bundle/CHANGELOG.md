@@ -4,6 +4,15 @@ All notable changes to `phil/feature-flags-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Fixed
+
+- `phil/circuit-breaker-bundle` 0.2 is accepted beside 0.1: the package did not install beside the version published on
+  2026-11-20.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

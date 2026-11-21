@@ -24,7 +24,7 @@ que donne le profil, et retire le profil. Sans `phil/upload-scan-bundle`, par ex
 
 ```sh
 composer remove phil/profile-secure-input
-composer require phil/url-bundle:^0.1.3 phil/safe-http:^0.2 phil/rate-limit-bundle:^0.1 phil/spam-protection-bundle:^0.2
+composer require phil/url-bundle:^0.1.3 phil/safe-http:^0.2 phil/rate-limit-bundle:^0.1 phil/spam-protection-bundle:^0.3
 ```
 
 Les bundles déjà enregistrés restent dans `config/bundles.php` ; retirez la ligne du membre écarté, et son fichier de

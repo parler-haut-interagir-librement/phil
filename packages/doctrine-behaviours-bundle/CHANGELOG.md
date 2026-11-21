@@ -4,6 +4,17 @@ All notable changes to `phil/doctrine-behaviours-bundle` will be documented in t
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements accept `phil/privacy-bundle` 0.2 and 0.3 and `phil/search-bundle` 0.2, so that the
+  package installs on its own beside the published version of those bundles.
+
 ## 0.3.0-alpha - 2026-11-20
 
 A privacy security fix: the versions take part in the access and erasure requests, the

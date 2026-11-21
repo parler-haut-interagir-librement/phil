@@ -8,12 +8,14 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.2.1-alpha.
 
-Tests only.
+Development only.
 
 ### Changed
 
 - The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
+- The development requirements accept `phil/notifications-bundle` 0.3 and `phil/privacy-bundle` 0.2 and 0.3, so that the
+  package installs on its own beside the published version of those bundles.
 
 ## 0.2.0-alpha - 2026-11-18
 

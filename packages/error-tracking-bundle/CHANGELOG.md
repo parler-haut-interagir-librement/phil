@@ -4,6 +4,17 @@ All notable changes to `phil/error-tracking-bundle` will be documented in this f
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements accept `phil/notifications-bundle` 0.3 and `phil/privacy-bundle` 0.2 and 0.3, so that the
+  package installs on its own beside the published version of those bundles.
+
 ## 0.1.0-alpha - 2026-11-20
 
 ### Added

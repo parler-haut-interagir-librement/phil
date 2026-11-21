@@ -4,6 +4,17 @@ All notable changes to `phil/incident-mode-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements accept `phil/privacy-bundle` 0.2 and 0.3, so that the package installs on its own beside
+  the published version of that bundle.
+
 ## 0.1.1-alpha - 2026-11-20
 
 ### Added

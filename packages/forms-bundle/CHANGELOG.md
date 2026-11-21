@@ -4,6 +4,20 @@ All notable changes to `phil/forms-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+### Changed
+
+- The development requirements accept `phil/privacy-bundle` 0.2 and 0.3, so that the package installs on its own beside
+  the published version of that bundle.
+
+### Fixed
+
+- `phil/spam-protection-bundle` 0.3 is accepted beside 0.1 and 0.2: the package did not install beside the version
+  published on 2026-11-20.
+
 ## 0.2.0-alpha - 2026-11-18
 
 The keys of the forms, entries and counts of places compare byte by byte on MySQL and
