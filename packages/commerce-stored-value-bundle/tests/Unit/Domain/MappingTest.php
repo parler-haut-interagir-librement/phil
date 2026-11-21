@@ -64,8 +64,15 @@ final class MappingTest extends TestCase
             'orderNumber' => ['order_number', 'string', 64, true, null],
             'payment' => ['payment', 'string', 36, true, true],
             'note' => ['note', 'string', 255, true, null],
+            'issuedUnit' => ['issued_unit', 'integer', null, true, null],
+            'idempotencyKey' => ['idempotency_key', 'string', 128, true, null],
         ]], $this->table(Movement::class));
         self::assertSame([['columns' => ['instrument']], ['columns' => ['payment']], ['columns' => ['order_number']]], array_values($this->metadata(Movement::class)->table['indexes'] ?? []));
+        self::assertSame([
+            'phil_commerce_stored_value_movement_issued_unit' => ['columns' => ['order_number', 'kind', 'issued_unit']],
+            'phil_commerce_stored_value_movement_idempotency_key' => ['columns' => ['instrument', 'idempotency_key']],
+        ], $this->metadata(Movement::class)->table['uniqueConstraints'] ?? []);
+        self::assertSame(Movement::IDEMPOTENCY_KEY_LENGTH, $this->metadata(Movement::class)->fieldMappings['idempotencyKey']->length);
 
         $credit = Instrument::storeCredit('ada', Currency::of('CAD'), new DateTimeImmutable());
         $movement = $credit->credit(MovementKind::Granted, Money::of(1, Currency::of('CAD')), new DateTimeImmutable(), str_repeat('o', 64), str_repeat('p', 36), str_repeat('n', 255));

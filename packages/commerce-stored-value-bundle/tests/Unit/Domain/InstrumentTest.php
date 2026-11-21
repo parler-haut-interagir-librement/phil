@@ -43,6 +43,106 @@ final class InstrumentTest extends TestCase
         self::assertSame([$card->id, MovementKind::Issued, 5_000, 5_000, 'CAD', $at, 'A-1', null, null], [
             $issued->instrument, $issued->kind, $issued->amount->minorUnits, $issued->balanceAfter->minorUnits, $issued->amount->currency->code, $issued->occurredAt, $issued->orderNumber, $issued->payment, $issued->note,
         ]);
+        self::assertSame([null, null], [$issued->issuedUnit, $issued->idempotencyKey]);
+    }
+
+    public function testAnOrdersCardIsIssuedUnderItsRank(): void
+    {
+        $at = new DateTimeImmutable('2026-11-03 10:00:00');
+        [, $first] = Instrument::giftCard(GiftCardCode::generate(), self::cad(5_000), $at, null, 'A-1', issuedUnit: 0);
+        [, $third] = Instrument::giftCard(GiftCardCode::generate(), self::cad(5_000), $at, null, 'A-1', issuedUnit: 2);
+
+        self::assertSame([0, 2], [$first->issuedUnit, $third->issuedUnit]);
+    }
+
+    /**
+     * @return iterable<string, array{?string, int}>
+     */
+    public static function ranksRefused(): iterable
+    {
+        yield 'no order' => [null, 0];
+        yield 'below zero' => ['A-1', -1];
+    }
+
+    #[DataProvider('ranksRefused')]
+    public function testARankBelongsToAnOrder(?string $orderNumber, int $rank): void
+    {
+        $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessageIsOrContains('A gift card is issued under a rank, from 0, among the cards of its order only.');
+
+        Instrument::giftCard(GiftCardCode::generate(), self::cad(5_000), new DateTimeImmutable(), null, $orderNumber, issuedUnit: $rank);
+    }
+
+    public function testACreditKeepsItsIdempotencyKey(): void
+    {
+        $credit = Instrument::storeCredit('ada', Currency::of('CAD'), new DateTimeImmutable());
+
+        $movement = $credit->credit(MovementKind::Granted, self::cad(100), new DateTimeImmutable(), idempotencyKey: 'return-1');
+
+        self::assertSame(['return-1', null], [$movement->idempotencyKey, $movement->issuedUnit]);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function keysRefused(): iterable
+    {
+        yield 'empty' => [''];
+        yield 'padded before' => [' key'];
+        yield 'padded after' => ["key\n"];
+        yield 'too long' => [str_repeat('a', 129)];
+        yield 'too long in characters' => [str_repeat('é', 129)];
+    }
+
+    #[DataProvider('keysRefused')]
+    public function testAKeyAMovementCannotKeepIsRefusedBeforeAnyValueIsAdded(string $key): void
+    {
+        $credit = Instrument::storeCredit('ada', Currency::of('CAD'), new DateTimeImmutable());
+
+        try {
+            $credit->credit(MovementKind::Granted, self::cad(100), new DateTimeImmutable(), idempotencyKey: $key);
+            self::fail('The key is refused.');
+        } catch (InvalidValue $invalidValue) {
+            self::assertSame('An idempotency key is 1 to 128 characters, without surrounding spaces.', $invalidValue->getMessage());
+        }
+
+        self::assertSame(0, $credit->balance->minorUnits);
+
+        $this->expectException(InvalidValue::class);
+
+        Instrument::checkIdempotencyKey($key);
+    }
+
+    /**
+     * @return iterable<string, array{?string}>
+     */
+    public static function keysKept(): iterable
+    {
+        yield 'none' => [null];
+        yield 'one character' => ['k'];
+        yield 'inside spaces' => ['a b'];
+        yield 'the longest' => [str_repeat('a', 128)];
+        yield 'the longest in characters' => [str_repeat('é', 128)];
+    }
+
+    #[DataProvider('keysKept')]
+    public function testAKeyAMovementCanKeepIsAccepted(?string $key): void
+    {
+        $credit = Instrument::storeCredit('ada', Currency::of('CAD'), new DateTimeImmutable());
+
+        $movement = $credit->credit(MovementKind::Granted, self::cad(100), new DateTimeImmutable(), idempotencyKey: $key);
+
+        self::assertSame($key, $movement->idempotencyKey);
+        self::assertSame(100, $credit->balance->minorUnits);
+        Instrument::checkIdempotencyKey($key);
+    }
+
+    public function testAnIssuedCardIsCheckedLikeAnyCredit(): void
+    {
+        $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessageIsOrContains('A stored value moves by a positive amount.');
+
+        Instrument::giftCard(GiftCardCode::generate(), self::cad(0), new DateTimeImmutable(), null, 'A-1', issuedUnit: 0);
     }
 
     public function testAGiftCardMayExpire(): void

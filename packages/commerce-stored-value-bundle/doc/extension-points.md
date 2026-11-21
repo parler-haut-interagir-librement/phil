@@ -25,7 +25,12 @@ into `StoredValueGateway`; without it, a refund that cannot go back to its card 
 ## Repositories
 
 `InstrumentRepository` is a public alias of `DoctrineStoredValueRepository`; a store of the application's own finds a
-card by the hash of its code only — a code is never kept in clear.
+card by the hash of its code only — a code is never kept in clear. It also keeps value from being created twice:
+
+| Method | Contract |
+|---|---|
+| `addIssuedCards(array $cards): bool` | Stores at once, all or none, the cards an order issues with their `Issued` movements; returns `false`, storing none, when a card of the same order and rank (`Movement::$issuedUnit`) is already stored — a check the store makes atomic, by a unique constraint or a lock, never by reading first |
+| `movementUnderKey(string $instrument, string $idempotencyKey): ?Movement` | The movement an instrument recorded under that key; the store refuses a second one |
 
 ## Configuration
 

@@ -14,28 +14,35 @@ use Phil\CommerceBundle\Domain\Model\Payment;
 use Phil\CommerceBundle\Domain\Payment\PaymentState;
 use Phil\CommerceBundle\Domain\ValueObject\Sellable;
 use Phil\CommerceBundle\Domain\ValueObject\SellableReference;
+use Phil\CommerceStoredValueBundle\Application\GiftCardIssuance;
 use Phil\CommerceStoredValueBundle\Application\GiftCards;
 use Phil\CommerceStoredValueBundle\Application\GiftCardSellables;
 use Phil\CommerceStoredValueBundle\Application\IssuedGiftCard;
 use Phil\CommerceStoredValueBundle\Application\Port\StoreCreditHolders;
+use Phil\CommerceStoredValueBundle\Application\Replays;
 use Phil\CommerceStoredValueBundle\Application\StoreCredits;
 use Phil\CommerceStoredValueBundle\Application\StoredValueGateway;
 use Phil\CommerceStoredValueBundle\Application\StoredValuePayments;
 use Phil\CommerceStoredValueBundle\Domain\Exception\StoredValueRefused;
 use Phil\CommerceStoredValueBundle\Domain\Instrument\GiftCardOrigin;
 use Phil\CommerceStoredValueBundle\Domain\Instrument\MovementKind;
+use Phil\CommerceStoredValueBundle\Domain\Model\Instrument;
 use Phil\CommerceStoredValueBundle\Domain\Model\Movement;
 use Phil\CommerceStoredValueBundle\Tests\Unit\Support\InMemoryInstruments;
 use Phil\CommerceStoredValueBundle\Tests\Unit\Support\InMemoryPayments;
+use Phil\CommerceStoredValueBundle\Tests\Unit\Support\InstrumentsView;
 use Phil\DddBundle\Domain\Exception\InvalidValue;
 use Phil\Money\Currency;
 use Phil\Money\Money;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
 
 #[CoversClass(GiftCards::class)]
 #[CoversClass(IssuedGiftCard::class)]
+#[CoversClass(GiftCardIssuance::class)]
+#[CoversClass(Replays::class)]
 #[CoversClass(GiftCardSellables::class)]
 #[CoversClass(StoreCredits::class)]
 #[CoversClass(StoredValuePayments::class)]
@@ -118,13 +125,222 @@ final class StoredValueTest extends TestCase
         new StoreCredits($this->instruments)->grant('ada', $this->cad(11_500), $this->at);
         $this->stored()->payWithStoreCredit($order, 'ada', $this->at);
 
-        $issued = $cards->issueFor($order, $this->at);
+        $issuance = $cards->issueFor($order, $this->at);
+        $issued = $issuance->issued;
 
         self::assertSame([5_000, 5_000, 2_000], array_map(static fn (IssuedGiftCard $card): int => $card->card->balance->minorUnits, $issued));
         self::assertSame([[GiftCardOrigin::Paid, false, null]], array_values(array_unique(array_map(static fn (IssuedGiftCard $card): array => [$card->card->origin, $card->card->specificService, $card->card->expiresAt], $issued), \SORT_REGULAR)));
+        self::assertSame([0, 1, 2], array_map(fn (IssuedGiftCard $card): ?int => $this->instruments->movementsOf($card->card->id)[0]->issuedUnit, $issued));
+        self::assertSame(array_map(static fn (IssuedGiftCard $card): Instrument => $card->card, $issued), $issuance->cards);
+        self::assertSame($issued, iterator_to_array($issuance));
+        self::assertSame([3, false], [\count($issuance), $issuance->isEmpty()]);
         self::assertSame(3, $this->instruments->issuedFor('A-1'));
-        self::assertSame([], $cards->issueFor($order, $this->at));
+
+        $again = $cards->issueFor($order, $this->at);
+
+        self::assertSame([[], 0, true], [$again->issued, \count($again), $again->isEmpty()]);
+        self::assertSame($issuance->cards, $again->cards, 'a second call finds the cards of the first');
         self::assertCount(4, $this->instruments->instruments);
+    }
+
+    public function testACallThatComesSecondFindsTheCardsOfTheFirst(): void
+    {
+        $order = $this->order([['gift_card', 'CAD:5000', 2, 5_000]]);
+        new StoreCredits($this->instruments)->grant('ada', $this->cad(10_000), $this->at);
+        $this->stored()->payWithStoreCredit($order, 'ada', $this->at);
+        // The second request counted the cards before the first stored its own.
+        $stale = new class($this->instruments) extends InstrumentsView {
+            #[Override]
+            public function issuedFor(string $orderNumber): int
+            {
+                return 0;
+            }
+        };
+        $first = $this->cards()->issueFor($order, $this->at);
+
+        $second = new GiftCards($stale, $this->corePayments())->issueFor($order, $this->at);
+
+        self::assertCount(2, $first);
+        self::assertSame([], $second->issued);
+        self::assertSame($first->cards, $second->cards);
+        self::assertCount(3, $this->instruments->instruments, 'two cards and the store credit');
+        self::assertSame(2, $this->instruments->issuedFor('A-1'));
+    }
+
+    public function testACardIsHandedOverAsItsOwnWhenTheStoreDoesNotListItYet(): void
+    {
+        $order = $this->order([['gift_card', 'CAD:5000', 1, 5_000]]);
+        new StoreCredits($this->instruments)->grant('ada', $this->cad(5_000), $this->at);
+        $this->stored()->payWithStoreCredit($order, 'ada', $this->at);
+        // A store that lists the order's cards only later: the card is the one just issued.
+        $late = new class($this->instruments) extends InstrumentsView {
+            #[Override]
+            public function cardsIssuedFor(string $orderNumber): array
+            {
+                return [];
+            }
+        };
+
+        $issuance = new GiftCards($late, $this->corePayments())->issueFor($order, $this->at);
+
+        self::assertCount(1, $issuance->issued);
+        self::assertSame($this->instruments->instruments[$issuance->issued[0]->card->id], $issuance->issued[0]->card);
+        self::assertSame(5_000, $issuance->issued[0]->card->balance->minorUnits);
+    }
+
+    public function testACardIsHandedOverAsTheStoreReadsIt(): void
+    {
+        $order = $this->order([['gift_card', 'CAD:5000', 1, 5_000]]);
+        new StoreCredits($this->instruments)->grant('ada', $this->cad(5_000), $this->at);
+        $this->stored()->payWithStoreCredit($order, 'ada', $this->at);
+        // A store that reads its own instance of each card, as an entity manager of its own does.
+        $reading = new class($this->instruments) extends InstrumentsView {
+            #[Override]
+            public function cardsIssuedFor(string $orderNumber): array
+            {
+                return array_map(static fn (Instrument $card): Instrument => clone $card, parent::cardsIssuedFor($orderNumber));
+            }
+        };
+
+        $issuance = new GiftCards($reading, $this->corePayments())->issueFor($order, $this->at);
+
+        self::assertCount(1, $issuance->issued);
+        self::assertSame($issuance->cards[0], $issuance->issued[0]->card);
+        self::assertNotSame($this->instruments->instruments[$issuance->cards[0]->id], $issuance->issued[0]->card);
+    }
+
+    public function testTheCardsLeftToIssueTakeTheRanksThatFollow(): void
+    {
+        $order = $this->order([['gift_card', 'CAD:5000', 2, 5_000]]);
+        new StoreCredits($this->instruments)->grant('ada', $this->cad(10_000), $this->at);
+        $this->stored()->payWithStoreCredit($order, 'ada', $this->at);
+        $counter = $this->cards()->issue($this->cad(5_000), $this->at, null, 'A-1');
+
+        $issuance = $this->cards()->issueFor($order, $this->at);
+
+        self::assertCount(1, $issuance);
+        self::assertSame(1, $this->instruments->movementsOf($issuance->issued[0]->card->id)[0]->issuedUnit);
+        self::assertNull($this->instruments->movementsOf($counter->card->id)[0]->issuedUnit);
+        self::assertSame([$counter->card, $issuance->issued[0]->card], $issuance->cards);
+    }
+
+    public function testAnOrderWithoutGiftCardsIssuesNone(): void
+    {
+        $order = $this->order([['product', 'BOOK', 1, 1_500]]);
+        new StoreCredits($this->instruments)->grant('ada', $this->cad(1_500), $this->at);
+        $this->stored()->payWithStoreCredit($order, 'ada', $this->at);
+
+        $issuance = $this->cards()->issueFor($order, $this->at);
+
+        self::assertSame([[], []], [$issuance->issued, $issuance->cards]);
+        self::assertTrue($issuance->isEmpty());
+    }
+
+    public function testALoadUnderAnIdempotencyKeyIsMadeOnce(): void
+    {
+        $cards = $this->cards();
+        $code = $cards->issue($this->cad(1_000), $this->at)->code->toString();
+
+        $cards->load($code, $this->cad(500), $this->at, 'Top-up', idempotencyKey: 'message-1');
+        $replayed = $cards->load($code, $this->cad(500), $this->at, 'Top-up', idempotencyKey: 'message-1');
+
+        self::assertSame(1_500, $replayed->balance->minorUnits);
+        self::assertSame([[MovementKind::Issued, null], [MovementKind::Loaded, 'message-1']], array_map(static fn (Movement $movement): array => [$movement->kind, $movement->idempotencyKey], $this->instruments->movementsOf($replayed->id)));
+
+        $cards->load($code, $this->cad(500), $this->at, idempotencyKey: 'message-2');
+        $cards->load($code, $this->cad(500), $this->at);
+        $cards->load($code, $this->cad(500), $this->at);
+
+        self::assertSame(3_000, $cards->find($code)->balance->minorUnits);
+        self::assertCount(5, $this->instruments->movementsOf($replayed->id));
+    }
+
+    public function testAKeyIsKeptPerInstrument(): void
+    {
+        $cards = $this->cards();
+        $first = $cards->issue($this->cad(1_000), $this->at)->code->toString();
+        $second = $cards->issue($this->cad(1_000), $this->at)->code->toString();
+
+        $cards->load($first, $this->cad(500), $this->at, idempotencyKey: 'message-1');
+        $cards->load($second, $this->cad(500), $this->at, idempotencyKey: 'message-1');
+
+        self::assertSame([1_500, 1_500], [$cards->find($first)->balance->minorUnits, $cards->find($second)->balance->minorUnits]);
+    }
+
+    public function testAKeyUsedForAnotherAmountIsRefused(): void
+    {
+        $cards = $this->cards();
+        $code = $cards->issue($this->cad(1_000), $this->at)->code->toString();
+        $cards->load($code, $this->cad(500), $this->at, idempotencyKey: 'message-1');
+
+        try {
+            $cards->load($code, $this->cad(600), $this->at, idempotencyKey: 'message-1');
+            self::fail('A key used for another amount is refused.');
+        } catch (InvalidValue $invalidValue) {
+            self::assertSame('That idempotency key was used for another amount.', $invalidValue->getMessage());
+        }
+
+        self::assertSame(1_500, $cards->find($code)->balance->minorUnits);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function notKeys(): iterable
+    {
+        yield 'empty' => [''];
+        yield 'padded before' => [' key'];
+        yield 'padded after' => ["key\n"];
+        yield 'too long' => [str_repeat('é', 129)];
+    }
+
+    #[DataProvider('notKeys')]
+    public function testAKeyAMovementCannotKeepIsRefused(string $key): void
+    {
+        $credits = new StoreCredits($this->instruments);
+
+        try {
+            $credits->grant('ada', $this->cad(500), $this->at, idempotencyKey: $key);
+            self::fail('The key is refused.');
+        } catch (InvalidValue $invalidValue) {
+            self::assertSame('An idempotency key is 1 to 128 characters, without surrounding spaces.', $invalidValue->getMessage());
+        }
+
+        self::assertSame([], $this->instruments->instruments, 'nothing is opened for a key refused');
+        $this->expectException(InvalidValue::class);
+        $this->cards()->load('7KQ2-M9XA-3TFD-W8HC', $this->cad(500), $this->at, idempotencyKey: $key);
+    }
+
+    public function testAKeyOfTheLongestLengthIsKept(): void
+    {
+        $movement = new StoreCredits($this->instruments)->grant('ada', $this->cad(500), $this->at, idempotencyKey: str_repeat('é', 128));
+
+        self::assertSame(str_repeat('é', 128), $movement->idempotencyKey);
+    }
+
+    public function testAGrantUnderAnIdempotencyKeyIsMadeOnce(): void
+    {
+        $credits = new StoreCredits($this->instruments);
+
+        $first = $credits->grant('ada', $this->cad(1_000), $this->at, 'Return', 'A-1', 'return-1');
+        $replayed = $credits->grant('ada', $this->cad(1_000), $this->at, 'Return', 'A-1', 'return-1');
+
+        self::assertSame($first, $replayed);
+        self::assertSame(1_000, $credits->balance('ada', Currency::of('CAD'))->minorUnits);
+        self::assertCount(1, $this->instruments->movementsOf($first->instrument));
+
+        $other = $credits->grant('ada', $this->cad(1_000), $this->at, idempotencyKey: 'return-2');
+        $credits->grant('ada', $this->cad(1_000), $this->at);
+        $credits->grant('ada', $this->cad(1_000), $this->at);
+
+        self::assertNotSame($first, $other);
+        self::assertSame(4_000, $credits->balance('ada', Currency::of('CAD'))->minorUnits);
+        self::assertCount(4, $this->instruments->movementsOf($first->instrument));
+        self::assertSame(1_000, $credits->grant('bob', $this->cad(1_000), $this->at, idempotencyKey: 'return-1')->balanceAfter->minorUnits, 'a key is kept per instrument');
+
+        $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessageIsOrContains('That idempotency key was used for another amount.');
+        $credits->grant('ada', $this->cad(999), $this->at, idempotencyKey: 'return-1');
     }
 
     public function testOnlyAPlacedOrderIssuesItsCards(): void
@@ -156,7 +372,7 @@ final class StoredValueTest extends TestCase
         $order = $this->order([['gift_card', 'CAD:5000', 2, 5_000]]);
         new StoreCredits($this->instruments)->grant('ada', $this->cad(10_000), $this->at);
         $this->stored()->payWithStoreCredit($order, 'ada', $this->at);
-        [$first, $second] = $this->cards()->issueFor($order, $this->at);
+        [$first, $second] = $this->cards()->issueFor($order, $this->at)->issued;
         $this->cards()->void($second->code->toString(), $this->at);
         $this->cards()->issue($this->cad(1_000), $this->at, null, 'A-2');
 
@@ -175,7 +391,7 @@ final class StoredValueTest extends TestCase
         $order = $this->order([['gift_card', 'CAD:5000', 2, 5_000]]);
         new StoreCredits($this->instruments)->grant('ada', $this->cad(10_000), $this->at);
         $this->stored()->payWithStoreCredit($order, 'ada', $this->at);
-        [$first, $second] = $this->cards()->issueFor($order, $this->at);
+        [$first, $second] = $this->cards()->issueFor($order, $this->at)->issued;
 
         self::assertSame([$first->card, $second->card], $this->cards()->voidFor('A-1', $this->at));
         self::assertSame([false, false], [$first->card->isActive(), $second->card->isActive()]);

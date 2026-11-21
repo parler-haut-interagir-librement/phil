@@ -24,9 +24,12 @@ foreach ($giftCards->issueFor($order, $clock->now()) as $issued) {
 
 One card per unit, at the face value of the line, whatever promotion lowered its price. **An order with anything
 left to pay issues no card**: `issueFor()` throws `StoredValueRefused` while the core's `Payments::summary()` still
-finds something payable — a pay-later or on-account payment counts once completed. **Issuing twice changes nothing**:
-the order's cards already issued are not issued again. The code is known only at that moment; afterwards the module
-keeps its hash and its last four characters.
+finds something payable — a pay-later or on-account payment counts once completed. **Issuing twice changes nothing**,
+even from two servers at the same moment — see [Value created once](#value-created-once). The code is known only at
+that moment; afterwards the module keeps its hash and its last four characters.
+
+`issueFor()` returns a `GiftCardIssuance`: going through it goes through the cards issued by this call, each with its
+code; its `issued` property lists them, and its `cards` property lists every card of the order, issued now or before.
 
 ### Cancelling an order that sold cards
 
@@ -144,6 +147,81 @@ final class OrderCustomers implements StoreCreditHolders
 
 Without that service, or for an order whose customer is unknown, such a refund throws `StoredValueRefused`, as does a
 refund to a store credit voided since; the application refunds by another means.
+
+## Value created once
+
+A gift card issued twice for one order, or credit granted twice for one return, is value given away. The module keeps
+both from happening, in the database rather than in memory, so that the guarantee holds across processes and servers.
+
+### Issuing the cards of an order
+
+`issueFor()` stores the cards it issues at once, all or none, in a transaction of their own — or in a savepoint of the
+caller's transaction when one is open. Each card's `Issued` movement carries its rank among the order's cards, from 0,
+in the order of the lines; a unique constraint on the order number, the kind of movement and that rank refuses a second
+card at the same rank.
+
+Two requests issuing the cards of the same order at the same moment — a payment notification and its replay, two
+workers taking the same message — both count the cards already issued, both find none, and both try to store them.
+The database keeps the first; the second is refused, stores nothing, and returns the cards of the first in
+`GiftCardIssuance::$cards`, with nothing in `issued`: it has no code to send, and sends none.
+
+```php
+$issuance = $giftCards->issueFor($order, $clock->now());
+
+foreach ($issuance as $issued) {          // nothing when another request issued them first
+    $mailer->send(/* $issued->code->toString() */);
+}
+
+$issuance->cards;                         // every card of the order, whoever issued it
+```
+
+The refusal does not reach the application's entity manager: the cards are stored by an entity manager of their own on
+the same connection, so what the application holds stays managed, and its own flush goes on. The cards returned are
+the ones the application's entity manager reads.
+
+A card issued at the counter with `issue($value, $at, null, $orderNumber)` carries no rank and is not bound by the
+constraint; it still counts among the cards of the order that `issueFor()` finds already issued.
+
+### An idempotency key on a load or a grant
+
+`GiftCards::load()` and `StoreCredits::grant()` take an optional idempotency key, their last argument:
+
+```php
+$giftCards->load($code, Money::of(1_000, Currency::of('CAD')), $clock->now(), 'Top-up', idempotencyKey: $messageId);
+$storeCredits->grant('customer-42', Money::of(1_500, Currency::of('CAD')), $clock->now(), 'Return of A-0042', 'A-0042', idempotencyKey: 'return:'.$returnId);
+```
+
+Asked again with the same key on the same instrument, the operation adds nothing: `load()` returns the card as it is,
+`grant()` returns the movement first recorded. Another key, or no key, records another movement. The same amount is
+expected: a key replayed with another amount is a mistake, refused with `InvalidValue`. A key is 1 to 128 characters,
+without surrounding spaces, and is kept on the movement; a unique constraint on the instrument and the key refuses a
+second movement with the same key, so that two requests with the same key at the same moment record one movement —
+the flush of the second throws Doctrine's `UniqueConstraintViolationException`, or `OptimisticLockException` when the
+instrument's version moved first, and its retry finds the movement.
+
+The key is the operation's, chosen so that a retry of the same operation carries the same key: the identifier of the
+return that grants the credit, of the purchase that loads the card, of the message that asks for it.
+
+### Replaying a Messenger message
+
+A message handled twice — retried after a failure, delivered twice by the transport, or replayed by whoever can write
+to the transport — runs its handler twice. Signing a message proves who sent it, not that it is new: a replayed
+message carries a valid signature. The handler is made safe to run again instead:
+
+```php
+#[AsMessageHandler]
+final readonly class GrantReturnCreditHandler
+{
+    public function __invoke(GrantReturnCredit $message): void
+    {
+        $return = $this->returns->get($message->returnId);   // the message carries identifiers only
+
+        $this->storeCredits->grant($return->customer, $return->credit, $this->clock->now(), null, $return->orderNumber, idempotencyKey: 'return:'.$message->returnId);
+    }
+}
+```
+
+A handler issuing the cards of an order needs no key: `issueFor()` is idempotent by the order itself.
 
 ## Movements
 

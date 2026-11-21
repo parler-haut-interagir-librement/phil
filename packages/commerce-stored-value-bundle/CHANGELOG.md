@@ -6,12 +6,46 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.1.1-alpha.
+The next version is 0.2.0-alpha: the movements table gains two columns and two unique constraints, and
+`GiftCards::issueFor()` returns a `GiftCardIssuance`. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
+
+### Added
+
+- The optional `idempotencyKey` argument of `GiftCards::load()` and `StoreCredits::grant()`, last of each: asked again
+  with the same key on the same instrument, the operation adds nothing and returns the card, or the movement first
+  recorded; a key replayed with another amount is refused with `InvalidValue`. `Movement::$idempotencyKey`, column
+  `idempotency_key`, unique with `instrument`; `Instrument::credit()` takes the key, and
+  `Instrument::checkIdempotencyKey()` refuses one that is empty, padded or longer than 128 characters.
+- `Movement::$issuedUnit`, column `issued_unit`: the rank of a card among the cards its order issued, unique with
+  `order_number` and `kind`; the `issuedUnit` argument of `Instrument::giftCard()`.
+- `GiftCardIssuance`, which `issueFor()` returns: iterable over the cards issued now, with their codes, and every card
+  of the order in `cards`.
+- `InstrumentRepository::addIssuedCards()`, which stores an order's cards at once, all or none, and returns `false`
+  when another request stored them first, and `InstrumentRepository::movementUnderKey()`.
+- Integration tests on SQLite, MySQL and PostgreSQL that issue the cards of one order from six processes at once.
+- The documentation of value created once, of replaying a Messenger message, and of the migration from 0.1.
+
+### Changed
+
+- `GiftCards::issueFor()` stores the cards it issues at once, through `addIssuedCards()`, and returns a
+  `GiftCardIssuance` instead of a list: a `foreach` over it goes through the same cards as before.
+- `DoctrineStoredValueRepository` stores an order's cards with an entity manager of their own on the same connection,
+  so that a refusal leaves the application's entity manager open, and the application's listeners see them stored;
+  `doctrine/dbal` and `doctrine/event-manager` are requirements.
 
 ### Fixed
 
 - It requires `phil/commerce-bundle` 0.4, the version published on 2026-11-20, beside which its requirement of 0.2 or
   0.3 kept it from installing.
+
+### Security
+
+- Two requests issuing the gift cards of the same order at the same moment each counted the cards already issued before
+  the other stored its own, and together issued them twice: each card is now issued under its rank among the order's
+  cards, which a unique constraint keeps once, and the request that comes second issues none and returns the cards of
+  the first.
+- A load or a grant replayed — a Messenger message retried or delivered twice — added its value again: under an
+  idempotency key, it is now recorded once per instrument, by a unique constraint.
 
 ## 0.1.0-alpha - 2026-11-20
 
