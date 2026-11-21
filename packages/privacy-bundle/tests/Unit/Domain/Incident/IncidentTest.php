@@ -269,4 +269,44 @@ final class IncidentTest extends TestCase
         self::assertSame($long, $incident->riskAssessment);
         self::assertSame($long, new Incident(str_repeat('a', 32), 'x', $at, null, [], null, false, undescribedReason: $long)->undescribedReason);
     }
+
+    public function testABlankInformationAndABlankReasonCountAsLeftOut(): void
+    {
+        $at = new DateTimeImmutable('2026-11-10T09:00:00Z');
+
+        self::assertSame('  ', new Incident(str_repeat('a', 32), 'x', $at, null, [], null, false, information: '  ', undescribedReason: 'Lost')->information);
+        self::assertSame('  ', new Incident(str_repeat('a', 32), 'x', $at, null, [], null, false, information: 'Names', undescribedReason: '  ')->undescribedReason);
+    }
+
+    public function testACorrectionReplacesWhatTheLineAlreadyHeld(): void
+    {
+        $at = new DateTimeImmutable('2026-11-10T09:00:00Z');
+        $incident = new Incident(
+            str_repeat('a', 32),
+            'x',
+            $at,
+            $at->modify('-5 days'),
+            [],
+            null,
+            false,
+            occurredUntil: $at->modify('-4 days'),
+            discoveredUntil: $at->modify('+1 day'),
+            publicNoticeAt: $at->modify('+2 days'),
+            publicNoticeReason: PublicNoticeReason::PromptAction,
+        );
+
+        $corrected = $incident->update(
+            occurredAt: $at->modify('-3 days'),
+            occurredUntil: $at->modify('-2 days'),
+            discoveredUntil: $at->modify('+3 days'),
+            publicNoticeAt: $at->modify('+4 days'),
+            publicNoticeReason: PublicNoticeReason::NoContactDetails,
+        );
+
+        self::assertEquals($at->modify('-3 days'), $corrected->occurredAt);
+        self::assertEquals($at->modify('-2 days'), $corrected->occurredUntil);
+        self::assertEquals($at->modify('+3 days'), $corrected->discoveredUntil);
+        self::assertEquals($at->modify('+4 days'), $corrected->publicNoticeAt);
+        self::assertSame(PublicNoticeReason::NoContactDetails, $corrected->publicNoticeReason);
+    }
 }

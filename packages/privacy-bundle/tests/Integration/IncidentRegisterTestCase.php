@@ -144,18 +144,43 @@ abstract class IncidentRegisterTestCase extends TestCase
         $register->save($old->update(measures: 'Corrected'));
         $register->save($closed('b', '2021-11-20T10:00:00Z'));
         $register->save($closed('c', '2021-01-01T00:00:00Z', '2022-06-01T00:00:00Z'));
-        $register->save($closed('d', '2023-01-01T00:00:00Z'));
+        $kept = $closed('d', '2023-01-01T00:00:00Z');
+        $register->save($kept);
+        $register->save($kept->update(measures: 'Corrected too'));
         $register->save(new Incident(str_repeat('e', 32), 'Open', new DateTimeImmutable('2010-01-01T00:00:00Z'), null, [], null, false));
 
         self::assertSame(0, $register->purge(new PurgeOrder('R-INC', PrivacyTables::INCIDENTS, new DateTimeImmutable('2021-11-20T09:59:59Z'))), 'A cutoff before the floor applies as it is.');
         self::assertSame(1, $register->purge(new PurgeOrder('R-INC', PrivacyTables::INCIDENTS, new DateTimeImmutable('2026-11-20T10:00:00Z'))), 'A rule set too short purges only what is five years old.');
         self::assertSame(['d', 'b', 'c', 'Open'], array_map(static fn (Incident $line): string => $line->summary, $register->all()));
         self::assertSame([], $register->revisions($old->id));
-        self::assertEquals(0, $this->connection()->fetchOne('SELECT COUNT(*) FROM '.PrivacyTables::INCIDENT_REVISIONS));
+        self::assertCount(1, $register->revisions($kept->id), 'The corrections of a line that stays stay.');
+        self::assertEquals(1, $this->connection()->fetchOne('SELECT COUNT(*) FROM '.PrivacyTables::INCIDENT_REVISIONS));
 
         $this->clock->modify('2027-06-01T00:00:01Z');
         self::assertSame(2, $register->purge(new PurgeOrder('R-INC', PrivacyTables::INCIDENTS, new DateTimeImmutable('2030-01-01T00:00:00Z'))), 'The end of the discovery counts.');
         self::assertSame(['d', 'Open'], array_map(static fn (Incident $line): string => $line->summary, $register->all()));
+    }
+
+    public function testThePurgeCountsEveryBatchItRemoves(): void
+    {
+        $register = $this->register();
+        $connection = $this->connection();
+        $connection->transactional(static function (Connection $connection): void {
+            for ($number = 0; $number < 501; ++$number) {
+                $connection->insert(PrivacyTables::INCIDENTS, [
+                    'id' => str_pad(dechex($number), 32, '0', \STR_PAD_LEFT),
+                    'summary' => 'Old',
+                    'discovered_at' => '2020-01-01 00:00:00',
+                    'categories' => '[]',
+                    'serious_risk' => false,
+                    'measures' => '',
+                    'closed_at' => '2020-01-02 00:00:00',
+                ], ['serious_risk' => ParameterType::BOOLEAN]);
+            }
+        });
+
+        self::assertSame(501, $register->purge(new PurgeOrder('R-INC', PrivacyTables::INCIDENTS, new DateTimeImmutable('2026-11-20T10:00:00Z'))));
+        self::assertSame([], $register->all());
     }
 
     public function testARegisterOfTheVersionBeforeIsMigratedWithItsRowsKept(): void

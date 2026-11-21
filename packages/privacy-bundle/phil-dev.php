@@ -109,8 +109,16 @@ return [
             ],
             // The identifiers of the due requests come from a column of strings: the filter and the reindexing only give
             // PHPStan the list of strings the database already returns.
+            // The identifiers of the incidents to purge, as for the due requests: a column of strings.
             'UnwrapArrayFilter' => [
-                'ignore' => [DbalAccountDeletions::class.'::dueIdentifiers'],
+                'ignore' => [DbalAccountDeletions::class.'::dueIdentifiers', DbalIncidentRegister::class.'::purge'],
+            ],
+            // A purge whose order falls on the very instant of the floor of five years takes the floor or the order,
+            // which are then the same instant.
+            'LessThan' => [
+                'ignoreSourceCodeByRegex' => [
+                    '.*\\$floor->getTimestamp\\(\\) < \\$order->cutoff->getTimestamp\\(\\).*',
+                ],
             ],
             'UnwrapArrayValues' => [
                 'ignore' => [DbalAccountDeletions::class.'::dueIdentifiers'],
@@ -156,10 +164,12 @@ return [
                     '\\$builder->setParameter\\(self::MAILED_LINKS, true === \\(\\$guest\\[\'enabled\'\\] \\?\\? false\\).*',
                 ],
             ],
-            // The names of the archive only answer isset(), which holds for false as for true.
+            // The names of the archive only answer isset(), which holds for false as for true. And the number of a
+            // correction, a column of the primary key, which no platform leaves nullable whatever the column says.
             'TrueValue' => [
                 'ignoreSourceCodeByRegex' => [
                     '\\$this->names\\[\\$name\\] = true;',
+                    '.*\\x27sequence\\x27\\)->setTypeName\\(Types::INTEGER\\)->setNotNull\\(true\\).*',
                 ],
             ],
         ],

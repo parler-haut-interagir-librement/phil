@@ -128,8 +128,8 @@ final class IncidentCommand extends Command
                 throw InvalidPrivacyValue::because('A new incident needs its summary; to complete one, give its --id.');
             }
 
-            // What the options give beside the summary and the discovery is applied below, as for a line being completed.
-            $incident = Incident::record($summary, $this->moment($input, 'discovered') ?? $this->clock->now(), null, [], null, false);
+            // What the options give, the discovery included, is applied below, as for a line being completed.
+            $incident = Incident::record($summary, $this->clock->now(), null, [], null, false);
         } else {
             $incident = $this->register->find($id);
 

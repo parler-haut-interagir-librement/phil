@@ -147,13 +147,13 @@ final readonly class DbalIncidentRegister implements IncidentRegister, IncidentH
     {
         $floor = RetentionPeriod::fixed(Incident::MINIMUM_RETENTION)->cutoff($this->clock->now());
         $limit = $this->text($floor instanceof DateTimeImmutable && $floor->getTimestamp() < $order->cutoff->getTimestamp() ? $floor : $order->cutoff);
-        $ids = array_values(array_filter(
+        $ids = array_filter(
             $this->connection->fetchFirstColumn(
                 'SELECT id FROM '.PrivacyTables::INCIDENTS.' WHERE closed_at IS NOT NULL AND discovered_at < ? AND (discovered_until IS NULL OR discovered_until < ?)',
                 [$limit, $limit],
             ),
             \is_string(...),
-        ));
+        );
         $purged = 0;
 
         foreach (array_chunk($ids, self::PURGE_BATCH) as $batch) {

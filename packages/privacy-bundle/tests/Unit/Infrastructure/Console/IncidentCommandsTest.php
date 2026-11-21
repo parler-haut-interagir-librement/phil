@@ -292,6 +292,7 @@ final class IncidentCommandsTest extends TestCase
 
         $markdown = new CommandTester(new IncidentsCommand($register));
         self::assertSame(Command::SUCCESS, $markdown->execute([]));
+        self::assertStringContainsString(" |\n\n| Identifier | Correction | Field | Previous value | Corrected |\n", $markdown->getDisplay(), 'A blank line sets the corrections apart from the register.');
         self::assertStringEndsWith(implode("\n", [
             '',
             '| Identifier | Correction | Field | Previous value | Corrected |',
@@ -306,5 +307,15 @@ final class IncidentCommandsTest extends TestCase
         self::assertIsArray($rows);
         self::assertIsArray($rows[0]);
         self::assertSame([['incident_id' => str_repeat('a', 32), 'sequence' => 1, 'field' => 'summary', 'previous' => 'Tpyo | here', 'revised_at' => '2026-11-12T08:00:00+00:00']], $rows[0]['revisions']);
+    }
+
+    public function testTheOptionsToPublishAndToEmptyListTheirValues(): void
+    {
+        $definition = new IncidentCommand($this->register, new MockClock('2026-11-10T09:00:00Z'))->getDefinition();
+
+        self::assertSame('Why: increased_injury, excessive_hardship, no_contact_details, prompt_action', $definition->getOption('public-notice-reason')->getDescription());
+        self::assertSame('A field recorded by mistake to empty: occurred, occurred-until, discovered-until, affected, authority-notified, subjects-notified, public-notice, closed', $definition->getOption('clear')->getDescription());
+        self::assertTrue($definition->getOption('clear')->isArray());
+        self::assertTrue($definition->getOption('clear')->isValueRequired());
     }
 }
