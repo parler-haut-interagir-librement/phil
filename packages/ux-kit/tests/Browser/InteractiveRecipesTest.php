@@ -369,6 +369,79 @@ final class InteractiveRecipesTest extends BrowserTestCase
         self::assertFalse($this->read('document.querySelector("#start-panel").matches(":popover-open")'));
     }
 
+    /**
+     * A range at the keyboard: two months side by side, the start chosen, the end previewed on the other month as the
+     * focus goes there, then chosen; the fields filled, the end never before the start, the focus given back.
+     */
+    #[DataProvider('modes')]
+    public function testADateRangeIsChosenAtTheKeyboardAcrossTwoMonths(string $page): void
+    {
+        $forward = $this->isRightToLeft($page) ? WebDriverKeys::ARROW_LEFT : WebDriverKeys::ARROW_RIGHT;
+
+        $this->open($page);
+        $this->waitUntil('!document.querySelector("#range .isDatePickerTrigger").hidden');
+        $this->focus('#range .isDatePickerTrigger');
+        $this->press(WebDriverKeys::ENTER);
+        $this->waitForFocus('#stay-panel [data-date="2026-03-15"]');
+
+        self::assertSame(['March 2026', 'April 2026'], $this->read('[...document.querySelectorAll("#stay-panel .isDatePickerHeading")].map((heading) => heading.textContent)'));
+        self::assertSame('end', $this->read('document.querySelector("#stay-panel [data-date=\'2026-03-18\']").dataset.range'));
+        self::assertSame('true', $this->read('document.querySelector("#stay-panel [data-date=\'2026-03-16\']").parentElement.getAttribute("aria-selected")'));
+
+        $this->press($forward);
+        $this->waitForFocus('#stay-panel [data-date="2026-03-16"]');
+        $this->press(WebDriverKeys::ENTER);
+        $this->waitUntil('document.querySelector("#stay-panel [data-date-picker-target=\'status\']").textContent.endsWith("start of the range")');
+
+        self::assertTrue($this->read('document.querySelector("#stay-panel").matches(":popover-open")'));
+
+        $this->press(WebDriverKeys::PAGE_DOWN);
+        $this->waitForFocus('#stay-panel [data-date="2026-04-16"]');
+
+        self::assertSame(['March 2026', 'April 2026'], $this->read('[...document.querySelectorAll("#stay-panel .isDatePickerHeading")].map((heading) => heading.textContent)'));
+        self::assertSame('end', $this->read('document.activeElement.dataset.range'));
+        self::assertSame('Thursday, April 16, 2026, end of the range', $this->read('document.activeElement.getAttribute("aria-label")'));
+        self::assertSame(1, $this->read('document.querySelectorAll("#stay-panel [data-date][tabindex=\'0\']").length'));
+
+        $this->press(WebDriverKeys::ENTER);
+        $this->waitForFocus('#range .isDatePickerTrigger');
+
+        self::assertSame('2026-03-16', $this->read('document.querySelector("#stay").value'));
+        self::assertSame('2026-04-16', $this->read('document.querySelector("#stay-end").value'));
+        self::assertSame('2026-03-16', $this->read('document.querySelector("#stay-end").min'));
+        self::assertFalse($this->read('document.querySelector("#stay-panel").matches(":popover-open")'));
+
+        $this->press(WebDriverKeys::ENTER);
+        $this->waitForFocus('#stay-panel [data-date="2026-03-16"]');
+        $this->press(WebDriverKeys::ESCAPE);
+        $this->waitForFocus('#range .isDatePickerTrigger');
+    }
+
+    /**
+     * axe-core on the range, closed, open, and halfway through a choice, in clear, in dark and right to left.
+     */
+    #[DataProvider('modes')]
+    public function testADateRangePassesAxe(string $page): void
+    {
+        $this->open($page);
+        $this->perform((string) file_get_contents(__DIR__.'/node_modules/axe-core/axe.min.js'));
+
+        self::assertSame([], $this->axe('#range'));
+
+        $this->waitUntil('!document.querySelector("#range .isDatePickerTrigger").hidden');
+        $this->focus('#range .isDatePickerTrigger');
+        $this->press(WebDriverKeys::ENTER);
+        $this->waitForFocus('#stay-panel [data-date="2026-03-15"]');
+
+        self::assertSame([], $this->axe('#range'));
+
+        $this->press(WebDriverKeys::ENTER);
+        $this->press(WebDriverKeys::ARROW_DOWN);
+        $this->waitForFocus('#stay-panel [data-date="2026-03-22"]');
+
+        self::assertSame([], $this->axe('#range'));
+    }
+
     #[DataProvider('modes')]
     public function testANumberInputStopsAtItsLimits(string $page): void
     {

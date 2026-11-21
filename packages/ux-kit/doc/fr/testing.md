@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5c3103d63bbf36da6d66a1988fdfa6595322455f015e1acd27264ede96096694 -->
+<!-- phil-dev source-sha256=ec01ad80565ee74edc037e1c32a192694ea5370f1b806257ed693ed0396be0ae -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -22,7 +22,7 @@
 | Le contrôleur `animated-headline` | Le mot suivant, les durées tenues dans le budget, un mot dévoilé une fois puis immobile, le déroulé par défaut joué une fois jusqu'au premier mot dans le budget, le mot courant du serveur, la boucle et son bouton de pause et de lecture, le survol et le focus qui retiennent le mot, `transitionend` et son repli après la durée, le document caché puis montré ou caché dès le début, le mouvement réduit activé et désactivé, le redimensionnement, la déconnexion, rien à piloter ; sous le lanceur de tests de Node |
 | Les recettes du kit Shadcn | Chacune produite en entier : ses éléments, ses classes, ses rôles et ses attributs `aria`, ses attributs Stimulus, ses variantes et ses tailles, ses parties, une balise ou une couleur refusée, les textes en props |
 | Les manifestes | Les props et les blocs de chaque gabarit documentés, aucun mot écrit dans un gabarit, les noms des composants et des contrôleurs littéraux, comme le Toolkit les réécrit pour un sous-dossier ; un contrôleur nommé par un gabarit fourni par sa recette ou par une recette dont elle dépend |
-| Les recettes propres au kit | `CopyButton`, `AnimatedButton`, `Stepper`, `ActivityCalendar`, `Tree`, `Rating`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `ProgressRing`, `Sparkline`, `BeforeAfter`, `ColorPicker`, `DatePicker` : produites en entier, leurs props, leurs limites et l'échappement |
+| Les recettes propres au kit | `CopyButton`, `AnimatedButton`, `Stepper`, `ActivityCalendar`, `Tree`, `Rating`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `ProgressRing`, `Sparkline`, `BeforeAfter`, `ColorPicker`, `DatePicker` et sa plage de deux champs natifs : produites en entier, leurs props, leurs limites et l'échappement |
 | Les recettes du kit Shadcn sur des éléments natifs | `AlertDialog` sans fermeture par l'arrière-plan, `AspectRatio` qui refuse tout sauf un nombre ou un quotient, `Collapsible`, `Field` et ses erreurs, `Item`, `Kbd`, `NativeSelect`, `Progress` tenu dans ses bornes, `RadioGroup`, `ScrollArea` une région seulement quand elle est nommée, `Toggle` et `ToggleGroup` sur des cases à cocher et des boutons radio : produites en entier |
 | Les graphiques | `Chart` : l'échelle en pas simples des plus petites valeurs aux plus grandes, ses décimales, un graphique plat, des barres qui partagent leur bande, une ligne coupée à une valeur absente, un point seul, la légende, le tableau affiché ou lu par les lecteurs d'écran seulement, les étiquettes et les séries bornées ; `ChartJs` : sa figure et son tableau lu dans les données du graphique, `render_chart` fourni par un bouchon |
 | Les blocs `LoginForm` et `SignupForm` | Produits en entier, seuls et après une soumission refusée : les noms des champs, l'autocomplétion, l'erreur liée aux champs, le champ CSRF, les liens écrits seulement avec leur adresse et leur texte, un mot de passe jamais réécrit |
@@ -32,7 +32,7 @@
 | Le contrôleur `lightbox` | Laissé au navigateur là où il exécute les invocateurs et `closedby`, qui ouvre et ferme le dialogue une fois là où il ne le fait pas, un clic sur l'arrière-plan qui le ferme et un sur l'image qui ne le ferme pas ; sous l'exécuteur de tests de Node |
 | `Celebration` | Produite en entier : ses valeurs, sa région active vide jusqu'à ce qu'elle joue ou qui tient le message dès le départ avec `autoplay`, le canvas dans un `template`, un effet inconnu dessiné en confettis, ce qui la joue avant le message, ses attributs gardés, aucun style écrit |
 | Le contrôleur `celebration` | La durée gardée dans ses bornes, les effets, les jetons, le message et l'effet d'une action ou d'un événement, les confettis et les gerbes de feux d'artifice espacées, leur mouvement, leur opacité et leur dessin ; le message redit, le canvas sur la page par le CSSOM aux couleurs des jetons, à la densité de l'écran, puis retiré avec son image ; la lecture d'emblée, le mouvement réduit par le système, par un ancêtre ou activé pendant qu'elle joue, une seule animation à la fois, l'onglet caché puis montré, la déconnexion, sans gabarit ou sans contexte ; sous l'exécuteur de tests de Node |
-| Les contrôleurs `tree`, `date-picker`, `color-picker`, `copy-button`, `number-input`, `file-input`, `tag`, `relative-time`, `before-after` | Le clavier et son miroir de droite à gauche, ce qu'ils écrivent, les limites, le tri des fichiers, le focus gardé tout près, les minuteries, sous le lanceur de tests de Node |
+| Les contrôleurs `tree`, `date-picker`, `color-picker`, `copy-button`, `number-input`, `file-input`, `tag`, `relative-time`, `before-after` | Le clavier et son miroir de droite à gauche, une plage de deux mois, son début, sa fin échangée, son aperçu et la fin gardée après le début, ce qu'ils écrivent, les limites, le tri des fichiers, le focus gardé tout près, les minuteries, sous le lanceur de tests de Node |
 | Les contrôleurs `popover`, `tabs`, `accordion`, `dialog`, `tooltip`, `carousel`, `select`, `dropdown-menu`, `dropdown-menu-sub` | `placement()` de chacun, les touches et leur miroir de droite à gauche, ce qui est laissé au navigateur, l'état sur le déclencheur et le panneau, le focus, les délais, la lecture automatique retenue et en pause, le mouvement réduit, la déconnexion ; pour `dialog`, les invocateurs et `closedby` détectés, laissés au navigateur là où il les exécute et exécutés par le contrôleur là où il ne le fait pas ; sous le lanceur de tests de Node, sur le petit DOM de `tests/js/fake.mjs` |
 
 Les composants sont produits par TwigComponent dans un noyau où le `templates/` de chaque recette est un chemin de Twig,
@@ -43,17 +43,17 @@ fonctionnelle est sautée.
 
 `tests/Browser` pilote chaque recette interactive dans un vrai Chrome avec `symfony/panther`, contre la feuille de
 style, en clair, en sombre et de droite à gauche : `Accordion`, `AnimatedHeadline`, `Carousel`, `Dialog`, `Sheet`,
-`DropdownMenu` et son sous-menu, `Popover`, `Select`, `Tabs`, `Tooltip` et sa flèche, `Switch`, `Tree`, `DatePicker`,
-`ColorPicker`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `CopyButton`, `AlertDialog`, `Toggle`,
-`ToggleGroup`, `RadioGroup`, `ScrollArea`, les couleurs et les tirets des séries d'un `Chart`, une `Picture` réduite à
+`DropdownMenu` et son sous-menu, `Popover`, `Select`, `Tabs`, `Tooltip` et sa flèche, `Switch`, `Tree`, `DatePicker` et sa
+plage choisie au clavier sur deux mois, `ColorPicker`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`,
+`CopyButton`, `AlertDialog`, `Toggle`, `ToggleGroup`, `RadioGroup`, `ScrollArea`, les couleurs et les tirets des séries d'un `Chart`, une `Picture` réduite à
 un téléphone à son rapport et une autre qui choisit son recadrage selon la largeur de l'écran, une `Image` gardée
 carrée, couverte et rognée, une `Gallery` dont les colonnes suivent son conteneur, une `Lightbox` ouverte depuis sa
 vignette et fermée par Échap et par son bouton, une `Picture` qui suit le schéma de couleurs et le mouvement du système,
 émulés par le protocole DevTools, et les recettes et les blocs du kit à la largeur d'un téléphone. Elle vérifie ce que
 seul un navigateur fait : la couche supérieure de l'API popover et de `dialog`, la place à l'écran, le focus, Échap et
 les flèches, un clic sur l'arrière-plan d'un dialogue et d'un dialogue d'alerte. axe-core audite les images de la page,
-la galerie, une visionneuse ouverte et l'image avec ses variantes, selon les règles WCAG 2.2 A et AA, dans chaque mode,
-et l'image avec sa variante des couleurs forcées, sa couleur d'attente et sa description, l'image avec son aperçu et la
+la galerie, une visionneuse ouverte et l'image avec ses variantes, selon les règles WCAG 2.2 A et AA, dans chaque mode, la
+plage de `DatePicker` fermée, ouverte et à mi-chemin d'un choix, et l'image avec sa variante des couleurs forcées, sa couleur d'attente et sa description, l'image avec son aperçu et la
 galerie différée, une de ses visionneuses ouverte. La suite vérifie qu'une galerie différée garde ses figures hors de
 l'écran à leur rapport et son anneau de focus entier, qu'un aperçu est peint jusqu'à l'arrivée de son image, et qu'une
 image montre sa variante là où les couleurs sont forcées. axe-core audite aussi ce qu'ajoute la 0.5, dans chaque mode :

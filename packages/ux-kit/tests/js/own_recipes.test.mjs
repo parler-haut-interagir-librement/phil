@@ -1,14 +1,16 @@
 import assert from 'node:assert/strict';
 import { beforeEach, test } from 'node:test';
 import { setTimeout as sleep } from 'node:timers/promises';
-
-import ColorPickerController, { normalize } from '../../color-picker/assets/controllers/color_picker_controller.js';
 import BeforeAfterController from '../../before-after/assets/controllers/before_after_controller.js';
+import ColorPickerController, { normalize } from '../../color-picker/assets/controllers/color_picker_controller.js';
 import CopyButtonController from '../../copy-button/assets/controllers/copy_button_controller.js';
 import DatePickerController, {
     addMonths,
     iso,
+    monthOf,
+    ordered,
     parse,
+    shownFrom,
     weeks,
 } from '../../date-picker/assets/controllers/date_picker_controller.js';
 import FileInputController, { accepted, sizeText } from '../../file-input/assets/controllers/file_input_controller.js';
@@ -40,7 +42,15 @@ const copyButton = (values = {}) => {
     const status = element();
     const controller = stimulate(CopyButtonController, {
         targets: { trigger: [trigger], status: [status] },
-        values: { text: 'hello', source: '', label: 'Copy', copiedLabel: 'Done', failedLabel: 'No', duration: 5, ...values },
+        values: {
+            text: 'hello',
+            source: '',
+            label: 'Copy',
+            copiedLabel: 'Done',
+            failedLabel: 'No',
+            duration: 5,
+            ...values,
+        },
     });
 
     return { controller, trigger, status };
@@ -102,7 +112,9 @@ test('copy button: from another element, by its value or its text; a refusal is 
 const tree = (links = []) => {
     const item = (value, attributes = {}, parent = null) => {
         const created = new FakeElement({ attributes, dataset: { value } });
-        created.parentElement = { closest: () => (parent?.getAttribute('aria-expanded') === 'false' ? parent : parent) };
+        created.parentElement = {
+            closest: () => (parent?.getAttribute('aria-expanded') === 'false' ? parent : parent),
+        };
         created.parentItem = parent;
         created.textContent = value;
         created.closest = () => created;
@@ -117,7 +129,9 @@ const tree = (links = []) => {
         candidate.parentElement = {
             closest: (selector) => {
                 if (selector.includes('aria-expanded')) {
-                    return candidate.parentItem?.getAttribute('aria-expanded') === 'false' ? candidate.parentItem : null;
+                    return candidate.parentItem?.getAttribute('aria-expanded') === 'false'
+                        ? candidate.parentItem
+                        : null;
                 }
 
                 return candidate.parentItem ?? null;
@@ -127,7 +141,9 @@ const tree = (links = []) => {
 
     const toggle = new FakeElement();
     toggle.closest = () => root;
-    const controller = stimulate(TreeController, { targets: { item: [root, child, photos], toggle: [toggle], link: links } });
+    const controller = stimulate(TreeController, {
+        targets: { item: [root, child, photos], toggle: [toggle], link: links },
+    });
 
     return { controller, root, child, photos, toggle };
 };
@@ -401,7 +417,11 @@ const tag = ({ cancelled = false, next = null, previous = null, parent = element
             this.removed = true;
         },
     });
-    const controller = stimulate(TagController, { element: root, targets: { remove: [remove] }, values: { name: 'One' } });
+    const controller = stimulate(TagController, {
+        element: root,
+        targets: { remove: [remove] },
+        values: { name: 'One' },
+    });
     controller.identifier = 'tag';
     controller.dispatch = (name, options) => {
         controller.dispatched.push([name, options]);
@@ -525,9 +545,7 @@ test('colour picker: what is a colour', () => {
 const colorPicker = (colors = ['#112233', 'nope']) => {
     const well = element({ value: '#112233' });
     const text = element({ value: '#112233', hidden: true });
-    const swatches = colors.map(
-        (color) => new FakeElement({ attributes: { 'data-color-picker-color-param': color } }),
-    );
+    const swatches = colors.map((color) => new FakeElement({ attributes: { 'data-color-picker-color-param': color } }));
     swatches.forEach((swatch) => {
         swatch.hidden = true;
     });
@@ -814,4 +832,335 @@ test('date picker: the first day of the week of its language, or Monday', () => 
     const { controller, open, weekdays } = datePicker({ firstDay: -1 });
     open();
     assert.equal(weekdays.children[0].textContent, 'Sun');
+});
+
+test('date picker: the month of a day, the months kept in view, a range in order', () => {
+    assert.equal(iso(monthOf(Date.UTC(2026, 2, 31))), '2026-03-01');
+    const march = Date.UTC(2026, 2, 1);
+    assert.equal(iso(shownFrom(march, Date.UTC(2026, 3, 30), 2)), '2026-03-01');
+    assert.equal(iso(shownFrom(march, Date.UTC(2026, 4, 1), 2)), '2026-04-01');
+    assert.equal(iso(shownFrom(march, Date.UTC(2026, 6, 4), 2)), '2026-06-01');
+    assert.equal(iso(shownFrom(march, Date.UTC(2026, 1, 28), 2)), '2026-02-01');
+    assert.equal(iso(shownFrom(march, Date.UTC(2026, 3, 1), 1)), '2026-04-01');
+    assert.equal(iso(shownFrom(march, Date.UTC(2026, 2, 31), 1)), '2026-03-01');
+    assert.equal(ordered(null, 5), null);
+    assert.deepEqual(ordered(5, null), { start: 5, end: 5 });
+    assert.deepEqual(ordered(5, 9), { start: 5, end: 9 });
+    assert.deepEqual(ordered(9, 5), { start: 5, end: 9 });
+    assert.deepEqual(ordered(5, 5), { start: 5, end: 5 });
+});
+
+const rangePicker = ({ value = '2026-03-15', end = '2026-03-18', min = '', max = '', status = true } = {}) => {
+    const days = new Map();
+    document.documentElement = { lang: 'en', clientWidth: 1000, clientHeight: 800 };
+    document.createElement = (tagName) => {
+        const created = new FakeElement({ tagName: tagName.toUpperCase() });
+        created.append = (...children) => created.children.push(...children);
+
+        return created;
+    };
+    globalThis.HTMLElement = class {};
+    globalThis.HTMLElement.prototype.popover = null;
+
+    const replaceable = () => {
+        const created = new FakeElement();
+        created.replaceChildren = (...children) => {
+            created.children = children;
+        };
+
+        return created;
+    };
+    const grids = [replaceable(), replaceable()];
+    const headings = [new FakeElement(), new FakeElement()];
+    const weekdays = [replaceable(), replaceable()];
+    const collect = () => {
+        days.clear();
+        const cells = new Map();
+
+        for (const grid of grids) {
+            for (const row of grid.children) {
+                for (const cell of row.children) {
+                    if (cell.children.length > 0) {
+                        days.set(cell.children[0].dataset.date, cell.children[0]);
+                        cells.set(cell.children[0].dataset.date, cell);
+                    }
+                }
+            }
+        }
+
+        return cells;
+    };
+
+    const input = element({ value, min, max });
+    const endInput = element({ value: end, min: '', max });
+    endInput.removeAttribute = (name) => {
+        endInput[name] = undefined;
+    };
+    const trigger = new FakeElement({ rect: { top: 100, bottom: 140, left: 800, right: 840 } });
+    const panel = new FakeElement();
+    const statusTarget = new FakeElement();
+    const controller = stimulate(DatePickerController, {
+        targets: {
+            input: [input],
+            end: [endInput],
+            trigger: [trigger],
+            panel: [panel],
+            heading: headings,
+            weekdays,
+            weeks: grids,
+            status: status ? [statusTarget] : [],
+        },
+        values: {
+            locale: 'en',
+            firstDay: 1,
+            rangeStartLabel: 'start of the range',
+            rangeEndLabel: 'end of the range',
+        },
+    });
+    controller.dayClasses = ['day'];
+    controller.weekdayClasses = ['weekday'];
+    const open = () => controller.toggled({ newState: 'open' });
+    const on = (date) => ({ target: { closest: () => days.get(date) ?? null } });
+    const press = (key, extra = {}) => {
+        const event = {
+            key,
+            target: { closest: () => FakeElement.focused },
+            preventDefault() {
+                this.prevented = true;
+            },
+            ...extra,
+        };
+        controller.navigate(event);
+
+        return event;
+    };
+    const focused = () => FakeElement.focused.dataset.date;
+    const marked = () => {
+        collect();
+
+        return [...days.values()]
+            .filter((day) => day.dataset.range)
+            .map((day) => `${day.dataset.date}:${day.dataset.range}`);
+    };
+
+    return {
+        controller,
+        input,
+        endInput,
+        trigger,
+        panel,
+        headings,
+        statusTarget,
+        collect,
+        days,
+        open,
+        on,
+        press,
+        focused,
+        marked,
+    };
+};
+
+test('date range: the end starts at the start, or at the first date allowed', () => {
+    const { controller, input, endInput } = rangePicker({ min: '2026-01-01' });
+    controller.connect();
+    assert.equal(endInput.min, '2026-03-15');
+    input.value = '';
+    controller.limit();
+    assert.equal(endInput.min, '2026-01-01');
+    input.min = '';
+    controller.limit();
+    assert.equal(endInput.min, undefined);
+});
+
+test('date range: two months side by side, the range marked and named', () => {
+    const { open, headings, collect, days, focused, marked } = rangePicker();
+    open();
+    const cells = collect();
+    assert.equal(headings[0].textContent, 'March 2026');
+    assert.equal(headings[1].textContent, 'April 2026');
+    assert.equal(focused(), '2026-03-15');
+    assert.equal(days.has('2026-02-28'), false);
+    assert.equal(days.has('2026-04-30'), true);
+    assert.equal(days.get('2026-04-01').dataset.outside, undefined);
+    assert.deepEqual(marked(), ['2026-03-15:start', '2026-03-16:within', '2026-03-17:within', '2026-03-18:end']);
+    assert.equal(cells.get('2026-03-16').getAttribute('aria-selected'), 'true');
+    assert.equal(cells.get('2026-03-19').getAttribute('aria-selected'), 'false');
+    assert.equal(days.get('2026-03-15').getAttribute('aria-label'), 'Sunday, March 15, 2026, start of the range');
+    assert.equal(days.get('2026-03-18').getAttribute('aria-label'), 'Wednesday, March 18, 2026, end of the range');
+    assert.equal(days.get('2026-03-16').getAttribute('aria-label'), 'Monday, March 16, 2026');
+    assert.equal(days.get('2026-03-16').getAttribute('aria-pressed'), null);
+});
+
+test('date range: nothing chosen, nothing marked', () => {
+    const { open, marked } = rangePicker({ value: '', end: '' });
+    open();
+    assert.deepEqual(marked(), []);
+});
+
+test('date range: the first day starts it, the preview follows, the second ends it', () => {
+    const { controller, open, on, input, endInput, panel, trigger, statusTarget, marked, collect, days } =
+        rangePicker();
+    open();
+    collect();
+    panel.popoverOpen = true;
+    controller.choose(on('2026-03-20'));
+    assert.equal(input.value, '2026-03-15');
+    assert.equal(panel.popoverOpen, true);
+    assert.equal(statusTarget.textContent, 'Friday, March 20, 2026, start of the range');
+    assert.deepEqual(marked(), ['2026-03-20:start']);
+
+    controller.hover(on('2026-04-02'));
+    assert.equal(marked().length, 14);
+    assert.equal(marked().at(-1), '2026-04-02:end');
+    assert.equal(days.get('2026-04-02').getAttribute('aria-label'), 'Thursday, April 2, 2026, end of the range');
+    controller.hover({ target: { closest: () => null } });
+    assert.equal(marked().length, 14);
+
+    controller.choose(on('2026-04-02'));
+    assert.equal(input.value, '2026-03-20');
+    assert.equal(endInput.value, '2026-04-02');
+    assert.equal(endInput.min, '2026-03-20');
+    assert.deepEqual(input.calls, [
+        ['dispatchEvent', 'input'],
+        ['dispatchEvent', 'change'],
+    ]);
+    assert.deepEqual(endInput.calls, [
+        ['dispatchEvent', 'input'],
+        ['dispatchEvent', 'change'],
+    ]);
+    assert.equal(panel.popoverOpen, false);
+    assert.equal(FakeElement.focused, trigger);
+});
+
+test('date range: an end before the start swaps them', () => {
+    const { controller, open, on, input, endInput, collect, marked } = rangePicker();
+    open();
+    collect();
+    controller.choose(on('2026-04-10'));
+    controller.hover(on('2026-04-08'));
+    assert.deepEqual(marked(), ['2026-04-08:start', '2026-04-09:within', '2026-04-10:end']);
+    controller.choose(on('2026-04-08'));
+    assert.equal(input.value, '2026-04-08');
+    assert.equal(endInput.value, '2026-04-10');
+});
+
+test('date range: one day is a range of one day', () => {
+    const { controller, open, on, input, endInput, collect } = rangePicker();
+    open();
+    collect();
+    controller.choose(on('2026-03-22'));
+    controller.choose(on('2026-03-22'));
+    assert.equal(input.value, '2026-03-22');
+    assert.equal(endInput.value, '2026-03-22');
+});
+
+test('date range: no preview before the first choice, a disabled day neither previews nor chooses', () => {
+    const { controller, open, on, collect, marked, input } = rangePicker({ min: '2026-03-10', max: '2026-04-20' });
+    open();
+    const before = marked();
+    controller.hover(on('2026-03-25'));
+    assert.deepEqual(marked(), before);
+    collect();
+    controller.choose(on('2026-03-09'));
+    controller.choose(on('2026-03-12'));
+    controller.hover(on('2026-04-21'));
+    assert.deepEqual(marked(), ['2026-03-12:start']);
+    controller.choose(on('2026-04-21'));
+    assert.equal(input.value, '2026-03-15');
+});
+
+test('date range: closed halfway, the range is the one of the fields again', () => {
+    const { controller, open, on, collect, marked, statusTarget } = rangePicker();
+    open();
+    collect();
+    controller.choose(on('2026-04-10'));
+    controller.toggled({ newState: 'closed' });
+    open();
+    assert.equal(statusTarget.textContent, '');
+    assert.equal(marked()[0], '2026-03-15:start');
+});
+
+test('date range: without a live region, the first day is still chosen', () => {
+    const { controller, open, on, collect, marked } = rangePicker({ status: false });
+    open();
+    collect();
+    controller.choose(on('2026-04-10'));
+    assert.deepEqual(marked(), ['2026-04-10:start']);
+});
+
+test('date range: the focus goes from one month to the other, the view moves only past them', () => {
+    const { controller, open, press, focused, headings, on, collect, days, marked } = rangePicker({
+        value: '2026-03-30',
+    });
+    open();
+    press('ArrowDown');
+    assert.equal(focused(), '2026-04-06');
+    assert.equal(headings[0].textContent, 'March 2026');
+    press('PageDown');
+    assert.equal(focused(), '2026-05-06');
+    assert.equal(headings[0].textContent, 'April 2026');
+    assert.equal(headings[1].textContent, 'May 2026');
+    press('PageUp', { shiftKey: true });
+    assert.equal(focused(), '2025-05-06');
+    assert.equal(headings[0].textContent, 'May 2025');
+    press('PageDown', { shiftKey: true });
+    assert.equal(headings[0].textContent, 'April 2026');
+    press('Home');
+    assert.equal(focused(), '2026-05-04');
+    press('End');
+    assert.equal(focused(), '2026-05-10');
+
+    collect();
+    controller.choose(on('2026-05-10'));
+    press('ArrowUp');
+    assert.equal(focused(), '2026-05-03');
+    assert.deepEqual(marked(), [
+        '2026-05-03:start',
+        '2026-05-04:within',
+        '2026-05-05:within',
+        '2026-05-06:within',
+        '2026-05-07:within',
+        '2026-05-08:within',
+        '2026-05-09:within',
+        '2026-05-10:end',
+    ]);
+    collect();
+    assert.deepEqual(
+        [...days.values()].filter((day) => day.tabIndex === 0).map((day) => day.dataset.date),
+        ['2026-05-03'],
+    );
+});
+
+test('date range: right to left, the arrows are mirrored across the months', () => {
+    browser({ direction: 'rtl' });
+    const { open, press, focused, headings } = rangePicker({ value: '2026-03-31' });
+    open();
+    press('ArrowLeft');
+    assert.equal(focused(), '2026-04-01');
+    assert.equal(headings[0].textContent, 'March 2026');
+    press('ArrowRight');
+    assert.equal(focused(), '2026-03-31');
+});
+
+test('date range: the buttons move both months, the limits hold the focus', () => {
+    const { controller, open, headings, press, focused, collect, days } = rangePicker({
+        min: '2026-03-10',
+        max: '2026-04-20',
+    });
+    open();
+    collect();
+    assert.equal(days.get('2026-03-09').disabled, true);
+    assert.equal(days.get('2026-04-21').disabled, true);
+    controller.next();
+    assert.equal(headings[0].textContent, 'April 2026');
+    assert.equal(headings[1].textContent, 'May 2026');
+    collect();
+    assert.equal(days.get('2026-04-15').tabIndex, 0);
+    controller.previous();
+    assert.equal(headings[0].textContent, 'March 2026');
+    press('PageDown', { shiftKey: true });
+    assert.equal(focused(), '2026-04-20');
+    press('PageUp', { shiftKey: true });
+    assert.equal(focused(), '2026-03-10');
 });

@@ -120,8 +120,8 @@
 | `color-picker/templates/components/` | The `ColorPicker` component |
 | `color-picker/assets/controllers/` | The Stimulus controller of the recipe |
 | `date-picker/manifest.json`, `date-picker/README.md` | The `DatePicker` recipe |
-| `date-picker/templates/components/` | The `DatePicker` component |
-| `date-picker/assets/controllers/` | The Stimulus controller of the recipe |
+| `date-picker/templates/components/` | The `DatePicker` component: a date, or with `range` the start and the end of a range on two months |
+| `date-picker/assets/controllers/` | The Stimulus controller of the recipe, and its functions `iso`, `parse`, `weeks`, `addMonths`, `monthOf`, `shownFrom` and `ordered` |
 | `copy-button/manifest.json`, `copy-button/README.md` | The `CopyButton` recipe |
 | `copy-button/templates/components/` | The `CopyButton` component |
 | `copy-button/assets/controllers/` | The Stimulus controller of the recipe |

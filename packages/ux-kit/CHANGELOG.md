@@ -6,9 +6,18 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.5.1-alpha.
+The next version is 0.6.0-alpha.
 
-Tests only.
+### Added
+
+- On `DatePicker`: `range`, two date fields of the browser, the start and the end, each under its label, `startLabel`
+  and `endLabel`, the end named by `endName` and given by `endValue`, which work alone without JavaScript, the `min` of
+  the end kept at the start by the template and by the controller; the button opens two months side by side, stacked
+  where the screen is narrow, the first day chosen being the start and the second the end, swapped when the end comes
+  first, the range previewed under the pointer and the focus, each of its days `aria-selected`, its first and last day
+  named with `rangeStartLabel` and `rangeEndLabel` and the start announced by a live region; the keyboard of the date
+  picker of WAI-ARIA goes from one month to the other, mirrored right to left. Styled by `hasRange`,
+  `isDatePickerPart`, `isDatePickerMonths` and `isDatePickerCalendar` of phil-ux 0.6.
 
 ### Changed
 

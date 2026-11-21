@@ -3252,6 +3252,62 @@ hr.isSeparator {
     --phil-button-on: var(--phil-color-text-muted);
 }
 
+/*
+ * A range: the two fields side by side, each under its label, and two months that stand side by side where the panel
+ * holds them both, one above the other where it does not. The days within the range are filled and underlined, its
+ * start and its end filled loud and bold: never the colour alone.
+ */
+.isDatePicker.hasRange {
+    flex-wrap: wrap;
+    align-items: end;
+}
+
+.isDatePickerPart {
+    display: grid;
+    flex: 1 1 10rem;
+    gap: var(--phil-space-3xs);
+    min-inline-size: 0;
+    margin: 0;
+}
+
+.isDatePicker.hasRange .isDatePickerPanel {
+    inline-size: min(calc(2 * var(--phil-panel-sm) + var(--phil-space-md)), calc(100vw - var(--phil-space-xl)));
+}
+
+.isDatePickerMonths {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--phil-space-sm) var(--phil-space-md);
+}
+
+.isDatePickerCalendar {
+    display: grid;
+    gap: var(--phil-space-2xs);
+    align-content: start;
+}
+
+.isDatePickerDay[data-range] {
+    --phil-button-fill: var(--phil-color-brand-fill-quiet);
+    --phil-button-on: var(--phil-color-brand-on-quiet);
+
+    text-decoration: underline;
+    text-decoration-thickness: var(--phil-border-md);
+    text-underline-offset: 0.2em;
+}
+
+.isDatePickerDay:is([data-range="start"], [data-range="end"]) {
+    --phil-button-fill: var(--phil-color-brand-fill-loud);
+    --phil-button-on: var(--phil-color-brand-on-loud);
+
+    font-weight: var(--phil-weight-bold);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .isDatePicker.hasRange .isDatePickerDay {
+        transition: background-color var(--phil-duration-sm) var(--phil-ease-out);
+    }
+}
+
 @media (forced-colors: active) {
     .isRatingStar {
         color: GrayText;
@@ -3269,7 +3325,7 @@ hr.isSeparator {
         background-clip: text;
     }
 
-    .isDatePickerDay[aria-pressed="true"] {
+    .isDatePickerDay:is([aria-pressed="true"], [data-range="start"], [data-range="end"]) {
         forced-color-adjust: none;
         color: HighlightText;
         background-color: Highlight;

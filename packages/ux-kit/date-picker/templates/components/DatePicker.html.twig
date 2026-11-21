@@ -1,6 +1,7 @@
 {#-
  # The date field of the browser, which works alone, and a button opening a month on a grid, in a popover, with the
- # keyboard of the date picker of WAI-ARIA. The script writes the days, in the language of the page.
+ # keyboard of the date picker of WAI-ARIA. The script writes the days, in the language of the page. With `range`, two
+ # date fields, the start and the end, and two months side by side.
  #}
 {%- props
     ## string The identifier of the field, from which those of the panel are made.
@@ -28,8 +29,44 @@
     ## bool Whether a date has to be given.
     required = false,
     ## bool Whether the field cannot be changed for now.
-    disabled = false
+    disabled = false,
+    ## bool Whether two fields give the start and the end of a range, chosen on two months side by side.
+    range = false,
+    ## string|null The name of the field of the end of the range.
+    endName = null,
+    ## string|null The end of the range, as `YYYY-MM-DD`.
+    endValue = null,
+    ## string The label of the field of the start of the range.
+    startLabel = 'Start',
+    ## string The label of the field of the end of the range.
+    endLabel = 'End',
+    ## string What the name of the first day of the range ends with.
+    rangeStartLabel = 'start of the range',
+    ## string What the name of the last day of the range ends with.
+    rangeEndLabel = 'end of the range'
 -%}
+{%- if range -%}
+<div data-date-picker-locale-value="{{ locale ?? '' }}" data-date-picker-first-day-value="{{ firstDay ?? -1 }}" data-date-picker-range-start-label-value="{{ rangeStartLabel }}" data-date-picker-range-end-label-value="{{ rangeEndLabel }}" data-date-picker-day-class="isDatePickerDay" data-date-picker-weekday-class="isDatePickerWeekday"{{ attributes.defaults({class: 'isDatePicker hasRange', 'data-controller': 'date-picker', role: 'group'}) }}{% if label is not null %} aria-label="{{ label }}"{% endif %}>
+    <label class="isDatePickerPart" for="{{ id }}"><span>{{ startLabel }}</span><input class="isDatePickerField" type="date" id="{{ id }}"{% if name is not null %} name="{{ name }}"{% endif %}{% if value is not null %} value="{{ value }}"{% endif %}{% if min is not null %} min="{{ min }}"{% endif %}{% if max is not null %} max="{{ max }}"{% endif %}{% if required %} required{% endif %}{% if disabled %} disabled{% endif %} data-date-picker-target="input" data-action="date-picker#limit"></label>
+    <label class="isDatePickerPart" for="{{ id }}-end"><span>{{ endLabel }}</span><input class="isDatePickerField" type="date" id="{{ id }}-end"{% if endName is not null %} name="{{ endName }}"{% endif %}{% if endValue is not null %} value="{{ endValue }}"{% endif %}{% if (value ?? min) is not null %} min="{{ value ?? min }}"{% endif %}{% if max is not null %} max="{{ max }}"{% endif %}{% if required %} required{% endif %}{% if disabled %} disabled{% endif %} data-date-picker-target="end"></label>
+    <button type="button" class="isDatePickerTrigger" hidden popovertarget="{{ id }}-panel" aria-label="{{ openLabel }}" aria-haspopup="dialog" aria-expanded="false"{% if disabled %} disabled{% endif %} data-date-picker-target="trigger"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><rect x="2" y="3" width="12" height="11" rx="1"></rect><path d="M2 7h12M5 1.5v3M11 1.5v3"></path></svg></button>
+    <div class="isDatePickerPanel" id="{{ id }}-panel" popover role="dialog" aria-labelledby="{{ id }}-heading {{ id }}-heading-end" data-date-picker-target="panel" data-action="toggle->date-picker#toggled keydown->date-picker#navigate click->date-picker#choose mouseover->date-picker#hover">
+        <div class="isDatePickerHeader">
+            <button type="button" class="isDatePickerMonth" aria-label="{{ previousLabel }}" data-action="date-picker#previous"><span aria-hidden="true">&lsaquo;</span></button>
+            <span class="isVisuallyHidden" aria-live="polite" data-date-picker-target="status"></span>
+            <button type="button" class="isDatePickerMonth" aria-label="{{ nextLabel }}" data-action="date-picker#next"><span aria-hidden="true">&rsaquo;</span></button>
+        </div>
+        <div class="isDatePickerMonths">
+            {%- for suffix in ['', '-end'] %}
+            <div class="isDatePickerCalendar">
+                <span class="isDatePickerHeading" id="{{ id }}-heading{{ suffix }}" aria-live="polite" data-date-picker-target="heading"></span>
+                <table class="isDatePickerGrid" role="grid" aria-labelledby="{{ id }}-heading{{ suffix }}" aria-multiselectable="true"><thead><tr data-date-picker-target="weekdays"></tr></thead><tbody data-date-picker-target="weeks"></tbody></table>
+            </div>
+            {%- endfor %}
+        </div>
+    </div>
+</div>
+{%- else -%}
 <div data-date-picker-locale-value="{{ locale ?? '' }}" data-date-picker-first-day-value="{{ firstDay ?? -1 }}" data-date-picker-day-class="isDatePickerDay" data-date-picker-weekday-class="isDatePickerWeekday"{{ attributes.defaults({class: 'isDatePicker', 'data-controller': 'date-picker'}) }}>
     <input class="isDatePickerField" type="date" id="{{ id }}"{% if name is not null %} name="{{ name }}"{% endif %}{% if value is not null %} value="{{ value }}"{% endif %}{% if min is not null %} min="{{ min }}"{% endif %}{% if max is not null %} max="{{ max }}"{% endif %}{% if label is not null %} aria-label="{{ label }}"{% endif %}{% if required %} required{% endif %}{% if disabled %} disabled{% endif %} data-date-picker-target="input">
     <button type="button" class="isDatePickerTrigger" hidden popovertarget="{{ id }}-panel" aria-label="{{ openLabel }}" aria-haspopup="dialog" aria-expanded="false"{% if disabled %} disabled{% endif %} data-date-picker-target="trigger"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><rect x="2" y="3" width="12" height="11" rx="1"></rect><path d="M2 7h12M5 1.5v3M11 1.5v3"></path></svg></button>
@@ -42,3 +79,4 @@
         <table class="isDatePickerGrid" role="grid" aria-labelledby="{{ id }}-heading"><thead><tr data-date-picker-target="weekdays"></tr></thead><tbody data-date-picker-target="weeks"></tbody></table>
     </div>
 </div>
+{%- endif -%}

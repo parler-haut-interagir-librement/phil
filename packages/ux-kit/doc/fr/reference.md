@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fc5b0af915a59579151eeb3b61a83430f218af91136fecc5bbf19bdbb5854ff4 -->
+<!-- phil-dev source-sha256=27326d0574e0d700e206e87404ce341d079661ab0a202dd274247284ce6e08c8 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -121,8 +121,8 @@
 | `color-picker/templates/components/` | Le composant `ColorPicker` |
 | `color-picker/assets/controllers/` | Le contrôleur Stimulus de la recette |
 | `date-picker/manifest.json`, `date-picker/README.md` | La recette `DatePicker` |
-| `date-picker/templates/components/` | Le composant `DatePicker` |
-| `date-picker/assets/controllers/` | Le contrôleur Stimulus de la recette |
+| `date-picker/templates/components/` | Le composant `DatePicker` : une date, ou avec `range` le début et la fin d'une plage sur deux mois |
+| `date-picker/assets/controllers/` | Le contrôleur Stimulus de la recette, et ses fonctions `iso`, `parse`, `weeks`, `addMonths`, `monthOf`, `shownFrom` et `ordered` |
 | `copy-button/manifest.json`, `copy-button/README.md` | La recette `CopyButton` |
 | `copy-button/templates/components/` | Le composant `CopyButton` |
 | `copy-button/assets/controllers/` | Le contrôleur Stimulus de la recette |
