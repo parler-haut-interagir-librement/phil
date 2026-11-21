@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=224da7163b827de675e32cfc4f42a505c018b95a1721a660f7aa74e150fb958c -->
+<!-- phil-dev source-sha256=5a635976b2a7f933e9d61509d4a6d90d7373bcc9d4a207094c3adb67e03b984f -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -1322,6 +1322,14 @@ Contrôleur `date-picker` : les actions `toggled`, `navigate`, `choose`, `previo
 `trigger`, `panel`, `heading`, `weekdays` et `weeks`, les classes `day` et `weekday`, écrites par le gabarit sur ce que
 crée le script.
 
+Avec `range`, un `div` de classes `isDatePicker hasRange` et de rôle `group` : deux champs de date, chacun dans une
+étiquette `isDatePickerPart`, et deux mois côte à côte dans `isDatePickerMonths`, chacun un `isDatePickerCalendar` avec
+son titre et sa grille. Le contrôleur ajoute les actions `limit`, sur le début, qui écrit le `min` de la fin, et
+`hover`, les cibles `end` et `status`, une région active, et les valeurs `rangeStartLabel` et `rangeEndLabel` ; il montre
+autant de mois qu'il y a de cibles `weeks`. Un jour de la plage porte `data-range`, `start`, `within` ou `end`, et sa
+cellule `aria-selected`. La fin n'est jamais avant le début dans le navigateur ; l'application revérifie la plage sur le
+serveur.
+
 | Prop | Par défaut | |
 |---|---|---|
 | `id` | requis | L'identifiant du champ, d'où sont faits ceux du panneau |
@@ -1337,6 +1345,16 @@ crée le script.
 | `nextLabel` | `Next month` | Le nom du bouton qui avance d'un mois |
 | `required` | `false` | Si une date doit être donnée |
 | `disabled` | `false` | Si le champ ne peut pas être changé pour l'instant |
+| `range` | `false` | Si deux champs donnent le début et la fin d'une plage, choisie sur deux mois côte à côte |
+| `endName` | `null` | Le nom du champ de la fin de la plage |
+| `endValue` | `null` | La fin de la plage, en `YYYY-MM-DD` |
+| `startLabel` | `Start` | L'étiquette du champ du début de la plage |
+| `endLabel` | `End` | L'étiquette du champ de la fin de la plage |
+| `rangeStartLabel` | `start of the range` | Ce par quoi finit le nom du premier jour de la plage |
+| `rangeEndLabel` | `end of the range` | Ce par quoi finit le nom du dernier jour de la plage |
+
+Avec `range`, `id`, `name` et `value` sont ceux du début, `label` nomme le groupe des deux champs, et `min`, `max`,
+`required` et `disabled` valent pour les deux.
 
 ## CopyButton
 

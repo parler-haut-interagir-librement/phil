@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=687ce44145ba6b73007272f57c0e0bf960b95e2fa71c1a65d05e6f1e9e28fbae -->
+<!-- phil-dev source-sha256=73f36c83dcc043366b8d53de3643f91aed35096800028feb1a8c2009c784da1b -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -480,4 +480,4 @@ Chaque recette écrit l'une de ces classes sur chacune de ses parties.
 | Graphique | `isChart`, `isChartCaption`, `isChartImage`, `isChartGrid`, `isChartAxis`, `isChartTick`, `isChartSeries` et `isChartBar`, `isChartLine`, `isChartLegend`, `isChartSwatch`, `isChartTable`, `isChartData` ; `hasChartJs` et `isChartCanvas` autour du canevas de Chart.js. Chaque série, sa ligne et sa pastille prennent une tonalité — `isPrimary`, `isInfo`, `isSuccess`, `isWarning`, `isDanger`, `isNeutral` — et la ligne de chaque tonalité sauf `isPrimary` un tiret à elle |
 | Avant-après | `isBeforeAfter`, `isBeforeAfterAfter`, `isBeforeAfterBefore`, `isBeforeAfterRange` ; la coupe se tient à `--phil-before-after-position` |
 | Sélecteur de couleur | `isColorPicker`, `isColorPickerWell`, `isColorPickerValue`, `isColorPickerSwatches`, `isColorPickerSwatch` |
-| Sélecteur de date | `isDatePicker`, `isDatePickerField`, `isDatePickerTrigger`, `isDatePickerPanel`, `isDatePickerHeader`, `isDatePickerHeading`, `isDatePickerMonth`, `isDatePickerGrid`, `isDatePickerWeekday`, `isDatePickerDay` |
+| Sélecteur de date | `isDatePicker`, `isDatePickerField`, `isDatePickerTrigger`, `isDatePickerPanel`, `isDatePickerHeader`, `isDatePickerHeading`, `isDatePickerMonth`, `isDatePickerGrid`, `isDatePickerWeekday`, `isDatePickerDay` ; avec `hasRange`, deux champs dans des étiquettes `isDatePickerPart` et deux mois dans `isDatePickerMonths`, chacun un `isDatePickerCalendar`, côte à côte là où le panneau les tient et empilés là où il ne les tient pas ; les jours de la plage, marqués par `data-range` (`start`, `within`, `end`), remplis et soulignés, le début et la fin remplis plus fort et en gras |
