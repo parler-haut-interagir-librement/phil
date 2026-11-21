@@ -10,8 +10,8 @@ The next version is 0.2.1-alpha.
 
 ### Fixed
 
-- `phil/notifications-bundle` 0.3 is accepted beside 0.1 and 0.2: the package did not install beside the version
-  published on 2026-11-20.
+- `phil/notifications-bundle` 0.3 and 0.4 are accepted beside 0.1 and 0.2: the package did not install beside the
+  version published on 2026-11-20, nor beside the next one.
 
 ## 0.2.0-alpha - 2026-11-18
 
