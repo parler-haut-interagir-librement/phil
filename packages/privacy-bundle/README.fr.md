@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=26f466ce733418310b729870ed19bf9de6b0d717016424835d817024887417d2 -->
+<!-- phil-dev source-sha256=7376d2353b75762e60d7355c7f67e302955e1fc6c6b24c1838905ccea138b033 -->
 # phil/privacy-bundle
 
 **Déclarer les champs personnels, caviarder les journaux, respecter les droits des membres et des personnes sans compte,
@@ -13,8 +13,9 @@ d'exception avant qu'une ligne soit écrite. Les réponses aux demandes d'accès
 d'un contrat par module, branché par l'autoconfiguration et lancé depuis la console. Le calendrier de conservation
 déclare le registre des traitements — finalité, destinataires, sous-traitants et lieu de chaque stockage —, que la
 commande affiche avec les champs déclarés et qui la fait échouer en CI tant qu'il reste une lacune ; il devient aussi des
-ordres de purge, et une exécution est refusée quand une ligne de tâche n'a pas de purgeur. Un petit registre garde chaque
-incident de confidentialité et nomme les avis encore dus. Une copie de la base est anonymisée colonne par colonne —
+ordres de purge, et une exécution est refusée quand une ligne de tâche n'a pas de purgeur. Un registre garde chaque
+incident de confidentialité avec les huit paragraphes que le Québec demande pour chaque ligne, nomme les avis et les
+paragraphes encore dus, garde ses corrections et garde chaque ligne au moins cinq ans. Une copie de la base est anonymisée colonne par colonne —
 courriels, noms, téléphones dans des plages fictives, adresses, IBAN, dates décalées, empreintes, texte de remplissage —
 à partir de `#[Anonymize]`, des catégories déclarées et de la configuration, avec des paquets de locale pour huit locales
 et une garde qui refuse de toucher une base de production.
@@ -77,7 +78,7 @@ l'application décide.
 | `privacy_embed()` : les cadres tiers retenus jusqu'au consentement | Implémenté, testé et branché |
 | L'export et l'effacement d'un membre depuis ses préférences, en archive ZIP | Implémentés, testés et actifs par défaut |
 | Les demandes des personnes sans compte, par un lien vérifié | Implémentées, testées et branchées ; inactives tant qu'elles ne sont pas activées |
-| Le registre des incidents de confidentialité, `phil:privacy:incident`, `phil:privacy:incidents` | Implémentés, testés et branchés |
+| Le registre des incidents de confidentialité, `phil:privacy:incident`, `phil:privacy:incidents` : les huit paragraphes de l'article 7 du règlement québécois (r. 3.1), corrections gardées, cinq ans au moins (article 8) | Implémentés, testés et branchés |
 | Le consentement de chaque membre aux courriels suivis, `EmailTrackingConsents` | Implémenté, testé et branché ; inactif tant qu'il n'est pas activé |
 | Les contrôleurs Stimulus par AssetMapper et StimulusBundle | Implémentés et testés |
 | `PersonalDataExporter`, `PersonalDataEraser`, `ExternalPersonalDataEraser`, `RetentionScheduleSource`, `RetentionPurger`, `ErasureRequestStore` | Ports |
@@ -120,8 +121,9 @@ l'application décide.
   écrivent moins de traceurs, et le contrôleur Stimulus.
 - [Demandes sans compte](doc/fr/requests-without-an-account.md) — le lien vérifié, les étapes, les protections contre
   les abus, et qui est une adresse vérifiée.
-- [Le registre des incidents](doc/fr/incidents.md) — l'inscrire, le compléter et l'afficher, les avis qu'exige un
-  risque sérieux, et sa durée de conservation.
+- [Le registre des incidents](doc/fr/incidents.md) — ce que demandent la loi et le règlement du Québec
+  (P-39.1, art. 3.5 à 3.8 ; r. 3.1), inscrire, compléter, corriger et afficher une ligne, les avis qu'exige un risque
+  sérieux, les cinq ans de conservation, et la migration de ses tables.
 - [Courriels suivis](doc/fr/email-tracking.md) — le consentement de chaque membre au comptage des ouvertures et au suivi
   des clics, ce que demande un expéditeur, la version du texte, et son export et son effacement.
 - [Cadre juridique](doc/fr/legal-framework.md) — ePrivacy et la CNIL, la loi 25 du Québec, le RGPD et l'Omnibus

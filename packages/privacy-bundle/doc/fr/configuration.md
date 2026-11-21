@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b59c74a5d2031e890bce89802db1011c79096fda8d642560f5b39ee97aae4cc6 -->
+<!-- phil-dev source-sha256=4e35fa1c41d13662b8829f94fb0bad4a0bb092b855054ae19fee8293b37fbf6d -->
 # Référence de la configuration
 
 L'alias de l'extension est `phil_privacy`. L'arbre de configuration est défini dans `PhilPrivacyBundle::configure()` et
@@ -305,6 +305,7 @@ du conteneur plutôt que la première ligne de journal. Chaque erreur est une
 | Une durée qui n'en est pas une, ou qui est nulle | `phil_privacy.account_deletion.delay: "x" is not an ISO 8601 duration …` |
 | Un nom de catégorie ou une version de texte mal formés | `phil_privacy.consent: "A B" is not a consent category …` |
 | Une ligne de conservation que refuse le modèle | `phil_privacy.retention.rules: …` |
+| Une période fixe de moins de cinq ans sur `phil_privacy_incident` (article 8 du règlement québécois, r. 3.1) | `phil_privacy.retention.rules.R-INC: the register of confidentiality incidents is kept at least five years after the discovery …` |
 | À la fois une source et des règles | `phil_privacy: name retention_schedule_source or write retention.rules, not both …` |
 | Un inventaire des témoins que refuse le modèle, ou un fichier qui n'est pas du YAML d'une correspondance | `phil_privacy.cookies.inventory: …` |
 | Les demandes sans compte activées sans expéditeur | `phil_privacy.guest_requests.from is the sender of the links …` |

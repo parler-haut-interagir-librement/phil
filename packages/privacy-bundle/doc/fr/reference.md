@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bafaeb5988f587f6df7b14e7d1f9534977a51c25277362cda0420c70a633aeec -->
+<!-- phil-dev source-sha256=3b02dcf89abb59d839934bece4741fd0865b1f1d61149453844fa23a8da9afdd -->
 # Référence de l'API
 
 Chaque type sous `Phil\PrivacyBundle\`, par couche. « Implémenté » veut dire implémenté et couvert par des tests
@@ -74,7 +74,7 @@ unitaires.
 
 | Type | Rôle | État |
 |---|---|---|
-| `RetentionPeriod` | `fixed()`, `untilEvent()`, `indefinite()`, `notYetFixed()` ; `isFixed()`, `cutoff($now)` en UTC avec la fin de mois ramenée | Implémenté |
+| `RetentionPeriod` | `fixed()`, `untilEvent()`, `indefinite()`, `notYetFixed()` ; `isFixed()`, `cutoff($now)` en UTC avec la fin de mois ramenée, `lastsAtLeast($minimum)` | Implémenté |
 | `RetentionPeriodKind` | Énumération : `Fixed`, `UntilEvent`, `Indefinite`, `NotYetFixed` | Implémenté |
 | `RetentionRule` | Une ligne du calendrier ; refuse une tâche sur une durée indéfinie et `AwaitsExpiry` sans durée fixe ; `ID_PATTERN` ; `holdsPersonalInformation()` ; `$processing` | Implémenté |
 | `Processing` | Ce que dit le registre d'un stockage : `$purpose`, `$recipients`, `$processors`, `$location` ; `isComplete()` | Implémenté |
@@ -140,7 +140,9 @@ unitaires.
 
 | Type | Rôle | État |
 |---|---|---|
-| `Incident` | Une ligne du registre des incidents ; `record()`, `update()`, `isClosed()`, `pendingNotifications()` | Implémenté |
+| `Incident` | Une ligne du registre des incidents, avec les huit paragraphes de l'article 7 du règlement québécois (r. 3.1) ; `record()`, `update()` avec `clear`, `isClosed()`, `pendingNotifications()`, `missingParagraphs()`, `knownSince()`, `MINIMUM_RETENTION`, `CLEARABLE` | Implémenté |
+| `IncidentRevision` | Ce que contenait une ligne avant une correction : le champ, sa valeur précédente, le numéro et le moment de la correction | Implémenté |
+| `PublicNoticeReason` | Énumération : `IncreasedInjury`, `ExcessiveHardship`, `NoContactDetails`, `PromptAction` ; `replacesIndividualNotice()` | Implémenté |
 
 ### `Domain\Exception`
 
@@ -200,6 +202,7 @@ unitaires.
 | `GuestLinkSender` | `send($request, $token)` | Port ; `MailerGuestLinkSender` |
 | `GuestSubjects` | `subjectOf($email)` | Port ; `EmailGuestSubjects` |
 | `IncidentRegister` | `save()`, `find()`, `all()` | Port ; `DbalIncidentRegister` |
+| `IncidentHistory` | `revisions()` | Port ; `DbalIncidentRegister` |
 | `EmailTrackingStore` | `find()`, `save()`, `forget()`, `store()` | Port ; `DbalEmailTrackingConsents` |
 
 ### `Application\Exception`
@@ -238,7 +241,7 @@ unitaires.
 | `Infrastructure\Console\DisabledRightsWarning` | L'avertissement avant chaque commande quand un droit est désactivé | Implémenté |
 | `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | Les tables, leurs clés en `utf8mb4_bin` sur MySQL et MariaDB quand la plateforme est donnée ; le stockage, les preuves ; les deux derniers purgent aussi | Implémenté |
 | `Infrastructure\Database\DbalGuestRequests` | Les demandes sans compte, l'adresse scellée | Implémenté |
-| `Infrastructure\Database\DbalIncidentRegister` | Le registre des incidents ; purge aussi | Implémenté |
+| `Infrastructure\Database\DbalIncidentRegister` | Le registre des incidents et ses corrections ; purge aussi, jamais sous cinq ans à compter de la découverte | Implémenté |
 | `Infrastructure\Database\DbalErasureRequests` | Les demandes d'effacement et leurs étapes ; purge aussi les demandes fermées | Implémenté ; branché une fois activé |
 | `Infrastructure\Outbox\OutboxErasureMessages`, `EraseModuleCodec`, `EraseModuleRelay` | Les messages comme enregistrements d'outbox de type `phil_privacy.erase_module`, le codec d'outbox d'`EraseModule`, qui écarte l'enregistrement d'une demande disparue, et la remise du message au bus | Implémenté ; branché une fois activé |
 | `Infrastructure\Messenger\ErasureFailureListener` | Marque une étape comme demandant de l'attention quand Messenger abandonne son message | Implémenté ; branché une fois activé |

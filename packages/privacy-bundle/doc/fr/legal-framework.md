@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d884199552daaaab6e760fb444c3d9f522b0a8b8c2d5072f3aa61d1c239670fc -->
+<!-- phil-dev source-sha256=69cb6e8a44d22cf6edba80f13bd14eaf269178d049d2717c833526790ddb0f4e -->
 # Cadre juridique
 
 Cette page nomme les règles autour desquelles le bundle est construit, et dit ce que sa configuration par défaut fait
@@ -34,8 +34,10 @@ chaque fin étant alors demandée séparément.
 
 ### Québec : la loi 25
 
-La *Loi sur la protection des renseignements personnels dans le secteur privé*, telle que modifiée par la loi 25,
-s'applique aux entreprises qui détiennent des renseignements personnels sur des personnes au Québec.
+La *Loi sur la protection des renseignements personnels dans le secteur privé* (chapitre P-39.1), telle que modifiée par la
+loi 25, s'applique aux entreprises qui détiennent des renseignements personnels sur des personnes au Québec ; ses
+règlements, comme le *Règlement sur les incidents de confidentialité* (chapitre A-2.1, r. 3.1), s'appliquent aux mêmes
+entreprises.
 
 | La règle | Ce que fait le bundle par défaut |
 |---|---|
@@ -43,7 +45,8 @@ s'applique aux entreprises qui détiennent des renseignements personnels sur des
 | Une technologie qui identifie, localise ou profile une personne est inactive tant qu'elle ne l'active pas | Aucun traceur facultatif ne s'exécute avant le consentement. |
 | Accès, rectification et portabilité | Un membre télécharge ses données depuis ses préférences, en archive ZIP avec un fichier JSON par module ([preferences.md](preferences.md)). |
 | Détruire les renseignements une fois leur fin accomplie | Des règles de conservation, purgées par une tâche planifiée ([retention.md](retention.md)). |
-| Un registre de chaque incident de confidentialité, et des avis quand il existe un risque de préjudice sérieux | Le registre et ses commandes, qui nomment les avis encore dus ([incidents.md](incidents.md)). |
+| Un registre de chaque incident de confidentialité, et des avis quand il existe un risque de préjudice sérieux (articles 3.5 à 3.8 de la loi) | Le registre et ses commandes, qui nomment les avis encore dus ([incidents.md](incidents.md)). |
+| Les huit paragraphes de chaque ligne de ce registre, tenus à jour et gardés au moins cinq ans après la découverte (*Règlement sur les incidents de confidentialité*, chapitre A-2.1, r. 3.1, articles 7 et 8) | Un champ pour chaque paragraphe, les paragraphes encore manquants nommés après chaque inscription, les corrections gardées avec leurs valeurs précédentes, une règle de conservation de moins de cinq ans refusée à la construction et une purge qui ne descend jamais sous cinq ans ([incidents.md](incidents.md#ce-que-demande-le-québec)). |
 | Savoir ce qui est détenu et où | Le registre des traitements, tiré du calendrier de conservation et des champs déclarés ([export-and-erasure.md](export-and-erasure.md#le-registre-des-traitements)). |
 
 ### L'Union européenne : le RGPD
