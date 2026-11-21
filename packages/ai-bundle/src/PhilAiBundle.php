@@ -31,7 +31,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  *
  * The configuration names the platforms — Symfony AI services, with the factory that builds one on a person's own
  * key and the name of the secret that holds it —, the prices of the models, the tasks — what each asks for, its tools
- * and its purpose —, whose key a task runs on, the quota, budget and ceiling meters of `phil/usage-meter`, the
+ * and its purpose —, whose key a task runs on, the quota, budget and ceiling meters of `phil/usage-meter` and the
+ * bound of tasks running at once, the
  * translation domain of the prompts and where the journal is kept. The table is mapped for Doctrine.
  */
 final class PhilAiBundle extends AbstractBundle
@@ -56,6 +57,10 @@ final class PhilAiBundle extends AbstractBundle
             ->validate()
                 ->ifTrue(static fn (array $config): bool => self::meterWithoutUsageMeter($config))
                 ->thenInvalid('A quota meter needs phil_ai.usage_meter, the service of phil/usage-meter that counts it: %s')
+            ->end()
+            ->validate()
+                ->ifTrue(static fn (array $config): bool => self::concurrencyWithoutUsageMeter($config))
+                ->thenInvalid('phil_ai.quota.concurrency belongs to the quota, which needs phil_ai.usage_meter: %s')
             ->end()
             ->children()
                 ->arrayNode('platforms')
@@ -123,7 +128,7 @@ final class PhilAiBundle extends AbstractBundle
                                 ->variablePrototype()->end()
                             ->end()
                             ->integerNode('reserve')
-                                ->info("How many tokens must be left in the subject's quota before the task starts.")
+                                ->info("How many tokens the task reserves on the subject's quota before it starts.")
                                 ->min(1)
                                 ->defaultValue(1)
                             ->end()
@@ -174,7 +179,7 @@ final class PhilAiBundle extends AbstractBundle
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('tokens_meter')
-                            ->info("The meter of tokens: checked against each task's reserve, charged with the tokens spent.")
+                            ->info("The meter of tokens: each task's reserve consumed before it starts, settled with the tokens spent.")
                             ->defaultNull()
                         ->end()
                         ->scalarNode('tasks_meter')
@@ -186,17 +191,27 @@ final class PhilAiBundle extends AbstractBundle
                             ->defaultFalse()
                         ->end()
                         ->scalarNode('budget_meter')
-                            ->info("The meter of the subject's spending, in micros of the currency: room left before a task, charged with its cost.")
+                            ->info("The meter of the subject's spending, in micros of the currency: each task's cost bound consumed before it starts, settled with its cost.")
                             ->defaultNull()
                         ->end()
                         ->scalarNode('ceiling_meter')
-                            ->info("The meter of the whole application's spending, in micros of the currency, counted on ceiling_subject.")
+                            ->info("The meter of the whole application's spending, in micros of the currency, counted on ceiling_subject like the budget.")
                             ->defaultNull()
                         ->end()
                         ->scalarNode('ceiling_subject')
                             ->info('The subject the ceiling is counted on.')
                             ->cannotBeEmpty()
                             ->defaultValue(Quota::APPLICATION_SUBJECT)
+                        ->end()
+                        ->integerNode('concurrency')
+                            ->info('How many tasks of one subject run at once, through symfony/semaphore; null for no bound.')
+                            ->min(1)
+                            ->defaultNull()
+                        ->end()
+                        ->scalarNode('semaphore_factory')
+                            ->info('The symfony/semaphore factory of that bound.')
+                            ->cannotBeEmpty()
+                            ->defaultValue(Quota::SEMAPHORE_FACTORY)
                         ->end()
                     ->end()
                 ->end()
@@ -272,5 +287,15 @@ final class PhilAiBundle extends AbstractBundle
         $quota = \is_array($config['quota']) ? $config['quota'] : [];
 
         return null === $config['usage_meter'] && (null !== $quota['tokens_meter'] || null !== $quota['tasks_meter'] || null !== $quota['budget_meter'] || null !== $quota['ceiling_meter']);
+    }
+
+    /**
+     * @param array<array-key, mixed> $config
+     */
+    private static function concurrencyWithoutUsageMeter(array $config): bool
+    {
+        $quota = \is_array($config['quota']) ? $config['quota'] : [];
+
+        return null === $config['usage_meter'] && null !== $quota['concurrency'];
     }
 }

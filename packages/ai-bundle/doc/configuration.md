@@ -31,6 +31,8 @@ phil_ai:
         budget_meter: ai_budget
         ceiling_meter: ai_ceiling
         ceiling_subject: phil_ai.application
+        concurrency: ~                             # how many tasks of one subject run at once, through symfony/semaphore
+        semaphore_factory: semaphore.factory
     translation_domain: phil_ai
     store: doctrine
     entity_manager: default
@@ -44,27 +46,30 @@ phil_ai:
 | `platforms.*.secret` | `null` | The name of the secret, in `phil/user-secrets-bundle`, that holds a person's key for this platform. Needs `user_key_factory`. |
 | `currency` | `USD` | The ISO 4217 code of the prices and of the journal's costs. |
 | `prices` | none | Per model, `input` and `output` in micros of the currency per million tokens: 3.00 is `3000000`; `per_call`, what each call costs whatever its tokens, 0 by default. A model without a price costs 0. |
-| `tasks` | none | Per kind, the stem of its prompts: the platform, among `platforms`; the model; the options passed as they are to the platform; and `reserve`, the tokens that must be left in the subject's quota before the task starts, 1 or more, 1 by default. |
+| `tasks` | none | Per kind, the stem of its prompts: the platform, among `platforms`; the model; the options passed as they are to the platform; and `reserve`, the tokens the task reserves on the subject's quota before it starts, 1 or more, 1 by default; with the option `max_tokens`, it makes the task's cost bound — see [Keys and quotas](keys-and-quotas.md#the-cost-bound). |
 | `tasks.*.output` | `text` | What the task asks for: `text`, `structured`, `image` or `speech`. See [Outputs, streaming and tools](outputs.md). |
 | `tasks.*.structure` | `null` | The class a structured output is read into; required for `structured`, refused otherwise. |
 | `tasks.*.tools` | none | The tools the model may propose, by name — 1 to 64 letters, digits, `_` or `-` —, each with its `description` and the JSON schema of its `parameters`. Never run by the bundle; refused for images and speech. |
 | `tasks.*.purpose` | `''` | What the task is for, in a sentence, for the usage register. |
 | `key_policy` | `prefer_user` | `application`, `prefer_user` or `require_user` — see [Keys and quotas](keys-and-quotas.md). `require_user` needs `phil/user-secrets-bundle`. |
 | `usage_meter` | `null` | The `phil/usage-meter` service that counts the quotas. Required as soon as a quota meter is named. |
-| `quota.tokens_meter` | `null` | The meter of tokens. |
-| `quota.tasks_meter` | `null` | The meter of tasks. |
+| `quota.tokens_meter` | `null` | The meter of tokens: each task's `reserve` consumed before it starts, settled with the tokens spent. |
+| `quota.tasks_meter` | `null` | The meter of tasks: one consumed per task. |
 | `quota.count_user_keys` | `false` | Whether tasks run on a person's own key count in the quotas. |
-| `quota.budget_meter` | `null` | The meter of the subject's spending, in micros of the currency. |
-| `quota.ceiling_meter` | `null` | The meter of the whole application's spending, in micros of the currency. |
+| `quota.budget_meter` | `null` | The meter of the subject's spending, in micros of the currency: each task's cost bound consumed before it starts, settled with its cost. |
+| `quota.ceiling_meter` | `null` | The meter of the whole application's spending, in micros of the currency, reserved and settled like the budget. |
 | `quota.ceiling_subject` | `phil_ai.application` | The subject the ceiling is counted on. |
+| `quota.concurrency` | `null` | How many tasks of one subject run at once, 1 or more; `null` for no bound. Needs `usage_meter` and `symfony/semaphore`. |
+| `quota.semaphore_factory` | `semaphore.factory` | The `symfony/semaphore` factory service of `quota.concurrency`. |
 | `translation_domain` | `phil_ai` | The translation domain of the prompts. |
 | `store` | `doctrine` | Where the journal is kept: `doctrine`, or `memory` for tests. |
 | `entity_manager` | `default` | The Doctrine entity manager of the journal. |
 
-The configuration is checked when the container is built: a task on a platform that is not declared, a secret without
-a factory, a quota, budget or ceiling meter without a usage meter, a structure without `structured` or the reverse, a
-tool on an image or speech task, and `require_user` without `phil/user-secrets-bundle` are refused with
-Symfony's `InvalidConfigurationException`.
+The configuration is checked when the container is built: a task on a platform that is not declared, a secret without a
+factory, a quota, budget or ceiling meter or a concurrency without a usage meter, a concurrency below 1, a structure
+without `structured` or the reverse, a tool on an image or speech task, and `require_user` without
+`phil/user-secrets-bundle` are refused with Symfony's `InvalidConfigurationException`; a concurrency whose semaphore
+factory is not a service fails when the container is compiled.
 
 ## Services
 

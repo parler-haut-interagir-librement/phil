@@ -98,7 +98,7 @@ final class PhilAiBundleTest extends TestCase
             ],
             'key_policy' => 'require_user',
             'usage_meter' => 'app.usage_meter',
-            'quota' => ['tokens_meter' => 'ai_tokens', 'tasks_meter' => 'ai_tasks', 'count_user_keys' => true, 'budget_meter' => 'ai_budget', 'ceiling_meter' => 'ai_ceiling', 'ceiling_subject' => 'site'],
+            'quota' => ['tokens_meter' => 'ai_tokens', 'tasks_meter' => 'ai_tasks', 'count_user_keys' => true, 'budget_meter' => 'ai_budget', 'ceiling_meter' => 'ai_ceiling', 'ceiling_subject' => 'site', 'concurrency' => 3, 'semaphore_factory' => 'app.semaphores'],
             'translation_domain' => 'prompts',
             'store' => 'memory',
         ], $extension);
@@ -119,13 +119,14 @@ final class PhilAiBundleTest extends TestCase
         self::assertEquals([new Reference(UserSecrets::class), ['main' => 'main-key']], $container->getDefinition(UserSecretsKeys::class)->getArguments());
         self::assertSame(UserSecretsKeys::class, (string) $container->getAlias(UserKeys::class));
         self::assertFalse($container->hasDefinition(NoUserKeys::class));
-        self::assertEquals([new Reference('app.usage_meter'), 'ai_tokens', 'ai_tasks', true, 'ai_budget', 'ai_ceiling', 'site'], $container->getDefinition(Quota::class)->getArguments());
+        self::assertEquals([new Reference('app.usage_meter'), 'ai_tokens', 'ai_tasks', true, 'ai_budget', 'ai_ceiling', 'site', new Reference('app.semaphores'), 3], $container->getDefinition(Quota::class)->getArguments());
         self::assertSame([KeyPolicy::RequireUser], [$container->getDefinition(AiTasks::class)->getArgument(7)]);
         self::assertEquals(new Reference(Quota::class), $container->getDefinition(AiTasks::class)->getArgument(8));
 
         self::assertEquals([new Reference('doctrine.orm.journal_entity_manager')], $this->load(['entity_manager' => 'journal'])->getDefinition(DoctrineJournalRepository::class)->getArguments());
         self::assertTrue($this->load(['store' => 'doctrine'])->hasDefinition(DoctrineJournalRepository::class));
-        self::assertEquals([new Reference('app.usage_meter'), null, null, false, null, null, 'phil_ai.application'], $this->load(['usage_meter' => 'app.usage_meter'])->getDefinition(Quota::class)->getArguments());
+        self::assertEquals([new Reference('app.usage_meter'), null, null, false, null, null, 'phil_ai.application', null, null], $this->load(['usage_meter' => 'app.usage_meter'])->getDefinition(Quota::class)->getArguments());
+        self::assertEquals(new Reference('semaphore.factory'), $this->load(['usage_meter' => 'app.usage_meter', 'quota' => ['concurrency' => 1]])->getDefinition(Quota::class)->getArgument(7));
         self::assertSame(KeyPolicy::Application, $this->load(['key_policy' => 'application'])->getDefinition(AiTasks::class)->getArgument(7));
     }
 
@@ -168,6 +169,9 @@ final class PhilAiBundleTest extends TestCase
             [['platforms' => $main, 'tasks' => $task, 'quota' => ['budget_meter' => 'ai_budget']], 'A quota meter needs phil_ai.usage_meter'],
             [['platforms' => $main, 'tasks' => $task, 'quota' => ['ceiling_meter' => 'ai_ceiling']], 'A quota meter needs phil_ai.usage_meter'],
             [['quota' => ['ceiling_subject' => '']], 'phil_ai.quota.ceiling_subject'],
+            [['quota' => ['concurrency' => 2]], 'phil_ai.quota.concurrency belongs to the quota'],
+            [['usage_meter' => 'meter', 'quota' => ['concurrency' => 0]], 'phil_ai.quota.concurrency'],
+            [['usage_meter' => 'meter', 'quota' => ['concurrency' => 1, 'semaphore_factory' => '']], 'phil_ai.quota.semaphore_factory'],
             [['prices' => ['m' => ['input' => 0, 'output' => 0, 'per_call' => -1]]], 'phil_ai.prices.m.per_call'],
             [['platforms' => $main, 'tasks' => ['draft.rewrite' => ['platform' => 'main', 'model' => 'm', 'output' => 'video']]], 'phil_ai.tasks.draft.rewrite.output'],
             [['platforms' => $main, 'tasks' => ['draft.rewrite' => ['platform' => 'main', 'model' => 'm', 'tools' => ['look up' => ['description' => 'x']]]]], 'A tool name is 1 to 64 letters'],

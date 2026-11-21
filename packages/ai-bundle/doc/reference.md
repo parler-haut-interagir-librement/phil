@@ -35,7 +35,7 @@
 | `Phil\AiBundle\Application\ModelCall` | `final readonly class` | One call to a model |
 | `Phil\AiBundle\Application\Completion` | `final readonly class` | The model's answer and tokens |
 | `Phil\AiBundle\Application\PriceList` | `final readonly class` | The prices by model, in one currency |
-| `Phil\AiBundle\Application\Quota` | `final readonly class` | The meters of tokens, tasks, budget and ceiling of `phil/usage-meter` |
+| `Phil\AiBundle\Application\Quota` | `final readonly class` | The meters of tokens, tasks, budget and ceiling of `phil/usage-meter`, reserved by `admit()`, settled by `charge()`, given back by `release()`; the places among the tasks running at once, by `enter()` |
 | `Phil\AiBundle\Application\KeyPolicy` | enum | `application`, `prefer_user`, `require_user` |
 | `Phil\AiBundle\Application\NoUserKeys` | `final readonly class` | No one lends a key |
 | `Phil\AiBundle\Application\Port\Completions` | interface | The models |
@@ -44,6 +44,7 @@
 | `Phil\AiBundle\Application\Exception\MissingPrompt` | `final class` | A user prompt without translation |
 | `Phil\AiBundle\Application\Exception\NoUserKey` | `final class` | A task that needs the person's key, and they have none |
 | `Phil\AiBundle\Application\Exception\TaskFailed` | `final class` | A failed model call |
+| `Phil\AiBundle\Application\Exception\TooManyTasks` | `final class` | A subject that already runs as many tasks at once as allowed |
 | `Phil\AiBundle\Application\Exception\UnknownSuggestion` | `final class` | A decision on an unknown task |
 | `Phil\AiBundle\Application\Exception\UnknownPlatform` | `final class` | A platform not declared, or without a factory for the person's key |
 | `Phil\AiBundle\Infrastructure\SymfonyAi\SymfonyAiCompletions` | `final readonly class` | The models through Symfony AI |

@@ -9,6 +9,7 @@ use Generator;
 use Phil\AiBundle\Application\Exception\MissingPrompt;
 use Phil\AiBundle\Application\Exception\NoUserKey;
 use Phil\AiBundle\Application\Exception\TaskFailed;
+use Phil\AiBundle\Application\Exception\TooManyTasks;
 use Phil\AiBundle\Application\Exception\UnknownSuggestion;
 use Phil\AiBundle\Application\Exception\UnknownTask;
 use Phil\AiBundle\Application\Port\Completions;
@@ -19,10 +20,13 @@ use Phil\AiBundle\Domain\Journal\JournalTotals;
 use Phil\AiBundle\Domain\Journal\KeySource;
 use Phil\AiBundle\Domain\Model\JournalEntry;
 use Phil\AiBundle\Domain\Repository\JournalRepository;
+use Phil\AiBundle\Domain\ValueObject\Cost;
 use Phil\AiBundle\Domain\ValueObject\Subject;
+use Phil\AiBundle\Domain\ValueObject\Tokens;
 use Phil\UsageMeter\Exception\QuotaExceeded;
 use Psr\Clock\ClockInterface;
 use SensitiveParameter;
+use Symfony\Component\Semaphore\SemaphoreInterface;
 use Symfony\Component\Uid\Uuid;
 use Throwable;
 
@@ -30,10 +34,11 @@ use Throwable;
  * The bundle in one service: a task runs, and proposes; the application decides.
  *
  * `run()` renders the task's prompts in the locale asked, picks the key — the person's own, or the application's —,
- * checks the subject's quota, calls the model, writes the journal and returns a `Suggestion`; `stream()` does the same
- * with the answer in pieces. Nothing the model said is applied, and no tool it proposes is run: the application shows
+ * reserves the task on the subject's quota, calls the model, writes the journal, settles the quota with what the task
+ * spent and returns a `Suggestion`; `stream()` does the same with the answer in pieces. Nothing the model said is applied, and no tool it proposes is run: the application shows
  * the suggestion, then calls `accept()`, `acceptEdited()` or `reject()`. The journal keeps the kind, the subject, the
- * tokens, the cost and the decision — never the prompt nor the answer. A failed call is given back to the quota.
+ * tokens, the cost and the decision — never the prompt nor the answer. A failed call gives its reservation back to the
+ * quota.
  */
 final readonly class AiTasks
 {
@@ -55,22 +60,27 @@ final readonly class AiTasks
      * @throws MissingPrompt when the user prompt has no translation
      * @throws NoUserKey     when the task must run on a key of the person, who has none
      * @throws QuotaExceeded when the subject's quota is reached; nothing was counted nor called
-     * @throws TaskFailed    when the model call failed; the failure is in the journal, the task given back
+     * @throws TooManyTasks  when the subject already runs as many tasks at once as the quota allows
+     * @throws TaskFailed    when the model call failed; the failure is in the journal, the reservation given back
      */
     public function run(TaskRequest $request): Suggestion
     {
-        [$id, $definition, $call, $source, $userKey] = $this->admit($request);
+        [$id, $definition, $call, $source, $userKey, $bound, $place] = $this->admit($request);
         $startedAt = $this->clock->now();
 
         try {
-            $completion = $this->completions->complete($call, $userKey);
-        } catch (Throwable $throwable) {
-            $this->fail($id, $request, $definition, $source, $startedAt);
+            try {
+                $completion = $this->completions->complete($call, $userKey);
+            } catch (Throwable $throwable) {
+                $this->fail($id, $request, $definition, $source, $startedAt);
 
-            throw TaskFailed::of($request->kind->value, $throwable);
+                throw TaskFailed::of($request->kind->value, $throwable);
+            }
+
+            return $this->succeed($id, $request, $definition, $source, $startedAt, $completion, $bound);
+        } finally {
+            $place?->release();
         }
-
-        return $this->succeed($id, $request, $definition, $source, $startedAt, $completion);
     }
 
     /**
@@ -80,15 +90,19 @@ final readonly class AiTasks
      * @throws MissingPrompt when the user prompt has no translation
      * @throws NoUserKey     when the task must run on a key of the person, who has none
      * @throws QuotaExceeded when the subject's quota is reached; nothing was counted nor called
+     * @throws TooManyTasks  when the subject already runs as many tasks at once as the quota allows
      */
     public function stream(TaskRequest $request): SuggestionStream
     {
-        [$id, $definition, $call, $source, $userKey] = $this->admit($request);
+        [$id, $definition, $call, $source, $userKey, $bound, $place] = $this->admit($request);
         $startedAt = $this->clock->now();
 
         return new SuggestionStream(
-            $this->pieces($id, $request, $definition, $call, $source, $userKey, $startedAt),
-            fn () => $this->fail($id, $request, $definition, $source, $startedAt),
+            $this->pieces($id, $request, $definition, $call, $source, $userKey, $startedAt, $bound, $place),
+            function () use ($id, $request, $definition, $source, $startedAt, $place): void {
+                $this->fail($id, $request, $definition, $source, $startedAt);
+                $place?->release();
+            },
         );
     }
 
@@ -144,9 +158,9 @@ final readonly class AiTasks
     }
 
     /**
-     * Everything a call needs, its quota admitted.
+     * Everything a call needs, its place among the subject's running tasks taken and its quota reserved.
      *
-     * @return array{string, TaskDefinition, ModelCall, KeySource, string|null}
+     * @return array{string, TaskDefinition, ModelCall, KeySource, string|null, Cost, SemaphoreInterface|null}
      */
     private function admit(TaskRequest $request): array
     {
@@ -155,45 +169,67 @@ final readonly class AiTasks
         $userKey = $this->userKey($request, $definition);
         $source = null === $userKey ? KeySource::Application : KeySource::User;
         $id = Uuid::v7()->toRfc4122();
-        $this->quota?->admit($request->subject, $source, $definition->reserve, $id);
+        $bound = $this->bound($definition);
+        $place = $this->quota?->enter($request->subject, $source);
 
-        return [$id, $definition, ModelCall::of($definition, $prompt), $source, $userKey];
+        try {
+            $this->quota?->admit($request->subject, $source, $definition->reserve, $id, $bound);
+        } catch (Throwable $throwable) {
+            $place?->release();
+
+            throw $throwable;
+        }
+
+        return [$id, $definition, ModelCall::of($definition, $prompt), $source, $userKey, $bound, $place];
+    }
+
+    /**
+     * The most the task should cost: the price of its reserve read and of its largest answer written, plus the price
+     * per call.
+     */
+    private function bound(TaskDefinition $definition): Cost
+    {
+        return $this->prices->costOf($definition->model, new Tokens($definition->reserve, $definition->maxOutputTokens()));
     }
 
     /**
      * @return Generator<int, string, mixed, Suggestion>
      */
-    private function pieces(string $id, TaskRequest $request, TaskDefinition $definition, ModelCall $call, KeySource $source, #[SensitiveParameter] ?string $userKey, DateTimeImmutable $startedAt): Generator
+    private function pieces(string $id, TaskRequest $request, TaskDefinition $definition, ModelCall $call, KeySource $source, #[SensitiveParameter] ?string $userKey, DateTimeImmutable $startedAt, Cost $bound, ?SemaphoreInterface $place): Generator
     {
         $completion = null;
 
         try {
             try {
-                $pieces = $this->completions->stream($call, $userKey);
+                try {
+                    $pieces = $this->completions->stream($call, $userKey);
 
-                foreach ($pieces as $piece) {
-                    yield $piece;
+                    foreach ($pieces as $piece) {
+                        yield $piece;
+                    }
+
+                    $completion = $pieces->getReturn();
+                } catch (Throwable $throwable) {
+                    throw TaskFailed::of($request->kind->value, $throwable);
                 }
-
-                $completion = $pieces->getReturn();
-            } catch (Throwable $throwable) {
-                throw TaskFailed::of($request->kind->value, $throwable);
+            } finally {
+                // A failure, or a stream left before its end: the generator is torn down without a completion.
+                if (!$completion instanceof Completion) {
+                    $this->fail($id, $request, $definition, $source, $startedAt);
+                }
             }
+
+            return $this->succeed($id, $request, $definition, $source, $startedAt, $completion, $bound);
         } finally {
-            // A failure, or a stream left before its end: the generator is torn down without a completion.
-            if (!$completion instanceof Completion) {
-                $this->fail($id, $request, $definition, $source, $startedAt);
-            }
+            $place?->release();
         }
-
-        return $this->succeed($id, $request, $definition, $source, $startedAt, $completion);
     }
 
-    private function succeed(string $id, TaskRequest $request, TaskDefinition $definition, KeySource $source, DateTimeImmutable $startedAt, Completion $completion): Suggestion
+    private function succeed(string $id, TaskRequest $request, TaskDefinition $definition, KeySource $source, DateTimeImmutable $startedAt, Completion $completion, Cost $bound): Suggestion
     {
         $cost = $this->prices->costOf($definition->model, $completion->tokens);
         $this->journal->save(JournalEntry::succeeded($id, $request->kind, $request->subject, $definition->platform, $definition->model, $source, $completion->tokens, $cost, $startedAt, $this->since($startedAt), $definition->output));
-        $this->quota?->charge($request->subject, $source, $completion->tokens, $cost, $id);
+        $this->quota?->charge($request->subject, $source, $completion->tokens, $cost, $id, $definition->reserve, $bound);
 
         return new Suggestion($id, $request->kind, $request->subject, $completion->text, $completion->tokens, $cost, $source, $startedAt, $definition->output, $completion->data, $completion->toolCalls, $completion->media);
     }

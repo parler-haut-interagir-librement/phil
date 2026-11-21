@@ -15,7 +15,8 @@ use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * An application as small as the bundle needs: FrameworkBundle with its translator, DoctrineBundle on SQLite, the
- * secrets bundle in memory and the bundle, Symfony AI's mock platform, and a usage meter of 40 tokens a month, each task reserving 11.
+ * secrets bundle in memory and the bundle, Symfony AI's mock platform, and a usage meter of 40 tokens and
+ * 1 000 micros a month, each task reserving 11 tokens.
  */
 final class TestKernel extends Kernel
 {
@@ -53,7 +54,7 @@ final class TestKernel extends Kernel
             'prices' => ['model-a' => ['input' => 3_000_000, 'output' => 15_000_000]],
             'tasks' => ['draft.rewrite' => ['platform' => 'main', 'model' => 'model-a', 'reserve' => 11]],
             'usage_meter' => UsageMeter::class,
-            'quota' => ['tokens_meter' => 'ai_tokens'],
+            'quota' => ['tokens_meter' => 'ai_tokens', 'budget_meter' => 'ai_budget'],
         ]);
 
         $services = $container->services()->defaults()->autowire()->autoconfigure();
