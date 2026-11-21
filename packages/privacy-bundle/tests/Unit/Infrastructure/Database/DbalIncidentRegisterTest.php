@@ -121,6 +121,7 @@ final class DbalIncidentRegisterTest extends TestCase
         };
         $configuration = new Configuration();
         $configuration->setMiddlewares([new Middleware($logger)]);
+
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $configuration);
 
         foreach (PrivacyTables::configure(Schema::editor()->create())->toSql($connection->getDatabasePlatform()) as $statement) {

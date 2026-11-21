@@ -144,6 +144,7 @@ abstract class IncidentRegisterTestCase extends TestCase
         $register->save($old->update(measures: 'Corrected'));
         $register->save($closed('b', '2021-11-20T10:00:00Z'));
         $register->save($closed('c', '2021-01-01T00:00:00Z', '2022-06-01T00:00:00Z'));
+
         $kept = $closed('d', '2023-01-01T00:00:00Z');
         $register->save($kept);
         $register->save($kept->update(measures: 'Corrected too'));

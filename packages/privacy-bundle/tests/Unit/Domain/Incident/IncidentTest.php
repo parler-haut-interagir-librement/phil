@@ -296,9 +296,9 @@ final class IncidentTest extends TestCase
         );
 
         $corrected = $incident->update(
+            discoveredUntil: $at->modify('+3 days'),
             occurredAt: $at->modify('-3 days'),
             occurredUntil: $at->modify('-2 days'),
-            discoveredUntil: $at->modify('+3 days'),
             publicNoticeAt: $at->modify('+4 days'),
             publicNoticeReason: PublicNoticeReason::NoContactDetails,
         );
