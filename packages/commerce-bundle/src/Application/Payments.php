@@ -16,6 +16,7 @@ use Phil\CommerceBundle\Domain\Payment\PaymentState;
 use Phil\CommerceBundle\Domain\Repository\OrderRepository;
 use Phil\CommerceBundle\Domain\Repository\PaymentRepository;
 use Phil\CommerceBundle\Domain\ValueObject\OrderPayments;
+use Phil\CommerceBundle\Domain\ValueObject\PaymentNotification;
 use Phil\CommerceBundle\Domain\ValueObject\PaymentStart;
 use Phil\Money\Money;
 use Psr\Clock\ClockInterface;
@@ -122,19 +123,26 @@ final readonly class Payments
     }
 
     /**
-     * Applies a notification the gateway of the method verifies and reads.
+     * Applies a notification the gateway of the method verifies and reads. An ignored notification — an event the
+     * store does not act on — looks no payment up and changes nothing.
      *
      * @param array<string, list<string>> $headers
      *
-     * @return array{NotificationOutcome, ?Payment} the outcome, and the payment it applied to, if any
+     * @return array{NotificationOutcome, ?Payment, PaymentNotification} the outcome, the payment it applied to, if any, and the
+     *                                                                   notification as the gateway read it
      */
     public function notify(string $method, string $payload, array $headers): array
     {
         $notification = $this->gateway($method)->read($payload, $headers);
+
+        if (null === $notification->externalReference) {
+            return [NotificationOutcome::Ignored, null, $notification];
+        }
+
         $payment = $this->payments->findByExternalReference($method, $notification->externalReference);
 
         if (!$payment instanceof Payment) {
-            return [NotificationOutcome::UnknownPayment, null];
+            return [NotificationOutcome::UnknownPayment, null, $notification];
         }
 
         $order = $this->orders?->find($payment->orderNumber);
@@ -143,14 +151,14 @@ final readonly class Payments
         try {
             $applied = $payment->apply($notification);
         } catch (PaymentRefused) {
-            return [NotificationOutcome::Refused, $payment];
+            return [NotificationOutcome::Refused, $payment, $notification];
         }
 
         if ($applied && $order instanceof Order) {
             $this->announceIfPaid($order, $before, $this->clock?->now() ?? new DateTimeImmutable());
         }
 
-        return [$applied ? NotificationOutcome::Applied : NotificationOutcome::AlreadyApplied, $payment];
+        return [$applied ? NotificationOutcome::Applied : NotificationOutcome::AlreadyApplied, $payment, $notification];
     }
 
     /**

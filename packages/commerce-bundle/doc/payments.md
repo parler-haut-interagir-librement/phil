@@ -8,8 +8,8 @@ notification its gateway has verified says so, never when the buyer comes back t
 |---|---|
 | `Domain\Model\Payment` | One payment: order, method, amount, refunded amount, state, the processor's reference |
 | `Domain\Payment\PaymentState` | `New`, `Processing`, `Authorized`, `Completed`, `Failed`, `Cancelled`, `Abandoned`, `Refunded`, `Disputed`, `ChargedBack` |
-| `Domain\Payment\PaymentEvent` | What a notification says: `Processing`, `Authorized`, `Captured`, `Failed`, `Cancelled`, `Refunded`, `DisputeOpened`, `DisputeWon`, `DisputeLost` |
-| `Domain\ValueObject\PaymentNotification` | A verified notification: its id, the processor's reference, the event, a refund's amount |
+| `Domain\Payment\PaymentEvent` | What a notification says: `Processing`, `Authorized`, `Captured`, `Failed`, `Cancelled`, `Refunded`, `DisputeOpened`, `DisputeWon`, `DisputeLost`, and `Ignored` for an event the store does not act on |
+| `Domain\ValueObject\PaymentNotification` | A verified notification: its id, the processor's reference, the event, a refund's amount; or, made by `ignored()`, its id and the processor's type of an event the store does not act on |
 | `Domain\ValueObject\PaymentStart` | What the buyer goes on with: the processor's reference, a page or a client secret |
 | `Domain\ValueObject\OrderPayments` | An order's payments summed: captured, returned, net, payable, state |
 | `Domain\Payment\OrderPaymentState` | `Unpaid`, `PartiallyPaid`, `Paid`, `PartiallyRefunded`, `Refunded` |
@@ -69,7 +69,8 @@ $payments->abandonStale($order, $clock->now()->modify('-1 hour'));  // every new
 ## Notifications
 
 `Payments::notify(string $method, string $payload, array $headers)` asks the gateway of the method to verify and
-read the notification, finds the payment by the processor's reference, and applies the event.
+read the notification, finds the payment by the processor's reference, and applies the event. It returns the
+outcome, the payment, if one was found, and the notification as the gateway read it.
 
 | Outcome | When |
 |---|---|
@@ -77,8 +78,11 @@ read the notification, finds the payment by the processor's reference, and appli
 | `AlreadyApplied` | The notification's id was applied before: a replay changes nothing |
 | `Refused` | The event does not apply to the payment as it stands; nothing changes |
 | `UnknownPayment` | No payment of the method by that reference, yet or at all |
+| `Ignored` | The gateway read an event the store does not act on: no payment is looked up, nothing changes |
 
-A gateway that cannot verify or read a notification throws `InvalidNotification`.
+A gateway that cannot verify or read a notification throws `InvalidNotification`. A gateway that verifies a
+notification of an event the store does not act on — a customer created, a payout sent — returns
+`PaymentNotification::ignored($id, $type)`, so that the processor is told it was received and stops sending it.
 
 | Event | From | To |
 |---|---|---|
@@ -90,6 +94,7 @@ A gateway that cannot verify or read a notification throws `InvalidNotification`
 | `DisputeOpened` | `Completed` | `Disputed` |
 | `DisputeWon` | `Disputed` | `Completed` |
 | `DisputeLost` | `Disputed` | `ChargedBack` |
+| `Ignored` | none: `Payment::apply()` refuses it | |
 
 A refund of more than is left, of zero, of a negative amount or in another currency than the payment's is refused
 like a move the table does not list: the outcome is `Refused`, and the webhook answers 204.
@@ -110,11 +115,13 @@ phil_commerce_payment_webhook:
 
 | Answer | When | What a processor does |
 |---|---|---|
-| 204 | Applied, already applied, or refused by the payment's state | Stops sending it |
+| 204 | Applied, already applied, refused by the payment's state, or ignored | Stops sending it |
 | 400 | The gateway does not verify or read it | Retries, then gives up |
 | 404 | No gateway for the method, or no payment by the processor's reference yet | Retries |
 
-The change is committed before the 204, so an acknowledged notification is never lost. Exclude the route from
+The change is committed before the 204, so an acknowledged notification is never lost. An ignored notification is
+committed nothing and logged at the `info` level of the `logger` service, when there is one, with its id, the
+processor's type of the event and the method: nothing of the payload, so no personal data. Exclude the route from
 CSRF protection and from authentication: the gateway's signature check is what admits a notification.
 
 ## Refunds

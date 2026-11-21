@@ -483,7 +483,7 @@ final class PhilCommerceBundle extends AbstractBundle
 
         if (class_exists(Request::class)) {
             $services->set(PaymentWebhookController::class)
-                ->args([service(Payments::class), service('doctrine.orm.entity_manager')])
+                ->args([service(Payments::class), service('doctrine.orm.entity_manager'), service('logger')->nullOnInvalid()])
                 ->tag('controller.service_arguments')
                 ->public();
         }

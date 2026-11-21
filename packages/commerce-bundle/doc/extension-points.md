@@ -131,7 +131,7 @@ unit it is given.
 | `supports(string $method): bool` | Whether the gateway answers for this method; exactly one should |
 | `start(Payment $payment, Order $order): PaymentStart` | Hands the payment to the processor for `$payment->amount`; returns the processor's reference and a page or a client secret |
 | `refund(Payment $payment, Money $amount, string $idempotencyKey): void` | Asks the processor for a refund, handing it the key as its idempotency key; records nothing |
-| `read(string $payload, array $headers): PaymentNotification` | Verifies the processor's signature and reads its event; throws `InvalidNotification` otherwise |
+| `read(string $payload, array $headers): PaymentNotification` | Verifies the processor's signature and reads its event, as ignored when the store does not act on it; throws `InvalidNotification` otherwise |
 
 Invariants:
 
@@ -139,8 +139,10 @@ Invariants:
   the processor signs a timestamp. A notification is trusted for its signature only.
 - **Name the payment by the processor's own reference**, the one `start()` returned, and the notification by the
   processor's own event id: the payment applies an id once.
-- **Map the processor's events onto `PaymentEvent`**; an event the store does not act on is read as
-  `InvalidNotification`, which the webhook answers 400, or simply not subscribed to.
+- **Map the processor's events onto `PaymentEvent`**; an event the store does not act on, once its signature is
+  verified, is read as `PaymentNotification::ignored($eventId, $eventType)`, which the webhook acknowledges with
+  204 and logs, so that the processor stops sending it. `InvalidNotification`, answered 400, is kept for what does not
+  verify or cannot be read.
 - **Never take an amount from the request**: `start()` charges the payment's amount, `refund()` the amount asked.
 - **Hand the idempotency key to the processor**: the same key comes with every try of one refund, so that the
   processor makes it once.

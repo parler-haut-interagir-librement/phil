@@ -255,6 +255,8 @@ final class Payment
             PaymentEvent::DisputeOpened => $this->from([PaymentState::Completed], PaymentState::Disputed, $notification),
             PaymentEvent::DisputeWon => $this->from([PaymentState::Disputed], PaymentState::Completed, $notification),
             PaymentEvent::DisputeLost => $this->from([PaymentState::Disputed], PaymentState::ChargedBack, $notification),
+            // An ignored notification names no payment: whatever state the payment is in, it does not apply.
+            PaymentEvent::Ignored => $this->from([], $this->state, $notification),
         };
 
         $this->appliedNotifications[] = $notification->id;

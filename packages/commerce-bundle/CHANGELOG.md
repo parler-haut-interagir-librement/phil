@@ -4,6 +4,30 @@ All notable changes to `phil/commerce-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.5.0-alpha.
+
+A gateway acknowledges a verified event the store does not act on instead of refusing it, so that the processor
+stops sending it. A gateway that maps every case of `PaymentEvent` with an exhaustive `match` adds `Ignored`.
+
+### Added
+
+- `PaymentEvent::Ignored` and `PaymentNotification::ignored(string $id, string $type)`: a verified notification of an
+  event the store does not act on, carrying the processor's type of the event in `ignoredType`, and
+  `PaymentNotification::isIgnored()`. `PaymentNotification::of()` refuses `Ignored`, and `Payment::apply()` refuses an
+  ignored notification.
+- `NotificationOutcome::Ignored`: `Payments::notify()` looks no payment up for an ignored notification and changes
+  nothing.
+- `PaymentWebhookController` answers an ignored notification 204 without a commit, and logs its id, its type and the
+  method at the `info` level of the `logger` service, when there is one, as its third argument.
+
+### Changed
+
+- `PaymentNotification::$externalReference` is null for an ignored notification, and only for one.
+- `Payments::notify()` returns the notification as the gateway read it as a third element.
+- `psr/log` is a requirement.
+
 ## 0.4.0-alpha - 2026-11-20
 
 Two refunds granted at once on the same payment can no longer add up to more than it;

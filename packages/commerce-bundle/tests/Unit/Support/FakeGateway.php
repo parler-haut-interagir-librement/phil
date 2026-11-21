@@ -73,6 +73,12 @@ final class FakeGateway implements PaymentGateway
         }
 
         $parts = explode('|', $payload);
+
+        // `evt_1|ignored|customer.created`: an event the store does not act on, read as ignored.
+        if ('ignored' === ($parts[1] ?? null)) {
+            return PaymentNotification::ignored($parts[0], $parts[2] ?? '');
+        }
+
         $event = PaymentEvent::tryFrom($parts[2] ?? '') ?? throw InvalidNotification::because('Not an event.');
 
         return PaymentNotification::of($parts[0], $parts[1] ?? '', $event, isset($parts[3]) ? Money::of((int) $parts[3], Currency::of('CAD')) : null);
