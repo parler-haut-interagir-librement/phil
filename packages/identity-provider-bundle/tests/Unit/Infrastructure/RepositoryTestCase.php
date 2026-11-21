@@ -341,14 +341,14 @@ abstract class RepositoryTestCase extends TestCase
         // The request that won saves its tokens after the revocation, reads the mark, and revokes the family again.
         $this->grants()->saveToken(IssuedToken::issue('jti-3', TokenKind::Access, $family, 'app', self::ADA, [], null, $now, [], $now->modify('+1 second'), $now->modify('+10 minutes')));
         self::assertTrue($this->grants()->isFamilyRevoked($family));
-        $this->grants()->revokeFamily($family, $now->modify('+1 second'), $now->modify('+30 days'));
+        $this->grants()->revokeFamily($family, $now->modify('+1 second'), $now->modify('+31 days'));
         $this->clear();
         self::assertSame(['jti-2'], $this->idsOf($this->grants()->activeFor(self::ADA, 'app')));
 
         self::assertSame(3, $this->grants()->purge($now->modify('+11 minutes')), 'The three tokens expired; the mark is kept.');
         self::assertTrue($this->grants()->isFamilyRevoked($family));
         self::assertSame(0, $this->grants()->purge($now->modify('+30 days')));
-        self::assertSame(1, $this->grants()->purge($now->modify('+30 days +1 second')));
+        self::assertSame(1, $this->grants()->purge($now->modify('+30 days +1 second')), 'The first mark is kept, not the one of the second revocation.');
         self::assertFalse($this->grants()->isFamilyRevoked($family));
     }
 

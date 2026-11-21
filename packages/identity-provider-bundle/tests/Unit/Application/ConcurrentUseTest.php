@@ -98,7 +98,7 @@ final class ConcurrentUseTest extends TestCase
             $first = $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER);
         };
 
-        $this->assertInvalidGrant(static fn (): array => $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER));
+        $this->assertInvalidGrant(static fn (): array => $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER), 'The code was already used.');
         self::assertArrayHasKey('access_token', $first);
         self::assertContains(IdentityEventType::TokenReuseDetected->value, $this->services->audit->actions());
         self::assertSame(['active' => false], $tokens->introspect($client, (string) $first['access_token']));
@@ -117,7 +117,7 @@ final class ConcurrentUseTest extends TestCase
             $first = $tokens->refresh($client, $refresh, null);
         };
 
-        $this->assertInvalidGrant(static fn (): array => $tokens->refresh($client, $refresh, null));
+        $this->assertInvalidGrant(static fn (): array => $tokens->refresh($client, $refresh, null), 'The refresh token was already used.');
         self::assertArrayHasKey('refresh_token', $first);
         self::assertContains(IdentityEventType::TokenReuseDetected->value, $this->services->audit->actions());
         self::assertSame(['active' => false], $tokens->introspect($client, (string) $first['refresh_token']));
@@ -133,7 +133,7 @@ final class ConcurrentUseTest extends TestCase
         $refresh = (string) $response['refresh_token'];
         $family = $this->familyOf($refresh);
         $this->grants->afterUse = function () use ($tokens, $client, $refresh): void {
-            $this->assertInvalidGrant(static fn (): array => $tokens->refresh($client, $refresh, null));
+            $this->assertInvalidGrant(static fn (): array => $tokens->refresh($client, $refresh, null), 'The refresh token was already used.');
         };
 
         $this->assertInvalidGrant(static fn (): array => $tokens->refresh($client, $refresh, null));
@@ -148,7 +148,7 @@ final class ConcurrentUseTest extends TestCase
         $code = $this->code($account);
         $tokens = $this->tokens();
         $this->grants->afterUse = function () use ($tokens, $client, $code): void {
-            $this->assertInvalidGrant(static fn (): array => $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER));
+            $this->assertInvalidGrant(static fn (): array => $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER), 'The code was already used.');
         };
 
         $this->assertInvalidGrant(static fn (): array => $tokens->exchangeCode($client, $code, 'https://app.example/cb', self::VERIFIER));
@@ -396,13 +396,17 @@ final class ConcurrentUseTest extends TestCase
         ));
     }
 
-    private function assertInvalidGrant(callable $operation): void
+    private function assertInvalidGrant(callable $operation, ?string $description = null): void
     {
         try {
             $operation();
             self::fail('Accepted twice.');
         } catch (OAuthError $oAuthError) {
             self::assertSame('invalid_grant', $oAuthError->error);
+
+            if (null !== $description) {
+                self::assertSame($description, $oAuthError->description);
+            }
         }
     }
 }

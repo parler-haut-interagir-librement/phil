@@ -298,9 +298,17 @@ final class SigningKeySourcesTest extends TestCase
         self::assertSame($key->publicJwk()['x'], new FileSigningKeys([['path' => $this->directory.'/key.sealed']], SigningAlgorithm::ES256, $cipher)->jwks()['keys'][0]['x']);
 
         self::assertSame(1, $tester->execute(['path' => $this->directory.'/missing']));
-        self::assertStringContainsString('cannot be read', $tester->getDisplay());
+        self::assertStringContainsString('cannot be read', $this->oneLine($tester->getDisplay()));
         self::assertSame(1, $tester->execute(['path' => $this->directory.'/other.json']));
         self::assertStringContainsString('ES256', $tester->getDisplay());
+    }
+
+    /**
+     * The console wraps its blocks at 80 columns, and the path of a package installed on its own is long.
+     */
+    private function oneLine(string $display): string
+    {
+        return (string) preg_replace('/\s+/', ' ', $display);
     }
 
     public function testTheSealCommandRefusesWhatItCannotRead(): void
@@ -322,11 +330,11 @@ final class SigningKeySourcesTest extends TestCase
         try {
             foreach (['blank' => true, 'large' => true, 'limit' => false] as $file => $unreadable) {
                 self::assertSame(1, $tester->execute(['path' => $this->directory.'/'.$file]), $file);
-                self::assertSame($unreadable, str_contains($tester->getDisplay(), 'cannot be read'), $file);
+                self::assertSame($unreadable, str_contains($this->oneLine($tester->getDisplay()), 'cannot be read'), $file);
             }
 
             self::assertSame(1, $tester->execute(['path' => $this->directory]));
-            self::assertStringContainsString('cannot be read', $tester->getDisplay());
+            self::assertStringContainsString('cannot be read', $this->oneLine($tester->getDisplay()));
         } finally {
             restore_error_handler();
         }
