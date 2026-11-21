@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6de553399f8ce2a644749eaf09ddb5a0f9a8e977e341acabcef19c2e193fb943 -->
+<!-- phil-dev source-sha256=177ad4af64446f388b1f226e4fdec7170a7cc87cb87c6574b51303092cb86f56 -->
 # Configuration
 
 Chaque choix est un argument de `LiblouisTranslator` :
@@ -20,11 +20,31 @@ $translator = new LiblouisTranslator(
 |---|---|---|
 | `tables` | `LiblouisTables::defaults()` | La table de chaque langue et contraction. |
 | `binary` | `lou_translate` | Le programme : un nom trouvé dans le `PATH`, ou un chemin. |
-| `timeout` | 30 | Les secondes que peut prendre un lot. |
+| `timeout` | 30 | Les secondes que peut prendre un lot, ou la question de la version. |
 | `maxInputBytes` | 4 Mio | Le plus grand nombre d'octets de texte qu'un lot peut envoyer. |
 | `maxOutputBytes` | 32 Mio | Le plus grand nombre d'octets que le programme peut écrire pour un lot, sortie d'erreur comprise. |
 | `displayTable` | `unicode.dis` | La table d'affichage, qui doit écrire du braille Unicode. |
 | `tablePath` | aucun | Les répertoires où liblouis cherche des tables, qui lui sont donnés par `LOUIS_TABLEPATH` ; son propre répertoire sans cet argument. |
+| `allowOutdatedLiblouis` | `false` | Si un liblouis antérieur à 3.39.0, ou dont la version ne peut être lue, traduit quand même, avec un avertissement. |
+| `logger` | aucun | Le journal PSR-3 de cet avertissement. |
+
+## Le plus ancien liblouis
+
+liblouis 3.39.0 corrige des défauts de sûreté de la mémoire, et les textes viennent de documents. Avant sa première
+traduction, `LiblouisTranslator` demande sa version au programme, une seule fois, et refuse un liblouis antérieur à
+`LiblouisTranslator::MINIMUM_VERSION`, 3.39.0, par une `OutdatedLiblouis`, et une réponse qui ne nomme aucune version
+par une `LiblouisFailed`. Un liblouis refusé est interrogé de nouveau au lot suivant, pour qu'il soit accepté une fois
+mis à jour.
+
+Une application qui doit faire tourner un liblouis plus ancien pour un temps le laisse passer, et en est avertie dans
+son journal :
+
+```php
+$translator = new LiblouisTranslator(allowOutdatedLiblouis: true, logger: $logger);
+```
+
+Le premier lot journalise alors un avertissement, avec la version trouvée et la plus ancienne acceptée, et le traducteur
+traduit.
 
 ## Les tables
 
