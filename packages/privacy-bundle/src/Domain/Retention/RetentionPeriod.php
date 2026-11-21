@@ -27,6 +27,18 @@ use Phil\PrivacyBundle\Domain\Exception\InvalidPrivacyValue;
  */
 final readonly class RetentionPeriod
 {
+    /**
+     * The instants `lastsAtLeast()` compares from: the ends and starts of month around the leap days of a four-year
+     * cycle.
+     */
+    private const array REFERENCES = [
+        '2028-01-01', '2028-01-31', '2028-02-28', '2028-02-29', '2028-03-01', '2028-03-31', '2028-12-31',
+        '2029-01-01', '2029-02-28', '2029-03-01', '2029-03-31', '2029-12-31',
+        '2030-01-01', '2030-02-28', '2030-03-01', '2030-03-31', '2030-12-31',
+        '2031-01-01', '2031-02-28', '2031-03-01', '2031-03-31', '2031-12-31',
+        '2032-02-29', '2032-03-01',
+    ];
+
     private const string ISO_8601 = '/^P(?!$)(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+S)?)?$/D';
 
     private function __construct(
@@ -69,6 +81,26 @@ final readonly class RetentionPeriod
     public function isFixed(): bool
     {
         return RetentionPeriodKind::Fixed === $this->kind;
+    }
+
+    /**
+     * Whether this period never purges a record before `$minimum` would: a period that is not a number never purges,
+     * and two durations are compared through their cutoffs from the ends of month and the leap days of a four-year
+     * cycle, where `P1826D` and `P5Y` part ways.
+     */
+    public function lastsAtLeast(self $minimum): bool
+    {
+        foreach (self::REFERENCES as $reference) {
+            $now = new DateTimeImmutable($reference, new DateTimeZone('UTC'));
+            $mine = $this->cutoff($now);
+            $floor = $minimum->cutoff($now);
+
+            if ($mine instanceof DateTimeImmutable && $floor instanceof DateTimeImmutable && $mine->getTimestamp() > $floor->getTimestamp()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

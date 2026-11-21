@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Phil\PrivacyBundle\Application\Export\ZipFile;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalAccountDeletions;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalErasureRequests;
+use Phil\PrivacyBundle\Infrastructure\Database\DbalIncidentRegister;
 
 /*
  * What phil/dev-tools reads of this package: its paths and its exceptions to the shared configurations.
@@ -13,8 +14,9 @@ return [
     'paths' => ['src', 'tests'],
     'docs' => [
         'public' => true,
-        // The names of the cryptography and the regular expressions, and the terms of Doctrine and of the redaction.
-        'words' => ['libsodium', 'HMAC', 'PCRE', 'embeddables', 'retagged', 'unredacted', 'uncompiled'],
+        // The names of the cryptography and the regular expressions, the terms of Doctrine and of the redaction, the
+        // reason information cannot be described, and the name of the Québec authority.
+        'words' => ['libsodium', 'HMAC', 'PCRE', 'embeddables', 'retagged', 'unredacted', 'uncompiled', 'undescribed', "d'accès"],
     ],
     'fuzz' => [
         // The readers of what nobody controls, from the seeds of tests/Fuzz/corpus/<target>.
@@ -73,8 +75,12 @@ return [
             // retires a request's link: 31 or 33 random bytes give a value as unpredictable, never kept, which no test
             // can measure. And the 4 GiB limit of the plain ZIP format in
             // ZipFile::add(): a test would need more than 4 GiB in memory to reach it.
+            // And the batch of a purge of the register of incidents, and the fallback of a correction's number, which a
+            // NOT NULL INTEGER column never reaches.
             'DecrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
+                    'private const int PURGE_BATCH = 500;',
+                    'is_numeric\\(\\$row\\[\'sequence\'\\]\\) \\? \\(int\\) \\$row\\[\'sequence\'\\] : 0,',
                     '\\$salt \\?\\?= random_bytes\\(32\\);',
                     '.*\'token_hash\' => hash\\(\'sha256\', random_bytes\\(32\\)\\).*',
                     'if \\(\\$offset \\+ 30 \\+ \\\\strlen\\(\\$name\\) \\+ \\\\strlen\\(\\$compressed\\) > self::MAX_BYTES \\|\\| \\\\strlen\\(\\$content\\) > self::MAX_BYTES\\) \\{',
@@ -85,6 +91,8 @@ return [
             // which the shape check refuses right after.
             'IncrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
+                    'private const int PURGE_BATCH = 500;',
+                    'is_numeric\\(\\$row\\[\'sequence\'\\]\\) \\? \\(int\\) \\$row\\[\'sequence\'\\] : 0,',
                     '\\$salt \\?\\?= random_bytes\\(32\\);',
                     '.*\'token_hash\' => hash\\(\'sha256\', random_bytes\\(32\\)\\).*',
                     '\\$data = json_decode\\(sodium_base642bin\\(\\$payload, .*\\), true, 3, \\\\JSON_THROW_ON_ERROR\\);',
@@ -130,8 +138,16 @@ return [
             // The date parts of the archive's headers come from DateTimeImmutable::format() as decimal strings, which
             // PHP's comparison, arithmetic and shift operators read as the same integers: the casts only give PHPStan
             // its integers.
+            // The number of a correction of the register of incidents: every driver returns the integer of its column.
             'CastInt' => [
-                'ignore' => [ZipFile::class.'::__construct', ZipFile::class.'::dosTime', ZipFile::class.'::dosDate'],
+                'ignore' => [ZipFile::class.'::__construct', ZipFile::class.'::dosTime', ZipFile::class.'::dosDate', DbalIncidentRegister::class.'::revise', DbalIncidentRegister::class.'::revisions'],
+            ],
+            // The instants RetentionPeriod::lastsAtLeast() compares from: each duration the tests tell apart is told apart
+            // from several of them, so that removing the first or the last leaves the answer as it is.
+            'ArrayItemRemoval' => [
+                'ignoreSourceCodeByRegex' => [
+                    'private const array REFERENCES = \\[',
+                ],
             ],
             // The configuration tree always gives `guest_requests.enabled`, which GuestRequestServices reads without a
             // default: the `?? false` that types it for PHPStan is never reached.

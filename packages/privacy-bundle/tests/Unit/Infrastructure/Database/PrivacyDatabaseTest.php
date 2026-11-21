@@ -57,7 +57,7 @@ final class PrivacyDatabaseTest extends TestCase
     {
         $schema = PrivacyTables::configure(Schema::editor()->create());
 
-        self::assertCount(7, PrivacyTables::configure($schema)->getTables());
+        self::assertCount(8, PrivacyTables::configure($schema)->getTables());
     }
 
     public function testIdentifiersPeopleAndHashesCompareByteForByteOnMySqlAndMariaDb(): void
@@ -67,6 +67,7 @@ final class PrivacyDatabaseTest extends TestCase
             PrivacyTables::PROOFS => ['id'],
             PrivacyTables::GUEST_REQUESTS => ['id', 'token_hash'],
             PrivacyTables::INCIDENTS => ['id'],
+            PrivacyTables::INCIDENT_REVISIONS => ['incident_id', 'field'],
             PrivacyTables::EMAIL_TRACKING => ['subject'],
             PrivacyTables::ERASURE_REQUESTS => ['id', 'subject', 'guest_request', 'inventory_version', 'access_hash'],
             PrivacyTables::ERASURE_STEPS => ['request_id', 'module', 'lease', 'idempotency_key'],
@@ -134,6 +135,22 @@ final class PrivacyDatabaseTest extends TestCase
                 'authority_notified_at' => [null, false],
                 'subjects_notified_at' => [null, false],
                 'closed_at' => [null, false],
+                'information' => [null, false],
+                'undescribed_reason' => [null, false],
+                'occurred_until' => [null, false],
+                'occurrence_approximate' => [null, true],
+                'discovered_until' => [null, false],
+                'affected_approximate' => [null, true],
+                'risk_assessment' => [null, false],
+                'public_notice_at' => [null, false],
+                'public_notice_reason' => [32, false],
+            ],
+            PrivacyTables::INCIDENT_REVISIONS => [
+                'incident_id' => [32, true],
+                'sequence' => [null, true],
+                'field' => [32, true],
+                'previous' => [null, false],
+                'revised_at' => [null, true],
             ],
             PrivacyTables::ERASURE_REQUESTS => [
                 'id' => [32, true],
@@ -175,6 +192,14 @@ final class PrivacyDatabaseTest extends TestCase
         $default = PrivacyTables::configure(Schema::editor()->create())->getTable(PrivacyTables::ERASURE_STEPS)->getColumn('attempts')->getDefault();
 
         self::assertSame(0, $default);
+    }
+
+    public function testTheFlagsOfAnIncidentReadAsFalseOnTheRowsAlreadyThere(): void
+    {
+        $table = PrivacyTables::configure(Schema::editor()->create())->getTable(PrivacyTables::INCIDENTS);
+
+        self::assertFalse($table->getColumn('occurrence_approximate')->getDefault());
+        self::assertFalse($table->getColumn('affected_approximate')->getDefault());
     }
 
     public function testASaveChangesItsOwnRequestOnly(): void
