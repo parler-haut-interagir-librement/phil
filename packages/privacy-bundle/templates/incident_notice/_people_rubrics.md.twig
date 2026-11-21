@@ -1,0 +1,54 @@
+{% autoescape false %}
+{% import '@PhilPrivacy/incident_notice/_macros.md.twig' as m %}
+## {{ 'incident_notice.people.heading.circumstances'|trans({}, 'phil_privacy', locale) }}
+
+<!-- r. 3.1, {{ m.where(rubric.circumstances, locale) }} -->
+
+{{ incident.summary }}
+
+## {{ 'incident_notice.people.heading.occurrence'|trans({}, 'phil_privacy', locale) }}
+
+<!-- r. 3.1, {{ m.where(rubric.occurrence, locale) }} -->
+
+{% if rubric.occurrence.missing %}
+{{ m.todo('occurrence', rubric.occurrence, locale) }}
+{% else %}
+{{ m.period(dates.occurred, dates.occurred_until, incident.occurrenceApproximate, locale) }}
+{% endif %}
+
+## {{ 'incident_notice.people.heading.information'|trans({}, 'phil_privacy', locale) }}
+
+<!-- r. 3.1, {{ m.where(rubric.information, locale) }} -->
+
+{% if rubric.information.missing %}
+{{ m.todo('information', rubric.information, locale) }}
+{% else %}
+{{ m.information(incident, locale) }}
+{% endif %}
+
+## {{ 'incident_notice.people.heading.measures'|trans({}, 'phil_privacy', locale) }}
+
+<!-- r. 3.1, {{ m.where(rubric.measures, locale) }} -->
+
+{% if rubric.measures.missing %}
+{{ m.todo('measures', rubric.measures, locale) }}
+{% else %}
+{{ incident.measures }}
+{% endif %}
+
+## {{ 'incident_notice.people.heading.suggested_measures'|trans({}, 'phil_privacy', locale) }}
+
+<!-- r. 3.1, {{ m.where(rubric.suggested_measures, locale) }} -->
+
+{{ m.todo('suggested_measures', rubric.suggested_measures, locale) }}
+
+## {{ 'incident_notice.people.heading.contact'|trans({}, 'phil_privacy', locale) }}
+
+<!-- r. 3.1, {{ m.where(rubric.contact, locale) }} -->
+
+{{ m.contact(organisation, rubric.contact, locale) }}
+{% if organisation.name is not null %}
+
+{{ organisation.name }}
+{% endif %}
+{% endautoescape %}

@@ -1,0 +1,53 @@
+{# The pieces every draft of a notice shares; the texts are in the translation domain phil_privacy. #}
+{% macro where(r, locale) %}
+{% autoescape false %}
+{{- 'incident_notice.where'|trans({'%section%': r.section, '%paragraph%': r.paragraph}, 'phil_privacy', locale) -}}
+{% endautoescape %}
+{% endmacro %}
+
+{% macro todo(key, r, locale) %}
+{% autoescape false %}
+{% import _self as m %}
+{{- '**' ~ 'incident_notice.to_complete'|trans({'%what%': ('incident_notice.rubric.' ~ key)|trans({}, 'phil_privacy', locale), '%where%': m.where(r, locale)}, 'phil_privacy', locale) ~ '**' -}}
+{% endautoescape %}
+{% endmacro %}
+
+{% macro period(from, until, approximate, locale) %}
+{% autoescape false %}
+{% if until %}
+{{- 'incident_notice.period.between'|trans({'%from%': from, '%until%': until}, 'phil_privacy', locale) -}}
+{% else %}
+{{- 'incident_notice.period.on'|trans({'%date%': from}, 'phil_privacy', locale) -}}
+{% endif %}
+{% if approximate %}
+{{- ' ' ~ 'incident_notice.approximate'|trans({}, 'phil_privacy', locale) -}}
+{% endif %}
+{% endautoescape %}
+{% endmacro %}
+
+{% macro information(incident, locale) %}
+{% autoescape false %}
+{% if incident.categories is not empty %}
+{{ 'incident_notice.value.categories'|trans({'%list%': incident.categories|map(c => c.value)|join(', ')}, 'phil_privacy', locale) }}
+
+{% endif %}
+{% if incident.information|trim is not empty %}
+{{ incident.information }}
+
+{% endif %}
+{% if incident.undescribedReason|trim is not empty %}
+{{ 'incident_notice.value.undescribed'|trans({'%reason%': incident.undescribedReason}, 'phil_privacy', locale) }}
+{% endif %}
+{% endautoescape %}
+{% endmacro %}
+
+{% macro contact(organisation, r, locale) %}
+{% autoescape false %}
+{% import _self as m %}
+{% if r.missing %}
+{{- m.todo('contact', r, locale) -}}
+{% else %}
+{{- 'incident_notice.value.contact'|trans({'%name%': organisation.contactName, '%details%': organisation.contactDetails}, 'phil_privacy', locale) -}}
+{% endif %}
+{% endautoescape %}
+{% endmacro %}

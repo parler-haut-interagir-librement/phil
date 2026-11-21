@@ -1,0 +1,108 @@
+{
+    "source": {
+        "directories": [
+            "/Users/philippegamache/Projects/Phil/phil-pub-wt-r60-privacy-brouillons-avis-incident/packages/privacy-bundle/src"
+        ]
+    },
+    "phpUnit": {
+        "configDir": "/Users/philippegamache/Projects/Phil/phil-pub-wt-r60-privacy-brouillons-avis-incident/packages/privacy-bundle"
+    },
+    "testFrameworkOptions": "--testsuite=Unit",
+    "minMsi": 100,
+    "minCoveredMsi": 100,
+    "logs": {
+        "text": "/Users/philippegamache/Projects/Phil/phil-pub-wt-r60-privacy-brouillons-avis-incident/packages/privacy-bundle/var/infection/infection.log",
+        "summary": "/Users/philippegamache/Projects/Phil/phil-pub-wt-r60-privacy-brouillons-avis-incident/packages/privacy-bundle/var/infection/summary.log",
+        "html": "/Users/philippegamache/Projects/Phil/phil-pub-wt-r60-privacy-brouillons-avis-incident/packages/privacy-bundle/var/infection/infection.html"
+    },
+    "tmpDir": "/Users/philippegamache/Projects/Phil/phil-pub-wt-r60-privacy-brouillons-avis-incident/packages/privacy-bundle/var/infection/tmp",
+    "mutators": {
+        "@default": true,
+        "DecrementInteger": {
+            "ignoreSourceCodeByRegex": [
+                "private const int PURGE_BATCH = 500;",
+                "is_numeric\\(\\$row\\['sequence'\\]\\) \\? \\(int\\) \\$row\\['sequence'\\] : 0,",
+                "\\$salt \\?\\?= random_bytes\\(32\\);",
+                ".*'token_hash' => hash\\('sha256', random_bytes\\(32\\)\\).*",
+                "if \\(\\$offset \\+ 30 \\+ \\\\strlen\\(\\$name\\) \\+ \\\\strlen\\(\\$compressed\\) > self::MAX_BYTES \\|\\| \\\\strlen\\(\\$content\\) > self::MAX_BYTES\\) \\{"
+            ]
+        },
+        "IncrementInteger": {
+            "ignoreSourceCodeByRegex": [
+                "private const int PURGE_BATCH = 500;",
+                "is_numeric\\(\\$row\\['sequence'\\]\\) \\? \\(int\\) \\$row\\['sequence'\\] : 0,",
+                "\\$salt \\?\\?= random_bytes\\(32\\);",
+                ".*'token_hash' => hash\\('sha256', random_bytes\\(32\\)\\).*",
+                "\\$data = json_decode\\(sodium_base642bin\\(\\$payload, .*\\), true, 3, \\\\JSON_THROW_ON_ERROR\\);",
+                "if \\(\\$offset \\+ 30 \\+ \\\\strlen\\(\\$name\\) \\+ \\\\strlen\\(\\$compressed\\) > self::MAX_BYTES \\|\\| \\\\strlen\\(\\$content\\) > self::MAX_BYTES\\) \\{"
+            ]
+        },
+        "UnwrapArrayMap": {
+            "ignore": [
+                "Phil\\PrivacyBundle\\Infrastructure\\Database\\DbalErasureRequests::reopen"
+            ]
+        },
+        "CastString": {
+            "ignore": [
+                "Phil\\PrivacyBundle\\Infrastructure\\Database\\DbalErasureRequests::readEffects"
+            ]
+        },
+        "UnwrapArrayFilter": {
+            "ignore": [
+                "Phil\\PrivacyBundle\\Infrastructure\\Database\\DbalAccountDeletions::dueIdentifiers",
+                "Phil\\PrivacyBundle\\Infrastructure\\Database\\DbalIncidentRegister::purge"
+            ]
+        },
+        "LessThan": {
+            "ignoreSourceCodeByRegex": [
+                ".*\\$floor->getTimestamp\\(\\) < \\$order->cutoff->getTimestamp\\(\\).*"
+            ]
+        },
+        "UnwrapArrayValues": {
+            "ignore": [
+                "Phil\\PrivacyBundle\\Infrastructure\\Database\\DbalAccountDeletions::dueIdentifiers"
+            ]
+        },
+        "LogicalOr": {
+            "ignoreSourceCodeByRegex": [
+                "if \\(!class_exists\\(Command::class\\) \\|\\| !class_exists\\(Connection::class\\)\\) \\{",
+                "if \\(\\$offset \\+ 30 \\+ \\\\strlen\\(\\$name\\) \\+ \\\\strlen\\(\\$compressed\\) > self::MAX_BYTES \\|\\| \\\\strlen\\(\\$content\\) > self::MAX_BYTES\\) \\{"
+            ]
+        },
+        "Plus": {
+            "ignoreSourceCodeByRegex": [
+                "if \\(\\$offset \\+ 30 \\+ \\\\strlen\\(\\$name\\) \\+ \\\\strlen\\(\\$compressed\\) > self::MAX_BYTES \\|\\| \\\\strlen\\(\\$content\\) > self::MAX_BYTES\\) \\{"
+            ]
+        },
+        "GreaterThan": {
+            "ignoreSourceCodeByRegex": [
+                "if \\(\\$offset \\+ 30 \\+ \\\\strlen\\(\\$name\\) \\+ \\\\strlen\\(\\$compressed\\) > self::MAX_BYTES \\|\\| \\\\strlen\\(\\$content\\) > self::MAX_BYTES\\) \\{"
+            ]
+        },
+        "CastInt": {
+            "ignore": [
+                "Phil\\PrivacyBundle\\Application\\Export\\ZipFile::__construct",
+                "Phil\\PrivacyBundle\\Application\\Export\\ZipFile::dosTime",
+                "Phil\\PrivacyBundle\\Application\\Export\\ZipFile::dosDate",
+                "Phil\\PrivacyBundle\\Infrastructure\\Database\\DbalIncidentRegister::revise",
+                "Phil\\PrivacyBundle\\Infrastructure\\Database\\DbalIncidentRegister::revisions"
+            ]
+        },
+        "ArrayItemRemoval": {
+            "ignoreSourceCodeByRegex": [
+                "private const array REFERENCES = \\["
+            ]
+        },
+        "FalseValue": {
+            "ignoreSourceCodeByRegex": [
+                "\\$builder->setParameter\\(self::MAILED_LINKS, true === \\(\\$guest\\['enabled'\\] \\?\\? false\\).*"
+            ]
+        },
+        "TrueValue": {
+            "ignoreSourceCodeByRegex": [
+                "\\$this->names\\[\\$name\\] = true;",
+                ".*\\x27sequence\\x27\\)->setTypeName\\(Types::INTEGER\\)->setNotNull\\(true\\).*"
+            ]
+        }
+    }
+}

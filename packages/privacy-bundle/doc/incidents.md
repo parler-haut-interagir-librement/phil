@@ -18,14 +18,16 @@ register:
 | P-39.1, s. 3.5, para. 2 | If the risk of injury is serious, the business promptly notifies the Commission d'accès à l'information and every person concerned. | `pendingNotifications()` names the notices still owed after each record; `--authority-notified` and `--subjects-notified` date them. |
 | P-39.1, s. 3.7 | The risk is judged by the sensitivity of the information, the anticipated consequences of its use and the likelihood of its use for injurious purposes, after consulting the person in charge of the protection of personal information. | `--risk-assessment`, paragraph 6 of the register. The judgement and the consultation belong to that person. |
 | P-39.1, s. 3.8 | The business keeps a register of incidents, and sends a copy to the Commission at its request. | The table `phil_privacy_incident`; `phil:privacy:incidents` prints the copy. |
-| r. 3.1, s. 6 | A notice to the person becomes a public notice when sending it would cause greater injury, would be excessively difficult, or when the business has no contact details; a public notice may also be given to act quickly, the notice to each person still owed. | `--public-notice` and `--public-notice-reason`; the first three reasons stand for the notice to each person. |
+| r. 3.1, ss. 3 to 5 | The content of the notice to the Commission, of its follow-ups, and of the notice to each person. | `phil:privacy:incident-notice` writes a draft of each from the register ([incident-notices.md](incident-notices.md)). |
+| r. 3.1, s. 6 | A notice to the person becomes a public notice when sending it would cause greater injury, would be excessively difficult, or when the business has no contact details; a public notice may also be given to act quickly, the notice to each person still owed. | `--public-notice` and `--public-notice-reason`; the first three reasons stand for the notice to each person; `phil:privacy:incident-notice --to=public` drafts the public notice only for an incident with a reason. |
 | r. 3.1, s. 7 | The eight paragraphs of each line of the register, below. | Each has its fields; `missingParagraphs()` names those a line does not answer yet. |
 | r. 3.1, s. 8 | The register is kept up to date and kept at least five years after the date or period the business became aware of the incident. | Lines are completed and corrected with their corrections kept; a shorter retention rule fails the build, and the purge never goes below five years. |
 
-The notices to the Commission and to the people (sections 3 to 5 of the regulation) are written and sent by the person
-in charge of privacy; the bundle records their dates. The Commission's guidelines of 30 January 2026 on confidentiality
-incidents explain how to judge the risk and what the notices say. The GDPR asks the same record of breaches
-(article 33(5)) and a notice to the authority within 72 hours. See [legal-framework.md](legal-framework.md).
+The notices to the Commission and to the people (sections 3 to 6 of the regulation) are judged, reviewed and sent by
+the person in charge of privacy; `phil:privacy:incident-notice` writes their drafts from the register, and the bundle
+records their dates. See [The drafts of the notices](incident-notices.md). The Commission's guidelines of 30 January
+2026 on confidentiality incidents explain how to judge the risk and what the notices say. The GDPR asks the same record
+of breaches (article 33(5)) and a notice to the authority within 72 hours. See [legal-framework.md](legal-framework.md).
 
 ## Recording and completing a line
 
