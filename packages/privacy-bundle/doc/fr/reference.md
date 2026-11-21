@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3b02dcf89abb59d839934bece4741fd0865b1f1d61149453844fa23a8da9afdd -->
+<!-- phil-dev source-sha256=b1cf4db1752c52c0a873933f0a9a26584946c85b6c6039306e85d792dc71cb13 -->
 # Référence de l'API
 
 Chaque type sous `Phil\PrivacyBundle\`, par couche. « Implémenté » veut dire implémenté et couvert par des tests
@@ -143,6 +143,9 @@ unitaires.
 | `Incident` | Une ligne du registre des incidents, avec les huit paragraphes de l'article 7 du règlement québécois (r. 3.1) ; `record()`, `update()` avec `clear`, `isClosed()`, `pendingNotifications()`, `missingParagraphs()`, `knownSince()`, `MINIMUM_RETENTION`, `CLEARABLE` | Implémenté |
 | `IncidentRevision` | Ce que contenait une ligne avant une correction : le champ, sa valeur précédente, le numéro et le moment de la correction | Implémenté |
 | `PublicNoticeReason` | Énumération : `IncreasedInjury`, `ExcessiveHardship`, `NoContactDetails`, `PromptAction` ; `replacesIndividualNotice()` | Implémenté |
+| `NoticeRecipient` | Énumération : `Commission`, `Subject`, `Public` ; `section()`, `rubrics()` | Implémenté |
+| `NoticeRubric` | Énumération des rubriques des avis des articles 3 et 5 du règlement ; `paragraph($recipient)`, `fedBy($field)` | Implémenté |
+| `NoticeOrganisation` | Qui donne un avis : `name`, `enterpriseNumber`, `contactName`, `contactDetails`, chacun nullable | Implémenté |
 
 ### `Domain\Exception`
 
@@ -179,6 +182,8 @@ unitaires.
 | `Anonymization\AnonymizationRun` | Réécrit les colonnes d'un plan en une transaction ; `run($plan, $target, ?$seed, ?$salt)` | Implémenté ; branché |
 | `Anonymization\AnonymizationReport` | Les lignes réécrites par table ; `total()` | Implémenté |
 | `Anonymization\ProductionGuard` | Refuse les environnements de production et les hôtes et bases protégés ; `check($database)` | Implémenté ; branché |
+| `Incident\IncidentNotices` | Les brouillons des avis d'un incident ; `draft($incident, $recipient)`, `followUp($incident, $revisions, ?$since)`, `IDENTIFICATION` ; n'envoie rien | Implémenté ; branché |
+| `Incident\IncidentNoticeDraft` | Un brouillon avant d'être écrit : `recipient`, `incident`, `organisation`, `rubrics`, `missing`, `since` ; `isFollowUp()`, `shows()`, `lacks()`, `changes()` | Implémenté |
 
 ### `Application\Contract`
 
@@ -203,6 +208,7 @@ unitaires.
 | `GuestSubjects` | `subjectOf($email)` | Port ; `EmailGuestSubjects` |
 | `IncidentRegister` | `save()`, `find()`, `all()` | Port ; `DbalIncidentRegister` |
 | `IncidentHistory` | `revisions()` | Port ; `DbalIncidentRegister` |
+| `NoticeOrganisationSource` | `organisation()` | Port ; `SiteIdentityOrganisation` |
 | `EmailTrackingStore` | `find()`, `save()`, `forget()`, `store()` | Port ; `DbalEmailTrackingConsents` |
 
 ### `Application\Exception`
@@ -217,6 +223,7 @@ unitaires.
 | `LockLost` | `RuntimeException` ; le verrou d'un travail par étapes a expiré, a été pris, ou n'a pas pu être confirmé ; `create()` | Implémenté |
 | `AnonymizationRefused` | `RuntimeException` ; `inEnvironment()`, `protectedDatabase()`, `withoutKey()`, `keyColumn()` | Implémenté |
 | `TooManyGuestRequests` | `RuntimeException` ; un client au-delà de sa limite ; `retryIn()`, `retryAfter()` | Implémenté |
+| `NoticeRefused` | `RuntimeException` ; aucun brouillon écrit : `publicWithoutReason()`, `followUpWithoutNotice()`, `followUpWithoutHistory()`, `invalidSince()` | Implémenté |
 
 ## Infrastructure
 
@@ -227,6 +234,9 @@ unitaires.
 | `Infrastructure\Console\EraseSubjectCommand` | `phil:privacy:erase` : l'effacement de chaque module, avec `--confirm` | Implémenté ; branché avec Symfony Console |
 | `Infrastructure\Console\ProcessingRegisterCommand` | `phil:privacy:register` : le registre des traitements, en Markdown ou en JSON, `--strict` | Implémenté ; branché avec Symfony Console |
 | `Infrastructure\Console\IncidentCommand`, `IncidentsCommand` | `phil:privacy:incident`, `phil:privacy:incidents` | Implémenté ; branché avec Symfony Console |
+| `Infrastructure\Console\IncidentNoticeCommand` | `phil:privacy:incident-notice` : un brouillon d'avis d'un incident en Markdown, vers la sortie standard ou un nouveau fichier ; n'envoie ni n'inscrit rien | Implémenté ; branché avec Symfony Console, Twig et le traducteur |
+| `Infrastructure\Twig\TwigIncidentNotice` | Produit le rendu d'un brouillon à partir de `@PhilPrivacy/incident_notice/`, `LOCALES` | Implémenté |
+| `Infrastructure\LegalNotices\SiteIdentityOrganisation` | La `NoticeOrganisationSource` tirée de l'identité du site de phil/legal-notices | Implémenté ; branché quand l'identité est un service |
 | `Infrastructure\Console\AnonymizeDatabaseCommand` | `phil:privacy:anonymize` | Implémenté ; branché avec Console et DBAL |
 | `Infrastructure\Database\ConnectionIdentity` | `of($connection)` : la `DatabaseIdentity` d'une connexion DBAL, sans se connecter | Implémenté |
 | `Infrastructure\Database\DbalAnonymizationTarget` | L'`AnonymizationTarget` d'une connexion DBAL, par pages et par clé | Implémenté |

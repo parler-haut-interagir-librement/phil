@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=edbdaf498e3c08ba2b567744265a39ba8a0a178de010fd8749a416482248bcf7 -->
+<!-- phil-dev source-sha256=1b4ed2165efd6b35a6a02e1b897b80abf050faf18b6c0d7428deeed9edd85ea8 -->
 # Points d'extension
 
 Toute interface du bundle est un contrat, sous `Phil\PrivacyBundle\Application\Contract`, ou sous
@@ -310,6 +310,19 @@ Un registre qui purge aussi, comme `RetentionPurger` sur son propre stockage, ne
 moins de `Incident::MINIMUM_RETENTION`, quelle que soit la date limite qu'on lui donne. Voir
 [incidents.md](incidents.md#le-garder).
 
+## `NoticeOrganisationSource`
+
+Qui donne les avis d'un incident, que `phil:privacy:incident-notice` écrit dans ses brouillons. Avec
+phil/legal-notices-bundle, le bundle lit l'identité du site ; faites de cette interface un alias d'un service à vous
+pour en donner une autre.
+
+| Méthode | Contrat |
+|---|---|
+| `organisation()` | Une `NoticeOrganisation` : le nom, le numéro d'entreprise du Québec, la personne à joindre et la façon de la joindre, chacun nul quand il n'est pas connu ; une valeur nulle laisse sa rubrique à compléter. |
+
+Les brouillons eux-mêmes sont des gabarits de `@PhilPrivacy/incident_notice/` et des textes du domaine `phil_privacy` ;
+voir [incident-notices.md](incident-notices.md#modifier-les-brouillons).
+
 ## `EmailTrackingStore`
 
 L'endroit où est gardé le choix de chaque membre sur les courriels suivis, quand `email_tracking.enabled`. La table du
@@ -412,6 +425,7 @@ travail en une seule transaction.
 | `phil_privacy.retention_purger` | le bundle | Donnée par l'autoconfiguration à chaque service `RetentionPurger` (`RightsServices::PURGER_TAG`). |
 | `Phil\PrivacyBundle\Application\RetentionRun`, `RetentionJob` | le bundle | Services publics, avec un calendrier. |
 | `phil:privacy:retention`, `phil:privacy:deletions`, `phil:privacy:incident`, `phil:privacy:incidents` | le bundle | Commandes, enregistrées avec Symfony Console. |
+| `phil:privacy:incident-notice` | le bundle | Commande, enregistrée avec Symfony Console quand Twig et le traducteur sont là. |
 | `Phil\PrivacyBundle\Application\Erasure\ErasureRequests` | le bundle | Service public, quand `erasure_workflow.enabled`. |
 | `phil_privacy.external_eraser` | le bundle | Donnée par l'autoconfiguration à chaque service `ExternalPersonalDataEraser` (`ErasureWorkflowServices::EXTERNAL_ERASER_TAG`). |
 | `phil:privacy:erasure` | le bundle | Commande, quand `erasure_workflow.enabled`. |

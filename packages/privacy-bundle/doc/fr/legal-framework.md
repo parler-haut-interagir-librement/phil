@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=69cb6e8a44d22cf6edba80f13bd14eaf269178d049d2717c833526790ddb0f4e -->
+<!-- phil-dev source-sha256=38d77e3d9a1f1ade5c28658b00b73c2f6445afe4d9bd1f089e814ef007ec0f69 -->
 # Cadre juridique
 
 Cette page nomme les règles autour desquelles le bundle est construit, et dit ce que sa configuration par défaut fait
@@ -45,7 +45,7 @@ entreprises.
 | Une technologie qui identifie, localise ou profile une personne est inactive tant qu'elle ne l'active pas | Aucun traceur facultatif ne s'exécute avant le consentement. |
 | Accès, rectification et portabilité | Un membre télécharge ses données depuis ses préférences, en archive ZIP avec un fichier JSON par module ([preferences.md](preferences.md)). |
 | Détruire les renseignements une fois leur fin accomplie | Des règles de conservation, purgées par une tâche planifiée ([retention.md](retention.md)). |
-| Un registre de chaque incident de confidentialité, et des avis quand il existe un risque de préjudice sérieux (articles 3.5 à 3.8 de la loi) | Le registre et ses commandes, qui nomment les avis encore dus ([incidents.md](incidents.md)). |
+| Un registre de chaque incident de confidentialité, et des avis quand il existe un risque de préjudice sérieux (articles 3.5 à 3.8 de la loi) | Le registre et ses commandes, qui nomment les avis encore dus ([incidents.md](incidents.md)), et des brouillons des avis que la personne responsable révise et envoie ([incident-notices.md](incident-notices.md)). |
 | Les huit paragraphes de chaque ligne de ce registre, tenus à jour et gardés au moins cinq ans après la découverte (*Règlement sur les incidents de confidentialité*, chapitre A-2.1, r. 3.1, articles 7 et 8) | Un champ pour chaque paragraphe, les paragraphes encore manquants nommés après chaque inscription, les corrections gardées avec leurs valeurs précédentes, une règle de conservation de moins de cinq ans refusée à la construction et une purge qui ne descend jamais sous cinq ans ([incidents.md](incidents.md#ce-que-demande-le-québec)). |
 | Savoir ce qui est détenu et où | Le registre des traitements, tiré du calendrier de conservation et des champs déclarés ([export-and-erasure.md](export-and-erasure.md#le-registre-des-traitements)). |
 

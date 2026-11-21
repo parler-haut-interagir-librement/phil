@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=22614a11e902f09d841cfcb6068e11fba828f92382bd19c345beee140f83c9db -->
+<!-- phil-dev source-sha256=26155469ac9e49744c649bc640584ca35bca07efefa69bf04a702514898d80e2 -->
 # Le registre des incidents de confidentialité
 
 La loi demande à une entreprise de tenir un registre de **chaque** incident de confidentialité — un renseignement
@@ -18,14 +18,16 @@ La *Loi sur la protection des renseignements personnels dans le secteur privé* 
 | P-39.1, art. 3.5, al. 2 | Si le risque de préjudice est sérieux, l'entreprise avise avec diligence la Commission d'accès à l'information et chaque personne concernée. | `pendingNotifications()` nomme les avis encore dus après chaque inscription ; `--authority-notified` et `--subjects-notified` les datent. |
 | P-39.1, art. 3.7 | Le risque se juge selon la sensibilité du renseignement, les conséquences appréhendées de son utilisation et la probabilité qu'il soit utilisé à des fins préjudiciables, après consultation de la personne responsable de la protection des renseignements personnels. | `--risk-assessment`, paragraphe 6 du registre. Le jugement et la consultation reviennent à cette personne. |
 | P-39.1, art. 3.8 | L'entreprise tient un registre des incidents, et en transmet copie à la Commission à sa demande. | La table `phil_privacy_incident` ; `phil:privacy:incidents` imprime la copie. |
-| r. 3.1, art. 6 | L'avis à la personne devient un avis public quand l'envoyer causerait un préjudice accru, serait excessivement difficile, ou quand l'entreprise n'a pas les coordonnées de la personne ; un avis public peut aussi être donné pour agir rapidement, l'avis à chaque personne restant dû. | `--public-notice` et `--public-notice-reason` ; les trois premières raisons tiennent lieu de l'avis à chaque personne. |
+| r. 3.1, art. 3 à 5 | Le contenu de l'avis à la Commission, de ses suivis, et de l'avis à chaque personne. | `phil:privacy:incident-notice` en écrit un brouillon de chacun à partir du registre ([incident-notices.md](incident-notices.md)). |
+| r. 3.1, art. 6 | L'avis à la personne devient un avis public quand l'envoyer causerait un préjudice accru, serait excessivement difficile, ou quand l'entreprise n'a pas les coordonnées de la personne ; un avis public peut aussi être donné pour agir rapidement, l'avis à chaque personne restant dû. | `--public-notice` et `--public-notice-reason` ; les trois premières raisons tiennent lieu de l'avis à chaque personne ; `phil:privacy:incident-notice --to=public` ne rédige l'avis public que pour un incident qui a une raison. |
 | r. 3.1, art. 7 | Les huit paragraphes de chaque ligne du registre, ci-dessous. | Chacun a ses champs ; `missingParagraphs()` nomme ceux auxquels une ligne ne répond pas encore. |
 | r. 3.1, art. 8 | Le registre est tenu à jour et gardé au moins cinq ans après la date ou la période où l'entreprise a pris connaissance de l'incident. | Les lignes sont complétées et corrigées, leurs corrections étant gardées ; une règle de conservation plus courte fait échouer la construction, et la purge ne descend jamais sous cinq ans. |
 
-Les avis à la Commission et aux personnes (articles 3 à 5 du règlement) sont rédigés et envoyés par la personne
-responsable de la vie privée ; le bundle en inscrit les dates. Les lignes directrices de la Commission du 30 janvier
-2026 sur les incidents de confidentialité expliquent comment juger le risque et ce que disent les avis. Le RGPD demande
-le même registre des violations (article 33(5)) et un avis à l'autorité dans les 72 heures. Voir
+Les avis à la Commission et aux personnes (articles 3 à 6 du règlement) sont jugés, révisés et envoyés par la personne
+responsable de la vie privée ; `phil:privacy:incident-notice` en écrit les brouillons à partir du registre, et le bundle
+en inscrit les dates. Voir [Les brouillons des avis](incident-notices.md). Les lignes directrices de la Commission du
+30 janvier 2026 sur les incidents de confidentialité expliquent comment juger le risque et ce que disent les avis. Le
+RGPD demande le même registre des violations (article 33(5)) et un avis à l'autorité dans les 72 heures. Voir
 [legal-framework.md](legal-framework.md).
 
 ## Inscrire et compléter une ligne
