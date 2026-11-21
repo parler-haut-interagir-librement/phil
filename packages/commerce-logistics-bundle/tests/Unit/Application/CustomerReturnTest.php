@@ -96,6 +96,10 @@ final class CustomerReturnTest extends TestCase
 
         self::assertSame([[3, 3, 0], [2, 1, 1], [1, 0, 1]], $this->counts());
         self::assertSame(4, $this->repository->level('DICE', 'returns')?->onHand());
+
+        $this->stock->returnFromCustomer('2026-0001', 'DICE', 'returns', 1, $this->at);
+
+        self::assertSame([[3, 3, 0], [2, 2, 0], [1, 0, 1]], $this->counts());
     }
 
     public function testAnotherSkuOfTheOrderDoesNotCount(): void
@@ -125,10 +129,14 @@ final class CustomerReturnTest extends TestCase
     #[DataProvider('noUnits')]
     public function testAReturnBringsBackOneUnitOrMore(int $quantity): void
     {
-        $this->expectException(StockRefused::class);
-        $this->expectExceptionMessageIsOrContains(\sprintf('A movement moves at least one unit; %d does not.', $quantity));
+        try {
+            $this->stock->returnFromCustomer('2026-0001', 'DICE', 'warehouse', $quantity, $this->at);
+            self::fail(\sprintf('%d units came back.', $quantity));
+        } catch (StockRefused $refused) {
+            self::assertSame(\sprintf('A movement moves at least one unit; %d does not.', $quantity), $refused->getMessage());
+        }
 
-        $this->stock->returnFromCustomer('2026-0001', 'DICE', 'warehouse', $quantity, $this->at);
+        self::assertNull($this->repository->level('DICE', 'warehouse'));
     }
 
     /**

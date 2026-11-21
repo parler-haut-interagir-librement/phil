@@ -92,6 +92,19 @@ final class UnitsShippedTest extends TestCase
         self::assertSame([[['DICE', 'warehouse', 5]]], array_map($this->lines(...), $this->dispatcher->events));
     }
 
+    public function testLevelsWhoseNamesRunTogetherAreAnnouncedApart(): void
+    {
+        $this->repository->addLocation(Location::of('bc', 'BC'));
+        $this->repository->addLocation(Location::of('c', 'C'));
+        $this->stock->receive('a', 'bc', 1, $this->at);
+        $this->stock->receive('ab', 'c', 2, $this->at);
+        $this->stock->reserve($this->order(['a' => 1, 'ab' => 2]), $this->at);
+
+        $this->stock->ship('2026-0001', $this->at);
+
+        self::assertSame([[['a', 'bc', 1], ['ab', 'c', 2]]], array_map($this->lines(...), $this->dispatcher->events));
+    }
+
     public function testAnOrderWithNothingHeldIsNotAnnounced(): void
     {
         $this->stock->ship('2026-0001', $this->at);

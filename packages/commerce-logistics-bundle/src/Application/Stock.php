@@ -113,10 +113,10 @@ final readonly class Stock
             throw StockRefused::quantity($quantity);
         }
 
-        $reservations = array_values(array_filter(
+        $reservations = array_filter(
             $this->stock->reservationsOf($orderNumber),
             static fn (Reservation $reservation): bool => $reservation->sku === $sku,
-        ));
+        );
         $returnable = array_sum(array_map(static fn (Reservation $reservation): int => $reservation->returnable(), $reservations));
 
         if ($quantity > $returnable) {
@@ -275,12 +275,15 @@ final readonly class Stock
 
         $this->checkOnHand(array_map(static fn (array $part): array => [$part[1], $part[2]], $parts));
 
+        $lines = [];
+
         foreach ($parts as [$reservation, $level, $part]) {
             $reservation->shipPart($level, $part);
             $this->stock->record(StockMovement::of($level, MovementKind::Shipped, -$part, -$part, $orderNumber, $at));
+            $lines[] = [$level, $part];
         }
 
-        $this->announce($orderNumber, array_map(static fn (array $part): array => [$part[1], $part[2]], $parts), $at);
+        $this->announce($orderNumber, $lines, $at);
 
         return $quantity;
     }
