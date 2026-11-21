@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c2792c2d9b6738ee19de5e0716dcf1fbb28c0b60a93d2cdb986809e64e0c6ec5 -->
+<!-- phil-dev source-sha256=203265100744388bcff0f17696cad2018e8c9594d3b957bede4a211f93c34699 -->
 # Le PDF
 
 `Phil\CertificatesBundle\Application\CertificatePdf` produit le rendu d'un certificat :
@@ -20,9 +20,9 @@ de correction d'erreur M, chaque suite de modules sombres formant un rectangle, 
 modules.
 
 Les textes viennent du domaine de traduction `phil_certificates`, clés `pdf.*`, dans la locale donnée, sinon dans celle
-du traducteur. Les dates sont mises en forme par `intl` dans cette locale. Le titre, l'auteur, le sujet et la date de
-création du PDF nomment le certificat, l'émetteur, le destinataire et le moment de l'attribution : le même certificat
-donne le même dessin.
+du traducteur. Les dates sont mises en forme par `intl` dans cette locale et dans le fuseau horaire par défaut de PHP,
+comme les pages du registre les montrent. Le titre, l'auteur, le sujet et la date de création du PDF nomment le
+certificat, l'émetteur, le destinataire et le moment de l'attribution : le même certificat donne le même dessin.
 
 ## Polices
 

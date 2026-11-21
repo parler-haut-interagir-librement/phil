@@ -27,6 +27,7 @@
         "ext-mbstring": "*",
         "ext-openssl": "*",
         "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
         "psr/clock": "^1.0",
         "psr/container": "^2.0",
@@ -40,7 +41,6 @@
         "symfony/service-contracts": "^3.6"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.5",
         "doctrine/doctrine-bundle": "^3.3",
         "phil/api-contract": "^0.1@dev",
         "phil/api-contract-bundle": "^0.3@dev",

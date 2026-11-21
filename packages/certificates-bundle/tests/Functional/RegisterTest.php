@@ -6,6 +6,7 @@ namespace Phil\CertificatesBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\ORM\Tools\SchemaValidator;
 use Override;
 use Phil\CertificatesBundle\Application\Awarding;
 use Phil\CertificatesBundle\Application\CertificateStatusLists;
@@ -26,7 +27,8 @@ use Symfony\Component\Clock\MockClock;
 
 /**
  * The register served by a small application: certificates awarded, found, downloaded and revoked through the
- * routes, with Doctrine storing them and Gotenberg played by the HTTP client.
+ * routes, with Doctrine storing them, its mapping valid and in step with the schema, and Gotenberg played by the HTTP
+ * client.
  */
 #[CoversClass(RegisterController::class)]
 #[CoversClass(RoutedCertificateUrls::class)]
@@ -52,6 +54,16 @@ final class RegisterTest extends WebTestCase
         $this->service(Courses::class)->define('first-aid', 'First aid', 'The gestures that save lives.', 'Score 70 % or more.', new PassCriteria(70), 12);
         $this->service(Courses::class)->define('archery', 'Archery', 'Bows.', 'Hit the target.');
         $this->service(Courses::class)->retire('archery');
+    }
+
+    public function testTheMappingIsValidAndTheSchemaInStepWithIt(): void
+    {
+        $entityManager = self::getContainer()->get('doctrine.orm.entity_manager');
+        self::assertInstanceOf(EntityManagerInterface::class, $entityManager);
+        $validator = new SchemaValidator($entityManager);
+
+        self::assertSame([], $validator->validateMapping());
+        self::assertTrue($validator->schemaInSyncWithMetadata());
     }
 
     public function testTheRegisterListsTheOpenCoursesAndFindsACertificateByItsCode(): void

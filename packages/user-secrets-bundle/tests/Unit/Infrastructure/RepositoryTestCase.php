@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phil\UserSecretsBundle\Tests\Unit\Infrastructure;
 
 use DateTimeImmutable;
+use DateTimeZone;
+use Override;
 use Phil\UserSecretsBundle\Domain\Contract\StoredSecretRepository;
 use Phil\UserSecretsBundle\Domain\Credential\CredentialKind;
 use Phil\UserSecretsBundle\Domain\Encryption\SealedFormat;
@@ -13,6 +15,7 @@ use Phil\UserSecretsBundle\Domain\ValueObject\Owner;
 use Phil\UserSecretsBundle\Domain\ValueObject\SealedSecret;
 use Phil\UserSecretsBundle\Domain\ValueObject\SecretName;
 use Phil\UserSecretsBundle\Domain\ValueObject\ServiceName;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,6 +23,81 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class RepositoryTestCase extends TestCase
 {
+    private string $defaultZone = 'UTC';
+
+    #[Override]
+    protected function setUp(): void
+    {
+        $this->defaultZone = date_default_timezone_get();
+    }
+
+    #[Override]
+    protected function tearDown(): void
+    {
+        date_default_timezone_set($this->defaultZone);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, non-empty-string}>
+     */
+    public static function zones(): iterable
+    {
+        yield 'written in Toronto, read in UTC' => ['America/Toronto', 'UTC'];
+        yield 'written in UTC, read in Toronto' => ['UTC', 'America/Toronto'];
+        yield 'written in Tokyo, read in Toronto' => ['Asia/Tokyo', 'America/Toronto'];
+    }
+
+    /**
+     * @param non-empty-string $writer
+     * @param non-empty-string $reader
+     */
+    #[DataProvider('zones')]
+    public function testTheInstantsReadBackAreTheOnesWrittenWhateverTheTimeZoneOfTheProcess(string $writer, string $reader): void
+    {
+        $repository = $this->repository();
+        date_default_timezone_set($writer);
+        $now = new DateTimeImmutable('2026-07-01 12:00:00');
+        $expired = StoredSecret::seal(Owner::fromString('member-1'), SecretName::fromString('expired'), ServiceName::fromString('openai'), CredentialKind::ApiKey, new SealedSecret('k1', base64_encode("\3expired")), $now->modify('-1 minute'), $now->modify('-1 day'));
+        $expired->reseal(ServiceName::fromString('openai'), CredentialKind::ApiKey, new SealedSecret('k1', base64_encode("\3again")), $now->modify('-1 minute'), $now->modify('-1 hour'));
+        $expired->markUsed($now->modify('-30 minutes'));
+
+        $revoked = $this->secret('member-1', 'revoked', 'k1');
+        $revoked->revoke($now->modify('-2 hours'));
+
+        $repository->save($expired, $revoked);
+        $this->clear();
+
+        date_default_timezone_set($reader);
+        $read = $repository->get(Owner::fromString('member-1'), SecretName::fromString('expired'));
+        self::assertInstanceOf(StoredSecret::class, $read);
+        self::assertSame(
+            [$now->getTimestamp() - 60, $now->getTimestamp() - 86_400, $now->getTimestamp() - 3600, $now->getTimestamp() - 1800, $now->getTimestamp() - 7200],
+            [$read->expiresAt()?->getTimestamp(), $read->createdAt()->getTimestamp(), $read->updatedAt()->getTimestamp(), $read->lastUsedAt()?->getTimestamp(), $repository->get(Owner::fromString('member-1'), SecretName::fromString('revoked'))?->revokedAt()?->getTimestamp()],
+        );
+        // An expiry passed in the writer's clock is passed in the reader's.
+        self::assertLessThan(0, ($read->expiresAt() ?? self::fail('An expiry.')) <=> new DateTimeImmutable('2026-07-01 12:00:00', new DateTimeZone($writer)));
+    }
+
+    public function testTheTwoOneThirtiesOfTheAutumnChangeOfTimeStayAnHourApart(): void
+    {
+        $repository = $this->repository();
+        date_default_timezone_set('America/Toronto');
+        // 01:30 daylight time, then 01:30 standard time, on the night the clocks go back.
+        $first = new DateTimeImmutable('2026-11-01 05:30:00 UTC')->setTimezone(new DateTimeZone('America/Toronto'));
+        $second = new DateTimeImmutable('2026-11-01 06:30:00 UTC')->setTimezone(new DateTimeZone('America/Toronto'));
+        self::assertSame($first->format('Y-m-d H:i'), $second->format('Y-m-d H:i'));
+
+        $secret = StoredSecret::seal(Owner::fromString('member-1'), SecretName::fromString('openai'), ServiceName::fromString('openai'), CredentialKind::ApiKey, new SealedSecret('k1', base64_encode("\3openai")), $second, $first);
+        $secret->markUsed($second);
+
+        $repository->save($secret);
+        $this->clear();
+
+        $read = $repository->get(Owner::fromString('member-1'), SecretName::fromString('openai'));
+        self::assertNotNull($read);
+        self::assertSame([1_793_511_000, 1_793_514_600, 1_793_514_600], [$read->createdAt()->getTimestamp(), $read->expiresAt()?->getTimestamp(), $read->lastUsedAt()?->getTimestamp()]);
+    }
+
     public function testASecretIsFoundByItsOwnerAndName(): void
     {
         $repository = $this->repository();

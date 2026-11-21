@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\ApiKeysBundle\Infrastructure\Doctrine;
 
 use DateTimeImmutable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Phil\ApiKeysBundle\Domain\Contract\ApiTokenRepository;
@@ -52,7 +53,7 @@ final readonly class DoctrineApiTokenRepository implements ApiTokenRepository
     public function recordUse(ApiToken $token): void
     {
         $this->entityManager->createQuery(\sprintf('UPDATE %s t SET t.lastUsedAt = :at, t.lastUsedAddress = :address WHERE t.id = :id', ApiToken::class))
-            ->setParameter('at', $token->lastUsedAt())
+            ->setParameter('at', $token->lastUsedAt(), Types::DATETIME_UTC_IMMUTABLE)
             ->setParameter('address', $token->lastUsedAddress())
             ->setParameter('id', $token->id())
             ->execute();
@@ -62,7 +63,7 @@ final readonly class DoctrineApiTokenRepository implements ApiTokenRepository
     public function purge(DateTimeImmutable $before): int
     {
         $removed = $this->entityManager->createQuery(\sprintf('DELETE FROM %s t WHERE t.expiresAt < :before OR t.revokedAt < :before', ApiToken::class))
-            ->setParameter('before', $before)
+            ->setParameter('before', $before, Types::DATETIME_UTC_IMMUTABLE)
             ->execute();
 
         return \is_int($removed) ? $removed : 0;

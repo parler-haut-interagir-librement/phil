@@ -37,13 +37,13 @@ use Phil\CertificatesBundle\Domain\ValueObject\VerificationCode;
 #[ORM\Index(columns: ['holder'])]
 final class Certificate
 {
-    #[ORM\Column(name: 'revoked_at', nullable: true)]
+    #[ORM\Column(name: 'revoked_at', type: 'datetime_utc_immutable', nullable: true)]
     public private(set) ?DateTimeImmutable $revokedAt = null;
 
     #[ORM\Column(name: 'revocation_reason', length: 500, nullable: true)]
     public private(set) ?string $revocationReason = null;
 
-    #[ORM\Column(name: 'reminded_at', nullable: true)]
+    #[ORM\Column(name: 'reminded_at', type: 'datetime_utc_immutable', nullable: true)]
     public private(set) ?DateTimeImmutable $remindedAt = null;
 
     #[ORM\Column(name: 'code', length: 12, options: ['fixed' => true])]
@@ -66,9 +66,9 @@ final class Certificate
         public readonly Course $course,
         #[ORM\Column(name: 'recipient_name', length: 255)]
         public readonly string $recipientName,
-        #[ORM\Column(name: 'awarded_at')]
+        #[ORM\Column(name: 'awarded_at', type: 'datetime_utc_immutable')]
         public readonly DateTimeImmutable $awardedAt,
-        #[ORM\Column(name: 'valid_until', nullable: true)]
+        #[ORM\Column(name: 'valid_until', type: 'datetime_utc_immutable', nullable: true)]
         public readonly ?DateTimeImmutable $validUntil,
         #[ORM\Column(name: 'status_index')]
         public readonly int $statusIndex,

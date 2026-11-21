@@ -47,8 +47,8 @@ final class Kit
         return Course::define('first-aid', 'First aid', 'The gestures that save lives.', 'Score 70 % or more on the final assessment.', $criteria, $validityMonths, 'https://example.com/badges/first-aid.png');
     }
 
-    public static function awarded(?Course $course = null, string $credential = 'header.payload.signature', bool $listed = true, string $code = '7KQ2M9XA04TZ', int $index = 3): Certificate
+    public static function awarded(?Course $course = null, string $credential = 'header.payload.signature', bool $listed = true, string $code = '7KQ2M9XA04TZ', int $index = 3, ?DateTimeImmutable $awardedAt = null): Certificate
     {
-        return Certificate::award('0190f1d2-3c4b-7a8e-9f00-112233445566', VerificationCode::fromString($code), $course ?? self::firstAid(), 'Ada Lovelace', new DateTimeImmutable('2026-11-08 10:00:00 UTC'), $index, $credential, $listed);
+        return Certificate::award('0190f1d2-3c4b-7a8e-9f00-112233445566', VerificationCode::fromString($code), $course ?? self::firstAid(), 'Ada Lovelace', $awardedAt ?? new DateTimeImmutable('2026-11-08 10:00:00 UTC'), $index, $credential, $listed);
     }
 }

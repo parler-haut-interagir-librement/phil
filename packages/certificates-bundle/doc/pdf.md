@@ -18,9 +18,9 @@ that anyone holding the paper can check that it still holds. The code is drawn a
 run of dark modules one rectangle, inside its quiet zone of four modules.
 
 The texts come from the translation domain `phil_certificates`, keys `pdf.*`, in the locale given, else the
-translator's; the dates are formatted by `intl` in that locale. The PDF's title, author, subject and creation date
-name the certificate, the issuer, the recipient and the moment it was awarded: the same certificate gives the same
-drawing.
+translator's; the dates are formatted by `intl` in that locale and in PHP's default time zone, as the register's pages
+show them. The PDF's title, author, subject and creation date name the certificate, the issuer, the recipient and the
+moment it was awarded: the same certificate gives the same drawing.
 
 ## Fonts
 
