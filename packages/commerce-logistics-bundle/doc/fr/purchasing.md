@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0b750571a63caa82f2d72086bef571bcb56a75c96f1af88c8f25e8b5c8331472 -->
+<!-- phil-dev source-sha256=0f9c52eabe321d85e3d1e7160e2abf62e30eb7ffb5e3ed9404aa3220d7203755 -->
 <!-- phil-dev source-sha256=0 -->
 # Achats et numéros de série
 
@@ -26,6 +26,35 @@ $purchasing->close('PO-2026-014');                                      // the r
 - Un *SKU* que le bon ne liste pas, une quantité au-delà de ce qui reste attendu, ou un bon qui n'est plus ouvert est
   refusé avec `PurchaseRefused` ; un numéro employé deux fois aussi.
 - `PurchaseOrder::expectOn()` déplace le jour où le reste est attendu.
+
+### Coût unitaire et propriétaire
+
+Une ligne peut donner ce que coûte chaque unité et à qui appartiennent les unités, par `PurchaseLine` au lieu des
+unités seules :
+
+```php
+use Phil\CommerceLogisticsBundle\Domain\Purchasing\PurchaseLine;
+
+$purchasing->order('PO-2026-021', 'Books & Co', 'warehouse', [
+    'BOOK-17' => PurchaseLine::of(5, Money::ofDecimal('12.50', Currency::of('CAD'))),   // bought
+    'ZINE-03' => PurchaseLine::of(10, owner: 'consignor-42'),                           // left on consignment
+    'DICE-D6' => 60,                                                                    // units only
+], $clock->now());
+
+$order = $purchasing->receive('PO-2026-021', ['BOOK-17' => 5], $clock->now());
+$order->line('BOOK-17');   // PurchaseLine: 5 units, 12.50 CAD each, no owner
+```
+
+- **Le coût unitaire** est un `Money`, de zéro ou plus, dans la devise que facture le fournisseur ; le module le stocke
+  et le rend, et n'évalue pas le stock : ni coût moyen, ni premier entré, premier sorti.
+- **Le propriétaire** est l'identifiant de l'appelant — un consignateur, un fournisseur, un service —, de 1 à 64
+  caractères sans caractère de contrôle, gardé tel qu'il est donné ; le module ne sait rien des propriétaires. Un bon de
+  commande a une ligne par *SKU*, donc un propriétaire par *SKU* : les unités d'un même *SKU* qui appartiennent à deux
+  parties vont sur deux bons de commande.
+- **Les deux sont facultatifs**, ligne par ligne ; `PurchaseOrder::line()` donne les unités commandées, le coût unitaire
+  et le propriétaire d'un *SKU*, ou null pour un *SKU* que le bon ne liste pas. `receive()` rend le bon, où un registre
+  lit ce que les unités arrivées ont coûté et à qui elles appartiennent.
+- Les unités d'une ligne sont bornées comme les unités seules : une ou plus, refusées avec `InvalidValue` sinon.
 
 Les retours aux fournisseurs, le réapprovisionnement et les prévisions ne font pas partie du module.
 
@@ -55,5 +84,5 @@ $serials->restock('CONSOLE', 'SN-0002', 'store');
 
 | Table | Contient |
 |---|---|
-| `phil_commerce_logistics_purchase_order` | `number` (clé primaire), `supplier`, `location`, `ordered` et `received` (JSON, unités par *SKU*), `state` (indexé), `ordered_at`, `expected_on` |
+| `phil_commerce_logistics_purchase_order` | `number` (clé primaire), `supplier`, `location`, `ordered` et `received` (JSON, unités par *SKU*), `line_terms` (JSON, le coût unitaire en unités mineures, sa devise et le propriétaire des *SKU* dont la ligne les donne ; null quand aucune ne les donne), `state` (indexé), `ordered_at`, `expected_on` |
 | `phil_commerce_logistics_serial_number` | `sku` et `serial` (clé primaire), `location`, `state`, `order_number`, `received_at`, `shipped_at` ; indexés par *SKU*, emplacement et état, et par commande |
