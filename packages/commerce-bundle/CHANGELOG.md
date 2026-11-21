@@ -4,9 +4,9 @@ All notable changes to `phil/commerce-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.4.0-alpha - 2026-11-20
 
-The next version is 0.4.0-alpha: two refunds granted at once on the same payment can no longer add up to more than it;
+Two refunds granted at once on the same payment can no longer add up to more than it;
 `Refunds::grant()` runs inside a transaction. See [Upgrading from 0.3](doc/refunds.md#upgrading-from-03).
 
 ### Added

@@ -4,7 +4,7 @@ All notable changes to `phil/commerce-product-template-bundle` will be documente
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.1.0-alpha - 2026-11-22
+## 0.1.0-alpha - 2026-11-20
 
 ### Added
 

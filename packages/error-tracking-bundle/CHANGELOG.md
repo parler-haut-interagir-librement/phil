@@ -4,7 +4,7 @@ All notable changes to `phil/error-tracking-bundle` will be documented in this f
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.1.0-alpha - 2026-11-19
+## 0.1.0-alpha - 2026-11-20
 
 ### Added
 

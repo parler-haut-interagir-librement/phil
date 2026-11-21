@@ -4,9 +4,9 @@ All notable changes to `phil/upload-scan` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-20
 
-The next version is 0.1.1-alpha: a scan that could not read the whole file, or the whole answer of clamd, is an error
+A scan that could not read the whole file, or the whole answer of clamd, is an error
 result, never a clean file.
 
 ### Added

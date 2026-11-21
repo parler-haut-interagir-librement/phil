@@ -4,9 +4,9 @@ All notable changes to `phil/ujo` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.4-alpha - 2026-11-20
 
-The next version is 0.1.4-alpha: an inline HTML fragment that holds too many tags, or nests them too deep, is refused
+An inline HTML fragment that holds too many tags, or nests them too deep, is refused
 as soon as its budget is spent. A patch version and not a minor one, as for 0.1.3-alpha: no field the normalizer
 accepts, at most 100,000 characters, holds more tags than the default budget.
 

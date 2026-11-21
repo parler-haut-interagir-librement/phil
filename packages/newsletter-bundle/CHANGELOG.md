@@ -6,22 +6,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.3.0-alpha: the public subscription form is limited by default, so that a post accepted before may
-be answered `429`, and a confirmation of a double opt-in goes to the same subscriber once in five minutes at most;
-`subscription.rate_limit: false` turns the limits off. A campaign is sent once approved, by default, and the tables gain
-a table, columns and an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
+The next version is 0.4.0-alpha: a campaign is sent once approved, by default, and the tables gain a table, columns and
+an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
 
 ### Added
 
-- `subscription.rate_limit`, on by default: `per_ip` (`limit` 10, `interval` 1 hour), `per_address` (`limit` 5,
-  `interval` 1 hour, on each site) and `resend_delay` (5 minutes), counted by Symfony's Rate Limiter in the pool of
-  `rate_limiter_storage`, under `lock.factory` when it is defined, with `Infrastructure\RateLimiter\SubscriptionRateLimiter`
-  and the service `phil_newsletter.subscription_limiter`. A subscription refused by a count answers `429` with the form
-  and `subscribe.error.too_many`, in English and in French. An interval or a delay that is not a positive duration is
-  refused when the container is built.
-- `Application\Contract\ConfirmationThrottle`, the delay before another confirmation goes to the same subscriber, which
-  `Subscriptions` takes as its last argument, and `SubscribeOutcome::ConfirmationDelayed`: a double opt-in whose
-  confirmation was sent within the delay keeps its place, pending, and sends and announces nothing.
 - Approval before sending: `approval.required`, on by default, `approval.role` (`ROLE_NEWSLETTER_APPROVER`) and
   `approval.four_eyes`; `Campaigns::approve()` and `withdrawApproval()`, `Campaign::approve()`, `withdrawApproval()`
   and `isApproved()`, the author of a campaign, `CampaignApproval` with who approved it and when, `ApprovalPolicy`,
@@ -48,6 +37,27 @@ a table, columns and an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading
 - `Campaigns` takes the `SendRuns`, then an optional `ApprovalPolicy`, authorization checker, token storage and event
   dispatcher; `SendCampaignHandler` takes the `SendRuns` and whether approval is required; `SendDeliveryHandler` and
   `BounceHandler` take the `SendRuns` as their last, optional argument.
+
+## 0.3.0-alpha - 2026-11-20
+
+The public subscription form is limited by default, so that a post accepted before may
+be answered `429`, and a confirmation of a double opt-in goes to the same subscriber once in five minutes at most;
+`subscription.rate_limit: false` turns the limits off.
+
+### Added
+
+- `subscription.rate_limit`, on by default: `per_ip` (`limit` 10, `interval` 1 hour), `per_address` (`limit` 5,
+  `interval` 1 hour, on each site) and `resend_delay` (5 minutes), counted by Symfony's Rate Limiter in the pool of
+  `rate_limiter_storage`, under `lock.factory` when it is defined, with `Infrastructure\RateLimiter\SubscriptionRateLimiter`
+  and the service `phil_newsletter.subscription_limiter`. A subscription refused by a count answers `429` with the form
+  and `subscribe.error.too_many`, in English and in French. An interval or a delay that is not a positive duration is
+  refused when the container is built.
+- `Application\Contract\ConfirmationThrottle`, the delay before another confirmation goes to the same subscriber, which
+  `Subscriptions` takes as its last argument, and `SubscribeOutcome::ConfirmationDelayed`: a double opt-in whose
+  confirmation was sent within the delay keeps its place, pending, and sends and announces nothing.
+
+### Changed
+
 - `SubscriptionController` takes the `SubscriptionRateLimiter` as its last argument.
 - `phil/standard-webhooks-bundle` 0.2 is accepted beside 0.1 in `require-dev`.
 

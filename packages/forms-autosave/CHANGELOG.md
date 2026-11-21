@@ -4,9 +4,9 @@ All notable changes to `phil/forms-autosave` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-20
 
-The next version is 0.3.0-alpha: the key of a draft kept on the server compares byte by byte on MySQL and MariaDB. See
+The key of a draft kept on the server compares byte by byte on MySQL and MariaDB. See
 [Upgrading from 0.2](doc/server-store.md#upgrading-from-02).
 
 ### Added

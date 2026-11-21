@@ -4,9 +4,9 @@ All notable changes to `phil/upload-scan-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.2-alpha - 2026-11-20
 
-The next version is 0.1.2-alpha: a quarantine that reaches `public/` through a symbolic link is refused like one
+A quarantine that reaches `public/` through a symbolic link is refused like one
 written under it.
 
 ### Added

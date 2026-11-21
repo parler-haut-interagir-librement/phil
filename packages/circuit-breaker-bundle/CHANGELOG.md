@@ -4,9 +4,7 @@ All notable changes to `phil/circuit-breaker-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.2.0-alpha.
+## 0.2.0-alpha - 2026-11-20
 
 In the prod environment, the circuit states must be shared by every server. See
 [Upgrading from 0.1](doc/installation.md#upgrading-from-01).

@@ -4,9 +4,9 @@ All notable changes to `phil/form-logic` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.2-alpha - 2026-11-20
 
-The next version is 0.1.2-alpha: the archive Composer installs holds the tests again.
+The archive Composer installs holds the tests again.
 
 ### Changed
 

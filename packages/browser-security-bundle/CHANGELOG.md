@@ -4,9 +4,9 @@ All notable changes to `phil/browser-security-bundle` will be documented in this
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-20
 
-The next version is 0.2.0-alpha: the reports go to a path, or to `public_origin`, never to the host a request names;
+The reports go to a path, or to `public_origin`, never to the host a request names;
 the default policy refuses `<base>` and Strict-Transport-Security includes the subdomains, as ASVS asks.
 
 ### Added

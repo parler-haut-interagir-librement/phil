@@ -4,9 +4,9 @@ All notable changes to `phil/timed-text` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-20
 
-The next version is 0.1.1-alpha: a WebVTT file holding more than 100,000 notes, 1,000 regions or 1,000 style blocks is
+A WebVTT file holding more than 100,000 notes, 1,000 regions or 1,000 style blocks is
 refused as soon as its budget is spent. A patch version and not a minor one: no caption file written for a player
 holds that many.
 

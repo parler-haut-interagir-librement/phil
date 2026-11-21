@@ -4,9 +4,7 @@ All notable changes to `phil/notifications-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.3.0-alpha.
+## 0.3.0-alpha - 2026-11-20
 
 A type can try its channels one after the other until a provider accepts the notification, and every delivery can
 hold back duplicates and count against a limit per recipient. `WebPushSender::send()`, `NotificationDispatcher::deliver()`

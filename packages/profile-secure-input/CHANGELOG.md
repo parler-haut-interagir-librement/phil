@@ -4,9 +4,9 @@ All notable changes to `phil/profile-secure-input` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-20
 
-The next version is 0.1.1-alpha: an application installs the profile without `doctrine/dbal` and without sessions. A
+An application installs the profile without `doctrine/dbal` and without sessions. A
 patch version and not a minor one: the members keep their minor versions, only their floors move.
 
 ### Changed

@@ -4,9 +4,9 @@ All notable changes to `phil/elearning-packages` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-20
 
-The next version is 0.2.0-alpha: xAPI packages read from `tincan.xml`, the SCORM 2004 sequencing and the SCORM 1.2
+XAPI packages read from `tincan.xml`, the SCORM 2004 sequencing and the SCORM 1.2
 prerequisites run by a sequencer, and a manifest holding more than 500,000 XML nodes, or nesting its elements deeper
 than 64 levels, refused before it is loaded. A minor version: `PackageFormat` gains the case `Xapi`, which a `match`
 over its cases must now handle, `Package::$manifest` may be an `XapiCourse`, and the package requires `phil/url`.

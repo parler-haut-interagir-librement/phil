@@ -4,9 +4,9 @@ All notable changes to `phil/spam-protection-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-20
 
-The next version is 0.3.0-alpha: in the `prod` environment, the container build fails without
+In the `prod` environment, the container build fails without
 `used_tokens.connection` or `used_tokens.lock_factory`.
 
 ### Added

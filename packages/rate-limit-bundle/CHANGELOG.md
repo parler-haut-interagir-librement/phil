@@ -4,9 +4,9 @@ All notable changes to `phil/rate-limit-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.2-alpha - 2026-11-20
 
-The next version is 0.1.2-alpha: one person, or one client, counts once whatever the form of their identifier or of
+One person, or one client, counts once whatever the form of their identifier or of
 their address.
 
 ### Added

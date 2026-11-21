@@ -4,9 +4,9 @@ All notable changes to `phil/money-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.2-alpha - 2026-11-20
 
-The next version is 0.1.2-alpha: Swiss amounts are read whichever apostrophe groups them.
+Swiss amounts are read whichever apostrophe groups them.
 
 ### Fixed
 

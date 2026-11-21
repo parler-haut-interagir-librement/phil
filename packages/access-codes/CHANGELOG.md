@@ -4,9 +4,9 @@ All notable changes to `phil/access-codes` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.1-alpha - 2026-11-20
 
-The next version is 0.2.1-alpha: writing a batch as CSV raises no deprecation on PHP 8.6.
+Writing a batch as CSV raises no deprecation on PHP 8.6.
 
 ### Fixed
 

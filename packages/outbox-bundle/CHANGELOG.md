@@ -14,8 +14,6 @@ reads the output of `phil:outbox:relay` or `phil:outbox:dead:show` finds the ski
 
 ### Added
 
-- `phil:outbox:errors:clear` and `DbalOutboxStore::clearErrorMessages()`: the messages removed from the errors
-  already kept, their class left, the errors of the outbox's own exceptions untouched.
 - `DbalOutboxStore::markSkipped()`: a record whose state was erased is settled as `skipped`, lets the later records of
   its ordering key go, and is purged with the delivered records.
 - `relay.unknown_type_grace`, 3,600 seconds by default, from 0 to 604,800: how long after it happened a record of a
@@ -27,6 +25,17 @@ reads the output of `phil:outbox:relay` or `phil:outbox:dead:show` finds the ski
 - Requires phil/outbox 0.2.0-alpha, for `OutboxRecord::OWN_EXCEPTIONS`, `RecordState::Skipped` and the grace of
   unknown types.
 - `phil:outbox:purge` removes the skipped records with the delivered ones.
+
+## 0.1.1-alpha - 2026-11-20
+
+### Added
+
+- `phil:outbox:errors:clear` and `DbalOutboxStore::clearErrorMessages()`: the messages removed from the errors
+  already kept, their class left, the errors of the outbox's own exceptions untouched.
+
+### Changed
+
+- Requires phil/outbox 0.1.1-alpha, for `OutboxRecord::OWN_EXCEPTIONS`.
 
 ### Security
 

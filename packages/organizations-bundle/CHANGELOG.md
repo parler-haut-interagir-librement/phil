@@ -4,9 +4,9 @@ All notable changes to `phil/organizations-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-20
 
-The next version is 0.2.0-alpha: the units of an organization, in a tree whose roles hold below them. A minor version and
+The units of an organization, in a tree whose roles hold below them. A minor version and
 not a patch: two tables join the six of 0.1, `units.manage` joins the built-in permissions of owners and admins, and a
 store of the application's own implements `UnitStore` to keep units. Run the migration the recipe copies, or one that
 calls `OrganizationTables::upgrade()`. See [Upgrading](doc/upgrading.md#from-01-to-02).

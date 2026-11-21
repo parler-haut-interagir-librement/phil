@@ -4,9 +4,9 @@ All notable changes to `phil/block-editor-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-20
 
-The next version is 0.1.1-alpha: marks at a collapsed caret, a mark removed from a selection that ends on its edges,
+Marks at a collapsed caret, a mark removed from a selection that ends on its edges,
 and rich fields exposed as named multi-line text boxes.
 
 ### Added

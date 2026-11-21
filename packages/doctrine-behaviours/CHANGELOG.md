@@ -4,9 +4,9 @@ All notable changes to `phil/doctrine-behaviours` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-20
 
-The next version is 0.3.0-alpha, a privacy security fix: an erasure reaches the personal fields of the frozen versions
+A privacy security fix: an erasure reaches the personal fields of the frozen versions
 and every entity manager, and nothing it erased comes back. A minor version and not a patch: `phil_record_version` has
 a column more, `Versions` leaves the personal fields out by default, the erasers take a `ManagerRegistry`, and the
 library has new classes. After the migration that adds `redacted_at`, run `VersionEraser::stripPersonalFields()`, or

@@ -4,9 +4,9 @@ All notable changes to `phil/markup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.1-alpha - 2026-11-20
 
-The next version is 0.3.1-alpha: a Markdown source holding more than 100,000 lines, read before, is refused by
+A Markdown source holding more than 100,000 lines, read before, is refused by
 default. A patch version and not a minor one: a source of 1 MiB at most, the default ceiling, holds that many lines
 only when most of them are empty.
 

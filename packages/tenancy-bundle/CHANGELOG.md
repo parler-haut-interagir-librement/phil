@@ -4,9 +4,9 @@ All notable changes to `phil/tenancy-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-20
 
-The next version is 0.2.0-alpha: in a shared database, an entity loaded for one tenant is no longer found from another
+In a shared database, an entity loaded for one tenant is no longer found from another
 through Doctrine's identity map, a flush no longer writes another tenant's entity, and a tenant that cannot be entered
 leaves no tenant half-active. Code that switches tenants with changes not yet flushed, or keeps entities loaded across
 `within()`, has to change: see [Upgrading](doc/upgrading.md).

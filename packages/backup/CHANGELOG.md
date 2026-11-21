@@ -4,9 +4,9 @@ All notable changes to `phil/backup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.3-alpha - 2026-11-20
 
-The next version is 0.1.3-alpha: restoring a tar archive never creates a directory outside its media directory.
+Restoring a tar archive never creates a directory outside its media directory.
 
 ### Changed
 

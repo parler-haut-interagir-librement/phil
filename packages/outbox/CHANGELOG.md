@@ -17,7 +17,6 @@ reads `Housekeeping::counts()` or builds a `RelayReport` by position finds `skip
 
 ### Added
 
-- `OutboxRecord::OWN_EXCEPTIONS`, the namespace of the exceptions whose message an error keeps.
 - `Exception\ForgottenRecord`, thrown by a codec when the state a record names was erased on purpose, and
   `RecordState::Skipped`, the state the relay gives such a record: no listener receives it, no attempt is counted, it
   is never dead, it lets the later records of its ordering key go, and it is purged with the delivered records.
@@ -36,6 +35,15 @@ reads `Housekeeping::counts()` or builds a `RelayReport` by position finds `skip
   them.
 - A record of an unknown type is no longer dead at once: it is tried again during the grace of unknown types.
 - `OutboxStore::claim()` and `purgeDelivered()` treat a skipped record like a delivered one.
+
+## 0.1.1-alpha - 2026-11-20
+
+### Added
+
+- `OutboxRecord::OWN_EXCEPTIONS`, the namespace of the exceptions whose message an error keeps.
+
+### Changed
+
 - The documentation says that ordering and idempotency keys are identifiers too, never personal data, and that the
   reason of an `UndeliverableRecord` is kept as the last error.
 

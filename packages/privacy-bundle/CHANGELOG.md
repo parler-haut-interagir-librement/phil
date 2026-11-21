@@ -6,11 +6,9 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.2.0-alpha: the link of a request without an account points to `public_origin`, and the `prod`
-environment refuses to boot, while those requests are on with the mailer sender, without it or
-`framework.trusted_hosts`. See [Where the link points](doc/requests-without-an-account.md#where-the-link-points). The
-erasure can run as a workflow, one step per module through phil/outbox-bundle, and `ErasureEffect::Anonymised` tells a
-skeleton judged non-identifiable from a pseudonymised record. See [Erasure as a workflow](doc/erasure-workflow.md).
+The next version is 0.3.0-alpha: the erasure can run as a workflow, one step per module through phil/outbox-bundle, and
+`ErasureEffect::Anonymised` tells a skeleton judged non-identifiable from a pseudonymised record.
+See [Erasure as a workflow](doc/erasure-workflow.md).
 
 To update: a `GuestRequestStore` of your own implements `retain()`. Code that reads the register's JSON, or the
 rows of `RegisterEntry::toArray()`, finds `personal_data_left` added, and the Markdown register a column more. Review
@@ -22,10 +20,6 @@ install phil/outbox-bundle on the connection of the bundle, route `EraseModule` 
 
 ### Added
 
-- `public_origin`: the canonical address of the site, such as `https://example.org`, that the links sent by email
-  point to; `Infrastructure\Routing\GuestLinkOrigin`, which generates a link while the router's context names that
-  origin and gives the request's context back at once, the origin and the links read by `phil/url`.
-- `PhilPrivacyBundle::boot()` and `PhilPrivacyBundle::MAILED_LINKS`.
 - Erasure as a workflow, `erasure_workflow` (`enabled`, `lease`, `operator_role`, `store`), off by default:
   `Application\Erasure\ErasureRequests`, which opens a request for every module of the erasure inventory or for the
   modules named, a module the inventory does not declare refused, and keeps the inventory's version on it; one
@@ -67,6 +61,26 @@ install phil/outbox-bundle on the connection of the bundle, route `EraseModule` 
 - [Choosing a control](doc/choosing-a-control.md): which tool answers which problem and where it stops, tier 1 named,
   the token vault ruled out, the transparent encryption of the database server and the verification of backups.
 - `MisconfiguredPrivacy::erasureLease()`.
+
+### Changed
+
+- The comment of `ErasureEffect::Pseudonymised` says that the record is still personal data for whoever holds the
+  link back, instead of a record without anything naming the person.
+- `GuestRequestStore` has `retain()`.
+- The documentation of `SubjectErasure` no longer shows a previous exception on `ErasureIncomplete`.
+
+## 0.2.0-alpha - 2026-11-20
+
+The link of a request without an account points to `public_origin`, and the `prod`
+environment refuses to boot, while those requests are on with the mailer sender, without it or
+`framework.trusted_hosts`. See [Where the link points](doc/requests-without-an-account.md#where-the-link-points).
+
+### Added
+
+- `public_origin`: the canonical address of the site, such as `https://example.org`, that the links sent by email
+  point to; `Infrastructure\Routing\GuestLinkOrigin`, which generates a link while the router's context names that
+  origin and gives the request's context back at once, the origin and the links read by `phil/url`.
+- `PhilPrivacyBundle::boot()` and `PhilPrivacyBundle::MAILED_LINKS`.
 - `Application\Exception\AccountErasureIncomplete`, what `AdvanceAccountDeletionHandler` throws when an erasure
   fails: the identifier of the request and the names of the modules, without a previous exception.
 - The documentation of a failure transport of the privacy messages, with a short retention and
@@ -80,10 +94,6 @@ install phil/outbox-bundle on the connection of the bundle, route `EraseModule` 
   neither `public_origin` nor `framework.trusted_hosts` is set. The origin is read when the kernel boots: one with a
   path, a query, a fragment or an IP address is refused, and `localhost` is accepted only in debug mode.
 - `MailerGuestLinkSender` takes a `GuestLinkOrigin`, last and optional.
-- The comment of `ErasureEffect::Pseudonymised` says that the record is still personal data for whoever holds the
-  link back, instead of a record without anything naming the person.
-- `GuestRequestStore` has `retain()`.
-- The documentation of `SubjectErasure` no longer shows a previous exception on `ErasureIncomplete`.
 - `phil:privacy:erase` prints the class of a module's failure, and its message only with `-v`.
 - The Rotation section of [Encrypting personal data at rest](doc/encrypted-columns.md) cites `rotate($scope)` of the
   data key store and `key-management:rewrap-data-keys`, and says that access to the KMS decrypts every column.

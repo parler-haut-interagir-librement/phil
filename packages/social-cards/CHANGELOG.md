@@ -4,9 +4,9 @@ All notable changes to `phil/social-cards` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-20
 
-The next version is 0.1.1-alpha: cards drawn by ImageMagick, the text of Hebrew, Arabic and the scripts of India
+Cards drawn by ImageMagick, the text of Hebrew, Arabic and the scripts of India
 shaped and laid out in its direction when ImageMagick is built with libraqm. A patch version and not a minor one:
 nothing changes for a site that draws its cards with GD.
 

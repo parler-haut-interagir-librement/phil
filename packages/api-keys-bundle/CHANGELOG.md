@@ -4,7 +4,7 @@ All notable changes to `phil/api-keys-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## 0.1.0-alpha - 2026-11-23
+## 0.1.0-alpha - 2026-11-20
 
 ### Added
 

@@ -4,9 +4,9 @@ All notable changes to `phil/doctrine-behaviours-bundle` will be documented in t
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-20
 
-The next version is 0.3.0-alpha, a privacy security fix: the versions take part in the access and erasure requests, the
+A privacy security fix: the versions take part in the access and erasure requests, the
 erasers reach every entity manager, no name is blamed during an erasure, and a search index sees a soft deletion. A
 minor version and not a patch: the configuration has new options, `phil_record_version` has the column `redacted_at`,
 and `Infrastructure\Doctrine\BinaryKeysListener` is `Phil\DoctrineBehaviours\BinaryKeysListener`. After the

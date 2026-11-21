@@ -4,9 +4,9 @@ All notable changes to `phil/moderation-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-20
 
-The next version is 0.3.0-alpha: the incident mode is that of `phil/incident-mode-bundle`, which the queue offers when
+The incident mode is that of `phil/incident-mode-bundle`, which the queue offers when
 it is registered. See [Upgrading from 0.2](doc/incident-mode.md#upgrading-from-02).
 
 ### Added

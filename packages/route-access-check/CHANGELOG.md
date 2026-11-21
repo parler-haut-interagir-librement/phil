@@ -4,9 +4,9 @@ All notable changes to `phil/route-access-check` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-20
 
-The next version is 0.1.1-alpha: a vote on an argument Symfony 8.2 validates before the vote needs a check before it.
+A vote on an argument Symfony 8.2 validates before the vote needs a check before it.
 
 ### Added
 

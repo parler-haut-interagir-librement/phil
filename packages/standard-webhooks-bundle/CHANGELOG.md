@@ -4,9 +4,9 @@ All notable changes to `phil/standard-webhooks-bundle` will be documented in thi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-20
 
-The next version is 0.2.0-alpha: the processed ids are keyed by the receiver and the id, a change of the table to
+The processed ids are keyed by the receiver and the id, a change of the table to
 migrate, and a body larger than 1 MiB is answered `413` before it is read whole. See
 [Upgrading from 0.1](doc/storage.md#upgrading-from-01).
 

@@ -4,9 +4,9 @@ All notable changes to `phil/social-cards-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-20
 
-The next version is 0.1.1-alpha: the cards can be drawn by ImageMagick, a message keeps the link preview its author
+The cards can be drawn by ImageMagick, a message keeps the link preview its author
 chose, and `phil/media-bundle` 0.2 and `phil/safe-http` 0.2 are accepted. A patch version and not a minor one: the
 configuration of 0.1.0 keeps its meaning, and the floor of `phil/social-cards` moves within 0.1.
 
