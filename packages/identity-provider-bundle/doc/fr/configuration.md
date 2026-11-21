@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=56aa0e8bff82c1c45e82c735259fa9a80670651d22df091b31053b21f3c1321c -->
+<!-- phil-dev source-sha256=6932b92f990bafddab1e1456cecaf6b564f279cf01d21ed3a4ca1751237542c4 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_identity_provider`. Chaque option a une valeur par défaut, sauf les
@@ -28,7 +28,9 @@ phil_identity_provider:
     open_routes: [app_logout]
     mailer: { from: accounts@example.com }
     password: { min_score: 2, breach_check: true }
+    accounts: { id_generator: ulid }
     lockout: { threshold: 5, base: 60, max: 3600 }
+    links: { mode: signed }
     passkeys: { rp_id: example.com, origins: ['https://example.com'] }
     oidc: { issuer: 'https://example.com' }
     secrets: { kms_key: identity }
@@ -47,6 +49,9 @@ phil_identity_provider:
 | `layout` | `@PhilIdentityProvider/layout.html.twig` | Le gabarit que les pages étendent. |
 | `kit_subdirectory` | `null` | L'emplacement des recettes du kit ; le sous-répertoire de `ux_toolkit` quand la valeur est nulle. |
 | `public_origin` | `null` | L'adresse canonique du site, comme `https://example.com`, sur laquelle mènent les liens envoyés par courriel. Nulle, elle prend l'hôte de la requête, que `framework.trusted_hosts` doit alors borner : dans l'environnement `prod`, le bundle refuse de démarrer quand ni l'un ni l'autre n'est réglé. Voir [Où mènent les liens](accounts.md#où-mènent-les-liens). |
+| `accounts.id_generator` | `ulid` | Ce qui donne à un nouveau compte son identifiant interne : `ulid`, `uuid_v7`, ou l'id d'un service qui implémente `AccountIdGenerator`. Voir [Identifiants](accounts.md#identifiants). |
+| `accounts.strip_subaddress` | `false` | Si la forme canonique d'une adresse omet son sous-adressage, `+news` dans `ana+news@example.com`, pour qu'une boîte de courriel ne tienne qu'un compte. Voir [Adresses](accounts.md#adresses). |
+| `accounts.canonicalizer` | `null` | L'id d'un service qui implémente `AddressCanonicalizer`, à la place de celui du bundle ; `strip_subaddress` est alors le sien. |
 | `registration.enabled` | `true` | Si n'importe qui peut s'inscrire ; `registration: false` la ferme. |
 | `registration.rate_limit.enabled` | `true` | Limite l'inscription et les courriels de vérification ; `rate_limit: false` désactive les limites. Voir [Limiter les inscriptions](accounts.md#limiter-les-inscriptions). |
 | `registration.rate_limit.per_ip.limit`, `.interval` | `10`, `1 hour` | Les inscriptions par adresse de client, ou par réseau IPv6 /64, à chaque intervalle. |
@@ -66,7 +71,7 @@ phil_identity_provider:
 
 | Module | Valeur par défaut | Exige | Tables |
 |---|---|---|---|
-| `accounts` | activé, ne se désactive pas | — | `phil_identity_account` |
+| `accounts` | activé, ne se désactive pas | — | `phil_identity_account`, `phil_identity_address` ; `phil_identity_link_token` avec `links.mode: stored` |
 | `password` | activé | — | — |
 | `passkeys` | désactivé | `passkeys.rp_id`, `passkeys.origins` | `phil_identity_passkey` |
 | `totp` | désactivé | — | `phil_identity_totp`, `phil_identity_recovery_codes` |
@@ -85,6 +90,7 @@ phil_identity_provider:
 | `password.min_score` | `2` | Le plus bas score de l'estimateur de force de `phil/passwords`, de 0 à 4. |
 | `password.breach_check` | `false` | Si un nouveau mot de passe est cherché dans Pwned Passwords, par k-anonymat : seuls cinq caractères de son SHA-1 quittent le serveur. |
 | `password.http_client` | `http_client` | Le client HTTP de la vérification des fuites. |
+| `lockout.enabled` | `true` | Si les échecs de connexion par mot de passe verrouillent le compte ; `lockout: false` les compte sans rien verrouiller et laisse les essais à `login_limiter`. Voir [Le verrou](accounts.md#le-verrou). |
 | `lockout.threshold` | `5` | Échecs de connexion par mot de passe de suite avant le premier verrou. |
 | `lockout.base` | `60` | Secondes du premier verrou, doublées à chaque échec de plus. |
 | `lockout.max` | `3600` | Le plus long verrou. |
@@ -98,10 +104,17 @@ phil_identity_provider:
 | `login_limiter.single_server` | `false` | Accepte dans l'environnement `prod` une réserve de cache locale au serveur, pour une application sur un seul serveur. |
 | `links.verify_lifetime` | `86400` | Secondes de validité d'un lien qui vérifie une adresse. |
 | `links.reset_lifetime` | `3600` | Secondes de validité d'un lien qui réinitialise un mot de passe. |
+| `links.mode` | `signed` | `signed` : rien n'est conservé, un lien fonctionne jusqu'à son expiration ou jusqu'à ce que son compte change ; `stored` : le lien porte un jeton aléatoire dont l'empreinte à clé est conservée, servi une fois et révocable. Voir [Liens conservés](accounts.md#liens-conservés). |
 | `passkeys.rp_id` | `null` | L'identifiant de la partie de confiance : le domaine enregistrable du site, comme `example.com`. |
 | `passkeys.rp_name` | `null` | Le nom que montre l'authentificateur ; le nom du site quand la valeur est nulle. |
 | `passkeys.origins` | `[]` | Les origines d'où les pages sont servies, comme `https://example.com`. |
 | `passkeys.require_user_verification` | `false` | Si une clé d'accès doit vérifier la personne par un NIP ou une donnée biométrique. |
+| `passkeys.attestation.conveyance` | `none` | L'attestation demandée au navigateur : `none` ne lit aucune déclaration ; `indirect`, `direct` ou `enterprise` lisent les déclarations du format `packed`. Voir [Attestation](passkeys.md#attestation). |
+| `passkeys.attestation.trusted_roots` | `[]` | Les fichiers PEM des certificats racines auxquels une déclaration `packed` peut mener, lus à la construction du conteneur. |
+| `passkeys.attestation.require_trusted` | `false` | Si une clé d'accès dont la déclaration n'atteint aucune racine de confiance est refusée ; exige `trusted_roots` et une transmission autre que `none`. |
+| `passkeys.attestation.allowed_aaguids` | `[]` | Les AAGUID acceptés, vide pour n'importe lequel. |
+| `passkeys.attestation.denied_aaguids` | `[]` | Les AAGUID refusés. |
+| `passkeys.attestation.backup` | `allowed` | Si une clé d'accès qui peut être synchronisée avec d'autres appareils est `allowed` (permise), `required` (exigée) ou `forbidden` (interdite). |
 | `totp.issuer` | `null` | L'émetteur que montre l'application d'authentification ; le nom du site quand la valeur est nulle. |
 | `totp.window` | `1` | Les périodes de 30 secondes acceptées avant et après la période courante, de 0 à 10. |
 | `sms.sender` | `null` | Identifiant de service d'un `SmsSender` ; le texteur du composant Notifier quand la valeur est nulle. |
@@ -124,6 +137,11 @@ phil_identity_provider:
 | `oidc.retired_key_retention` | `604800` | Secondes pendant lesquelles une clé retirée reste publiée. |
 | `oidc.allow_localhost` | `false` | Si les adresses de redirection sur `localhost` en http sont acceptées, pour le développement. |
 | `oidc.lock_factory` | `lock.factory` | Le service `LockFactory` qui sérialise la première clé de signature et chaque rotation ; son magasin doit être partagé par tous les serveurs. |
+| `oidc.signing_keys.source` | `database` | D'où viennent les clés de signature : `database`, faites, scellées et renouvelées par le bundle ; `file`, les fichiers de `files` ; `service`, le service de `service`. Voir [Clés et leur rotation](oidc-provider.md#clés-et-leur-rotation). |
+| `oidc.signing_keys.automatic_rotation` | `true` | Si `phil:identity-provider:rotate-keys` fait tourner les clés de la base de données quand le planificateur l'exécute ; `false` les laisse jusqu'à ce que la commande s'exécute avec `--force`. |
+| `oidc.signing_keys.files` | `[]` | Les fichiers de clés de la source `file`, chacun un chemin ou `{ path, kid }` : le premier signe, les autres sont publiés. |
+| `oidc.signing_keys.sealed` | `false` | Si les fichiers de clés sont scellés sous `secrets.kms_key`, par `phil:identity-provider:seal-key`. |
+| `oidc.signing_keys.service` | `null` | L'id du service qui implémente `SigningKeySource`, pour la source `service`. |
 | `oidc.extra_scopes` | `[]` | Les portées, outre `openid`, `profile`, `email`, `phone` et `offline_access`, que les clients peuvent enregistrer, comme les portées d'une ressource. |
 | `oidc.client_authentication.methods` | les quatre | Les méthodes par lesquelles les clients peuvent s'authentifier : `client_secret_basic`, `client_secret_post`, `private_key_jwt`, `none`. Voir [Authentification des clients](oidc-provider.md#authentification-des-clients). |
 | `oidc.client_authentication.clock_skew` | `60` | Secondes dont une heure d'une assertion de client peut être décalée, de 0 à 300. |

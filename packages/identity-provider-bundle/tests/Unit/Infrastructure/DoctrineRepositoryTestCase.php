@@ -11,20 +11,24 @@ use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Override;
 use Phil\IdentityProviderBundle\Application\Contract\Transactions;
+use Phil\IdentityProviderBundle\Domain\Contract\AccountAddressRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\ClientRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\LinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\LinkTokenRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\PasskeyRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SigningKeyRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\BinaryKeysListener;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountAddressRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineClientRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineGrantRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkTokenRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrinePasskeyRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSecondFactorRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSigningKeyRepository;
@@ -114,6 +118,18 @@ abstract class DoctrineRepositoryTestCase extends RepositoryTestCase
     protected function keys(): SigningKeyRepository
     {
         return new DoctrineSigningKeyRepository($this->entityManager());
+    }
+
+    #[Override]
+    protected function addresses(): AccountAddressRepository
+    {
+        return new DoctrineAccountAddressRepository($this->entityManager());
+    }
+
+    #[Override]
+    protected function linkTokens(): LinkTokenRepository
+    {
+        return new DoctrineLinkTokenRepository($this->entityManager());
     }
 
     #[Override]

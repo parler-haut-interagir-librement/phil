@@ -26,7 +26,9 @@ phil_identity_provider:
     open_routes: [app_logout]
     mailer: { from: accounts@example.com }
     password: { min_score: 2, breach_check: true }
+    accounts: { id_generator: ulid }
     lockout: { threshold: 5, base: 60, max: 3600 }
+    links: { mode: signed }
     passkeys: { rp_id: example.com, origins: ['https://example.com'] }
     oidc: { issuer: 'https://example.com' }
     secrets: { kms_key: identity }
@@ -45,6 +47,9 @@ phil_identity_provider:
 | `layout` | `@PhilIdentityProvider/layout.html.twig` | The template the pages extend. |
 | `kit_subdirectory` | `null` | Where the recipes of the kit are; the subdirectory of `ux_toolkit` when null. |
 | `public_origin` | `null` | The canonical address of the site, such as `https://example.com`, that the links sent by email point to. Null takes the host of the request, which `framework.trusted_hosts` must then bound: in the `prod` environment the bundle refuses to boot when neither is set. See [Where the links point](accounts.md#where-the-links-point). |
+| `accounts.id_generator` | `ulid` | What gives a new account its internal identifier: `ulid`, `uuid_v7`, or the id of a service implementing `AccountIdGenerator`. See [Identifiers](accounts.md#identifiers). |
+| `accounts.strip_subaddress` | `false` | Whether the canonical form of an address leaves out its subaddress, `+news` in `ana+news@example.com`, so that one mailbox holds one account. See [Addresses](accounts.md#addresses). |
+| `accounts.canonicalizer` | `null` | The id of a service implementing `AddressCanonicalizer`, in place of the bundle's; `strip_subaddress` is then its own. |
 | `registration.enabled` | `true` | Whether anyone may register; `registration: false` closes it. |
 | `registration.rate_limit.enabled` | `true` | Limits registration and the verification emails; `rate_limit: false` turns the limits off. See [Limiting the registrations](accounts.md#limiting-the-registrations). |
 | `registration.rate_limit.per_ip.limit`, `.interval` | `10`, `1 hour` | Registrations per client address, or IPv6 /64 network, in each interval. |
@@ -64,7 +69,7 @@ phil_identity_provider:
 
 | Module | Default | Needs | Tables |
 |---|---|---|---|
-| `accounts` | on, cannot be off | — | `phil_identity_account` |
+| `accounts` | on, cannot be off | — | `phil_identity_account`, `phil_identity_address`; `phil_identity_link_token` with `links.mode: stored` |
 | `password` | on | — | — |
 | `passkeys` | off | `passkeys.rp_id`, `passkeys.origins` | `phil_identity_passkey` |
 | `totp` | off | — | `phil_identity_totp`, `phil_identity_recovery_codes` |
@@ -83,6 +88,7 @@ phil_identity_provider:
 | `password.min_score` | `2` | The lowest score of the strength estimator of `phil/passwords`, 0 to 4. |
 | `password.breach_check` | `false` | Whether a new password is looked up in Pwned Passwords, by k-anonymity: only five characters of its SHA-1 leave the server. |
 | `password.http_client` | `http_client` | The HTTP client of the breach check. |
+| `lockout.enabled` | `true` | Whether failed password sign-ins lock the account; `lockout: false` counts them and locks nothing, and leaves guessing to `login_limiter`. See [The lock](accounts.md#the-lock). |
 | `lockout.threshold` | `5` | Failed password sign-ins in a row before the first lock. |
 | `lockout.base` | `60` | Seconds of the first lock, doubled at each further failure. |
 | `lockout.max` | `3600` | The longest lock. |
@@ -96,10 +102,17 @@ phil_identity_provider:
 | `login_limiter.single_server` | `false` | Accepts in the `prod` environment a cache pool local to the server, for an application on one server. |
 | `links.verify_lifetime` | `86400` | Seconds a link that verifies an address lasts. |
 | `links.reset_lifetime` | `3600` | Seconds a link that resets a password lasts. |
+| `links.mode` | `signed` | `signed`: nothing is stored, a link works until it expires or its account changes; `stored`: the link carries a random token whose keyed hash is stored, used once and revocable. See [Stored links](accounts.md#stored-links). |
 | `passkeys.rp_id` | `null` | The relying party identifier: the registrable domain of the site, such as `example.com`. |
 | `passkeys.rp_name` | `null` | The name the authenticator shows; the site name when null. |
 | `passkeys.origins` | `[]` | The origins the pages are served from, such as `https://example.com`. |
 | `passkeys.require_user_verification` | `false` | Whether a passkey must verify the person by a PIN or a biometric. |
+| `passkeys.attestation.conveyance` | `none` | The attestation asked of the browser: `none` reads no statement; `indirect`, `direct` or `enterprise` read the statements of the format `packed`. See [Attestation](passkeys.md#attestation). |
+| `passkeys.attestation.trusted_roots` | `[]` | The PEM files of the root certificates a `packed` statement may chain to, read when the container is built. |
+| `passkeys.attestation.require_trusted` | `false` | Whether a passkey whose statement reaches none of the trusted roots is refused; needs `trusted_roots` and a conveyance other than `none`. |
+| `passkeys.attestation.allowed_aaguids` | `[]` | The AAGUIDs accepted, empty for any. |
+| `passkeys.attestation.denied_aaguids` | `[]` | The AAGUIDs refused. |
+| `passkeys.attestation.backup` | `allowed` | Whether a passkey that may be synced to other devices is `allowed`, `required` or `forbidden`. |
 | `totp.issuer` | `null` | The issuer the authenticator application shows; the site name when null. |
 | `totp.window` | `1` | The periods of 30 seconds accepted before and after the current one, 0 to 10. |
 | `sms.sender` | `null` | Service id of an `SmsSender`; the texter of the Notifier component when null. |
@@ -122,6 +135,11 @@ phil_identity_provider:
 | `oidc.retired_key_retention` | `604800` | Seconds a retired key stays published. |
 | `oidc.allow_localhost` | `false` | Whether redirect addresses on `localhost` over http are accepted, for development. |
 | `oidc.lock_factory` | `lock.factory` | The `LockFactory` service that serializes the first signing key and each rotation; its store must be shared by every server. |
+| `oidc.signing_keys.source` | `database` | Where the signing keys come from: `database`, made, sealed and rotated by the bundle; `file`, the files of `files`; `service`, the service of `service`. See [Keys and their rotation](oidc-provider.md#keys-and-their-rotation). |
+| `oidc.signing_keys.automatic_rotation` | `true` | Whether `phil:identity-provider:rotate-keys` rotates the keys of the database when the schedule runs it; `false` leaves them until the command runs with `--force`. |
+| `oidc.signing_keys.files` | `[]` | The key files of the source `file`, each a path or `{ path, kid }`: the first signs, the others are published. |
+| `oidc.signing_keys.sealed` | `false` | Whether the key files are sealed under `secrets.kms_key`, by `phil:identity-provider:seal-key`. |
+| `oidc.signing_keys.service` | `null` | The id of the service implementing `SigningKeySource`, for the source `service`. |
 | `oidc.extra_scopes` | `[]` | Scopes besides `openid`, `profile`, `email`, `phone` and `offline_access` that clients may register, such as the scopes of a resource. |
 | `oidc.client_authentication.methods` | all four | The methods clients may authenticate by: `client_secret_basic`, `client_secret_post`, `private_key_jwt`, `none`. See [Client authentication](oidc-provider.md#client-authentication). |
 | `oidc.client_authentication.clock_skew` | `60` | Seconds a time of a client assertion may be off, 0 to 300. |

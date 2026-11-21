@@ -6,6 +6,7 @@ namespace Phil\IdentityProviderBundle\Domain\Model\Session;
 
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 
 /**
  * A signed-in session of an account, as a row of `phil_identity_session`: an opaque identifier the PHP session holds,
@@ -31,7 +32,7 @@ final class AccountSession
         #[ORM\Id]
         #[ORM\Column(name: 'id', length: 43, options: ['fixed' => true])]
         private readonly string $id,
-        #[ORM\Column(name: 'account_id', length: 26, options: ['fixed' => true])]
+        #[ORM\Column(name: 'account_id', length: Account::ID_MAX_LENGTH)]
         private readonly string $accountId,
         #[ORM\Column(name: 'device', length: self::DEVICE_MAX_LENGTH)]
         private readonly string $device,

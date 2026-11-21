@@ -35,6 +35,12 @@ final readonly class DoctrineAccountRepository implements AccountRepository
     }
 
     #[Override]
+    public function findByCanonicalEmail(string $canonical): ?Account
+    {
+        return $this->entityManager->getRepository(Account::class)->findOneBy(['emailCanonical' => $canonical]);
+    }
+
+    #[Override]
     public function save(Account ...$accounts): void
     {
         foreach ($accounts as $account) {

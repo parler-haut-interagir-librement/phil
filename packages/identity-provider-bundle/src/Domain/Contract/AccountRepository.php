@@ -19,6 +19,11 @@ interface AccountRepository
      */
     public function findByEmail(string $email): ?Account;
 
+    /**
+     * The account whose sign-in address has this canonical form, as `AddressCanonicalizer` gives it.
+     */
+    public function findByCanonicalEmail(string $canonical): ?Account;
+
     public function save(Account ...$accounts): void;
 
     public function remove(Account $account): void;

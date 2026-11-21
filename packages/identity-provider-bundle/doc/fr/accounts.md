@@ -1,24 +1,87 @@
-<!-- phil-dev source-sha256=2f2bf7647ce377c0e132fa09cfc8c106b434a07a3dea8a048fdf8ff5f0f3518f -->
+<!-- phil-dev source-sha256=672b5aff10409bd2ce057cdda18aceaf40515122a9a505e3523752726749140c -->
 # Comptes et mots de passe
 
 ## Comptes
 
-Un compte, une ligne de `phil_identity_account`, contient un ULID, une adresse en minuscules et le moment où elle a été
-vérifiée, le nom qu'il affiche, l'empreinte Argon2id de son mot de passe — aucune pour un compte qui se connecte
-seulement avec des clés d'accès ou un fournisseur fédéré —, un numéro de téléphone et le moment où il a été vérifié,
-ses rôles, les échecs de connexion de suite et le verrou auquel ils mènent, et le moment où il a été désactivé. Un
-profil plus étoffé relève de l'application.
+Un compte, une ligne de `phil_identity_account`, contient son identifiant, son adresse de connexion en minuscules, la
+forme canonique de cette adresse et le moment où elle a été vérifiée, le nom qu'il affiche, l'empreinte Argon2id de son
+mot de passe — aucune pour un compte qui se connecte seulement avec des clés d'accès ou un fournisseur fédéré —, un
+numéro de téléphone et le moment où il a été vérifié, ses rôles, les échecs de connexion de suite et le verrou auquel
+ils mènent, et son état et le moment où il a changé pour la dernière fois. Un profil plus étoffé relève de
+l'application.
 
-Symfony Security le voit comme `AccountUser`, identifié par l'ULID du compte — jamais par son adresse, qui peut changer
-et ne doit pas voyager dans des liens. `AccountUserProvider` le charge par cet identifiant ou par l'adresse saisie dans
-un formulaire de connexion, et réécrit une empreinte que le hacheur de mots de passe demande de renforcer. Deux
+Symfony Security le voit comme `AccountUser`, identifié par l'identifiant du compte — jamais par son adresse, qui peut
+changer et ne doit pas voyager dans des liens. `AccountUserProvider` le charge par cet identifiant ou par l'adresse
+saisie dans un formulaire de connexion, distingués par le `@` qu'une adresse a et qu'un identifiant n'a jamais, et
+réécrit une empreinte que le hacheur de mots de passe demande de renforcer. Deux
 utilisateurs sont les mêmes tant que leur identifiant, leurs rôles, leur état et l'empreinte de leur mot de passe le
 sont : une session ouverte avant que le mot de passe change ou soit retiré est déconnectée à sa requête suivante. La
 session où le changement est fait porte la nouvelle empreinte et reste ouverte ; les lignes des autres sessions, et les
 jetons émis dans celles-ci, sont fermés aussi (voir [Appareils et sessions](sessions.md)).
 
-`AccountUserChecker` refuse un compte désactivé, par n'importe quelle méthode, avec `account.disabled` et, avec
+`AccountUserChecker` refuse un compte qui n'est pas actif, par n'importe quelle méthode, avec `account.disabled` et, avec
 `require_verified_email`, un compte dont l'adresse n'est pas vérifiée, avec `account.unverified`.
+
+### Identifiants
+
+L'identifiant d'un nouveau compte vient du port `Application\Contract\AccountIdGenerator`, que nomme
+`accounts.id_generator` :
+
+| Valeur | Identifiant |
+|---|---|
+| `ulid`, par défaut | Un ULID de 26 caractères en base32 de Crockford (`UlidAccountIdGenerator`) |
+| `uuid_v7` | Un UUID de version 7 en ses 36 caractères (`UuidV7AccountIdGenerator`), ordonné par le temps, comme les clés d'une application qui emploie ailleurs UUIDv7 |
+| Un id de service | Un service qui implémente `AccountIdGenerator` |
+
+Un identifiant contient de 1 à 36 lettres, chiffres et traits d'union (`Account::ID_PATTERN`) et n'est jamais donné deux
+fois ; chaque table s'y réfère dans une colonne de 36 caractères. Il reste à l'intérieur du fournisseur : ce que les
+clients voient comme `sub` est celui de la stratégie de sujet, `oidc.subject` (voir [Jetons](oidc-provider.md#jetons)).
+Un UUIDv7 ou un ULID dit quand le compte a été créé ; avec l'un ou l'autre, donnez aux clients un sujet opaque —
+`public` ou `pairwise` —, aléatoire pour eux et distinct de l'identifiant, plutôt que `account`.
+
+### États
+
+`Domain\Account\AccountState` nomme l'état d'un compte, assez générique pour n'importe quelle application ; seul un
+compte actif se connecte :
+
+| État | Sens |
+|---|---|
+| `active` | Le compte se connecte. |
+| `pending` | Le compte attend une décision de l'application, comme une approbation. |
+| `suspended` | Le compte est mis de côté pour un temps, par un modérateur ou après un doute, et peut revenir. |
+| `closed` | Le compte est fermé, par son propriétaire ou par l'application, et attend son retrait. |
+
+`Accounts::changeState()` fait passer un compte à un état, journalise `identity.account.state_changed` avec `from` et
+`to` et, quand le compte quitte `active`, ferme chaque session du compte et les jetons émis dans celles-ci.
+`Account::state()` et `stateChangedAt()` le lisent ; `isDisabled()` est vrai dans tout état sauf `active`, `disable()`
+suspend un compte actif et `enable()` le rend de nouveau actif.
+
+### Adresses
+
+L'adresse de connexion a une forme canonique, `email_canonical`, unique parmi les comptes : deux adresses d'une même
+forme canonique mènent à une même boîte de courriel, donc un seul compte suffit. L'inscription avec une autre
+graphie d'une boîte connue répond comme pour l'adresse connue, et un changement d'adresse vers elle est refusé avec
+`email.taken`. Le port `Application\Contract\AddressCanonicalizer` donne la forme ; l'`EmailCanonicalizer` du bundle
+garde l'adresse telle que normalisée et, avec `accounts.strip_subaddress: true`, omet le sous-adressage —
+`ana+news@example.com` devient `ana@example.com`. Les règles d'un fournisseur de courriel, comme les points que certains
+ignorent, relèvent d'un service de l'application nommé dans `accounts.canonicalizer`. La forme d'une adresse conservée
+ne change jamais d'elle-même : une nouvelle règle exige que les formes conservées soient recalculées.
+
+Un compte peut aussi avoir une adresse pour chacun de deux autres usages, `Domain\Account\AddressPurpose` :
+`recovery`, pour récupérer le compte, et `notices`, pour recevoir ses avis. Ce sont des lignes d'une seule table,
+`phil_identity_address`, chacune avec sa forme canonique, qui appartient à un seul compte pour chaque usage.
+`AccountAddresses` les gère :
+
+| Méthode | Ce qu'elle fait |
+|---|---|
+| `set($account, $purpose, $address)` | Pose l'adresse de l'usage, non vérifiée ; refuse `sign_in` (`address.sign_in`), une adresse mal formée (`email.invalid`) ou une adresse qu'un autre compte détient pour l'usage (`email.taken`). |
+| `verify($account, $purpose)` | La marque vérifiée, après un lien que l'application y a envoyé par exemple. |
+| `addressFor($account, $purpose)` | Où écrire pour l'usage : son adresse vérifiée, sinon l'adresse de connexion. |
+| `of($account)`, `get($account, $purpose)`, `remove($account, $purpose)` | Les lisent et les retirent. |
+
+Les événements `identity.address.set`, `identity.address.verified` et `identity.address.removed` portent l'usage,
+jamais l'adresse. Les courriels du bundle vont à l'adresse de connexion ; un `AccountMailer` de l'application peut
+écrire à `addressFor()`.
 
 ## Inscription
 
@@ -61,8 +124,33 @@ Le lien de `/verify-email` porte l'identifiant du compte, une expiration et une 
 vérification, sous une clé dérivée de `secret` pour cet usage seulement. L'ouvrir affiche une page qui demande de
 confirmer ; l'adresse est vérifiée par le formulaire que cette page envoie, avec son jeton CSRF. Les analyseurs des
 services de courriel qui ouvrent les liens d'un message ne vérifient donc rien. Le lien cesse de fonctionner une fois
-servi, une fois l'adresse changée, ou après `links.verify_lifetime` secondes, sans rien stocker. Une adresse changée
-n'est pas vérifiée tant que son propre lien n'a pas servi.
+servi, une fois l'adresse changée, ou après `links.verify_lifetime` secondes, sans rien stocker — ou, dans le [mode
+conservé](#liens-conservés), une fois son jeton servi ou révoqué. Une adresse changée n'est pas vérifiée tant que son
+propre lien n'a pas servi.
+
+## Liens conservés
+
+Par défaut, les liens sont signés et rien n'est conservé : un lien fonctionne jusqu'à son expiration ou jusqu'à ce que
+les propriétés sur lesquelles il a été signé changent, et personne ne peut en révoquer un encore en circulation.
+`links.mode: stored` conserve plutôt un jeton pour chaque lien :
+
+```yaml
+phil_identity_provider:
+    links: { mode: stored }
+```
+
+Le lien porte alors un jeton aléatoire de 32 octets à la place de la signature ; `phil_identity_link_token` en garde
+l'empreinte à clé — un HMAC sous une clé dérivée de `secret` —, le compte, l'usage, l'expiration, et la signature des
+propriétés comme empreinte. Un lien est valide tant que sa ligne existe, nomme le compte et l'usage, n'a pas expiré, et
+que le compte a encore les propriétés sur lesquelles il a été signé. Vérifier une adresse sert le jeton, une seule fois
+même quand deux requêtes l'envoient au même moment ; une réinitialisation de mot de passe révoque chaque lien de
+réinitialisation du compte. Une copie de la table n'ouvre aucun compte.
+
+`AccountLinks::revoke($account, $purpose)` révoque les liens d'un compte encore en circulation — d'un usage, ou de tous
+—, et journalise `identity.links.revoked` avec leur nombre, comme après un doute sur la boîte de courriel.
+`phil:identity-provider:purge` retire les jetons expirés. Les liens de connexion du module `login_link` sont les liens
+de connexion de Symfony Security : donnez au `login_link` du pare-feu son `max_uses` et un `used_link_cache` partagé
+pour qu'ils ne fonctionnent qu'une fois.
 
 ## Mots de passe
 
@@ -100,6 +188,18 @@ verrouille le compte deux fois plus longtemps que le précédent, de `lockout.ba
 verrou refuse seulement le mot de passe : une clé d'accès, qu'un attaquant qui devine ne peut pas rejouer, connecte
 quand même. Chaque échec est compté sur le compte relu sous un verrou de sa ligne, de sorte que des échecs au même
 moment comptent tous.
+
+Le verrou laisse quiconque connaît une adresse en verrouiller le propriétaire en échouant exprès. `lockout: false` le
+désactive : les échecs sont toujours comptés et journalisés comme `identity.sign_in.failed`, et rien n'est verrouillé.
+Les essais sont alors laissés au [limiteur de connexion](#limiter-les-connexions), qui compte par adresse, par
+identifiant et adresse, et par identifiant quelle que soit l'adresse, et qui refuse les tentatives plutôt que le
+compte : activez `login_limiter` avec lui.
+
+```yaml
+phil_identity_provider:
+    lockout: false
+    login_limiter: { enabled: true }
+```
 
 ## Limiter les connexions
 

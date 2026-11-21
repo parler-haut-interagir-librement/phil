@@ -4,28 +4,48 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Unit;
 
+use ErrorException;
+use Phil\IdentityProviderBundle\Application\AccountAddresses;
 use Phil\IdentityProviderBundle\Application\AccountUser;
+use Phil\IdentityProviderBundle\Application\Contract\AccountIdGenerator;
+use Phil\IdentityProviderBundle\Application\Contract\AddressCanonicalizer;
 use Phil\IdentityProviderBundle\Application\Contract\AuditRecorder;
 use Phil\IdentityProviderBundle\Application\Contract\ClaimsProvider;
 use Phil\IdentityProviderBundle\Application\Contract\LogoutNotifier;
 use Phil\IdentityProviderBundle\Application\Contract\SecretCipher;
+use Phil\IdentityProviderBundle\Application\Contract\SigningKeySource;
 use Phil\IdentityProviderBundle\Application\Contract\SmsSender;
+use Phil\IdentityProviderBundle\Application\EmailCanonicalizer;
+use Phil\IdentityProviderBundle\Application\Identifier\UlidAccountIdGenerator;
+use Phil\IdentityProviderBundle\Application\Identifier\UuidV7AccountIdGenerator;
 use Phil\IdentityProviderBundle\Application\Modules;
+use Phil\IdentityProviderBundle\Application\Oidc\FileSigningKeys;
 use Phil\IdentityProviderBundle\Application\Oidc\ProviderSettings;
+use Phil\IdentityProviderBundle\Application\Oidc\SigningKeys;
 use Phil\IdentityProviderBundle\Application\Oidc\Tokens;
 use Phil\IdentityProviderBundle\Application\Passkeys;
 use Phil\IdentityProviderBundle\Application\SecondFactors;
+use Phil\IdentityProviderBundle\Application\SignedLinks;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\LinkTokenRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\PasskeyRepository;
+use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
 use Phil\IdentityProviderBundle\Domain\Oidc\ClientAuthMethod;
+use Phil\IdentityProviderBundle\Domain\Security\LockoutPolicy;
+use Phil\IdentityProviderBundle\Domain\WebAuthn\AttestationPolicy;
 use Phil\IdentityProviderBundle\Domain\WebAuthn\RelyingParty;
 use Phil\IdentityProviderBundle\Infrastructure\Audit\NullAuditRecorder;
+use Phil\IdentityProviderBundle\Infrastructure\Console\RotateKeysCommand;
+use Phil\IdentityProviderBundle\Infrastructure\Console\SealKeyCommand;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\IdentityProviderServices;
+use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KeyAndAttestationServices;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkTokenRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Http\AccountController;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryLinkTokenRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Messenger\SendLogoutTokenHandler;
 use Phil\IdentityProviderBundle\Infrastructure\Notifier\NotifierSmsSender;
 use Phil\IdentityProviderBundle\Infrastructure\Secret\KeyManagementSecretCipher;
@@ -34,6 +54,7 @@ use Phil\IdentityProviderBundle\Infrastructure\Security\LoginRateLimiter;
 use Phil\IdentityProviderBundle\Infrastructure\Security\RegistrationRateLimiter;
 use Phil\IdentityProviderBundle\Infrastructure\Twig\KitComponents;
 use Phil\IdentityProviderBundle\PhilIdentityProviderBundle;
+use Phil\IdentityProviderBundle\Tests\Unit\Fixture\AttestationCertificates;
 use Phil\RateLimit\RateLimitGuard;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -51,6 +72,7 @@ use Symfony\Component\RateLimiter\Storage\CacheStorage;
 
 #[CoversClass(PhilIdentityProviderBundle::class)]
 #[CoversClass(IdentityProviderServices::class)]
+#[CoversClass(KeyAndAttestationServices::class)]
 #[CoversClass(KitSubdirectoryPass::class)]
 #[CoversClass(Modules::class)]
 final class PhilIdentityProviderBundleTest extends TestCase
@@ -446,6 +468,139 @@ final class PhilIdentityProviderBundleTest extends TestCase
         $this->load([['registration' => ['rate_limit' => ['per_ip' => ['limit' => 0]]]]]);
     }
 
+    public function testTheStoredLinksHaveTheirStoreAndTheirTable(): void
+    {
+        self::assertFalse($this->load([])->hasDefinition(LinkTokenRepository::class));
+        self::assertNull($this->load([])->getDefinition(SignedLinks::class)->getArgument(4));
+
+        $container = $this->load([['links' => ['mode' => 'stored'], 'store' => 'memory']]);
+        self::assertSame(InMemoryLinkTokenRepository::class, $container->getDefinition(LinkTokenRepository::class)->getClass());
+        self::assertEquals(new Reference(LinkTokenRepository::class), $container->getDefinition(SignedLinks::class)->getArgument(4));
+        self::assertSame(DoctrineLinkTokenRepository::class, $this->load([['links' => ['mode' => 'stored']]])->getDefinition(LinkTokenRepository::class)->getClass());
+
+        foreach ([[['links' => ['mode' => 'stored']]], [['links' => ['mode' => 'signed']], ['links' => ['mode' => 'stored']]], [['links' => ['mode' => 'stored']], ['links' => ['verify_lifetime' => 60]]]] as $configs) {
+            self::assertContains('PhilIdentityProviderLink', $this->prependedMappings($configs));
+        }
+
+        foreach ([[], [['links' => ['mode' => 'signed']]], [['links' => ['mode' => 'stored']], ['links' => ['mode' => 'signed']]], [['links' => 'stored']]] as $configs) {
+            self::assertNotContains('PhilIdentityProviderLink', $this->prependedMappings($configs));
+        }
+    }
+
+    public function testTheIdentifiersAndTheCanonicalAddresses(): void
+    {
+        $container = $this->load([]);
+        self::assertSame(UlidAccountIdGenerator::class, $container->getDefinition(AccountIdGenerator::class)->getClass());
+        self::assertSame(EmailCanonicalizer::class, $container->getDefinition(AddressCanonicalizer::class)->getClass());
+        self::assertSame([false], $container->getDefinition(AddressCanonicalizer::class)->getArguments());
+
+        $container = $this->load([['accounts' => ['id_generator' => 'uuid_v7', 'strip_subaddress' => true]]]);
+        self::assertSame(UuidV7AccountIdGenerator::class, $container->getDefinition(AccountIdGenerator::class)->getClass());
+        self::assertSame([true], $container->getDefinition(AddressCanonicalizer::class)->getArguments());
+
+        $container = $this->load([['accounts' => ['id_generator' => 'app.ids', 'canonicalizer' => 'app.canonical']]]);
+        self::assertSame('app.ids', (string) $container->getAlias(AccountIdGenerator::class));
+        self::assertSame('app.canonical', (string) $container->getAlias(AddressCanonicalizer::class));
+        self::assertTrue($container->getDefinition(AccountAddresses::class)->isPublic());
+    }
+
+    public function testTheLockoutCanBeTurnedOff(): void
+    {
+        self::assertSame([5, 60, 3600, true], $this->load([])->getDefinition(LockoutPolicy::class)->getArguments());
+        self::assertSame([5, 60, 3600, false], $this->load([['lockout' => false]])->getDefinition(LockoutPolicy::class)->getArguments());
+    }
+
+    public function testTheSourcesOfTheSigningKeys(): void
+    {
+        $oidc = ['modules' => ['oidc' => true], 'oidc' => ['issuer' => 'https://example.com'], 'secrets' => ['allow_plaintext_secrets' => true]];
+        $container = $this->load([$oidc]);
+        self::assertSame(SigningKeys::class, (string) $container->getAlias(SigningKeySource::class));
+        self::assertTrue($container->getAlias(SigningKeySource::class)->isPublic());
+        self::assertTrue($container->getDefinition(RotateKeysCommand::class)->getArgument(1));
+        self::assertFalse($container->hasDefinition(SealKeyCommand::class));
+        self::assertFalse($this->load([$this->merged($oidc, ['oidc' => ['signing_keys' => ['automatic_rotation' => false]]])])->getDefinition(RotateKeysCommand::class)->getArgument(1));
+
+        $container = $this->load([$this->merged($oidc, ['oidc' => ['algorithm' => 'EdDSA', 'signing_keys' => ['source' => 'file', 'files' => ['/keys/current.pem', ['path' => '/keys/previous.pem', 'kid' => 'previous']]]]])]);
+        self::assertSame(FileSigningKeys::class, (string) $container->getAlias(SigningKeySource::class));
+        $file = $container->getDefinition(FileSigningKeys::class);
+        self::assertSame([['path' => '/keys/current.pem', 'kid' => null], ['path' => '/keys/previous.pem', 'kid' => 'previous']], $file->getArgument(0));
+        $algorithm = $file->getArgument(1);
+        self::assertInstanceOf(Definition::class, $algorithm);
+        self::assertSame(['EdDSA'], $algorithm->getArguments());
+        self::assertNull($file->getArgument(2));
+        self::assertFalse($container->hasDefinition(RotateKeysCommand::class));
+
+        $sealed = $this->load([$this->merged($oidc, ['secrets' => ['kms_key' => 'identity'], 'oidc' => ['signing_keys' => ['source' => 'file', 'sealed' => true, 'files' => ['/keys/current.sealed']]]])]);
+        self::assertEquals(new Reference(SecretCipher::class), $sealed->getDefinition(FileSigningKeys::class)->getArgument(2));
+        self::assertTrue($sealed->hasDefinition(SealKeyCommand::class));
+        $command = $sealed->getDefinition(SealKeyCommand::class)->getArgument(1);
+        self::assertInstanceOf(Definition::class, $command);
+        self::assertSame(['RS256'], $command->getArguments());
+
+        $service = $this->load([$this->merged($oidc, ['oidc' => ['signing_keys' => ['source' => 'service', 'service' => 'app.hsm']]])]);
+        self::assertSame('app.hsm', (string) $service->getAlias(SigningKeySource::class));
+        self::assertTrue($service->getAlias(SigningKeySource::class)->isPublic());
+        self::assertFalse($service->hasDefinition(RotateKeysCommand::class));
+
+        foreach ([
+            [['source' => 'file'], 'needs "files"'],
+            [['source' => 'service'], 'needs "service"'],
+            [['source' => 'file', 'files' => ['/k'], 'sealed' => true], '"oidc.signing_keys.sealed"'],
+            [['sealed' => true], '"oidc.signing_keys.sealed"'],
+        ] as [$keys, $message]) {
+            try {
+                $this->load([$this->merged($oidc, ['oidc' => ['signing_keys' => $keys]])]);
+                self::fail($message);
+            } catch (InvalidConfigurationException $invalid) {
+                self::assertStringContainsString($message, $invalid->getMessage());
+            }
+        }
+    }
+
+    public function testTheAttestationPolicyReadsItsRoots(): void
+    {
+        $passkeys = ['modules' => ['passkeys' => true], 'passkeys' => ['rp_id' => 'example.com', 'origins' => ['https://example.com']]];
+        $root = AttestationCertificates::issue(['commonName' => 'Root']);
+        $file = tempnam(sys_get_temp_dir(), 'phil-root-');
+        self::assertIsString($file);
+        file_put_contents($file, $root['cert']);
+        $garbage = tempnam(sys_get_temp_dir(), 'phil-root-');
+        self::assertIsString($garbage);
+        file_put_contents($garbage, 'not a certificate');
+
+        // A warning of a read fails the test: a directory is refused before it is read.
+        set_error_handler(static fn (int $level, string $message): bool => str_starts_with($message, 'file_get_contents') ? throw new ErrorException($message, 0, $level) : true);
+
+        try {
+            $container = $this->load([$this->merged($passkeys, ['passkeys' => ['attestation' => ['conveyance' => 'direct', 'trusted_roots' => [$file], 'require_trusted' => true, 'allowed_aaguids' => ['01234567-89ab-cdef-0123-456789abcdef'], 'backup' => 'forbidden']]])]);
+            $policy = $container->getDefinition(RelyingParty::class)->getArgument(5);
+            self::assertInstanceOf(Definition::class, $policy);
+            self::assertSame(AttestationPolicy::class, $policy->getClass());
+            self::assertSame(['direct', [$root['cert']], true, ['01234567-89ab-cdef-0123-456789abcdef'], [], 'forbidden'], $policy->getArguments());
+            self::assertSame(300_000, $container->getDefinition(RelyingParty::class)->getArgument(4));
+
+            foreach ([
+                [['trusted_roots' => ['/no/such/root.pem']], 'is not a readable PEM certificate'],
+                [['trusted_roots' => [$garbage]], 'is not a readable PEM certificate'],
+                [['trusted_roots' => [sys_get_temp_dir()]], 'is not a readable PEM certificate'],
+                [['require_trusted' => true], '"passkeys.attestation": A trusted attestation needs'],
+                [['denied_aaguids' => ['nope']], '"passkeys.attestation": "nope" is not an AAGUID'],
+            ] as [$attestation, $message]) {
+                try {
+                    $this->load([$this->merged($passkeys, ['passkeys' => ['attestation' => $attestation]])]);
+                    self::fail($message);
+                } catch (InvalidConfigurationException $invalid) {
+                    self::assertStringContainsString($message, $invalid->getMessage());
+                    self::assertTrue(!str_contains($message, '"passkeys.attestation":') || $invalid->getPrevious() instanceof InvalidValue);
+                }
+            }
+        } finally {
+            restore_error_handler();
+            unlink($file);
+            unlink($garbage);
+        }
+    }
+
     public function testTheModulesObject(): void
     {
         $modules = new Modules(['oidc', 'accounts', 'unknown']);
@@ -465,6 +620,45 @@ final class PhilIdentityProviderBundleTest extends TestCase
         $this->extension()->load($configs, $container);
 
         return $container;
+    }
+
+    /**
+     * @param array<string, mixed> $base
+     * @param array<string, mixed> $more
+     *
+     * @return array<string, mixed>
+     */
+    private function merged(array $base, array $more): array
+    {
+        /** @var array<string, mixed> $merged */
+        $merged = array_replace_recursive($base, $more);
+
+        return $merged;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $configs in the order the application gives them
+     *
+     * @return list<string> the names of the Doctrine mappings the bundle prepends
+     */
+    private function prependedMappings(array $configs): array
+    {
+        $container = new ContainerBuilder();
+        $container->registerExtension($this->fakeExtension('doctrine'));
+
+        foreach (array_reverse($configs) as $config) {
+            $container->prependExtensionConfig('phil_identity_provider', $config);
+        }
+
+        $extension = $this->extension();
+        self::assertInstanceOf(PrependExtensionInterface::class, $extension);
+        $extension->prepend($container);
+        $doctrine = $container->getExtensionConfig('doctrine')[0] ?? [];
+        self::assertIsArray($doctrine);
+        self::assertIsArray($doctrine['orm'] ?? null);
+        self::assertIsArray($doctrine['orm']['mappings'] ?? null);
+
+        return array_map(strval(...), array_keys($doctrine['orm']['mappings']));
     }
 
     private function extension(): ExtensionInterface

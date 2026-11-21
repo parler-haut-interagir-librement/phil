@@ -47,3 +47,4 @@ The readers of what browsers, authenticators and clients send declare fuzz targe
 | `client-data` | The client data of WebAuthn |
 | `jwt` | JSON Web Tokens, against one known key |
 | `authorization-request` | The query of an authorization request |
+| `attestation` | The attestation statements of new passkeys, `none` and `packed` |

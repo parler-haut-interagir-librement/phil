@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Unit\Fixture;
 
+use Closure;
 use OpenSSLAsymmetricKey;
 use Phil\IdentityProviderBundle\Domain\Encoding\Base64Url;
 
@@ -62,6 +63,35 @@ final class Authenticator
             'clientDataJSON' => Base64Url::encode($this->clientData('webauthn.create', $challenge)),
             'attestationObject' => Base64Url::encode(Cbor::encode(['fmt' => $format, 'attStmt' => [], 'authData' => Cbor::bytes($authData)])),
         ]);
+    }
+
+    /**
+     * The JSON of a registration answering the challenge with an attestation statement, made from the bytes it signs:
+     * the authenticator data and the hash of the client data.
+     *
+     * @param Closure(string, self): mixed $statement
+     */
+    public function registerAttested(string $challenge, Closure $statement, string $format = 'packed', ?string $aaguid = null): string
+    {
+        $attested = ($aaguid ?? random_bytes(16)).pack('n', \strlen($this->credentialId)).$this->credentialId.$this->coseKey();
+        $authData = $this->authenticatorData($this->flags | 0x40, $attested);
+        $clientData = $this->clientData('webauthn.create', $challenge);
+
+        return $this->json([
+            'clientDataJSON' => Base64Url::encode($clientData),
+            'attestationObject' => Base64Url::encode(Cbor::encode(['fmt' => $format, 'attStmt' => $statement($authData.hash('sha256', $clientData, true), $this), 'authData' => Cbor::bytes($authData)])),
+        ]);
+    }
+
+    /**
+     * The signature of the passkey's own key over the bytes, as a self attestation carries it.
+     */
+    public function signature(string $bytes): string
+    {
+        openssl_sign($bytes, $signature, $this->key, \OPENSSL_ALGO_SHA256);
+        \assert(\is_string($signature));
+
+        return $signature;
     }
 
     /**

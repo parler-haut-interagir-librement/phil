@@ -231,17 +231,21 @@ header or, by `POST`, in the `access_token` member of a form body (RFC 6750), ne
 
 ## JSON Web Signatures
 
-Every token the provider signs, and every token it reads back — client assertions included —, goes through
-`web-token/jwt-library`: `JWKFactory`
-creates the keys, `JWSBuilder` signs, `JWSVerifier` verifies, `CompactSerializer` writes and reads the compact form.
-`Application\Jose\Jws` bounds a token before the library sees it — at most 8 KiB, three parts, a header and claims
-that are JSON objects of bounded depth, a header naming an algorithm and a key, no `crit` and no `b64` —, then
-verifies it with the one algorithm of the key its `kid` names; `none` and the HMAC algorithms are never registered.
-`Application\Jose\PrivateKey` holds a key as a JSON Web Key of the library: an RSA key of 3072 bits, a P-256 key or
-an Ed25519 key.
+Every token the provider reads back — its own and the client assertions — goes through `web-token/jwt-library`:
+`CompactSerializer` reads the compact form and `JWSVerifier` verifies it. `Application\Jose\Jws` bounds a token before
+the library sees it — at most 8 KiB, three parts, a header and claims that are JSON objects of bounded depth, a header
+naming an algorithm and a key, no `crit` and no `b64` —, then verifies it with the one algorithm of the key its `kid`
+names; `none` and the HMAC algorithms are never registered.
 
-`tests/Benchmark/JwsBench.php` measures each algorithm. The library rebuilds the PEM of an RSA key at each signature,
-which makes RS256 the slowest by far — milliseconds where ES256 and EdDSA take tens of microseconds —: choose `ES256` or
+`Jws::encode()` writes a token with an `Application\Contract\Signer`: the header — `alg`, `kid`, the members given and
+`typ` —, the claims, and the signature the signer gives over both. `Application\Jose\PrivateKey`, the signer of the
+database and of key files, holds a key as a JSON Web Key of the library — an RSA key of 3072 bits, created by
+`JWKFactory`, a P-256 key or an Ed25519 key — and loads it once, when it is made: an OpenSSL key for RS256 and ES256,
+the libsodium secret key for EdDSA. Each signature then costs the signature only.
+
+`tests/Benchmark/JwsBench.php` measures each algorithm. On a recent laptop, an RS256 signature takes about 2.2 ms with
+the loaded key, against 3.6 ms when the library rebuilt the PEM of the key at each signature, and ES256 about 33 µs
+against 90 µs; EdDSA takes about 24 µs. An RSA signature of 3072 bits stays the slowest by far: choose `ES256` or
 `EdDSA` when the clients support them.
 
 ## Scopes and claims
@@ -276,6 +280,19 @@ final readonly class LocaleClaims implements ClaimsProvider
 
 ## Keys and their rotation
 
+The keys come from the source `oidc.signing_keys.source` names, through the port `Application\Contract\SigningKeySource`:
+the key that signs, the key set the discovery document publishes, and the public key of a `kid`. A source keeps the
+keys it loaded: the private key of RS256, the default algorithm, is decrypted and turned into an OpenSSL key once per
+process, not at each signature (see [JSON Web Signatures](#json-web-signatures)).
+
+| Source | Where the keys are | Rotation |
+|---|---|---|
+| `database`, the default | `phil_identity_signing_key`, sealed under `secrets.kms_key` | By `phil:identity-provider:rotate-keys` |
+| `file` | The files of `oidc.signing_keys.files`, sealed under `secrets.kms_key` with `sealed: true` | By a deployment |
+| `service` | The service of `oidc.signing_keys.service`, such as the adapter of a hardware security module | By the module |
+
+### The database
+
 `SigningKeys` keeps the keys in `phil_identity_signing_key`, their private JSON Web Key sealed by the `SecretCipher`. A
 provider without a key creates and activates one at its first token. `phil:identity-provider:rotate-keys`, run daily,
 removes the keys retired for longer than `oidc.retired_key_retention`, activates the pending key once it has been
@@ -283,14 +300,49 @@ published for `oidc.key_activation_delay` — retiring the active one —, and c
 cache the key set see each key before it signs, and keep it until the last token it signed has expired. After a key
 was exposed, `--now` activates the pending key at once.
 
+With `oidc.signing_keys.automatic_rotation: false`, a run of the command on the schedule changes nothing and says so,
+for a provider whose operators rotate by hand: `--force` rotates, `--now` rotates and activates at once.
+
 The first key and each rotation are made under one lock, `phil_identity_provider.signing_keys`, taken from the
 `LockFactory` of `oidc.lock_factory` — `lock.factory` by default —, the keys read again once it is held: instances that
 start, or rotate, at the same time make one key, not one each. The lock's store must be shared by every server: a
 `flock` store guards one server only. Every read of the keys still settles what an unshared store, or keys written
-before, may have left, the same way on every instance: of several active keys, all but the one activated last — the greatest `kid`
-breaking a tie — are retired, and stay published for the tokens they signed; of several pending keys, all but the
-oldest are removed, having signed nothing. The settlement is journaled as `identity.oidc.key_rotated`, with the keys retired
-and the count removed.
+before, may have left, the same way on every instance: of several active keys, all but the one activated last — the
+greatest `kid` breaking a tie — are retired, and stay published for the tokens they signed; of several pending keys,
+all but the oldest are removed, having signed nothing. The settlement is journaled as `identity.oidc.key_rotated`,
+with the keys retired and the count removed.
+
+The key that signs is kept in `LoadedKeys` under its `kid`, which names one key for its whole life: a rotation names
+another key, loaded in turn, and at most four keys are kept.
+
+### Key files
+
+```yaml
+phil_identity_provider:
+    oidc:
+        algorithm: RS256
+        signing_keys:
+            source: file
+            sealed: true
+            files:
+                - '%kernel.project_dir%/config/keys/current.sealed'
+                - { path: '%kernel.project_dir%/config/keys/previous.sealed', kid: '2026-10' }
+```
+
+`FileSigningKeys` reads each file once per process, at the first token signed or read: a PEM, a private JSON Web Key,
+or, with `sealed: true`, either sealed under `secrets.kms_key` by `phil:identity-provider:seal-key <file>`, which
+checks the key and prints the sealed text. The first file signs; the others are published, for the tokens they signed.
+A key's `kid` is the one given, or else the JWK thumbprint of its public key (RFC 7638). A file larger than 64 KiB, a
+key of another algorithm, or two files with one `kid` are refused at the first use. The bundle never rotates these
+keys: put the new key first, keep the previous one after it while its tokens may still be presented, then remove it.
+
+### A hardware security module
+
+A key that never leaves a hardware security module, or a key management service that signs, is an adapter of the
+application: a service implementing `SigningKeySource`, whose `active()` gives an `Application\Contract\Signer` — its
+`algorithm`, its `kid`, and `sign()`, which sends the JWS signing input to the module and gives back the signature as
+JWA writes it (for ES256, `r` and `s` of 32 bytes each, not the DER of a signature) — and whose `jwks()` and
+`publicKey()` publish the public keys. Name it in `oidc.signing_keys.service`; the rotation is the module's.
 
 ## Consent and logout
 

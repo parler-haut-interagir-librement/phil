@@ -6,22 +6,32 @@ namespace Phil\IdentityProviderBundle\Domain\Model\Account;
 
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use Phil\IdentityProviderBundle\Domain\Account\AccountState;
 use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
 use Phil\IdentityProviderBundle\Domain\Security\LockoutPolicy;
 use SensitiveParameter;
 
 /**
- * An account, as a row of `phil_identity_account`: its identifier, its email address and when it was verified, the
- * name it shows, the Argon2id hash of its password — none for an account that signs in with passkeys only —, a phone
- * number and when it was verified, its roles, the failed sign-ins in a row and the lock they lead to, and when it was
- * disabled. Nothing else: a profile belongs to the application.
+ * An account, as a row of `phil_identity_account`: its identifier, its sign-in address, the canonical form of that
+ * address — unique, so that two spellings of one mailbox are one account — and when it was verified, the name it shows,
+ * the Argon2id hash of its password — none for an account that signs in with passkeys only —, a phone number and when
+ * it was verified, its roles, the failed sign-ins in a row and the lock they lead to, and its state and when it last
+ * changed. Nothing else: a profile belongs to the application, and the addresses of other purposes are
+ * `AccountAddress` rows.
  */
 #[ORM\Entity]
 #[ORM\Table(name: self::TABLE)]
 #[ORM\UniqueConstraint(name: 'phil_identity_account_email', columns: ['email'])]
+#[ORM\UniqueConstraint(name: 'phil_identity_account_canonical', columns: ['email_canonical'])]
 final class Account
 {
     public const string TABLE = 'phil_identity_account';
+
+    /** The longest identifier, the 36 characters of a UUID. */
+    public const int ID_MAX_LENGTH = 36;
+
+    /** What an identifier holds: letters, digits and hyphens, as a ULID or a UUID writes them. */
+    public const string ID_PATTERN = '/^[0-9A-Za-z-]{1,36}$/D';
 
     public const int EMAIL_MAX_LENGTH = 180;
 
@@ -37,10 +47,12 @@ final class Account
      */
     private function __construct(
         #[ORM\Id]
-        #[ORM\Column(name: 'id', length: 26, options: ['fixed' => true])]
+        #[ORM\Column(name: 'id', length: self::ID_MAX_LENGTH)]
         private readonly string $id,
         #[ORM\Column(name: 'email', length: self::EMAIL_MAX_LENGTH)]
         private string $email,
+        #[ORM\Column(name: 'email_canonical', length: self::EMAIL_MAX_LENGTH)]
+        private string $emailCanonical,
         // Not read-only: the store reads the row again over the object when it applies a change under a lock.
         #[ORM\Column(name: 'created_at')]
         private DateTimeImmutable $createdAt,
@@ -62,18 +74,26 @@ final class Account
         private int $failedSignIns = 0,
         #[ORM\Column(name: 'locked_until', nullable: true)]
         private ?DateTimeImmutable $lockedUntil = null,
-        #[ORM\Column(name: 'disabled_at', nullable: true)]
-        private ?DateTimeImmutable $disabledAt = null,
+        #[ORM\Column(name: 'state', length: AccountState::MAX_LENGTH, enumType: AccountState::class, options: ['default' => 'active'])]
+        private AccountState $state = AccountState::Active,
+        #[ORM\Column(name: 'state_changed_at', nullable: true)]
+        private ?DateTimeImmutable $stateChangedAt = null,
     ) {
     }
 
-    public static function register(string $id, string $email, DateTimeImmutable $now, ?string $displayName = null): self
+    /**
+     * @param ?string $canonical the canonical form of the address, as `AddressCanonicalizer` gives it; the address
+     *                           normalized when null
+     */
+    public static function register(string $id, string $email, DateTimeImmutable $now, ?string $displayName = null, ?string $canonical = null): self
     {
-        if (26 !== \strlen($id)) {
-            throw InvalidValue::because('An account identifier is a ULID of 26 characters.');
+        if (1 !== preg_match(self::ID_PATTERN, $id)) {
+            throw InvalidValue::because('An account identifier holds 1 to 36 letters, digits and hyphens.');
         }
 
-        return new self($id, self::normalizeEmail($email), $now, self::normalizeName($displayName));
+        $email = self::normalizeEmail($email);
+
+        return new self($id, $email, $canonical ?? $email, $now, self::normalizeName($displayName));
     }
 
     /**
@@ -103,6 +123,14 @@ final class Account
     public function email(): string
     {
         return $this->email;
+    }
+
+    /**
+     * The canonical form of the sign-in address, unique among the accounts.
+     */
+    public function emailCanonical(): string
+    {
+        return $this->emailCanonical;
     }
 
     public function createdAt(): DateTimeImmutable
@@ -137,8 +165,10 @@ final class Account
 
     /**
      * A new address, unverified until its own link is followed.
+     *
+     * @param ?string $canonical the canonical form of the address; the address normalized when null
      */
-    public function changeEmail(string $email): void
+    public function changeEmail(string $email, ?string $canonical = null): void
     {
         $email = self::normalizeEmail($email);
 
@@ -146,6 +176,8 @@ final class Account
             $this->email = $email;
             $this->emailVerifiedAt = null;
         }
+
+        $this->emailCanonical = $canonical ?? $email;
     }
 
     public function passwordHash(): ?string
@@ -249,24 +281,63 @@ final class Account
         $this->lockedUntil = null;
     }
 
+    public function state(): AccountState
+    {
+        return $this->state;
+    }
+
+    /**
+     * When the state last changed; null for an account active since it was registered.
+     */
+    public function stateChangedAt(): ?DateTimeImmutable
+    {
+        return $this->stateChangedAt;
+    }
+
+    /**
+     * @return bool whether the state changed
+     */
+    public function changeState(AccountState $state, DateTimeImmutable $now): bool
+    {
+        if ($state === $this->state) {
+            return false;
+        }
+
+        $this->state = $state;
+        $this->stateChangedAt = $now;
+
+        return true;
+    }
+
+    /**
+     * When the account stopped signing in; null for an active account.
+     */
     public function disabledAt(): ?DateTimeImmutable
     {
-        return $this->disabledAt;
+        return $this->state->signsIn() ? null : $this->stateChangedAt;
     }
 
+    /**
+     * Whether the account is refused at sign-in: any state but `active`.
+     */
     public function isDisabled(): bool
     {
-        return $this->disabledAt instanceof DateTimeImmutable;
+        return !$this->state->signsIn();
     }
 
+    /**
+     * Suspends an active account; an account in another state keeps it.
+     */
     public function disable(DateTimeImmutable $now): void
     {
-        $this->disabledAt ??= $now;
+        if ($this->state->signsIn()) {
+            $this->changeState(AccountState::Suspended, $now);
+        }
     }
 
-    public function enable(): void
+    public function enable(DateTimeImmutable $now): void
     {
-        $this->disabledAt = null;
+        $this->changeState(AccountState::Active, $now);
     }
 
     private static function normalizeName(?string $name): ?string

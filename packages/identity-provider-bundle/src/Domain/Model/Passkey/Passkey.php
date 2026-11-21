@@ -8,12 +8,16 @@ use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Phil\IdentityProviderBundle\Domain\Encoding\Base64Url;
 use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
+use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+use Phil\IdentityProviderBundle\Domain\WebAuthn\AttestationPolicy;
+use Phil\IdentityProviderBundle\Domain\WebAuthn\AttestationType;
 use Phil\IdentityProviderBundle\Domain\WebAuthn\RegisteredCredential;
 
 /**
  * A passkey of an account, as a row of `phil_identity_passkey`: the SHA-256 of its credential identifier as key — the
  * identifier itself is up to 1023 bytes —, the identifier, its COSE public key, its counter, its AAGUID, the name its
- * owner gave it, whether it is synced, and when it was added and last used.
+ * owner gave it, whether it may be synced (backup eligible) and is (backed up), the format of its attestation and what
+ * the attestation proved — whether the AAGUID can be trusted —, and when it was added and last used.
  */
 #[ORM\Entity]
 #[ORM\Table(name: self::TABLE)]
@@ -28,7 +32,7 @@ final class Passkey
         #[ORM\Id]
         #[ORM\Column(name: 'id', length: 64, options: ['fixed' => true])]
         private readonly string $id,
-        #[ORM\Column(name: 'account_id', length: 26, options: ['fixed' => true])]
+        #[ORM\Column(name: 'account_id', length: Account::ID_MAX_LENGTH)]
         private readonly string $accountId,
         #[ORM\Column(name: 'credential_id', type: 'text')]
         private readonly string $credentialId,
@@ -48,15 +52,16 @@ final class Passkey
         private readonly DateTimeImmutable $createdAt,
         #[ORM\Column(name: 'last_used_at', nullable: true)]
         private ?DateTimeImmutable $lastUsedAt = null,
+        #[ORM\Column(name: 'attestation_format', length: RegisteredCredential::FORMAT_MAX_LENGTH, options: ['default' => 'none'])]
+        private readonly string $attestationFormat = 'none',
+        #[ORM\Column(name: 'attestation_type', length: AttestationType::MAX_LENGTH, enumType: AttestationType::class, options: ['default' => 'none'])]
+        private readonly AttestationType $attestationType = AttestationType::None,
     ) {
     }
 
     public static function register(string $accountId, RegisteredCredential $credential, string $name, DateTimeImmutable $now): self
     {
-        $hex = sodium_bin2hex($credential->aaguid);
-        $aaguid = \sprintf('%s-%s-%s-%s-%s', substr($hex, 0, 8), substr($hex, 8, 4), substr($hex, 12, 4), substr($hex, 16, 4), substr($hex, 20));
-
-        return new self(self::idOf($credential->credentialId), $accountId, Base64Url::encode($credential->credentialId), Base64Url::encode($credential->coseKey), $aaguid, self::normalizeName($name), $credential->signCount, $credential->backupEligible, $credential->backedUp, $now);
+        return new self(self::idOf($credential->credentialId), $accountId, Base64Url::encode($credential->credentialId), Base64Url::encode($credential->coseKey), AttestationPolicy::format($credential->aaguid), self::normalizeName($name), $credential->signCount, $credential->backupEligible, $credential->backedUp, $now, null, $credential->attestationFormat, $credential->attestationType);
     }
 
     /**
@@ -93,6 +98,23 @@ final class Passkey
     public function aaguid(): string
     {
         return $this->aaguid;
+    }
+
+    /**
+     * The format of the attestation statement at registration, such as `none` or `packed`.
+     */
+    public function attestationFormat(): string
+    {
+        return $this->attestationFormat;
+    }
+
+    /**
+     * What the attestation proved: whether the AAGUID is the authenticator's make vouched for (`trusted`) or only what
+     * it claims.
+     */
+    public function attestationType(): AttestationType
+    {
+        return $this->attestationType;
     }
 
     public function name(): string

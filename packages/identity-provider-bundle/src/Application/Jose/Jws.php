@@ -10,10 +10,10 @@ use Jose\Component\Signature\Algorithm\EdDSA;
 use Jose\Component\Signature\Algorithm\ES256;
 use Jose\Component\Signature\Algorithm\RS256;
 use Jose\Component\Signature\Algorithm\SignatureAlgorithm;
-use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use JsonException;
+use Phil\IdentityProviderBundle\Application\Contract\Signer;
 use Phil\IdentityProviderBundle\Domain\Encoding\Base64Url;
 use Phil\IdentityProviderBundle\Domain\Exception\MalformedInput;
 use Phil\IdentityProviderBundle\Domain\Exception\VerificationFailed;
@@ -21,8 +21,8 @@ use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Throwable;
 
 /**
- * JSON Web Tokens signed in the compact serialization (RFC 7515, RFC 7519) by `web-token/jwt-library`: written with a
- * private key, read back with the public JSON Web Key its `kid` names.
+ * JSON Web Tokens in the compact serialization (RFC 7515, RFC 7519): written with a `Signer` — a key held in memory or
+ * one a hardware module keeps —, read back by `web-token/jwt-library` with the public JSON Web Key its `kid` names.
  *
  * Before the library sees a token, the reader bounds it: at most MAX_LENGTH bytes, three parts, a header and claims
  * that are JSON objects of a bounded depth, a header that names an algorithm and a key, and no `crit` nor `b64`
@@ -39,18 +39,17 @@ final class Jws
     }
 
     /**
+     * A token signed by the key: the header — `alg`, `kid`, the members given, and `typ` JWT unless given —, the
+     * claims, and the signature the key gives over both, in the compact serialization.
+     *
      * @param array<string, mixed> $claims
      * @param array<string, mixed> $header more members of the header, such as `typ`
      */
-    public static function encode(array $claims, PrivateKey $key, array $header = []): string
+    public static function encode(array $claims, Signer $key, array $header = []): string
     {
-        $jws = new JWSBuilder(self::algorithms($key->algorithm))
-            ->create()
-            ->withPayload(self::json($claims))
-            ->addSignature($key->jwk(), ['alg' => $key->algorithm->value, 'kid' => $key->kid] + $header + ['typ' => 'JWT'])
-            ->build();
+        $input = Base64Url::encode(self::json(['alg' => $key->algorithm->value, 'kid' => $key->kid] + $header + ['typ' => 'JWT'])).'.'.Base64Url::encode(self::json($claims));
 
-        return new CompactSerializer()->serialize($jws, 0);
+        return $input.'.'.Base64Url::encode($key->sign($input));
     }
 
     /**

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6f8ebe99a711dd08cdca994bc3751b73de6973eec68339c1ae1db76c260e8bd5 -->
+<!-- phil-dev source-sha256=a13330ca82eec30dcc462047f66ae7a24f6467e73c26b80355b0124051284753 -->
 # Modèle de menaces
 
 Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une revue de sécurité par quelqu'un qui n'a pas
@@ -43,7 +43,7 @@ Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une 
 | Menace | Défense |
 |---|---|
 | Deviner des mots de passe en ligne | Le `login_throttling` du pare-feu par adresse et par identifiant et adresse ; avec `login_limiter`, aussi par identifiant quelle que soit l'adresse, contre les essais répartis sur beaucoup d'adresses ; le verrou progressif par compte, compté sous un verrou de sa ligne et vérifié avant le mot de passe ; les clés d'accès connectent quand même un compte verrouillé. |
-| Retenir les connexions d'un compte | Le compte par identifiant et le verrou progressif peuvent être dépensés par quiconque connaît une adresse ; le verrou refuse seulement le mot de passe, le compte dure son intervalle, et `login_limiter.account_max_attempts` reste bien au-dessus des autres limites. |
+| Retenir les connexions d'un compte | Le compte par identifiant et le verrou progressif peuvent être dépensés par quiconque connaît une adresse ; le verrou refuse seulement le mot de passe, le compte dure son intervalle, et `login_limiter.account_max_attempts` reste bien au-dessus des autres limites. `lockout: false` retire le verrou et laisse les essais à `login_limiter`, qui refuse des tentatives, non le compte. |
 | Choisir sa propre adresse | Les adresses comptées sont celles que voit Symfony : `framework.trusted_proxies` et `framework.trusted_headers` nomment les seuls mandataires, de sorte qu'aucun client ne règle son adresse par un en-tête. |
 | Mots de passe faibles ou divulgués | `phil/passwords` : estimateur de force avec les données propres au compte comme premières hypothèses ; Pwned Passwords par k-anonymat quand il est activé. |
 | Base de données de mots de passe volée | Argon2id ; aucun mot de passe dans un journal, un message ou un événement. |
@@ -55,7 +55,9 @@ Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une 
 | Un lien qui mène à un autre hôte | Les liens des courriels sont construits sur `public_origin`, jamais sur l'en-tête `Host` de la requête ; sans lui, `framework.trusted_hosts` refuse un hôte falsifié, et dans l'environnement `prod` le bundle refuse de démarrer quand ni l'un ni l'autre n'est réglé. |
 | Inscription en masse | Par défaut, l'inscription est comptée par adresse de client et par adresse saisie, et un seul courriel de vérification va à une adresse à chaque `resend_delay`. |
 | Deviner le code de la deuxième étape | Cinq codes erronés de suite ferment la session : les essais suivants exigent de nouveau le mot de passe, sous les limites du pare-feu et le verrou progressif. |
-| Liens réutilisés | Liens signés sur les propriétés qu'ils changent — l'adresse et sa vérification, l'empreinte du mot de passe et sa date —, de sorte que chacun ne fonctionne qu'une fois sans rien stocker ; un lien de réinitialisation pose son mot de passe sous un verrou de la ligne du compte, de sorte que deux requêtes au même moment ne peuvent pas toutes deux s'en servir. |
+| Liens réutilisés | Liens signés sur les propriétés qu'ils changent — l'adresse et sa vérification, l'empreinte du mot de passe et sa date —, de sorte que chacun ne fonctionne qu'une fois sans rien stocker ; un lien de réinitialisation pose son mot de passe sous un verrou de la ligne du compte, de sorte que deux requêtes au même moment ne peuvent pas toutes deux s'en servir. Avec `links.mode: stored`, chaque lien a aussi un jeton conservé sous forme d'empreinte à clé, servi une fois par une suppression comptée et révocable ; une copie de la table n'ouvre aucun compte. |
+| Deux comptes pour une boîte de courriel | La forme canonique de l'adresse de connexion est unique ; avec `accounts.strip_subaddress`, `ana+x@` et `ana@` sont une seule boîte. |
+| Un authentificateur d'une marque que le site refuse | Avec une transmission d'attestation, une déclaration `packed` est vérifiée jusqu'aux racines de confiance ; la politique refuse des marques, des attestations sous `trusted`, ou des clés d'accès synchronisées. Sans `require_trusted`, un AAGUID est ce que l'authentificateur prétend. |
 | Un lien ouvert par un analyseur de courriel | `/verify-email` affiche seulement une page qui demande de confirmer ; l'adresse est vérifiée par le formulaire qu'elle envoie, avec un jeton CSRF. |
 
 ## Attaques sur les sessions
@@ -85,6 +87,7 @@ Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une 
 | Objets de requête | Non acceptés : `request` et `request_uri` sont refusés avec `request_not_supported` et `request_uri_not_supported` avant que quoi que ce soit les lise. Le seul JSON Web Token qu'un client envoie est une assertion de client, bornée comme chaque jeton avant que la bibliothèque la voie, et vérifiée seulement avec une clé publique que le client a enregistrée. |
 | Confusion entre fournisseurs | L'émetteur dans la réponse d'autorisation (RFC 9207). |
 | Plusieurs clés actives à la fois | La première clé et chaque rotation sous un seul verrou partagé ; les clés actives ou en attente en trop réglées à chaque lecture. |
+| Une clé privée de signature copiée du serveur | Les clés de la base de données sont scellées sous `secrets.kms_key`, les fichiers de clés peuvent l'être aussi, et la source `service` garde la clé dans un module de sécurité matériel qui ne fait que signer. Une clé chargée reste dans la mémoire du processus, comme toute clé qui signe. |
 | Compromission de clé | Rotation avec publication avant l'emploi ; `rotate-keys --now` ; clés privées scellées par le composant KeyManagement quand il est configuré. |
 | Un client qui lit les jetons d'un autre | L'introspection et la révocation ne répondent que pour les jetons du client qui demande. |
 | Un compte désactivé qui garde son accès | L'introspection répond `active: false` pour les jetons d'un compte désactivé, comme userinfo les refuse. |

@@ -6,6 +6,7 @@ namespace Phil\IdentityProviderBundle\Domain\Model\Oidc;
 
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 
 /**
  * An authorization code, as a row of `phil_identity_code`: the SHA-256 of the code — never the code —, the client,
@@ -31,7 +32,7 @@ final class AuthorizationCode
         private readonly string $id,
         #[ORM\Column(name: 'client_id', length: 64)]
         private readonly string $clientId,
-        #[ORM\Column(name: 'account_id', length: 26, options: ['fixed' => true])]
+        #[ORM\Column(name: 'account_id', length: Account::ID_MAX_LENGTH)]
         private readonly string $accountId,
         #[ORM\Column(name: 'redirect_uri', type: 'text')]
         private readonly string $redirectUri,

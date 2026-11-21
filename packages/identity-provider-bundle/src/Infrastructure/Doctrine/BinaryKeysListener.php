@@ -7,7 +7,9 @@ namespace Phil\IdentityProviderBundle\Infrastructure\Doctrine;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+use Phil\IdentityProviderBundle\Domain\Model\Account\AccountAddress;
 use Phil\IdentityProviderBundle\Domain\Model\External\LinkedIdentity;
+use Phil\IdentityProviderBundle\Domain\Model\Link\LinkToken;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Consent;
@@ -33,7 +35,9 @@ final readonly class BinaryKeysListener
      * The fields that compare byte by byte, by entity of the bundle: identifiers, and the columns rows are found by.
      */
     public const array FIELDS = [
-        Account::class => ['id', 'email'],
+        Account::class => ['id', 'email', 'emailCanonical'],
+        AccountAddress::class => ['id', 'accountId', 'canonical'],
+        LinkToken::class => ['id', 'accountId'],
         AccountSession::class => ['id', 'accountId'],
         Passkey::class => ['id', 'accountId'],
         TotpCredential::class => ['accountId'],

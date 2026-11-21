@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1db44f284ef22c959bf28ff730d10c98ac648d74f432bf4aa70b6fc9bcd7013f -->
+<!-- phil-dev source-sha256=370b22443cd10f25b0e2a597661cc71ff0704c57682c5c79a5538a5be61c8ca7 -->
 # Installation
 
 ```sh
@@ -51,6 +51,28 @@ utilisateurs : Argon2id (`sodium`). Générez la migration des tables avec `bin/
   `oidc.client_authentication.methods`. `IssuedToken::accountId()` retourne null pour un jeton de l'octroi
   `client_credentials`, et `GrantRepository` gagne `useAssertion()` : une implémentation maison l'ajoute.
   `Tokens::bearer()` donne un troisième membre, le client du jeton.
+- Les comptes gagnent la table `phil_identity_address`, et `phil_identity_account` les colonnes `email_canonical`
+  (unique), `state` et `state_changed_at` à la place de `disabled_at` ; chaque `account_id`, et l'`id` de
+  `phil_identity_account`, contient jusqu'à 36 caractères au lieu de 26 fixes. Lancez
+  `bin/console doctrine:migrations:diff`, puis complétez la migration qu'elle écrit pour que les lignes gardent leur
+  sens, avant que les nouvelles colonnes deviennent obligatoires :
+
+  ```sql
+  UPDATE phil_identity_account SET email_canonical = email;
+  UPDATE phil_identity_account SET state = 'suspended', state_changed_at = disabled_at WHERE disabled_at IS NOT NULL;
+  ```
+
+  Avec `accounts.strip_subaddress`, calculez plutôt `email_canonical` avec l'`EmailCanonicalizer` du bundle, et réglez
+  d'abord les comptes qui partagent une boîte de courriel. Les clés d'accès gagnent `attestation_format` et
+  `attestation_type`, qui valent `none` par défaut.
+- `Account::enable()` prend le moment du changement, comme `disable()` ; `AccountRepository` gagne
+  `findByCanonicalEmail()` : une implémentation maison l'ajoute. `Account::register()` et `changeEmail()` prennent la
+  forme canonique, en dernier et facultative ; un identifiant contient de 1 à 36 lettres, chiffres et traits d'union.
+- `Tokens`, `LogoutTokens` et `MetadataController` prennent une `SigningKeySource` — `SigningKeys` en est une —, et
+  `Jws::encode()` prend un `Signer` — `PrivateKey` en est un : le code qui leur passait un `SigningKeys` ou un
+  `PrivateKey` continue de fonctionner.
+- Avec `links.mode: stored`, le schéma gagne `phil_identity_link_token` : lancez `bin/console doctrine:migrations:diff`
+  et migrez. Les liens envoyés avant le changement de mode cessent de fonctionner.
 
 ## Où mènent les liens
 
@@ -163,6 +185,7 @@ Le formulaire de connexion est celui de l'application. Une page qui offre les cl
 
 ## La planification
 
-Lancez `phil:identity-provider:rotate-keys` chaque jour quand le fournisseur est activé, et
-`phil:identity-provider:purge` chaque jour pour retirer les codes et les jetons expirés et les sessions inactives, par
-le composant Scheduler ou par un cron.
+Lancez `phil:identity-provider:rotate-keys` chaque jour quand le fournisseur garde ses clés dans la base de données, et
+`phil:identity-provider:purge` chaque jour pour retirer les codes, les jetons et les jetons de lien expirés et les
+sessions inactives, par le composant Scheduler ou par un cron. Avec `oidc.signing_keys.automatic_rotation: false`, la
+rotation planifiée ne change rien, et un opérateur fait tourner les clés avec `--force`.

@@ -7,16 +7,20 @@ namespace Phil\IdentityProviderBundle\Tests\Unit\Infrastructure;
 use DateTimeImmutable;
 use Override;
 use Phil\IdentityProviderBundle\Application\Contract\Transactions;
+use Phil\IdentityProviderBundle\Domain\Account\AddressPurpose;
+use Phil\IdentityProviderBundle\Domain\Contract\AccountAddressRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\ClientRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\LinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\LinkTokenRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\PasskeyRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SigningKeyRepository;
 use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
+use Phil\IdentityProviderBundle\Domain\Model\Account\AccountAddress;
 use Phil\IdentityProviderBundle\Domain\Model\External\LinkedIdentity;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
@@ -30,11 +34,13 @@ use Phil\IdentityProviderBundle\Domain\Model\Totp\TotpCredential;
 use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
 use Phil\IdentityProviderBundle\Domain\WebAuthn\RegisteredCredential;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\ImmediateTransactions;
+use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountAddressRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryClientRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryGrantRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryLinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryLinkTokenRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryPasskeyRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemorySecondFactorRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemorySigningKeyRepository;
@@ -50,6 +56,8 @@ use Symfony\Contracts\Service\ResetInterface;
 #[CoversClass(InMemoryClientRepository::class)]
 #[CoversClass(InMemoryGrantRepository::class)]
 #[CoversClass(InMemorySigningKeyRepository::class)]
+#[CoversClass(InMemoryAccountAddressRepository::class)]
+#[CoversClass(InMemoryLinkTokenRepository::class)]
 final class MemoryRepositoryTest extends RepositoryTestCase
 {
     /** @var array<class-string, object> */
@@ -216,6 +224,16 @@ final class MemoryRepositoryTest extends RepositoryTestCase
         return $this->store(InMemoryAccountSessionRepository::class);
     }
 
+    public function testASavedAddressIsStoredAsACopy(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $address = AccountAddress::add(self::ADA, AddressPurpose::Recovery, 'ada@example.org', 'ada@example.org', $now);
+        $this->addresses()->save($address);
+        $address->verify($now);
+
+        self::assertFalse($this->addresses()->findByCanonical(AddressPurpose::Recovery, 'ada@example.org')?->isVerified());
+    }
+
     #[Override]
     protected function identities(): LinkedIdentityRepository
     {
@@ -238,6 +256,18 @@ final class MemoryRepositoryTest extends RepositoryTestCase
     protected function keys(): SigningKeyRepository
     {
         return $this->store(InMemorySigningKeyRepository::class);
+    }
+
+    #[Override]
+    protected function addresses(): AccountAddressRepository
+    {
+        return $this->store(InMemoryAccountAddressRepository::class);
+    }
+
+    #[Override]
+    protected function linkTokens(): LinkTokenRepository
+    {
+        return $this->store(InMemoryLinkTokenRepository::class);
     }
 
     #[Override]

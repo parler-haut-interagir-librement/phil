@@ -25,11 +25,13 @@ final class BinaryKeysListenerTest extends TestCase
     {
         foreach (['8.4.0', '11.4.0-MariaDB'] as $version) {
             self::assertSame([
-                'phil_identity_account' => ['email', 'id'],
+                'phil_identity_account' => ['email', 'email_canonical', 'id'],
+                'phil_identity_address' => ['account_id', 'canonical', 'id'],
                 'phil_identity_assertion' => ['id'],
                 'phil_identity_client' => ['id'],
                 'phil_identity_code' => ['account_id', 'client_id', 'family', 'id', 'session_id'],
                 'phil_identity_consent' => ['account_id', 'client_id', 'id'],
+                'phil_identity_link_token' => ['account_id', 'id'],
                 'phil_identity_linked' => ['account_id', 'id', 'provider', 'subject'],
                 'phil_identity_passkey' => ['account_id', 'id'],
                 'phil_identity_recovery_codes' => ['account_id'],
@@ -50,7 +52,8 @@ final class BinaryKeysListenerTest extends TestCase
         }
 
         $metadata = $this->entityManager(['driver' => 'pdo_pgsql', 'serverVersion' => '17.0'])->getClassMetadata(Account::class);
-        self::assertSame(['fixed' => true], $metadata->getFieldMapping('id')->options);
+        self::assertNull($metadata->getFieldMapping('id')->options);
+        self::assertSame(['default' => 'active'], $metadata->getFieldMapping('state')->options);
     }
 
     public function testTheOtherOptionsOfAColumnAreKept(): void
@@ -58,9 +61,20 @@ final class BinaryKeysListenerTest extends TestCase
         $entityManager = $this->entityManager(['driver' => 'pdo_mysql', 'serverVersion' => '8.4.0']);
         $metadata = $entityManager->getClassMetadata(Account::class);
 
-        self::assertSame(['fixed' => true, 'charset' => 'utf8mb4', 'collation' => 'utf8mb4_bin'], $metadata->getFieldMapping('id')->options);
+        self::assertSame(['charset' => 'utf8mb4', 'collation' => 'utf8mb4_bin'], $metadata->getFieldMapping('id')->options);
+        self::assertSame(['default' => 'active'], $metadata->getFieldMapping('state')->options);
         self::assertSame(['charset' => 'utf8mb4', 'collation' => 'utf8mb4_bin'], $metadata->getFieldMapping('email')->options);
         self::assertNull($metadata->getFieldMapping('displayName')->options);
+    }
+
+    public function testTheOptionsAKeyAlreadyHasAreKeptNextToTheCollation(): void
+    {
+        $metadata = $this->entityManager(['driver' => 'pdo_sqlite', 'memory' => true])->getClassMetadata(Account::class);
+        $metadata->getFieldMapping('id')->options = ['comment' => 'the key'];
+
+        new BinaryKeysListener()->loadClassMetadata(new LoadClassMetadataEventArgs($metadata, $this->entityManager(['driver' => 'pdo_mysql', 'serverVersion' => '8.4.0'])));
+
+        self::assertSame(['comment' => 'the key', 'charset' => 'utf8mb4', 'collation' => 'utf8mb4_bin'], $metadata->getFieldMapping('id')->options);
     }
 
     public function testAnotherEntityIsLeftAsItIs(): void

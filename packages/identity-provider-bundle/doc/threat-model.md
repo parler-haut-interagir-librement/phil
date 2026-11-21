@@ -40,7 +40,7 @@ write the code comes before the bundle is used in production, against this page 
 | Threat | Defence |
 |---|---|
 | Guessing passwords online | The firewall's `login_throttling` per address and per identifier and address; with `login_limiter`, per identifier whatever the address too, against guessing spread over many addresses; the progressive lock per account, counted under a lock of its row and checked before the password; passkeys still sign a locked account in. |
-| Holding an account's sign-ins back | The count per identifier and the progressive lock can be spent by anyone who knows an address; the lock refuses the password only, the count lasts its interval, and `login_limiter.account_max_attempts` is kept well above the other limits. |
+| Holding an account's sign-ins back | The count per identifier and the progressive lock can be spent by anyone who knows an address; the lock refuses the password only, the count lasts its interval, and `login_limiter.account_max_attempts` is kept well above the other limits. `lockout: false` removes the lock and leaves guessing to `login_limiter`, which refuses attempts, not the account. |
 | Choosing one's own address | The addresses counted are the ones Symfony sees: `framework.trusted_proxies` and `framework.trusted_headers` name the proxies only, so that no client sets its address by a header. |
 | Weak or breached passwords | `phil/passwords`: strength estimator with the account's own data as first guesses; Pwned Passwords by k-anonymity when turned on. |
 | Stolen password database | Argon2id; no password in a log, a message or an event. |
@@ -52,7 +52,9 @@ write the code comes before the bundle is used in production, against this page 
 | A link that points to another host | The links of the emails are built on `public_origin`, never on the `Host` header of the request; without it, `framework.trusted_hosts` refuses a forged host, and in the `prod` environment the bundle refuses to boot when neither is set. |
 | Mass registration | Registration counted per client address and per address typed, and one verification email per address in each `resend_delay`, by default. |
 | Guessing the code of the second step | Five wrong codes in a row sign the session out: the next guesses need the password again, under the firewall's limits and the progressive lock. |
-| Reused links | Links signed over the properties they change — the address and its verification, the password hash and its date —, so each works once with nothing stored; a reset link sets its password under a lock of the account's row, so two requests at once cannot both use it. |
+| Reused links | Links signed over the properties they change — the address and its verification, the password hash and its date —, so each works once with nothing stored; a reset link sets its password under a lock of the account's row, so two requests at once cannot both use it. With `links.mode: stored`, each link also has a token stored as a keyed hash, consumed once by a counted delete and revocable; a copy of the table opens no account. |
+| Two accounts for one mailbox | The canonical form of the sign-in address is unique; with `accounts.strip_subaddress`, `ana+x@` and `ana@` are one mailbox. |
+| An authenticator of a make the site refuses | With an attestation conveyance, a `packed` statement is verified up to the trusted roots; the policy refuses makes, attestations below `trusted`, or synced passkeys. Without `require_trusted`, an AAGUID is what the authenticator claims. |
 | A link opened by a mail scanner | `/verify-email` only shows a page that asks to confirm; the address is verified by the form it posts, with a CSRF token. |
 
 ## Session attacks
@@ -82,6 +84,7 @@ write the code comes before the bundle is used in production, against this page 
 | Request objects | Not accepted: `request` and `request_uri` are refused with `request_not_supported` and `request_uri_not_supported` before anything reads them. The one JSON Web Token a client sends is a client assertion, bounded like every token before the library sees it, and verified only with a public key the client registered. |
 | Mix-up between providers | The issuer in the authorization response (RFC 9207). |
 | Several keys active at once | The first key and each rotation under one shared lock; extra active or pending keys settled at every read. |
+| A private signing key copied from the server | The keys of the database are sealed under `secrets.kms_key`, key files may be sealed too, and the source `service` keeps the key in a hardware security module that only signs. A loaded key stays in the memory of the process, as every key that signs does. |
 | Key compromise | Rotation with publication before use; `rotate-keys --now`; private keys sealed by the KeyManagement component when configured. |
 | A client reading another client's tokens | Introspection and revocation answer only for the asking client's tokens. |
 | A disabled account keeping its access | Introspection answers `active: false` for the tokens of a disabled account, as userinfo refuses them. |

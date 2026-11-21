@@ -14,8 +14,10 @@ use Phil\IdentityProviderBundle\Domain\Jose\SigningAlgorithm;
  * The relying party of WebAuthn (Web Authentication, Level 3): the options of the two ceremonies, and the
  * verification of their responses.
  *
- * Registration asks for a discoverable credential — a passkey — and no attestation: the attestation statement, when
- * an authenticator sends one anyway, is not read, so nothing is trusted about the authenticator's make. Sign-in checks
+ * Registration asks for a discoverable credential — a passkey — and the attestation of the `AttestationPolicy`, none
+ * by default. With the conveyance `none`, a statement an authenticator sends anyway is not read: its format is
+ * recorded and nothing is trusted about the authenticator's make. With another conveyance, `AttestationStatement`
+ * reads it, and the passkey records what it proved; the policy's lists and backup rule are the caller's. Sign-in checks
  * the client data, the hash of the relying party identifier, the user's presence — and verification when required —,
  * the signature over the authenticator data and the client data, and refuses a counter that does not move forward
  * when the authenticator keeps one: a cloned authenticator.
@@ -35,6 +37,7 @@ final readonly class RelyingParty
         public array $origins,
         public bool $requireUserVerification = false,
         public int $timeout = 300_000,
+        public AttestationPolicy $attestation = new AttestationPolicy(),
     ) {
         if ('' === $id || '' === $name || [] === $origins) {
             throw InvalidValue::because('A relying party has an identifier, a name and at least one origin.');
@@ -64,7 +67,7 @@ final readonly class RelyingParty
             'timeout' => $this->timeout,
             'excludeCredentials' => array_map(static fn (string $id): array => ['type' => 'public-key', 'id' => $id], $excludeCredentialIds),
             'authenticatorSelection' => ['residentKey' => 'required', 'requireResidentKey' => true, 'userVerification' => $this->userVerification()],
-            'attestation' => 'none',
+            'attestation' => $this->attestation->conveyance,
         ];
     }
 
@@ -88,10 +91,14 @@ final readonly class RelyingParty
     }
 
     /**
+     * @param ?int $now the time the certificates of an attestation are checked at, as a Unix timestamp; the current one
+     *                  when null
+     *
      * @throws MalformedInput     when a part of the response cannot be read
-     * @throws VerificationFailed when it does not answer the challenge of this relying party
+     * @throws VerificationFailed when it does not answer the challenge of this relying party, or its attestation does
+     *                            not verify
      */
-    public function verifyRegistration(string $clientDataJson, string $attestationObject, string $challenge): RegisteredCredential
+    public function verifyRegistration(string $clientDataJson, string $attestationObject, string $challenge, ?int $now = null): RegisteredCredential
     {
         ClientData::parse($clientDataJson)->assert('webauthn.create', $challenge, $this->origins);
 
@@ -113,6 +120,9 @@ final readonly class RelyingParty
         }
 
         CoseKey::decode($data->coseKey);
+        $type = 'none' === $this->attestation->conveyance
+            ? ('none' === $attestation['fmt'] ? AttestationType::None : AttestationType::Unverified)
+            : AttestationStatement::verify($attestation['fmt'], $attestation['attStmt'] ?? [], $attestation['authData'], hash('sha256', $clientDataJson, true), $data, $this->attestation->trustedRoots, $now ?? time());
 
         return new RegisteredCredential(
             $data->credentialId,
@@ -122,6 +132,8 @@ final readonly class RelyingParty
             $data->has(AuthenticatorData::USER_VERIFIED),
             $data->has(AuthenticatorData::BACKUP_ELIGIBLE),
             $data->has(AuthenticatorData::BACKED_UP),
+            substr($attestation['fmt'], 0, RegisteredCredential::FORMAT_MAX_LENGTH),
+            $type,
         );
     }
 

@@ -37,7 +37,13 @@ return [
             // The lock of the signing keys is released in `finally`: releasing it again when its object is destroyed
             // changes nothing, and turning that off lets the tests see a release left out.
             'FalseValue' => [
-                'ignoreSourceCodeByRegex' => ['\\$lock = \\$this->locks->createLock\\(self::LOCK, autoRelease: false\\);'],
+                'ignoreSourceCodeByRegex' => [
+                    '\\$lock = \\$this->locks->createLock\\(self::LOCK, autoRelease: false\\);',
+                    // A file that cannot be read gives false, and `true` is refused by the `is_string()` that follows, with
+                    // the same message.
+                    '\\$material = is_file\\(\\$path\\) && is_readable.*',
+                    '\\$pem = is_file\\(\\$path\\) && is_readable.*',
+                ],
             ],
             // What the callee does anyway: the estimator slices its inputs, a variadic parameter is a list, the
             // identifiers of a scope are distinct once split, and the diff of two lists is spread by position.
@@ -50,6 +56,8 @@ return [
                     '\\$inputs = array_values\\(array_filter.*',
                     '\\$scopes = array_values\\(array_unique\\(\\[\\.\\.\\.\\$asked.*',
                     'return new self\\(array_values\\(\\$reasons\\)\\);',
+                    // `usort()` that follows numbers the addresses again.
+                    '\\$addresses = array_values\\(array_filter\\(\\$this->addresses.*',
                     'throw Refused::because\\(\'client\\.scope_unknown.*',
                 ],
             ],
@@ -69,17 +77,45 @@ return [
                     '\\$this->grants\\?->saveToken\\(\\$token\\);',
                 ],
             ],
-            // The three parts of an attested credential are all read or none is. Messenger and the HTTP client are both
-            // installed or both absent in a test run: a test cannot make one of them vanish.
+            // The three parts of an attested credential are all read or none is, at registration as in a statement.
+            // Messenger and the HTTP client are both installed or both absent in a test run: a test cannot make one of
+            // them vanish.
             'LogicalOr' => [
                 'ignoreSourceCodeByRegex' => [
                     'if \\(null === \\$data->credentialId.*',
+                    'if \\(null === \\$data->coseKey \\|\\| null === \\$data->aaguid\\) \\{',
                     'if \\(!interface_exists\\(MessageBusInterface::class\\) \\|\\| !interface_exists\\(HttpClientInterface::class\\)\\) \\{',
+                    // A stored token that is another account's, of another purpose or of another expiry fails the signature
+                    // that is verified over its fingerprint just after: the checks of the token only spare the work.
+                    'if \\(!\\$token instanceof LinkToken \\|\\| \\$token->accountId\\(\\).*',
+                    // OpenSSL always parses a certificate it has read, so `$parsed` is an array; a version 1 or 2 certificate
+                    // has no extensions, and the basic constraints that follow refuse it.
+                    'if \\(!\\\\is_array\\(\\$parsed\\) \\|\\| 2 !==.*',
                 ],
+            ],
+            // OpenSSL always parses a certificate it has read: `$parsed` is an array, and its validity dates are integers.
+            // A key that is not there reads as null, which `??` takes as it takes an empty array. A file is read only after
+            // `is_file()` and `is_readable()`: a directory read gives an empty string, refused just after like a missing file.
+            'LogicalAnd' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$subject = \\\\is_array\\(\\$parsed\\) &&.*',
+                    '\\$extensions = \\\\is_array\\(\\$parsed\\) &&.*',
+                    'return \\\\is_int\\(\\$from\\) &&.*',
+                    '\\$constraints = \\\\is_array\\(\\$parsed\\) &&.*',
+                    '\\$pem = is_file\\(\\$path\\) && is_readable.*',
+                ],
+            ],
+            // An assertion that holds for every value the query can give.
+            'LogicalOrAllSubExprNegation' => [
+                'ignoreSourceCodeByRegex' => ['\\\\assert\\(null === \\$token \\|\\| \\$token instanceof LinkToken\\);'],
             ],
             // A value is read at the same depth as its key, and the key is checked first.
             'DecrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
+                    // The mark of a missing integer header (-1, -2 or -0) is a length below 1 whatever its value: refused as 0
+                    // is, with the same message; and the length that `substr()` reads is used only when it is at least 1.
+                    '\\$partLength = \\$offset \\+ 2 <= \\$size.*',
+                    '\\$number = ltrim\\(substr\\(\\$der, \\$offset \\+ 2, max\\(0.*',
                     '\\$values\\[\\$key\\] = \\$this->item\\(\\$depth \\+ 1\\);',
                     // `trim()` takes the space that the shorter prefix leaves.
                     '\\$parts = explode\\(\':\', sodium_base642bin\\(trim\\(substr.*',
@@ -87,6 +123,17 @@ return [
                     // same message.
                     '\\$seconds = 0;',
                 ],
+            ],
+            'IncrementInteger' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$partLength = \\$offset \\+ 2 <= \\$size.*',
+                    '\\$number = ltrim\\(substr\\(\\$der, \\$offset \\+ 2, max\\(0.*',
+                ],
+            ],
+            // A header that ends the signature one byte earlier or later has no length to read, and a length below 1 is
+            // refused with the same message.
+            'LessThanOrEqualTo' => [
+                'ignoreSourceCodeByRegex' => ['\\$partLength = \\$offset \\+ 2 <= \\$size.*'],
             ],
             'Plus' => [
                 'ignoreSourceCodeByRegex' => ['\\$values\\[\\$key\\] = \\$this->item\\(\\$depth \\+ 1\\);'],
@@ -105,6 +152,7 @@ return [
             'client-data' => 'tests/Fuzz/client-data.php',
             'jwt' => 'tests/Fuzz/jwt.php',
             'authorization-request' => 'tests/Fuzz/authorization-request.php',
+            'attestation' => 'tests/Fuzz/attestation.php',
         ],
     ],
 ];

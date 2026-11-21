@@ -17,6 +17,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * the account identifier, the expiry and the signature, never the address. A reset asked for an unknown address sends
  * nothing and answers the same, so that the form tells nobody who has an account. Each link is put on the canonical
  * origin by `LinkOrigin`, never on the host the request named.
+ *
+ * In the stored mode of `SignedLinks`, a link is consumed when it is used, and `revoke()` ends the links of an account
+ * still out, as after a doubt about its mailbox.
  */
 final readonly class AccountLinks
 {
@@ -71,6 +74,30 @@ final readonly class AccountLinks
         $account = $this->accounts->get($accountId);
 
         return $account instanceof Account && !$account->isDisabled() && $this->links->verify($purpose, $account, $expires, $signature) ? $account : null;
+    }
+
+    /**
+     * Uses a link up, once; true in the signed mode, where the change the link leads to ends it.
+     */
+    public function consume(string $signature): bool
+    {
+        return $this->links->consume($signature);
+    }
+
+    /**
+     * Revokes the links of the account still out, of one purpose or all of them.
+     *
+     * @return int how many were revoked, always 0 in the signed mode
+     */
+    public function revoke(Account $account, ?string $purpose = null): int
+    {
+        $revoked = $this->links->revoke($account, $purpose);
+
+        if ($revoked > 0) {
+            $this->journal->record(IdentityEventType::LinksRevoked, $account->id(), ['purpose' => $purpose, 'count' => $revoked]);
+        }
+
+        return $revoked;
     }
 
     /**

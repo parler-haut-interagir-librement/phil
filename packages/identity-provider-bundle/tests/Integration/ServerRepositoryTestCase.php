@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\ORMSetup;
 use Override;
+use Phil\IdentityProviderBundle\Domain\Model\Link\LinkToken;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\AuthorizationCode;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\UsedAssertion;
@@ -19,6 +20,7 @@ use Phil\IdentityProviderBundle\Domain\Model\Totp\TotpCredential;
 use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineGrantRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkTokenRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSecondFactorRepository;
 use Phil\IdentityProviderBundle\Tests\Unit\Infrastructure\DoctrineRepositoryTestCase;
 
@@ -72,6 +74,20 @@ abstract class ServerRepositoryTestCase extends DoctrineRepositoryTestCase
         self::assertTrue($other->useAssertion(UsedAssertion::record('machine', 'jti', $now)));
         self::assertFalse($this->grants()->useAssertion(UsedAssertion::record('machine', 'jti', $now)));
         self::assertTrue($this->grants()->useAssertion(UsedAssertion::record('machine', 'JTI', $now)), 'The identifier compares byte by byte.');
+    }
+
+    public function testTwoConnectionsConsumeALinkTokenOnce(): void
+    {
+        $now = new DateTimeImmutable('2026-11-14 10:00:00');
+        $id = str_repeat('a', 64);
+        $this->linkTokens()->save(LinkToken::issue($id, self::ADA, 'reset', 'fingerprint', $now->modify('+1 hour'), $now));
+        $other = new DoctrineLinkTokenRepository($this->second());
+
+        self::assertNotNull($this->linkTokens()->get($id));
+        self::assertNotNull($other->get($id));
+        self::assertTrue($other->consume($id));
+        self::assertFalse($this->linkTokens()->consume($id));
+        self::assertNull($this->linkTokens()->get($id), 'A token removed by the other connection is gone for this one too.');
     }
 
     public function testTwoConnectionsAcceptATotpCounterOnce(): void

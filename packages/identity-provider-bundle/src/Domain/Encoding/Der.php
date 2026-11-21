@@ -7,8 +7,8 @@ namespace Phil\IdentityProviderBundle\Domain\Encoding;
 use Phil\IdentityProviderBundle\Domain\Exception\MalformedInput;
 
 /**
- * The few DER structures (X.690) the public keys of passkeys need: a public key written as a SubjectPublicKeyInfo
- * for OpenSSL.
+ * The few DER structures (X.690) the keys need: a public key of a passkey written as a SubjectPublicKeyInfo for
+ * OpenSSL, a certificate written as PEM, and an ECDSA signature of OpenSSL read back as the two numbers JOSE writes.
  */
 final class Der
 {
@@ -47,11 +47,57 @@ final class Der
     }
 
     /**
+     * The PEM of a certificate from its DER, as the `x5c` of an attestation carries it.
+     *
      * @return non-empty-string
      */
-    private static function pem(string $der): string
+    public static function certificate(string $der): string
     {
-        return "-----BEGIN PUBLIC KEY-----\n".chunk_split(sodium_bin2base64($der, \SODIUM_BASE64_VARIANT_ORIGINAL), 64, "\n")."-----END PUBLIC KEY-----\n";
+        return self::pem($der, 'CERTIFICATE');
+    }
+
+    /**
+     * The `r` and `s` of an ECDSA signature in DER, `SEQUENCE { INTEGER r, INTEGER s }`, each as unsigned big-endian
+     * bytes left-padded to the length of the curve: the signature of JWS (RFC 7518, section 3.4).
+     *
+     * @throws MalformedInput when the bytes are not such a sequence, or a number is longer than the curve
+     */
+    public static function ecdsaSignature(string $der, int $length): string
+    {
+        $size = \strlen($der);
+
+        if ($size < 8 || "\x30" !== $der[0] || \ord($der[1]) !== $size - 2) {
+            throw MalformedInput::because('An ECDSA signature is a DER sequence of two integers.');
+        }
+
+        $offset = 2;
+        $parts = '';
+
+        foreach ([0, 1] as $part) {
+            $partLength = $offset + 2 <= $size && "\x02" === $der[$offset] ? \ord($der[$offset + 1]) : -1;
+            $number = ltrim(substr($der, $offset + 2, max(0, $partLength)), "\x00");
+
+            if ($partLength < 1 || $partLength > 0x7F || $offset + 2 + $partLength > $size || \strlen($number) > $length) {
+                throw MalformedInput::because(\sprintf('Integer %d of an ECDSA signature is out of bounds.', $part + 1));
+            }
+
+            $parts .= str_pad($number, $length, "\x00", \STR_PAD_LEFT);
+            $offset += 2 + $partLength;
+        }
+
+        if ($offset !== $size) {
+            throw MalformedInput::because('An ECDSA signature holds bytes after its two integers.');
+        }
+
+        return $parts;
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    private static function pem(string $der, string $label = 'PUBLIC KEY'): string
+    {
+        return "-----BEGIN {$label}-----\n".chunk_split(sodium_bin2base64($der, \SODIUM_BASE64_VARIANT_ORIGINAL), 64, "\n")."-----END {$label}-----\n";
     }
 
     private static function sequence(string $content): string

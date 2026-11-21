@@ -209,7 +209,7 @@ final class OtherMethodsTest extends FunctionalTestCase
 
         $purge = new CommandTester($application->find('phil:identity-provider:purge'));
         $purge->execute(['--session-days' => '7']);
-        self::assertStringContainsString('Codes and tokens removed: 0. Sessions removed: 0.', $purge->getDisplay());
+        self::assertStringContainsString('Codes and tokens removed: 0. Link tokens removed: 0. Sessions removed: 0.', $purge->getDisplay());
     }
 
     public function testAnAuthenticatorRouteWithoutItsAuthenticatorSaysSo(): void

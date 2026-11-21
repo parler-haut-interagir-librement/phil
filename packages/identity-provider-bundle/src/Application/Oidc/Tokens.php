@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Application\Oidc;
 
 use DateTimeImmutable;
+use Phil\IdentityProviderBundle\Application\Contract\SigningKeySource;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Application\Exception\OAuthError;
 use Phil\IdentityProviderBundle\Application\Jose\Jws;
@@ -61,7 +62,7 @@ final readonly class Tokens
         private ClientRepository $clients,
         private GrantRepository $grants,
         private AccountRepository $accounts,
-        private SigningKeys $keys,
+        private SigningKeySource $keys,
         private ProviderSettings $settings,
         private ClockInterface $clock,
         private Journal $journal,

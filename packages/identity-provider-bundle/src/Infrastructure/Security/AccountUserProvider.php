@@ -17,15 +17,14 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
  * The user provider of the accounts, for the firewall: a user is loaded by its account identifier — the identifier of
- * the token, of login links and of the session — or by its address, what people type in the sign-in form. A hash the
- * password hasher asks to strengthen is written back.
+ * the token, of login links and of the session — or by its address, what people type in the sign-in form, told apart
+ * by the "@" that an address has and an identifier never has. A hash the password hasher asks to strengthen is written
+ * back.
  *
  * @implements UserProviderInterface<AccountUser>
  */
 final readonly class AccountUserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
-    private const string ULID = '/^[0-9A-HJKMNP-TV-Z]{26}$/D';
-
     public function __construct(
         private AccountRepository $accounts,
     ) {
@@ -34,7 +33,7 @@ final readonly class AccountUserProvider implements UserProviderInterface, Passw
     #[Override]
     public function loadUserByIdentifier(string $identifier): AccountUser
     {
-        $account = 1 === preg_match(self::ULID, $identifier) ? $this->accounts->get($identifier) : $this->accounts->findByEmail($identifier);
+        $account = str_contains($identifier, '@') ? $this->accounts->findByEmail($identifier) : $this->accounts->get($identifier);
 
         if (!$account instanceof Account) {
             $exception = new UserNotFoundException();

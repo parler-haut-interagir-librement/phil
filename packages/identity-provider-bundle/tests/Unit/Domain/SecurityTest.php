@@ -33,8 +33,18 @@ final class SecurityTest extends TestCase
     {
         $policy = new LockoutPolicy();
 
-        self::assertSame([5, 60, 3600], [$policy->threshold, $policy->base, $policy->max]);
+        self::assertSame([5, 60, 3600, true], [$policy->threshold, $policy->base, $policy->max, $policy->enabled]);
         new LockoutPolicy(1, 1, 1);
+    }
+
+    public function testALockoutTurnedOffNeverLocks(): void
+    {
+        $policy = new LockoutPolicy(1, 60, 60, false);
+        $at = new DateTimeImmutable('2026-11-14 10:00:00');
+
+        self::assertNull($policy->lockedUntil(1, $at));
+        self::assertNull($policy->lockedUntil(1000, $at));
+        self::assertSame('10:01:00', new LockoutPolicy(1, 60, 60)->lockedUntil(1, $at)?->format('H:i:s'));
     }
 
     public function testTheLockRefusesNonsense(): void

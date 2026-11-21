@@ -7,18 +7,25 @@ namespace Phil\IdentityProviderBundle\Infrastructure\DependencyInjection;
 use DateMalformedStringException;
 use DateTimeImmutable;
 use Phil\AuditBundle\Application\AuditTrail;
+use Phil\IdentityProviderBundle\Application\AccountAddresses;
 use Phil\IdentityProviderBundle\Application\AccountLinks;
 use Phil\IdentityProviderBundle\Application\Accounts;
+use Phil\IdentityProviderBundle\Application\Contract\AccountIdGenerator;
 use Phil\IdentityProviderBundle\Application\Contract\AccountMailer;
+use Phil\IdentityProviderBundle\Application\Contract\AddressCanonicalizer;
 use Phil\IdentityProviderBundle\Application\Contract\AuditRecorder;
 use Phil\IdentityProviderBundle\Application\Contract\ChallengeStore;
 use Phil\IdentityProviderBundle\Application\Contract\ClaimsProvider;
 use Phil\IdentityProviderBundle\Application\Contract\LinkOrigin;
 use Phil\IdentityProviderBundle\Application\Contract\LogoutNotifier;
 use Phil\IdentityProviderBundle\Application\Contract\SecretCipher;
+use Phil\IdentityProviderBundle\Application\Contract\SigningKeySource;
 use Phil\IdentityProviderBundle\Application\Contract\SmsSender;
 use Phil\IdentityProviderBundle\Application\Contract\Transactions;
+use Phil\IdentityProviderBundle\Application\EmailCanonicalizer;
 use Phil\IdentityProviderBundle\Application\ExternalIdentities;
+use Phil\IdentityProviderBundle\Application\Identifier\UlidAccountIdGenerator;
+use Phil\IdentityProviderBundle\Application\Identifier\UuidV7AccountIdGenerator;
 use Phil\IdentityProviderBundle\Application\Journal;
 use Phil\IdentityProviderBundle\Application\Modules;
 use Phil\IdentityProviderBundle\Application\Oidc\Authorization;
@@ -34,11 +41,13 @@ use Phil\IdentityProviderBundle\Application\PhoneVerification;
 use Phil\IdentityProviderBundle\Application\SecondFactors;
 use Phil\IdentityProviderBundle\Application\Sessions;
 use Phil\IdentityProviderBundle\Application\SignedLinks;
+use Phil\IdentityProviderBundle\Domain\Contract\AccountAddressRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\ClientRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\LinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Domain\Contract\LinkTokenRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\PasskeyRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SecondFactorRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\SigningKeyRepository;
@@ -56,12 +65,15 @@ use Phil\IdentityProviderBundle\Infrastructure\Console\ListClientsCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Console\PurgeCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Console\ReplaceClientKeysCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Console\RotateKeysCommand;
+use Phil\IdentityProviderBundle\Infrastructure\Console\SealKeyCommand;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\BinaryKeysListener;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountAddressRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineClientRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineGrantRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkTokenRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrinePasskeyRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSecondFactorRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineSigningKeyRepository;
@@ -84,11 +96,13 @@ use Phil\IdentityProviderBundle\Infrastructure\Http\StepUpController;
 use Phil\IdentityProviderBundle\Infrastructure\Http\TotpController;
 use Phil\IdentityProviderBundle\Infrastructure\Mailer\MailerAccountMailer;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\ImmediateTransactions;
+use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountAddressRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryClientRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryGrantRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryLinkedIdentityRepository;
+use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryLinkTokenRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryPasskeyRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemorySecondFactorRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemorySigningKeyRepository;
@@ -153,6 +167,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *     clock: string,
  *     layout: string,
  *     kit_subdirectory: ?string,
+ *     accounts: array{id_generator: string, strip_subaddress: bool, canonicalizer: ?string},
  *     registration: array{enabled: bool, rate_limit: array{enabled: bool, per_ip: array{limit: positive-int, interval: string}, per_address: array{limit: positive-int, interval: string}, resend_delay: string}},
  *     public_origin: ?string,
  *     require_verified_email: bool,
@@ -161,16 +176,16 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *     open_routes: list<string>,
  *     mailer: array{from: ?string},
  *     password: array{min_score: int<0, 4>, breach_check: bool, http_client: string},
- *     lockout: array{threshold: positive-int, base: positive-int, max: positive-int},
+ *     lockout: array{enabled: bool, threshold: positive-int, base: positive-int, max: positive-int},
  *     login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool},
- *     links: array{verify_lifetime: positive-int, reset_lifetime: positive-int},
- *     passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool},
+ *     links: array{verify_lifetime: positive-int, reset_lifetime: positive-int, mode: string},
+ *     passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool, attestation: array{conveyance: string, trusted_roots: list<string>, require_trusted: bool, allowed_aaguids: list<string>, denied_aaguids: list<string>, backup: string}},
  *     totp: array{issuer: ?string, window: int<0, 10>},
  *     sms: array{sender: ?string, from: string, message: string, lifetime: positive-int, attempts: positive-int},
  *     step_up: array{attribute: string, lifetime: positive-int},
  *     sessions: array{touch_interval: non-negative-int},
  *     external: array{link_verified_email: bool, register: bool},
- *     oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}, subject: array{type: string, salt: ?string}, backchannel_logout: array{enabled: bool, bus: string, http_client: string, timeout: positive-int}},
+ *     oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, signing_keys: array{source: string, automatic_rotation: bool, files: list<array{path: string, kid: ?string}>, sealed: bool, service: ?string}, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}, subject: array{type: string, salt: ?string}, backchannel_logout: array{enabled: bool, bus: string, http_client: string, timeout: positive-int}},
  *     secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string},
  *     audit: string,
  * }
@@ -180,6 +195,26 @@ final class IdentityProviderServices
     public const string STORE_DOCTRINE = 'doctrine';
 
     public const string STORE_MEMORY = 'memory';
+
+    /** The account identifiers of `accounts.id_generator`. */
+    public const string ID_ULID = 'ulid';
+
+    public const string ID_UUID_V7 = 'uuid_v7';
+
+    /** The modes of `links.mode`. */
+    public const string LINKS_SIGNED = 'signed';
+
+    public const string LINKS_STORED = 'stored';
+
+    /** The stored mode of the links, which maps the model of the link tokens as a module maps its own. */
+    public const string STORED_LINKS = 'stored_links';
+
+    /** The sources of `oidc.signing_keys.source`. */
+    public const string KEYS_DATABASE = 'database';
+
+    public const string KEYS_FILE = 'file';
+
+    public const string KEYS_SERVICE = 'service';
 
     public const string USER_PROVIDER = 'phil_identity_provider.user_provider';
 
@@ -201,7 +236,11 @@ final class IdentityProviderServices
 
     /** The stores of each module, with their Doctrine and memory implementations. */
     private const array REPOSITORIES = [
-        Modules::ACCOUNTS => [AccountRepository::class => [DoctrineAccountRepository::class, InMemoryAccountRepository::class]],
+        Modules::ACCOUNTS => [
+            AccountRepository::class => [DoctrineAccountRepository::class, InMemoryAccountRepository::class],
+            AccountAddressRepository::class => [DoctrineAccountAddressRepository::class, InMemoryAccountAddressRepository::class],
+        ],
+        self::STORED_LINKS => [LinkTokenRepository::class => [DoctrineLinkTokenRepository::class, InMemoryLinkTokenRepository::class]],
         Modules::PASSKEYS => [PasskeyRepository::class => [DoctrinePasskeyRepository::class, InMemoryPasskeyRepository::class]],
         Modules::TOTP => [SecondFactorRepository::class => [DoctrineSecondFactorRepository::class, InMemorySecondFactorRepository::class]],
         Modules::SESSIONS => [AccountSessionRepository::class => [DoctrineAccountSessionRepository::class, InMemoryAccountSessionRepository::class]],
@@ -221,6 +260,7 @@ final class IdentityProviderServices
         Modules::SESSIONS => 'Session',
         Modules::EXTERNAL => 'External',
         Modules::OIDC => 'Oidc',
+        self::STORED_LINKS => 'Link',
     ];
 
     private function __construct()
@@ -238,7 +278,7 @@ final class IdentityProviderServices
         $clock = new Reference($config['clock']);
 
         $container->register(Modules::class, Modules::class)->setArguments([$modules]);
-        self::stores($container, $config, $modules);
+        self::stores($container, $config, self::LINKS_STORED === $config['links']['mode'] ? [...$modules, self::STORED_LINKS] : $modules);
         self::common($container, $config, $clock);
         self::security($container, $config, $modules, $clock);
         self::methods($container, $config, $modules, $clock);
@@ -370,20 +410,44 @@ final class IdentityProviderServices
         $container->register(PasswordRules::class, PasswordRules::class)
             ->setArguments([new Reference(StrengthEstimator::class.' $phil_identity_provider'), Score::from($config['password']['min_score']), $breaches]);
         $container->register(LockoutPolicy::class, LockoutPolicy::class)
-            ->setArguments([$config['lockout']['threshold'], $config['lockout']['base'], $config['lockout']['max']]);
+            ->setArguments([$config['lockout']['threshold'], $config['lockout']['base'], $config['lockout']['max'], $config['lockout']['enabled']]);
+        self::accountIdentity($container, $config['accounts']);
         self::loginLimiter($container, $config['login_limiter'], $config['secret'], class_exists(RateLimiterFactory::class));
         $container->register(Accounts::class, Accounts::class)
-            ->setArguments([new Reference(AccountRepository::class), new Reference('security.user_password_hasher'), new Reference(PasswordRules::class), new Reference(Journal::class), $clock, new Reference(LockoutPolicy::class), new Reference(Sessions::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
+            ->setArguments([new Reference(AccountRepository::class), new Reference('security.user_password_hasher'), new Reference(PasswordRules::class), new Reference(Journal::class), $clock, new Reference(LockoutPolicy::class), new Reference(Sessions::class, ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference(AccountIdGenerator::class), new Reference(AddressCanonicalizer::class)])
+            ->setPublic(true);
+        $container->register(AccountAddresses::class, AccountAddresses::class)
+            ->setArguments([new Reference(AccountAddressRepository::class), new Reference(Journal::class), $clock, new Reference(AddressCanonicalizer::class)])
             ->setPublic(true);
         $container->setParameter(self::PUBLIC_ORIGIN, $config['public_origin']);
         $container->register(LinkOrigin::class, RouterLinkOrigin::class)
             ->setArguments([new Reference('router'), '%'.self::PUBLIC_ORIGIN.'%', '%kernel.debug%']);
         self::registrationLimiter($container, $config['registration'], $config['secret']);
         $container->register(SignedLinks::class, SignedLinks::class)
-            ->setArguments([$config['secret'], $clock, $config['links']['verify_lifetime'], $config['links']['reset_lifetime']]);
+            ->setArguments([$config['secret'], $clock, $config['links']['verify_lifetime'], $config['links']['reset_lifetime'], self::LINKS_STORED === $config['links']['mode'] ? new Reference(LinkTokenRepository::class) : null]);
         $container->register(AccountLinks::class, AccountLinks::class)
             ->setArguments([new Reference(SignedLinks::class), new Reference('router'), new Reference(AccountRepository::class), new Reference(Journal::class), $mailer, new Reference(LinkOrigin::class)])
             ->setPublic(true);
+    }
+
+    /**
+     * The generator of account identifiers and the canonicalizer of addresses, the bundle's or the services named.
+     *
+     * @param array{id_generator: string, strip_subaddress: bool, canonicalizer: ?string} $accounts
+     */
+    private static function accountIdentity(ContainerBuilder $container, array $accounts): void
+    {
+        match ($accounts['id_generator']) {
+            self::ID_ULID => $container->register(AccountIdGenerator::class, UlidAccountIdGenerator::class),
+            self::ID_UUID_V7 => $container->register(AccountIdGenerator::class, UuidV7AccountIdGenerator::class),
+            default => $container->setAlias(AccountIdGenerator::class, $accounts['id_generator']),
+        };
+
+        if (null === $accounts['canonicalizer']) {
+            $container->register(AddressCanonicalizer::class, EmailCanonicalizer::class)->setArguments([$accounts['strip_subaddress']]);
+        } else {
+            $container->setAlias(AddressCanonicalizer::class, $accounts['canonicalizer']);
+        }
     }
 
     /**
@@ -533,7 +597,7 @@ final class IdentityProviderServices
 
         if (\in_array(Modules::PASSKEYS, $modules, true)) {
             $container->register(RelyingParty::class, RelyingParty::class)
-                ->setArguments([(string) $config['passkeys']['rp_id'], $config['passkeys']['rp_name'] ?? $config['site_name'], $config['passkeys']['origins'], $config['passkeys']['require_user_verification']]);
+                ->setArguments([(string) $config['passkeys']['rp_id'], $config['passkeys']['rp_name'] ?? $config['site_name'], $config['passkeys']['origins'], $config['passkeys']['require_user_verification'], 300_000, KeyAndAttestationServices::attestationPolicy($config['passkeys']['attestation'])]);
             $container->register(Passkeys::class, Passkeys::class)
                 ->setArguments([new Reference(RelyingParty::class), new Reference(PasskeyRepository::class), new Reference(AccountRepository::class), new Reference(ChallengeStore::class), $journal, $clock])
                 ->setPublic(true);
@@ -607,6 +671,7 @@ final class IdentityProviderServices
         $container->register(SigningKeys::class, SigningKeys::class)
             ->setArguments([new Reference(SigningKeyRepository::class), new Reference(SecretCipher::class), new Reference(ProviderSettings::class), $clock, new Reference($config['oidc']['lock_factory']), $journal])
             ->setPublic(true);
+        KeyAndAttestationServices::signingKeySource($container, $config['oidc']['signing_keys'], $config['oidc']['algorithm'], null !== $config['secrets']['kms_key']);
         $container->register(ClientRegistry::class, ClientRegistry::class)
             ->setArguments([new Reference(ClientRepository::class), $clock, new Reference(ProviderSettings::class), $journal, $config['oidc']['allow_localhost']])
             ->setPublic(true);
@@ -614,10 +679,10 @@ final class IdentityProviderServices
             ->setArguments([new Reference(ClientRepository::class), new Reference(GrantRepository::class), new Reference(ProviderSettings::class), $clock, $journal])
             ->setPublic(true);
         $container->register(Tokens::class, Tokens::class)
-            ->setArguments([new Reference(ClientRepository::class), new Reference(GrantRepository::class), new Reference(AccountRepository::class), new Reference(SigningKeys::class), new Reference(ProviderSettings::class), $clock, $journal, new Reference(AccountSessionRepository::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
+            ->setArguments([new Reference(ClientRepository::class), new Reference(GrantRepository::class), new Reference(AccountRepository::class), new Reference(SigningKeySource::class), new Reference(ProviderSettings::class), $clock, $journal, new Reference(AccountSessionRepository::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
             ->setPublic(true);
 
-        self::controller($container, MetadataController::class, [new Reference(ProviderSettings::class), new Reference(SigningKeys::class), new Reference('router'), 300, $config['oidc']['backchannel_logout']['enabled']]);
+        self::controller($container, MetadataController::class, [new Reference(ProviderSettings::class), new Reference(SigningKeySource::class), new Reference('router'), 300, $config['oidc']['backchannel_logout']['enabled']]);
         self::controller($container, AuthorizeController::class, [new Reference(Authorization::class), new Reference(Pages::class), new Reference('security.token_storage'), new Reference('router'), $clock, $config['oidc']['issuer'], new Reference('security.helper')]);
         self::controller($container, TokenController::class, [new Reference(Tokens::class), new Reference('router')]);
         $container->registerForAutoconfiguration(ClaimsProvider::class)->addTag(self::CLAIMS_PROVIDER_TAG);
@@ -631,7 +696,7 @@ final class IdentityProviderServices
             }
 
             $container->register(LogoutTokens::class, LogoutTokens::class)
-                ->setArguments([new Reference(SigningKeys::class), new Reference(ProviderSettings::class), $clock]);
+                ->setArguments([new Reference(SigningKeySource::class), new Reference(ProviderSettings::class), $clock]);
             $container->register(LogoutNotifier::class, MessengerLogoutNotifier::class)
                 ->setArguments([new Reference($config['oidc']['backchannel_logout']['bus'])]);
             $container->register(SendLogoutTokenHandler::class, SendLogoutTokenHandler::class)
@@ -644,7 +709,17 @@ final class IdentityProviderServices
                 $container->register($command, $command)->setArguments([new Reference(ClientRegistry::class)])->addTag('console.command');
             }
 
-            $container->register(RotateKeysCommand::class, RotateKeysCommand::class)->setArguments([new Reference(SigningKeys::class)])->addTag('console.command');
+            if (self::KEYS_DATABASE === $config['oidc']['signing_keys']['source']) {
+                $container->register(RotateKeysCommand::class, RotateKeysCommand::class)
+                    ->setArguments([new Reference(SigningKeys::class), $config['oidc']['signing_keys']['automatic_rotation']])
+                    ->addTag('console.command');
+            }
+
+            if (null !== $config['secrets']['kms_key']) {
+                $container->register(SealKeyCommand::class, SealKeyCommand::class)
+                    ->setArguments([new Reference(SecretCipher::class), new Definition(SigningAlgorithm::class, [$config['oidc']['algorithm']])->setFactory([SigningAlgorithm::class, 'from'])])
+                    ->addTag('console.command');
+            }
         }
     }
 
@@ -705,7 +780,7 @@ final class IdentityProviderServices
 
         if (class_exists(Command::class)) {
             $container->register(PurgeCommand::class, PurgeCommand::class)
-                ->setArguments([new Reference($config['clock']), $optional(GrantRepository::class), $optional(AccountSessionRepository::class)])
+                ->setArguments([new Reference($config['clock']), $optional(GrantRepository::class), $optional(AccountSessionRepository::class), $optional(LinkTokenRepository::class)])
                 ->addTag('console.command');
         }
     }

@@ -7,8 +7,11 @@ namespace Phil\IdentityProviderBundle\Application\Oidc;
 use Closure;
 use DateTimeImmutable;
 use Jose\Component\Core\JWK;
+use Override;
 use Phil\IdentityProviderBundle\Application\Contract\SecretCipher;
+use Phil\IdentityProviderBundle\Application\Contract\SigningKeySource;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
+use Phil\IdentityProviderBundle\Application\Jose\LoadedKeys;
 use Phil\IdentityProviderBundle\Application\Jose\PrivateKey;
 use Phil\IdentityProviderBundle\Application\Journal;
 use Phil\IdentityProviderBundle\Domain\Contract\SigningKeyRepository;
@@ -17,7 +20,8 @@ use Psr\Clock\ClockInterface;
 use Symfony\Component\Lock\LockFactory;
 
 /**
- * The keys of the provider and their rotation.
+ * The keys of the provider kept in its database, sealed by the key management service when `secrets.kms_key` is set,
+ * and their rotation: the source of keys unless `oidc.signing_keys.source` names another.
  *
  * `rotate()`, run by `phil:identity-provider:rotate-keys` on a schedule, removes the retired keys past their retention,
  * activates the pending key once it has been published for `keyActivationDelay` — retiring the active one —, and
@@ -30,8 +34,11 @@ use Symfony\Component\Lock\LockFactory;
  * but the one activated last — the greatest identifier breaking a tie — are retired, and stay published for the tokens
  * they signed; of several pending keys, all but the oldest are removed, having signed nothing. Every instance settles
  * the same way, so that they all sign with the same key.
+ *
+ * The key that signs is decrypted and loaded once per process, then kept in `LoadedKeys` under its identifier, which
+ * names one key for its whole life: a rotation names another key, which is loaded in turn.
  */
-final readonly class SigningKeys
+final readonly class SigningKeys implements SigningKeySource
 {
     public const string LOCK = 'phil_identity_provider.signing_keys';
 
@@ -45,6 +52,7 @@ final readonly class SigningKeys
         private ClockInterface $clock,
         private LockFactory $locks,
         private ?Journal $journal = null,
+        private LoadedKeys $loaded = new LoadedKeys(),
     ) {
     }
 
@@ -53,6 +61,7 @@ final readonly class SigningKeys
      *
      * @phpstan-impure
      */
+    #[Override]
     public function active(): PrivateKey
     {
         $active = array_find($this->settled(), static fn (SigningKey $key): bool => $key->isActive()) ?? $this->exclusively(function (): SigningKey {
@@ -67,7 +76,7 @@ final readonly class SigningKeys
             return $active;
         });
 
-        return PrivateKey::fromMaterial($active->algorithm(), $active->kid(), $this->cipher->open($active->privateMaterial(), $this->context($active->kid())));
+        return $this->loaded->get($active->kid(), fn (): PrivateKey => PrivateKey::fromMaterial($active->algorithm(), $active->kid(), $this->cipher->open($active->privateMaterial(), $this->context($active->kid()))));
     }
 
     /**
@@ -77,6 +86,7 @@ final readonly class SigningKeys
      *
      * @phpstan-impure
      */
+    #[Override]
     public function jwks(): array
     {
         return ['keys' => array_map(static fn (SigningKey $key): array => $key->publicJwk(), $this->published())];
@@ -85,6 +95,7 @@ final readonly class SigningKeys
     /**
      * The published JSON Web Key of a key identifier, null when the provider does not publish it.
      */
+    #[Override]
     public function publicKey(string $kid): ?JWK
     {
         $key = array_find($this->published(), static fn (SigningKey $key): bool => $key->kid() === $kid);
