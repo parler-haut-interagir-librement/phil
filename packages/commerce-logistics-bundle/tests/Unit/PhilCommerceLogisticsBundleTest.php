@@ -36,6 +36,7 @@ use ReflectionClass;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
@@ -52,6 +53,9 @@ final class PhilCommerceLogisticsBundleTest extends TestCase
         self::assertSame('phil_commerce_logistics', $this->extension()->getAlias());
         self::assertTrue($container->getDefinition(Stock::class)->isPublic());
         self::assertTrue($container->getDefinition(Stock::class)->isAutowired());
+        $dispatcher = $container->getDefinition(Stock::class)->getArgument('$dispatcher');
+        self::assertInstanceOf(Reference::class, $dispatcher);
+        self::assertSame(['event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE], [(string) $dispatcher, $dispatcher->getInvalidBehavior()]);
         self::assertTrue($container->getDefinition(Shipments::class)->isPublic());
         self::assertTrue($container->getDefinition(Shipments::class)->isAutowired());
         self::assertTrue($container->getDefinition(DeliveryOptions::class)->isPublic());

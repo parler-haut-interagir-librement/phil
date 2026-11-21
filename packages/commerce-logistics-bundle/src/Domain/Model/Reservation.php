@@ -10,7 +10,8 @@ use Phil\CommerceLogisticsBundle\Domain\Stock\ReservationState;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * Units of a SKU set aside at one location for one order, until they are shipped or given back.
+ * Units of a SKU set aside at one location for one order, until they are shipped or given back; of those shipped, how
+ * many came back from the customer.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'phil_commerce_logistics_reservation')]
@@ -22,6 +23,9 @@ final class Reservation
 
     #[ORM\Column(name: 'shipped', type: 'integer')]
     private int $shipped = 0;
+
+    #[ORM\Column(name: 'returned', type: 'integer', options: ['default' => 0])]
+    private int $returned = 0;
 
     private function __construct(
         #[ORM\Id]
@@ -66,6 +70,47 @@ final class Reservation
     public function remaining(): int
     {
         return $this->quantity - $this->shipped;
+    }
+
+    /**
+     * The units that already left with the order.
+     */
+    public function shipped(): int
+    {
+        return $this->shipped;
+    }
+
+    /**
+     * The units that left and came back from the customer.
+     */
+    public function returned(): int
+    {
+        return $this->returned;
+    }
+
+    /**
+     * The units that left and may still come back: shipped less returned.
+     */
+    public function returnable(): int
+    {
+        return $this->shipped - $this->returned;
+    }
+
+    /**
+     * Counts units that came back from the customer, never more than left and did not come back yet. The stock they
+     * go back to is the caller's: `Stock::returnFromCustomer()`.
+     */
+    public function returnPart(int $quantity): void
+    {
+        if ($quantity < 1) {
+            throw StockRefused::quantity($quantity);
+        }
+
+        if ($quantity > $this->returnable()) {
+            throw StockRefused::overReturned($this->orderNumber, $this->sku, $quantity, $this->returnable());
+        }
+
+        $this->returned += $quantity;
     }
 
     /**

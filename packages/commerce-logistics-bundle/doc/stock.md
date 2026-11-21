@@ -14,19 +14,22 @@ $locations->addLocation(Location::of('store-mtl', 'Magasin Montréal'));
 $stock->receive('DICE-D20', 'warehouse', 120, $clock->now(), 'PO-2026-014');
 $stock->transfer('DICE-D20', 'warehouse', 'store-mtl', 20, $clock->now(), 'TR-88');
 $stock->count('DICE-D20', 'store-mtl', 18, $clock->now(), 'COUNT-11'); // the journal keeps −2
-$stock->available('DICE-D20');                                        // 118
+$stock->adjust('DICE-D20', 'warehouse', -1, $clock->now(), 'DAMAGED'); // one die written off
+$stock->available('DICE-D20');                                        // 117
 ```
 
 | Method of `Stock` | Effect |
 |---|---|
 | `receive(sku, location, quantity, at, reference)` | Adds units on hand |
 | `count(sku, location, counted, at, reference)` | Sets what a count found; the journal keeps the difference |
+| `adjust(sku, location, difference, at, reference)` | Changes what is on hand by a difference, never below zero; the journal keeps it as `adjusted` |
 | `transfer(sku, from, to, quantity, at, reference)` | Moves available units from one location to another |
 | `available(sku)` | On hand less reserved, over the open locations |
 | `reserve(order, at)` | Sets aside the tracked lines of a placed order, once |
 | `release(orderNumber, at)` | Gives back what is still held for the order: it was cancelled |
 | `ship(orderNumber, at)` | Takes what is still held for the order off the shelf: it left |
 | `shipPart(orderNumber, sku, quantity, at)` | Takes part of what is held for one SKU off the shelf: a partial shipment, which `Shipments` makes |
+| `returnFromCustomer(orderNumber, sku, location, quantity, at)` | Puts units a customer sent back on a shelf, under the order's number; the journal keeps them as `returned` |
 | `allowBackorders(sku)`, `forbidBackorders(sku)`, `allowsBackorders(sku)` | Sells the SKU without stock, or no longer; whether it does |
 | `backordered(sku)` | The units reserved beyond what is on hand, over every location |
 
@@ -49,6 +52,49 @@ $stock->available('DICE-D20');                                        // 118
 - A closed location (`Location::close()`) is no longer reserved from; its stock stays counted.
 - The reference — an order number, a delivery note, a count sheet — goes to the journal, which `StockRepository::journal()`
   reads back oldest first.
+- **Each movement has its kind** in the journal: `received`, `counted`, `adjusted`, `transferred_out`, `transferred_in`,
+  `reserved`, `backordered`, `released`, `shipped` and `returned`.
+
+## Adjusting by a difference
+
+`adjust()` changes what a level holds on hand by a difference — the units a count found missing or extra, a damaged
+unit written off — where `count()` sets an absolute figure.
+
+```php
+$stock->adjust('DICE-D20', 'warehouse', -2, $clock->now(), 'COUNT-12');   // two missing
+$stock->adjust('DICE-D20', 'warehouse', 1, $clock->now(), 'COUNT-12');    // one found behind the shelf
+```
+
+- **The difference applies to the level as it is read now.** `count()` overwrites what was on hand with the figure it
+  is given, losing a movement made since the count was taken; `adjust()` does not.
+- **Never below zero**: a difference that would leave less than nothing on hand throws `StockRefused::belowZero()`,
+  and a difference of zero throws `StockRefused::quantity()`. Like a count, it may leave less on hand than is reserved,
+  which the application then settles.
+- **Two adjustments of one level at once both count.** Each request reads the level, adds its difference and flushes;
+  the level's version column refuses the second flush with Doctrine's `OptimisticLockException`. The caller retries
+  that unit of work in a new entity manager: the difference applies again, to the level as the first one left it.
+- The reference goes to the journal: a count sheet, a damage report. The journal has no typed reason beyond it.
+
+## Customer returns
+
+`returnFromCustomer()` puts units that a customer sent back on a shelf, under the order's number.
+
+```php
+$stock->ship($order->number, $clock->now());                                    // 3 dice left
+$stock->returnFromCustomer($order->number, 'DICE-D20', 'returns', 2, $clock->now()); // 2 came back
+```
+
+- **Never more than left and did not come back yet**: the order's reservations of the SKU tell how many of its units
+  shipped, and how many already came back; a return beyond them throws `StockRefused::overReturned()` and moves
+  nothing. A SKU the order never shipped through its reservations — one not tracked — takes nothing back.
+- **Any location**: the units go back where the caller says — the warehouse, a returns area —, which need not be
+  where they left from.
+- **The journal tells a return from a receipt**: the movement is `returned`, under the order's number.
+- `Reservation::shipped()`, `returned()` and `returnable()` give, per reservation, what left, what came back and what
+  may still come back. Whether a returned unit can be sold again is the application's to decide; it moves it with
+  `transfer()` or `adjust()`.
+- With `phil/commerce-returns-bundle`, a `Restocking` of the application's own calls `returnFromCustomer()` when a
+  return is received.
 
 ## Selling without stock
 
@@ -86,7 +132,12 @@ With DoctrineBundle:
 | `phil_commerce_logistics_location` | `code` (primary key), `name`, `priority`, `active` |
 | `phil_commerce_logistics_stock_level` | `sku` and `location` (primary key), `on_hand`, `reserved`, `version` |
 | `phil_commerce_logistics_stock_movement` | `id` (UUID v7), `sku`, `location`, `kind`, `on_hand_change`, `reserved_change`, `reference`, `moved_at`; indexed by SKU, location and moment, and by reference |
-| `phil_commerce_logistics_reservation` | `id` (UUID v7), `order_number` (indexed), `sku`, `location`, `quantity`, `shipped`, `state` |
+| `phil_commerce_logistics_reservation` | `id` (UUID v7), `order_number` (indexed), `sku`, `location`, `quantity`, `shipped`, `returned` (0 by default), `state` |
 | `phil_commerce_logistics_stock_policy` | `sku` (primary key), `backorders` |
 
 A stock level's version column refuses two movements made over the same copy.
+
+A database created for 0.1.0-alpha gains one column per table that changed, and nothing else changes: `returned` in
+`phil_commerce_logistics_reservation`, an integer that is 0 for the existing rows, and `line_terms` in
+`phil_commerce_logistics_purchase_order` — see [Purchasing](purchasing.md). Generate the migration with Doctrine's
+`doctrine:migrations:diff`, or `doctrine:schema:update --dump-sql` to read it first.

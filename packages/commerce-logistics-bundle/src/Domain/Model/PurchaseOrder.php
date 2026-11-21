@@ -7,12 +7,16 @@ namespace Phil\CommerceLogisticsBundle\Domain\Model;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Phil\CommerceLogisticsBundle\Domain\Exception\PurchaseRefused;
+use Phil\CommerceLogisticsBundle\Domain\Purchasing\PurchaseLine;
 use Phil\CommerceLogisticsBundle\Domain\Purchasing\PurchaseState;
 use Phil\DddBundle\Domain\Exception\InvalidValue;
+use Phil\Money\Currency;
+use Phil\Money\Money;
 
 /**
  * Goods ordered from a supplier, to be received at one location: how many of each SKU were ordered, how many came,
- * and when the rest is expected. Each receipt against it goes to the stock journal under its number.
+ * and when the rest is expected; for a SKU whose line gives them, what each unit costs and who owns the units. Each
+ * receipt against it goes to the stock journal under its number.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'phil_commerce_logistics_purchase_order')]
@@ -28,6 +32,14 @@ final class PurchaseOrder
     /** @var array<int|string, int> SKU → units received; a numeric SKU is an integer key, as PHP makes it */
     #[ORM\Column(name: 'received', type: 'json')]
     private array $received = [];
+
+    /**
+     * The unit cost in minor units, its currency and the owner of each SKU whose line gives them; null when none does.
+     *
+     * @var array<int|string, array{cost: int|null, currency: string|null, owner: string|null}>|null
+     */
+    #[ORM\Column(name: 'line_terms', type: 'json', nullable: true)]
+    private ?array $lineTerms = null;
 
     /**
      * @param array<int|string, int> $ordered SKU → units ordered; a numeric SKU is an integer key, as PHP makes it
@@ -50,7 +62,8 @@ final class PurchaseOrder
     }
 
     /**
-     * @param array<int|string, int> $lines SKU → units ordered, each one or more; a numeric SKU is an integer key
+     * @param array<int|string, int|PurchaseLine> $lines SKU → units ordered, each one or more, or a line that also
+     *                                                   gives the unit cost and the owner; a numeric SKU is an integer key
      */
     public static function of(string $number, string $supplier, Location $location, array $lines, DateTimeImmutable $at, ?DateTimeImmutable $expectedOn = null): self
     {
@@ -66,13 +79,43 @@ final class PurchaseOrder
             throw InvalidValue::because(\sprintf('The purchase order %s lists 1 to %d SKUs.', $number, self::MAX_LINES));
         }
 
-        foreach ($lines as $sku => $quantity) {
+        $ordered = [];
+        $terms = [];
+
+        foreach ($lines as $sku => $line) {
+            $quantity = $line instanceof PurchaseLine ? $line->units : $line;
+
             if (1 !== preg_match('/^[\x21-\x7E]{1,64}$/D', (string) $sku) || $quantity < 1) {
                 throw InvalidValue::because(\sprintf('The purchase order %s orders one unit or more of each SKU, each 1 to 64 visible ASCII characters.', $number));
             }
+
+            $ordered[$sku] = $quantity;
+
+            if ($line instanceof PurchaseLine && ($line->unitCost instanceof Money || null !== $line->owner)) {
+                $terms[$sku] = ['cost' => $line->unitCost?->minorUnits, 'currency' => $line->unitCost?->currency->code, 'owner' => $line->owner];
+            }
         }
 
-        return new self($number, $supplier, $location->code, $lines, $at, $expectedOn?->setTime(0, 0));
+        $order = new self($number, $supplier, $location->code, $ordered, $at, $expectedOn?->setTime(0, 0));
+        $order->lineTerms = [] === $terms ? null : $terms;
+
+        return $order;
+    }
+
+    /**
+     * The line of a SKU: the units ordered, and the unit cost and the owner when the order gave them; null for a SKU
+     * the order does not list. What a receipt against the order reads to value or share out the units that came.
+     */
+    public function line(string $sku): ?PurchaseLine
+    {
+        if (!isset($this->ordered[$sku])) {
+            return null;
+        }
+
+        $terms = $this->lineTerms[$sku] ?? ['cost' => null, 'currency' => null, 'owner' => null];
+        $cost = null === $terms['cost'] ? null : Money::of($terms['cost'], Currency::of($terms['currency'] ?? ''));
+
+        return PurchaseLine::of($this->ordered[$sku], $cost, $terms['owner']);
     }
 
     public function state(): PurchaseState

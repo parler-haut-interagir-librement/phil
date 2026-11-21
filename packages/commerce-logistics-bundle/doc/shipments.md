@@ -17,6 +17,43 @@ $shipments->ship($order, $clock->now());   // everything left
 - Shipping more of a SKU than its reservations still hold is refused; releasing the order afterwards gives back only
   what is still held.
 
+## Units shipped
+
+When units leave the shelf, `Stock` dispatches `UnitsShipped` through the application's event dispatcher, by its class:
+what a ledger of owners, a sales report or a notification listens to.
+
+```php
+use Phil\CommerceLogisticsBundle\Domain\Event\UnitsShipped;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener]
+final readonly class RecordTheSale
+{
+    public function __invoke(UnitsShipped $event): void
+    {
+        foreach ($event->lines as $line) {
+            // $event->orderNumber, $line->sku, $line->location, $line->units, $event->occurredAt()
+        }
+    }
+}
+```
+
+- **One event per call that moved units**: `Stock::ship()` announces every unit of the order that left, and
+  `Stock::shipPart()` — which `Shipments::ship()` calls once per product line — those of one SKU. A call that moves
+  nothing — an order shipped already, a SKU not tracked — dispatches nothing.
+- **A line per SKU and location**, with the units that left from there; `units()` gives the total. The moment is the
+  one the call was given, in UTC.
+- **No personal data**: the order's number, SKUs, locations and units only. A listener reads what else it needs from
+  its own store, and the event can cross a Messenger transport as it is.
+- **After the journal, before the commit.** The event is dispatched once the movements are written to the unit of work,
+  and before the application flushes it, as the core's events are. A listener that writes to the database writes in
+  the same transaction: the sale and the movement are committed together, or neither is. A flush retried after a
+  failure does not dispatch the event again, since it is dispatched by the call, not by the flush; a call made again
+  in a new unit of work after a rollback announces what it moves then. A listener that reaches the outside world —
+  an e-mail, a webhook — does it after the commit, through Messenger with Doctrine's transaction middleware for
+  instance.
+- Without an event dispatcher, nothing is dispatched, and units ship as before.
+
 ## Delivery notes and picking slips
 
 `ShippingDocuments` issues the delivery note of a shipment and the picking slip of an order. `LogisticsDocumentTypes`

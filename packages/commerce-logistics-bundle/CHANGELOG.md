@@ -8,6 +8,25 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
+### Added
+
+- `UnitsShipped` and `ShippedLine`: `Stock::ship()` and `Stock::shipPart()` dispatch, by its class, once per call that
+  moved units, the order's number and, per SKU and location, the units that left, at the call's moment in UTC; no
+  personal data. It is dispatched after the movements are written to the unit of work and before the application
+  flushes it, through the service `event_dispatcher` when there is one; the bundle requires
+  `symfony/event-dispatcher-contracts`.
+- Customer returns: `Stock::returnFromCustomer()` puts units a customer sent back on a shelf under the order's number,
+  never more of a SKU than left with the order and did not come back yet, refused otherwise with
+  `StockRefused::overReturned()`; the movement kind `returned`; `Reservation::shipped()`, `returned()`, `returnable()`
+  and `returnPart()`, and the reservation's `returned` column, 0 by default.
+- Adjustments by a difference: `Stock::adjust()` and `StockLevel::adjust()` change what is on hand by a difference,
+  never below zero, refused otherwise with `StockRefused::belowZero()`, under the level's version; the movement kind
+  `adjusted`.
+- The unit cost and owner of purchase order lines: `PurchaseLine`, which `Purchasing::order()` and `PurchaseOrder::of()`
+  take in place of the units of a SKU, with an optional `Money` unit cost and an optional owner, the caller's own
+  identifier; `PurchaseOrder::line()`, which a receipt reads back; the purchase order's `line_terms` column, null when
+  no line gives them. A database of 0.1.0-alpha gains the two columns and nothing else changes.
+
 ### Fixed
 
 - It requires `phil/commerce-bundle` 0.4, the version published on 2026-11-20, beside which its requirement of 0.2 or

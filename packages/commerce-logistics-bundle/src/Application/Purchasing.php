@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Phil\CommerceLogisticsBundle\Domain\Exception\PurchaseRefused;
 use Phil\CommerceLogisticsBundle\Domain\Exception\StockRefused;
 use Phil\CommerceLogisticsBundle\Domain\Model\PurchaseOrder;
+use Phil\CommerceLogisticsBundle\Domain\Purchasing\PurchaseLine;
 use Phil\CommerceLogisticsBundle\Domain\Repository\LocationRepository;
 use Phil\CommerceLogisticsBundle\Domain\Repository\PurchaseOrderRepository;
 
@@ -25,7 +26,8 @@ final readonly class Purchasing
     }
 
     /**
-     * @param array<int|string, int> $lines SKU → units ordered; a numeric SKU is an integer key, as PHP makes it
+     * @param array<int|string, int|PurchaseLine> $lines SKU → units ordered, or a `PurchaseLine` that also gives the
+     *                                                   unit cost and the owner; a numeric SKU is an integer key
      */
     public function order(string $number, string $supplier, string $location, array $lines, DateTimeImmutable $at, ?DateTimeImmutable $expectedOn = null): PurchaseOrder
     {
@@ -40,7 +42,8 @@ final readonly class Purchasing
     }
 
     /**
-     * Receives units against an open purchase order, never more than are still expected of each SKU.
+     * Receives units against an open purchase order, never more than are still expected of each SKU. The order it gives
+     * back tells, through `line()`, what each unit that came cost and who owns it, when the order said so.
      *
      * @param array<int|string, int> $lines SKU → units that came; a numeric SKU is an integer key, as PHP makes it
      */
