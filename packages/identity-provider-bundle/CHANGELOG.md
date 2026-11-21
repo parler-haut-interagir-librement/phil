@@ -74,6 +74,8 @@ See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
   loaded once — an OpenSSL key for RS256 and ES256, the libsodium secret key for EdDSA — instead of rebuilding it at
   each signature: an RS256 signature takes about 2.2 ms instead of 3.6, ES256 about 33 µs instead of 90.
 - An Ed25519 private key whose public half is not the one of its seed is refused.
+- The tests of `phil:identity-provider:seal-key` read its message without the line breaks of the console, which wraps
+  its blocks at 80 columns: a long temporary path no longer splits `cannot be read` over two lines.
 
 ## 0.3.0-alpha - 2026-11-20
 
