@@ -132,8 +132,8 @@ final class CustomerReturnTest extends TestCase
         try {
             $this->stock->returnFromCustomer('2026-0001', 'DICE', 'warehouse', $quantity, $this->at);
             self::fail(\sprintf('%d units came back.', $quantity));
-        } catch (StockRefused $refused) {
-            self::assertSame(\sprintf('A movement moves at least one unit; %d does not.', $quantity), $refused->getMessage());
+        } catch (StockRefused $stockRefused) {
+            self::assertSame(\sprintf('A movement moves at least one unit; %d does not.', $quantity), $stockRefused->getMessage());
         }
 
         self::assertNull($this->repository->level('DICE', 'warehouse'));

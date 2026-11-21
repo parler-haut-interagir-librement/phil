@@ -96,6 +96,7 @@ final class UnitsShippedTest extends TestCase
     {
         $this->repository->addLocation(Location::of('bc', 'BC'));
         $this->repository->addLocation(Location::of('c', 'C'));
+
         $this->stock->receive('a', 'bc', 1, $this->at);
         $this->stock->receive('ab', 'c', 2, $this->at);
         $this->stock->reserve($this->order(['a' => 1, 'ab' => 2]), $this->at);
