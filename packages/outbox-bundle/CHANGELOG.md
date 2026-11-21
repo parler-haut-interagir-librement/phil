@@ -14,6 +14,8 @@ reads the output of `phil:outbox:relay` or `phil:outbox:dead:show` finds the ski
 
 ### Added
 
+- The Flex recipe in `recipe/0.2`, whose configuration names `relay.unknown_type_grace`; `recipe/0.1` keeps serving
+  the versions 0.1.
 - `DbalOutboxStore::markSkipped()`: a record whose state was erased is settled as `skipped`, lets the later records of
   its ordering key go, and is purged with the delivered records.
 - `relay.unknown_type_grace`, 3,600 seconds by default, from 0 to 604,800: how long after it happened a record of a

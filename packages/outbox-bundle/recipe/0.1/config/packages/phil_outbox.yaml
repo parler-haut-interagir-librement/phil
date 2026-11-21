@@ -7,7 +7,6 @@ phil_outbox:
     relay:
         batch_size: 100
         lease: 60
-        unknown_type_grace: 3600
     retention: 604800
     # scheduler:
     #     enabled: true
