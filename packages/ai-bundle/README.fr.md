@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=24f5fcf0d3da1fe7b6eb9b5f4a2893f0d19b8482cf495b2c88aaac359f4f5296 -->
+<!-- phil-dev source-sha256=dca7804e3f413bf1844c4c7eba8f85b399b6bb96cecdaa3b6576c6425e37a208 -->
 # phil/ai-bundle
 
 **Des tâches de modèle de langage qui proposent sans jamais imposer, comptées au jeton près, et qui oublient chaque
@@ -8,8 +8,9 @@ phil/ai-bundle exécute les tâches de modèle de langage d'une application Symf
 comme `draft.rewrite` ou `character.describe`, dont les invites sont des messages de traduction, rendus dans la locale
 que lit la personne. Elle s'exécute sur une plateforme et un modèle de la configuration, avec la clé de l'application
 ou avec la clé personnelle de la personne gardée par `phil/user-secrets-bundle`. Le sujet à qui elle est facturée (un
-compte, un locataire, un projet) doit avoir de la place dans ses quotas et son budget de `phil/usage-meter` avant
-qu'elle commence, et il est débité ensuite des jetons et du coût qu'elle a consommés ; un appel qui échoue est rendu.
+compte, un locataire, un projet) réserve ses jetons et une borne de son coût sur ses quotas et son budget de
+`phil/usage-meter` avant qu'elle commence, de façon atomique, puis les règle avec les jetons et le coût qu'elle a
+consommés ; un appel qui échoue rend sa réservation.
 Une tâche demande du texte, en flux continu ou entier, des données façonnées par une classe, une image ou de la parole,
 et peut offrir au modèle des outils à proposer. La réponse du modèle revient sous forme de `Suggestion` : rien n'est
 appliqué, et aucun outil n'est exécuté, tant que l'application ne l'accepte pas, telle que proposée ou modifiée par la
@@ -42,7 +43,8 @@ et `UserKeys`. `Infrastructure` contient l'adaptateur Symfony AI, la plateforme 
 | Des suggestions acceptées, acceptées après modification, ou rejetées par l'application | Implémenté et testé |
 | Un journal de la sorte, de la sortie, du sujet, de la plateforme, du modèle, de la clé, des jetons, du coût, de la durée et de la décision, sans contenu | Implémenté et testé |
 | Les coûts tirés d'une liste de prix par modèle et par appel, les totaux additionnés en SQL par sujet et par période, l'effacement par sujet | Implémenté et testé, sur SQLite, MySQL 8.4 et PostgreSQL 17 |
-| Les quotas de jetons et de tâches, les budgets de coût et un plafond pour toute l'application par `phil/usage-meter` ; un appel échoué est rendu | Implémenté et testé |
+| Les quotas de jetons et de tâches, les budgets de coût et un plafond pour toute l'application par `phil/usage-meter`, réservés de façon atomique avant une tâche et réglés après elle ; un appel échoué est rendu | Implémenté et testé |
+| Une borne des tâches qu'un sujet exécute en même temps, par `symfony/semaphore` | Implémenté et testé |
 | Les réponses en flux continu, la sortie structurée, les appels d'outils proposés et jamais exécutés, par Symfony AI | Implémenté et testé |
 | Les images et la parole : Hugging Face et la synthèse vocale par les ponts de Symfony AI, les images Replicate par l'adaptateur du bundle | Implémenté et testé |
 | Les avis qu'une personne parle à une IA, la divulgation de ce qu'une suggestion a produit par `phil/creation-disclosure`, le registre des usages | Implémenté et testé |
@@ -59,7 +61,7 @@ et `UserKeys`. `Infrastructure` contient l'adaptateur Symfony AI, la plateforme 
 | [Configuration](doc/fr/configuration.md) | Chaque option de `phil_ai`. |
 | [Tâches et suggestions](doc/fr/tasks.md) | Définir des tâches, écrire leurs invites, les exécuter, décider de ce qu'elles proposent. |
 | [Sorties, flux continu et outils](doc/fr/outputs.md) | La sortie structurée, les appels d'outils proposés, les images et la parole, l'adaptateur Replicate, le flux continu. |
-| [Clés et quotas](doc/fr/keys-and-quotas.md) | Avec quelle clé une tâche s'exécute, la clé personnelle, les quotas de jetons et de tâches, les budgets et le plafond. |
+| [Clés et quotas](doc/fr/keys-and-quotas.md) | Avec quelle clé une tâche s'exécute, la clé personnelle, les quotas de jetons et de tâches, les budgets et le plafond, leur réservation et leur règlement, les tâches en cours en même temps. |
 | [Le journal](doc/fr/journal.md) | Ce qui est enregistré et ce qui ne l'est jamais, les coûts, les totaux, l'effacement. |
 | [Transparence et vie privée](doc/fr/transparency.md) | Les avis, la divulgation de ce qu'une suggestion a produit, le registre des usages, les demandes de vie privée. |
 | [Exceptions](doc/fr/exceptions.md) | Ce que lève le bundle, et quand. |

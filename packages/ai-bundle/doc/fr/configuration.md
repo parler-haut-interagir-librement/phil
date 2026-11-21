@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=93b9ab5f2887f4efb1631f604b9e20cfe143eabc0a7a500058e6d7364d1a9522 -->
+<!-- phil-dev source-sha256=cf31292786fcf2931f80f9af3c6b819c6bef8e6a3aa7eadcf43406681cae155d -->
 # Configuration
 
 ```yaml
@@ -32,6 +32,8 @@ phil_ai:
         budget_meter: ai_budget
         ceiling_meter: ai_ceiling
         ceiling_subject: phil_ai.application
+        concurrency: ~                             # how many tasks of one subject run at once, through symfony/semaphore
+        semaphore_factory: semaphore.factory
     translation_domain: phil_ai
     store: doctrine
     entity_manager: default
@@ -45,27 +47,30 @@ phil_ai:
 | `platforms.*.secret` | `null` | Le nom du secret, dans `phil/user-secrets-bundle`, qui contient la clé d'une personne pour cette plateforme. Exige `user_key_factory`. |
 | `currency` | `USD` | Le code ISO 4217 des prix et des coûts du journal. |
 | `prices` | aucune | Par modèle, `input` et `output` en millionièmes de la devise par million de jetons : 3,00 s'écrit `3000000` ; `per_call`, ce que coûte chaque appel quels que soient ses jetons, 0 par défaut. Un modèle sans prix coûte 0. |
-| `tasks` | aucune | Par sorte, la racine de ses invites : la plateforme, parmi `platforms`; le modèle; les options transmises telles quelles à la plateforme; et `reserve`, les jetons qui doivent rester dans le quota du sujet avant que la tâche commence, 1 ou plus, 1 par défaut. |
+| `tasks` | aucune | Par sorte, la racine de ses invites : la plateforme, parmi `platforms`; le modèle; les options transmises telles quelles à la plateforme; et `reserve`, les jetons que la tâche réserve sur le quota du sujet avant de commencer, 1 ou plus, 1 par défaut ; avec l'option `max_tokens`, il fixe la borne de coût de la tâche (voir [Clés et quotas](keys-and-quotas.md#la-borne-de-coût)). |
 | `tasks.*.output` | `text` | Ce que la tâche demande : `text`, `structured`, `image` ou `speech`. Voir [Sorties, flux continu et outils](outputs.md). |
 | `tasks.*.structure` | `null` | La classe dans laquelle une sortie structurée est lue ; obligatoire pour `structured`, refusée autrement. |
 | `tasks.*.tools` | aucun | Les outils que le modèle peut proposer, par nom (de 1 à 64 lettres, chiffres, `_` ou `-`), chacun avec sa `description` et le schéma JSON de ses `parameters`. Jamais exécutés par le bundle ; refusés pour les images et la parole. |
 | `tasks.*.purpose` | `''` | À quoi sert la tâche, en une phrase, pour le registre des usages. |
 | `key_policy` | `prefer_user` | `application`, `prefer_user` ou `require_user`; voir [Clés et quotas](keys-and-quotas.md). `require_user` exige `phil/user-secrets-bundle`. |
 | `usage_meter` | `null` | Le service de `phil/usage-meter` qui compte les quotas. Obligatoire dès qu'un compteur de quota est nommé. |
-| `quota.tokens_meter` | `null` | Le compteur de jetons. |
-| `quota.tasks_meter` | `null` | Le compteur de tâches. |
+| `quota.tokens_meter` | `null` | Le compteur de jetons : le `reserve` de chaque tâche est consommé avant qu'elle commence, puis réglé avec les jetons dépensés. |
+| `quota.tasks_meter` | `null` | Le compteur de tâches : une est consommée par tâche. |
 | `quota.count_user_keys` | `false` | Indique si les tâches exécutées avec la clé personnelle d'une personne comptent dans les quotas. |
-| `quota.budget_meter` | `null` | Le compteur des dépenses du sujet, en millionièmes de la devise. |
-| `quota.ceiling_meter` | `null` | Le compteur des dépenses de toute l'application, en millionièmes de la devise. |
+| `quota.budget_meter` | `null` | Le compteur des dépenses du sujet, en millionièmes de la devise : la borne de coût de chaque tâche est consommée avant qu'elle commence, puis réglée avec son coût. |
+| `quota.ceiling_meter` | `null` | Le compteur des dépenses de toute l'application, en millionièmes de la devise, réservé et réglé comme le budget. |
 | `quota.ceiling_subject` | `phil_ai.application` | Le sujet sur lequel le plafond est compté. |
+| `quota.concurrency` | `null` | Le nombre de tâches d'un même sujet exécutées en même temps, 1 ou plus ; `null` pour aucune borne. Exige `usage_meter` et `symfony/semaphore`. |
+| `quota.semaphore_factory` | `semaphore.factory` | Le service de fabrique `symfony/semaphore` de `quota.concurrency`. |
 | `translation_domain` | `phil_ai` | Le domaine de traduction des invites. |
 | `store` | `doctrine` | L'endroit où le journal est gardé : `doctrine`, ou `memory` pour les tests. |
 | `entity_manager` | `default` | Le gestionnaire d'entités Doctrine du journal. |
 
 La configuration est vérifiée à la construction du conteneur. Sont refusés avec l'`InvalidConfigurationException` de
 Symfony : une tâche sur une plateforme non déclarée, un secret sans fabrique, un compteur de quota, de budget ou de
-plafond sans compteur d'utilisation, une structure sans `structured` ou l'inverse, un outil sur une tâche d'image ou de
-parole, et `require_user` sans `phil/user-secrets-bundle`.
+plafond ou une concurrence sans compteur d'utilisation, une concurrence inférieure à 1, une structure sans `structured`
+ou l'inverse, un outil sur une tâche d'image ou de parole, et `require_user` sans `phil/user-secrets-bundle`. Une
+concurrence dont la fabrique de sémaphore n'est pas un service échoue à la compilation du conteneur.
 
 ## Services
 
