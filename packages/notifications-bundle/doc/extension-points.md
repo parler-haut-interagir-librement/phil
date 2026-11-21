@@ -148,6 +148,16 @@ final readonly class MemberRecipient implements CurrentRecipient
 |---|---|
 | `send(RecipientInterface $contact, DigestFrequency $frequency, non-empty-list<RenderedNotification> $notifications, ?string $locale): void` | Sends one digest |
 
+### `DigestUnsubscriber`
+
+`Phil\NotificationsBundle\Application\Contract\DigestUnsubscriber` (`digest.unsubscriber`) — `DbalPreferences` with
+the `dbal` preferences; none with the others, and then a digest carries no link to unsubscribe. An application that
+keeps its members' settings itself implements it beside its `NotificationPreferences`.
+
+| Method | Contract |
+|---|---|
+| `unsubscribe(string $recipient): void` | The recipient's digest becomes `never`, the rest of their settings kept; twice changes nothing |
+
 ### `RemoteNotificationReceiver`
 
 `Phil\NotificationsBundle\Application\Contract\RemoteNotificationReceiver` (`remote.receiver`) —
@@ -204,7 +214,8 @@ and text; see [Sending](sending.md#messenger).
 ## Templates and translations
 
 `@PhilNotifications/components/Bell.html.twig`, `List.html.twig`, `Toasts.html.twig`, `WebPush.html.twig`, `_list.html.twig`,
-`_toast.html.twig` and `email/digest.html.twig` can be overridden under `templates/bundles/PhilNotificationsBundle/`.
+`_toast.html.twig`, `email/digest.html.twig`, `email/digest.txt.twig` and `digest/unsubscribe.html.twig` can be
+overridden under `templates/bundles/PhilNotificationsBundle/`.
 The `phil_notifications` domain holds the types' templates, which the application writes, and the centre's labels,
 shipped in English and French.
 

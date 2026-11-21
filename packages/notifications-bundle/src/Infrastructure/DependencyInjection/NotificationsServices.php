@@ -14,6 +14,7 @@ use Phil\NotificationsBundle\Application\Contract\AudienceProvider;
 use Phil\NotificationsBundle\Application\Contract\ChannelSender;
 use Phil\NotificationsBundle\Application\Contract\CurrentRecipient;
 use Phil\NotificationsBundle\Application\Contract\DigestSender;
+use Phil\NotificationsBundle\Application\Contract\DigestUnsubscriber;
 use Phil\NotificationsBundle\Application\Contract\NotificationPreferences;
 use Phil\NotificationsBundle\Application\Contract\PushSubscriptions;
 use Phil\NotificationsBundle\Application\Contract\RecipientDirectory;
@@ -53,6 +54,8 @@ use Phil\NotificationsBundle\Infrastructure\Doctrine\DbalPushSubscriptions;
 use Phil\NotificationsBundle\Infrastructure\Doctrine\NotificationSchemaListener;
 use Phil\NotificationsBundle\Infrastructure\Http\CentreController;
 use Phil\NotificationsBundle\Infrastructure\Http\CentreRequest;
+use Phil\NotificationsBundle\Infrastructure\Http\DigestLinks;
+use Phil\NotificationsBundle\Infrastructure\Http\DigestUnsubscribeController;
 use Phil\NotificationsBundle\Infrastructure\Http\FlashToasts;
 use Phil\NotificationsBundle\Infrastructure\Http\NullToasts;
 use Phil\NotificationsBundle\Infrastructure\Http\PushSubscriptionController;
@@ -112,7 +115,7 @@ final class NotificationsServices
     public const string DEDUPE_POOL_PARAMETER = '.phil_notifications.dedupe_pool';
 
     /**
-     * @param array{store: string, connection: string, preferences: string, recipient_directory: ?string, current_recipient: ?string, web_push_sender: ?string, message_bus: ?string, defaults: array{digest: string, quiet_hours?: array{start: string, end: string, timezone: string}, opt_outs: list<string>, locale: ?string}, delivery: array{single_server: bool, from: ?string, dedupe: array{enabled: bool, ttl: int, store: ?string, cache_pool: ?string, lock_factory: string}, rate_limiter: ?string}, types: array<string, array{channels: list<string>, broadcast: list<string>, collapse: bool, digest: bool, toast: bool, importance: string, title: ?string, body: ?string, delivery: string, dedupe_ttl: ?int}>, toasts: array{transport: string, hub: string, topic_prefix: string, private: bool}, digest: array{enabled: bool, sender: ?string, from: ?string, template: string, tracking_consent: ?string, at: string, weekday: string, limit: int}, retention: array{read_days: int, unread_days: int, purge_at: string}, schedule: array{enabled: bool, timezone: string}, remote: array{enabled: bool, receiver: ?string, origins: list<string>}, web_push: array{enabled: bool, subject: ?string, public_key: string, private_key: string, ttl: int, push_services: list<string>, max_subscriptions: positive-int, worker: ?string, http_client: ?string, timeout: float}} $config
+     * @param array{store: string, connection: string, preferences: string, recipient_directory: ?string, current_recipient: ?string, web_push_sender: ?string, message_bus: ?string, defaults: array{digest: string, quiet_hours?: array{start: string, end: string, timezone: string}, opt_outs: list<string>, locale: ?string}, delivery: array{single_server: bool, from: ?string, dedupe: array{enabled: bool, ttl: int, store: ?string, cache_pool: ?string, lock_factory: string}, rate_limiter: ?string}, types: array<string, array{channels: list<string>, broadcast: list<string>, collapse: bool, digest: bool, toast: bool, importance: string, title: ?string, body: ?string, delivery: string, dedupe_ttl: ?int}>, toasts: array{transport: string, hub: string, topic_prefix: string, private: bool}, digest: array{enabled: bool, sender: ?string, from: ?string, template: string, text_template: string, preferences_route: ?string, unsubscribe: bool, unsubscriber: ?string, tracking_consent: ?string, at: string, weekday: string, limit: int}, retention: array{read_days: int, unread_days: int, purge_at: string}, schedule: array{enabled: bool, timezone: string}, remote: array{enabled: bool, receiver: ?string, origins: list<string>}, web_push: array{enabled: bool, subject: ?string, public_key: string, private_key: string, ttl: int, push_services: list<string>, max_subscriptions: positive-int, worker: ?string, http_client: ?string, timeout: float}} $config
      */
     public static function register(ContainerBuilder $container, array $config): void
     {
@@ -342,7 +345,12 @@ final class NotificationsServices
     }
 
     /**
-     * @param array{digest: array{enabled: bool, sender: ?string, from: ?string, template: string, tracking_consent: ?string, at: string, weekday: string, limit: int}, ...} $config
+     * The digests, their sender and their links: the page of preferences, and the signed link that stops a digest
+     * with its endpoint when a `DigestUnsubscriber` records it.
+     *
+     * @param array{preferences: string, defaults: array{digest: string, ...}, digest: array{enabled: bool, sender: ?string, from: ?string, template: string, text_template: string, preferences_route: ?string, unsubscribe: bool, unsubscriber: ?string, tracking_consent: ?string, at: string, weekday: string, limit: int}, ...} $config
+     *
+     * @throws LogicException when everyone gets a digest by default and nothing could record that one stops it
      */
     private static function digests(ContainerBuilder $container, array $config, ?Reference $bus, Reference $logger): void
     {
@@ -350,6 +358,39 @@ final class NotificationsServices
 
         if (!$digest['enabled']) {
             return;
+        }
+
+        $unsubscriber = $digest['unsubscribe'] ? $digest['unsubscriber'] ?? ('dbal' === $config['preferences'] ? DbalPreferences::class : null) : null;
+
+        if ($digest['unsubscribe'] && null === $unsubscriber && 'config' === $config['preferences'] && DigestFrequency::Never->value !== $config['defaults']['digest']) {
+            throw new LogicException('Every recipient gets a digest by default, and the "config" preferences cannot record that one stops it: use the "dbal" preferences, name a DigestUnsubscriber in "digest.unsubscriber", or set "digest.unsubscribe" to false.');
+        }
+
+        $links = null;
+
+        if (null !== $unsubscriber || null !== $digest['preferences_route']) {
+            $container->register(DigestLinks::class, DigestLinks::class)
+                ->setArguments([
+                    new Reference('router'),
+                    null === $unsubscriber ? null : new Reference('uri_signer'),
+                    $digest['preferences_route'],
+                    $logger,
+                ])
+                ->setPublic(true);
+            $links = new Reference(DigestLinks::class);
+        }
+
+        if (null !== $unsubscriber) {
+            $container->setAlias(DigestUnsubscriber::class, $unsubscriber)->setPublic(true);
+            $container->register(DigestUnsubscribeController::class, DigestUnsubscribeController::class)
+                ->setArguments([
+                    new Reference('uri_signer'),
+                    new Reference(DigestUnsubscriber::class),
+                    new Reference(self::TRANSLATOR),
+                    new Reference('twig', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                ])
+                ->addTag('controller.service_arguments')
+                ->setPublic(true);
         }
 
         if (null === $digest['sender']) {
@@ -362,6 +403,8 @@ final class NotificationsServices
                     $logger,
                     null === $digest['tracking_consent'] ? null : new Reference($digest['tracking_consent']),
                     new Reference('twig.mime_body_renderer', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    $links,
+                    $digest['text_template'],
                 ]);
         }
 

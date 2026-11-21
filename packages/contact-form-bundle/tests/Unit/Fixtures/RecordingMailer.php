@@ -7,13 +7,14 @@ namespace Phil\ContactFormBundle\Tests\Unit\Fixtures;
 use Override;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Exception\TransportException;
-use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\SentMessage;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mime\RawMessage;
 
 /**
- * A mailer that keeps what it is given, or refuses it as a transport that is down.
+ * A Mailer transport that keeps what it is given, or refuses it as a transport that is down.
  */
-final class RecordingMailer implements MailerInterface
+final class RecordingMailer implements TransportInterface
 {
     /** @var list<RawMessage> */
     public array $sent = [];
@@ -24,12 +25,20 @@ final class RecordingMailer implements MailerInterface
     }
 
     #[Override]
-    public function send(RawMessage $message, ?Envelope $envelope = null): void
+    public function send(RawMessage $message, ?Envelope $envelope = null): ?SentMessage
     {
         if ($this->down) {
             throw new TransportException('Connection refused.');
         }
 
         $this->sent[] = $message;
+
+        return null;
+    }
+
+    #[Override]
+    public function __toString(): string
+    {
+        return 'recording://';
     }
 }

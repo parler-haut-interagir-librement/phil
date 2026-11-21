@@ -18,6 +18,8 @@ final class Routes
 
     public const string REMOTE = 'phil_notifications_remote';
 
+    public const string DIGEST_UNSUBSCRIBE = 'phil_notifications_digest_unsubscribe';
+
     public const array PUSH = [
         'subscribe' => 'phil_notifications_push_subscribe',
         'unsubscribe' => 'phil_notifications_push_unsubscribe',

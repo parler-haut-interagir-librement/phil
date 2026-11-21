@@ -10,14 +10,17 @@ use Phil\NewsletterBundle\Domain\Model\MailingList;
 use Phil\NewsletterBundle\Domain\Model\Subscriber;
 use SensitiveParameter;
 use Symfony\Component\Mailer\Header\MetadataHeader;
+use Symfony\Component\Mailer\Header\TrackingHeader;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
 /**
  * Builds the email of one delivery: the profile's sender and reply address, the one-click unsubscribe of RFC 8058
  * (`List-Unsubscribe` and `List-Unsubscribe-Post`) unless the message is a confirmation, the list's `List-Id`, `Precedence: bulk` for a campaign, the
- * profile's transport through Mailer's `X-Transport`, the delivery's id as Mailer metadata, which a provider's webhook
- * sends back, and, with a bounce mailbox, a signed VERP return path that names the delivery.
+ * profile's transport through Mailer's `X-Transport`, a `TrackingHeader` that turns off the provider's open and click
+ * tracking — no pixel is added, and `ClickTracker` counts the clicks of a campaign that asks for it —, the delivery's
+ * id as Mailer metadata, which a provider's webhook sends back, and, with a bounce mailbox, a signed VERP return path
+ * that names the delivery.
  */
 final readonly class MessageComposer
 {
@@ -68,6 +71,7 @@ final readonly class MessageComposer
             $headers->addTextHeader('X-Transport', $profile->transport);
         }
 
+        $headers->add(new TrackingHeader(false, false));
         $headers->add(new MetadataHeader(self::METADATA, $deliveryId));
 
         if ($this->verp instanceof Verp) {

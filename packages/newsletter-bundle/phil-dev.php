@@ -16,9 +16,11 @@ return [
         ],
     ],
     'fuzz' => [
-        // The signed links on tokens nobody wrote, from the seeds of tests/Fuzz/corpus/<target>.
+        // The signed links on tokens nobody wrote and the text part of HTML nobody wrote, from the seeds of
+        // tests/Fuzz/corpus/<target>.
         'targets' => [
             'signed-link' => 'tests/Fuzz/signed-link.php',
+            'text-part' => 'tests/Fuzz/text-part.php',
         ],
     ],
     'infection' => [

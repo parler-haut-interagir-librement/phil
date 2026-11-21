@@ -11,7 +11,7 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  * The optional integrations are used by the production code but only required in development and suggested: the
  * bundle registers each only when it is installed — Messenger for the bus, Mercure for live toasts, Routing for the
  * endpoints' URLs, Scheduler, Console, Mailer and the Twig bridge for the schedule, the purge command and the digest,
- * the Twig components, the ORM for the schema listener, phil/standard-webhooks for receiving from a network,
+ * the Twig components and Twig for the page of the digest's signed link, the ORM for the schema listener, phil/standard-webhooks for receiving from a network,
  * minishlink/web-push with Symfony HttpClient and Asset for Web Push, and phil/idempotency, phil/circuit-breaker and
  * symfony/rate-limiter for the window of duplicates, the circuits and the rate limit of a delivery.
  */
@@ -37,5 +37,6 @@ return new Configuration()
         'symfony/scheduler',
         'symfony/twig-bridge',
         'symfony/ux-twig-component',
+        'twig/twig',
     ], [ErrorType::DEV_DEPENDENCY_IN_PROD])
     ->ignoreErrorsOnExtensions(['ext-openssl'], [ErrorType::DEV_DEPENDENCY_IN_PROD]);

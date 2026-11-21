@@ -8,6 +8,7 @@ use Phil\NotificationsBundle\Application\CheckedCurrentRecipient;
 use Phil\NotificationsBundle\Application\Contract\AudienceProvider;
 use Phil\NotificationsBundle\Application\Contract\CurrentRecipient;
 use Phil\NotificationsBundle\Application\Contract\DigestSender;
+use Phil\NotificationsBundle\Application\Contract\DigestUnsubscriber;
 use Phil\NotificationsBundle\Application\Contract\NotificationPreferences;
 use Phil\NotificationsBundle\Application\Contract\RecipientDirectory;
 use Phil\NotificationsBundle\Application\Contract\RemoteNotificationReceiver;
@@ -43,6 +44,8 @@ use Phil\NotificationsBundle\Infrastructure\Doctrine\DbalPreferences;
 use Phil\NotificationsBundle\Infrastructure\Doctrine\NotificationSchemaListener;
 use Phil\NotificationsBundle\Infrastructure\Http\CentreController;
 use Phil\NotificationsBundle\Infrastructure\Http\CentreRequest;
+use Phil\NotificationsBundle\Infrastructure\Http\DigestLinks;
+use Phil\NotificationsBundle\Infrastructure\Http\DigestUnsubscribeController;
 use Phil\NotificationsBundle\Infrastructure\Http\FlashToasts;
 use Phil\NotificationsBundle\Infrastructure\Http\NullToasts;
 use Phil\NotificationsBundle\Infrastructure\Mailer\MailerDigestSender;
@@ -236,12 +239,64 @@ final class PhilNotificationsBundleTest extends TestCase
         self::assertSame(HubInterface::class, $this->load([])->getDefinition(CentreView::class)->getArgument(6) ?? HubInterface::class);
     }
 
+    public function testTheDbalPreferencesStopADigestFromItsSignedLink(): void
+    {
+        $container = $this->load([['preferences' => 'dbal', 'digest' => ['text_template' => 'mine.txt.twig', 'preferences_route' => 'app_settings']]]);
+        $logger = new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE);
+
+        self::assertSame(DbalPreferences::class, (string) $container->getAlias(DigestUnsubscriber::class));
+        self::assertTrue($container->getAlias(DigestUnsubscriber::class)->isPublic());
+        $links = $container->getDefinition(DigestLinks::class);
+        self::assertTrue($links->isPublic());
+        self::assertEquals([new Reference('router'), new Reference('uri_signer'), 'app_settings', $logger], $links->getArguments());
+        $controller = $container->getDefinition(DigestUnsubscribeController::class);
+        self::assertTrue($controller->isPublic());
+        self::assertTrue($controller->hasTag('controller.service_arguments'));
+        self::assertEquals([new Reference('uri_signer'), new Reference(DigestUnsubscriber::class), new Reference(NotificationsServices::TRANSLATOR), new Reference('twig', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $controller->getArguments());
+        $sender = $container->getDefinition(MailerDigestSender::class);
+        self::assertEquals(new Reference(DigestLinks::class), $sender->getArgument(7));
+        self::assertSame('mine.txt.twig', $sender->getArgument(8));
+    }
+
+    public function testAnUnsubscriberOfTheApplicationsOrNone(): void
+    {
+        $container = $this->load([['preferences' => 'app.preferences', 'digest' => ['unsubscriber' => 'app.unsubscriber']]]);
+        self::assertSame('app.unsubscriber', (string) $container->getAlias(DigestUnsubscriber::class));
+        self::assertNull($container->getDefinition(DigestLinks::class)->getArgument(2));
+
+        $none = $this->load([['preferences' => 'app.preferences']]);
+        self::assertFalse($none->hasDefinition(DigestLinks::class));
+        self::assertNull($none->getDefinition(MailerDigestSender::class)->getArgument(7));
+
+        $off = $this->load([['preferences' => 'dbal', 'digest' => ['unsubscribe' => false, 'unsubscriber' => 'app.unsubscriber', 'preferences_route' => 'app_settings']]]);
+        self::assertFalse($off->hasAlias(DigestUnsubscriber::class));
+        self::assertFalse($off->hasDefinition(DigestUnsubscribeController::class));
+        self::assertNull($off->getDefinition(DigestLinks::class)->getArgument(1));
+
+        $notSent = $this->load([['digest' => ['enabled' => false], 'defaults' => ['digest' => 'daily']]]);
+        self::assertFalse($notSent->hasDefinition(DigestLinks::class));
+        self::assertFalse($this->load([['defaults' => ['digest' => 'daily'], 'digest' => ['unsubscribe' => false]]])->hasDefinition(DigestLinks::class));
+        self::assertFalse($this->load([['defaults' => ['digest' => 'never']]])->hasDefinition(DigestLinks::class));
+        self::assertTrue($this->load([['preferences' => 'dbal', 'defaults' => ['digest' => 'daily']]])->hasDefinition(DigestLinks::class));
+    }
+
+    public function testADigestForEveryoneNeedsAWayToStopIt(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessageIsOrContains('Every recipient gets a digest by default, and the "config" preferences cannot record that one stops it: use the "dbal" preferences, name a DigestUnsubscriber in "digest.unsubscriber", or set "digest.unsubscribe" to false.');
+
+        $this->load([['defaults' => ['digest' => 'weekly']]]);
+    }
+
     public function testTheDigests(): void
     {
         $container = $this->load([['digest' => ['from' => 'n@example.test', 'template' => 'mine.html.twig', 'at' => '06:00', 'weekday' => 'friday']]]);
         $logger = new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE);
 
-        self::assertEquals([new Reference('mailer.transports'), new Reference(NotificationsServices::TRANSLATOR), 'n@example.test', 'mine.html.twig', $logger, null, new Reference('twig.mime_body_renderer', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(MailerDigestSender::class)->getArguments());
+        self::assertEquals([new Reference('mailer.transports'), new Reference(NotificationsServices::TRANSLATOR), 'n@example.test', 'mine.html.twig', $logger, null, new Reference('twig.mime_body_renderer', ContainerInterface::NULL_ON_INVALID_REFERENCE), null, MailerDigestSender::TEXT_TEMPLATE], $container->getDefinition(MailerDigestSender::class)->getArguments());
+        self::assertFalse($container->hasDefinition(DigestLinks::class));
+        self::assertFalse($container->hasDefinition(DigestUnsubscribeController::class));
+        self::assertFalse($container->hasAlias(DigestUnsubscriber::class));
         self::assertEquals(new Reference('app.tracking'), $this->load([['digest' => ['tracking_consent' => 'app.tracking']]])->getDefinition(MailerDigestSender::class)->getArgument(5));
         $digests = $container->getDefinition(Digests::class);
         self::assertTrue($digests->isPublic());

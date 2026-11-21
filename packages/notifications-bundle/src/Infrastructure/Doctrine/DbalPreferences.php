@@ -6,6 +6,7 @@ namespace Phil\NotificationsBundle\Infrastructure\Doctrine;
 
 use Doctrine\DBAL\Connection;
 use Override;
+use Phil\NotificationsBundle\Application\Contract\DigestUnsubscriber;
 use Phil\NotificationsBundle\Application\Contract\NotificationPreferences;
 use Phil\NotificationsBundle\Application\Preferences\DigestFrequency;
 use Phil\NotificationsBundle\Application\Preferences\QuietHours;
@@ -15,9 +16,10 @@ use Phil\NotificationsBundle\Domain\Identifiers;
 
 /**
  * Each recipient's settings in one row, as a JSON object; a recipient without a row has the defaults of the
- * configuration. The application saves what a recipient chooses with `save()`, and forgets it with `forget()`.
+ * configuration. The application saves what a recipient chooses with `save()`, and forgets it with `forget()`; the
+ * signed link of a digest stops it with `unsubscribe()`, the rest of the settings kept.
  */
-final readonly class DbalPreferences implements NotificationPreferences
+final readonly class DbalPreferences implements NotificationPreferences, DigestUnsubscriber
 {
     private const string TABLE = NotificationTables::PREFERENCES;
 
@@ -78,6 +80,19 @@ final readonly class DbalPreferences implements NotificationPreferences
                 $connection->update(self::TABLE, ['settings' => $json], ['recipient' => $recipient]);
             }
         });
+    }
+
+    /**
+     * @throws InvalidNotification when the stored row is not settings
+     */
+    #[Override]
+    public function unsubscribe(string $recipient): void
+    {
+        $settings = $this->settingsFor($recipient);
+
+        if (DigestFrequency::Never !== $settings->digest) {
+            $this->save($recipient, new RecipientSettings(DigestFrequency::Never, $settings->quietHours, $settings->optOuts, $settings->locale));
+        }
     }
 
     public function forget(string $recipient): void

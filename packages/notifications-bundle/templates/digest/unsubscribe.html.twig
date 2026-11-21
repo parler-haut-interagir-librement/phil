@@ -1,0 +1,21 @@
+{# The page of the signed link that stops a digest: `confirm` shows the button that posts to `action`, `done` says the digest stopped, `refused` says the link is not valid. An application overrides it in templates/bundles/PhilNotificationsBundle/digest/. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{{ 'digest.unsubscribe.title'|trans({}, 'phil_notifications') }}</title>
+</head>
+<body>
+    <main>
+        <h1>{{ 'digest.unsubscribe.title'|trans({}, 'phil_notifications') }}</h1>
+        <p>{{ ('digest.unsubscribe.' ~ state)|trans({}, 'phil_notifications') }}</p>
+        {% if state == 'confirm' %}
+            <form method="post" action="{{ action }}">
+                <button type="submit">{{ 'digest.unsubscribe.button'|trans({}, 'phil_notifications') }}</button>
+            </form>
+        {% endif %}
+    </main>
+</body>
+</html>

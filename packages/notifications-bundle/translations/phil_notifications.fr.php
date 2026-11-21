@@ -21,4 +21,13 @@ return [
     'digest.heading.daily' => 'Ce qui s’est passé aujourd’hui',
     'digest.heading.weekly' => 'Ce qui s’est passé cette semaine',
     'digest.footer' => 'Vous recevez ce résumé parce que vous l’avez choisi dans vos préférences de notification.',
+    'digest.preferences' => 'Vos préférences de notification',
+    'digest.text.preferences' => 'Vos préférences de notification : %url%',
+    'digest.text.unsubscribe' => 'Arrêter ce résumé : %url%',
+    'digest.unsubscribe.link' => 'Arrêter ce résumé',
+    'digest.unsubscribe.title' => 'Résumé des notifications',
+    'digest.unsubscribe.confirm' => 'Arrêter le résumé de vos notifications ? Vous recevrez plutôt un courriel pour chaque notification, comme vos préférences le permettent.',
+    'digest.unsubscribe.button' => 'Arrêter le résumé',
+    'digest.unsubscribe.done' => 'C’est fait : le résumé s’arrête. Vous pouvez le choisir de nouveau dans vos préférences de notification.',
+    'digest.unsubscribe.refused' => 'Ce lien n’est pas valide ou a expiré. Utilisez le lien de votre dernier résumé, ou vos préférences de notification.',
 ];

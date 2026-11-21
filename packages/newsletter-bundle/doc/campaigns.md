@@ -47,7 +47,12 @@ a message should not hold. It is then laid out:
 - or by a template the campaign names, written by an administrator or a member, rendered in the sandbox.
 
 A layout reads `subject`, `preheader`, `content` — the body, already purified —, `list_name`, `site`,
-`unsubscribe_url` and `preferences_url`. The text part of the message is drawn from its HTML.
+`unsubscribe_url` and `preferences_url`.
+
+The text part of the message is drawn from its HTML by `TextPart`, which writes the address of every web link between
+angle brackets after its words: a reader of the text part still finds the links to unsubscribe, to the preference center
+and, in a confirmation, to confirm. The head, the styles and what is hidden, the preheader among them, are left out.
+`ContentRenderer` takes another Mime `HtmlToTextConverterInterface` as its last argument; it returns decoded text.
 
 ## Templates of administrators and members
 

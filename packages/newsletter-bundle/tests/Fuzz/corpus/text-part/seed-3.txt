@@ -1,0 +1,1 @@
+<table><tr><td><a href="http://x.example/"><img alt=""></a></td></tr></table>

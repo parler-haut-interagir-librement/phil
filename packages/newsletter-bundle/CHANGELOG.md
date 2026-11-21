@@ -27,6 +27,9 @@ an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
   `SendRunCompleted` once every message of a run was sent or skipped. A paused run holds its messages, queued.
 - `DeliveryRepository::countOfRun()`, `pendingOfRun()` and `skipPendingOfRun()`.
 - The migration from the tables of 0.2, tested on MySQL 8.4 and PostgreSQL 17 from tables holding rows.
+- `TextPart`, the Mime `HtmlToTextConverterInterface` that writes the text part of a message from its HTML, the
+  address of every web link between angle brackets after its words, the head, the styles and what is hidden left out,
+  with a fuzz target.
 
 ### Changed
 
@@ -41,6 +44,8 @@ an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
   versions of their main branches and no earlier one, so that the package installs on its own beside those bundles.
 - `SendDeliveryHandler` and `SendConfirmationHandler` take a Mailer `TransportInterface`, the service
   `mailer.transports`, instead of `MailerInterface`.
+- `ContentRenderer` draws the text part with `TextPart` instead of Mime's `DefaultHtmlToTextConverter`, and no longer
+  decodes the entities of what its converter returns.
 
 ### Security
 
@@ -49,6 +54,12 @@ an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
   unsubscription link waited in the Messenger transport and its failure transport. The handlers send through the
   Mailer transports, and a refusal of the transport fails the handler, for Messenger to retry its message, which
   carries identifiers only.
+- The text part of a campaign, a confirmation or a message of a template keeps the address of each link: the
+  unsubscription, the preference center and the confirmation of a double opt-in were only in the `href` of the HTML,
+  so that a reader of the text part had no way to unsubscribe or confirm.
+- Every message carries a `TrackingHeader` that turns off the mail provider's open and click tracking: a provider that
+  tracks by default no longer adds a pixel per recipient nor rewrites the links, the signed ones included, through its
+  own domain; `ClickTracker` alone counts the clicks of a campaign.
 
 ## 0.3.0-alpha - 2026-11-20
 

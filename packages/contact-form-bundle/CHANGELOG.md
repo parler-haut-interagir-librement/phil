@@ -8,10 +8,22 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.2-alpha.
 
+### Changed
+
+- `ContactMailer` takes a Mailer `TransportInterface`, the service `mailer.transports`, instead of `MailerInterface`.
+- `symfony/messenger` is in `require-dev`, for the test that routes `SendEmailMessage` to an asynchronous transport.
+
 ### Fixed
 
 - `phil/spam-protection-bundle` 0.3 is accepted beside 0.1 and 0.2: the package did not install beside the version
   published on 2026-11-20.
+
+### Security
+
+- A contact message no longer goes through `MailerInterface`, which put a `SendEmailMessage` on the bus when the
+  application routed it: the unrendered email, with the visitor's name, address and message in its context, kept by
+  the Messenger transport and its failure transport. The email is rendered and sent in the request, through the Mailer
+  transports, and a refusal of the transport reaches the page at once.
 
 ## 0.1.1-alpha - 2026-11-17
 

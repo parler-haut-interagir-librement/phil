@@ -65,6 +65,20 @@ migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:
 makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
 stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
 
+## Upgrading from 0.3
+
+- Each digest carries a signed link that stops it, in its footer, in its text part and in `List-Unsubscribe` with
+  `List-Unsubscribe-Post: List-Unsubscribe=One-Click`, when a `DigestUnsubscriber` records it: the `dbal` preferences,
+  or the service named in `digest.unsubscriber`. Import `digest_routes.php` outside the login firewall (see
+  [The routes](#the-routes)) and set `framework.router.default_uri`, since the link is written in a worker; until the
+  route is imported, digests leave without the link and an error is logged. `digest.unsubscribe: false` turns it off.
+- With the `config` preferences and `defaults.digest` other than `never`, the container refuses to build unless
+  `digest.unsubscriber` names a service or `digest.unsubscribe` is false: nobody could stop a digest sent to everyone.
+- The digest has a text part, `@PhilNotifications/email/digest.txt.twig` (`digest.text_template`). An application that
+  overrides `digest.html.twig` overrides it too, and reads `preferences_url` and `unsubscribe_url`, each null when
+  there is none. `digest.preferences_route` names its page of notification preferences.
+- `MailerDigestSender` takes a `DigestLinks` and the text template as its last two, optional, arguments.
+
 ## Upgrading from 0.2
 
 - `WebPushSender::send()` returns a `ChannelOutcome`. A sender of the application's returns `Accepted` when a push
@@ -98,6 +112,16 @@ The endpoint of a network, outside the login firewall — its signature is the a
 # config/routes/phil_notifications_remote.yaml
 phil_notifications_remote:
     resource: '@PhilNotificationsBundle/config/remote_routes.php'
+    prefix: /notifications
+```
+
+The signed link that stops a digest, outside the login firewall — its signature is the authentication, and a mail
+client posts to it without cookies:
+
+```yaml
+# config/routes/phil_notifications_digest.yaml
+phil_notifications_digest:
+    resource: '@PhilNotificationsBundle/config/digest_routes.php'
     prefix: /notifications
 ```
 

@@ -50,6 +50,7 @@ use Psr\Log\AbstractLogger;
 use Stringable;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\Header\MetadataHeader;
+use Symfony\Component\Mailer\Header\TrackingHeader;
 use Symfony\Component\Messenger\Stamp\DelayStamp;
 use Symfony\Component\Mime\Email;
 
@@ -122,7 +123,13 @@ final class SendingTest extends TestCase
         self::assertStringNotContainsString('href="https://example.com/news"', $html);
         self::assertStringContainsString('mailto:a@example.com', $html);
         self::assertStringContainsString('https://example.com/newsletter/preferences/', $html);
-        self::assertStringContainsString('News', (string) $email->getTextBody());
+        $text = (string) $email->getTextBody();
+        self::assertStringContainsString('News', $text);
+        self::assertStringContainsString('<'.substr((string) $headers->get('List-Unsubscribe')?->getBodyAsString(), 1, -1).'>', $text);
+        self::assertMatchesRegularExpression('#Your preferences <https://example\.com/newsletter/preferences/[A-Za-z0-9_.-]+>#', $text);
+        $tracking = $headers->get(TrackingHeader::NAME);
+        self::assertInstanceOf(TrackingHeader::class, $tracking);
+        self::assertSame([false, false], [$tracking->getOpens(), $tracking->getClicks()]);
 
         $link = $this->newsletter->links->verify($this->token('#/unsubscribe/([A-Za-z0-9_.-]+)>#', (string) $headers->get('List-Unsubscribe')?->getBodyAsString()), LinkPurpose::Unsubscribe);
         self::assertSame([$subscriber->id, $list->id, null], [$link->subject, $link->extra, $link->expiresAt]);
@@ -372,10 +379,13 @@ final class SendingTest extends TestCase
         self::assertFalse($email->getHeaders()->has('Precedence'));
         $link = $this->newsletter->links->verify($this->token('#/confirm/([A-Za-z0-9_.-]+)"#', (string) $email->getHtmlBody()), LinkPurpose::Confirm);
         self::assertSame([$ada->id, $list->id, $this->newsletter->clock->now()->getTimestamp() + 604_800], [$link->subject, $link->extra, $link->expiresAt]);
+        self::assertMatchesRegularExpression('#<https://example\.com/newsletter/confirm/[A-Za-z0-9_.-]+>#', (string) $email->getTextBody());
+        self::assertSame('opens=false; clicks=false', $email->getHeaders()->get(TrackingHeader::NAME)?->getBodyAsString());
 
         $this->newsletter->templates->save(new Template('confirmation', Site::default(), 'Please confirm {{ list_name }}', '<a href="{{ confirm_url }}">Yes</a>', $this->newsletter->clock->now()));
         $this->confirmationHandler()(new SendConfirmation($ada->id, $list->id));
         self::assertSame('Please confirm The news', $this->newsletter->mailer->sent[1]->getSubject());
+        self::assertMatchesRegularExpression('#^Yes <https://example\.com/newsletter/confirm/[A-Za-z0-9_.-]+>$#', (string) $this->newsletter->mailer->sent[1]->getTextBody());
 
         $this->newsletter->subscriptions->confirm($ada->id, $list->id);
         $this->confirmationHandler()(new SendConfirmation($ada->id, $list->id));

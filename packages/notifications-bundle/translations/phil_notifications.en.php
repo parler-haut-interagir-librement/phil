@@ -21,4 +21,13 @@ return [
     'digest.heading.daily' => 'What happened today',
     'digest.heading.weekly' => 'What happened this week',
     'digest.footer' => 'You get this digest because you chose it in your notification preferences.',
+    'digest.preferences' => 'Your notification preferences',
+    'digest.text.preferences' => 'Your notification preferences: %url%',
+    'digest.text.unsubscribe' => 'Stop this digest: %url%',
+    'digest.unsubscribe.link' => 'Stop this digest',
+    'digest.unsubscribe.title' => 'Notification digest',
+    'digest.unsubscribe.confirm' => 'Stop the digest of your notifications? You will get an email for each notification instead, as your preferences allow.',
+    'digest.unsubscribe.button' => 'Stop the digest',
+    'digest.unsubscribe.done' => 'Done: the digest stops. You can choose it again in your notification preferences.',
+    'digest.unsubscribe.refused' => 'This link is not valid or has expired. Use the link of your latest digest, or your notification preferences.',
 ];

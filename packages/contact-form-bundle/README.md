@@ -5,8 +5,8 @@
 phil/contact-form-bundle gives a contact page: a form with a name, an email, a subject and a message. A valid message
 goes by Symfony Mailer to the configured recipients, then the page redirects to itself and says the message left, so
 reloading sends nothing twice. Labels, messages and the email are in English and French. The bundle does not keep the
-messages, though an application that sends its email through an asynchronous Messenger transport keeps them in its
-queue until they leave, as [Mailing](doc/mailing.md) explains. It does not show a captcha. It sends no copy to the
+messages, and sends them through Mailer's transports, so that none waits in a Messenger queue even where the application
+routes its emails to one, as [Mailing](doc/mailing.md) explains. It does not show a captcha. It sends no copy to the
 visitor, since a copy would let anyone send a text of their choice to any address through the site.
 
 It is for any Symfony site that wants visitors to write to it without exposing an email address. The form carries the
