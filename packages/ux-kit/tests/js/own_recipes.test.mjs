@@ -1164,3 +1164,102 @@ test('date range: the buttons move both months, the limits hold the focus', () =
     press('PageUp', { shiftKey: true });
     assert.equal(focused(), '2026-03-10');
 });
+
+test('date range: swapped, the labels, the selection and the limit of the end follow the order', () => {
+    const { controller, open, on, input, endInput, collect, days, marked } = rangePicker();
+    open();
+    collect();
+    controller.choose(on('2026-04-02'));
+    controller.hover(on('2026-03-30'));
+    const cells = collect();
+    assert.deepEqual(marked(), ['2026-03-30:start', '2026-03-31:within', '2026-04-01:within', '2026-04-02:end']);
+    assert.equal(days.get('2026-03-30').getAttribute('aria-label'), 'Monday, March 30, 2026, start of the range');
+    assert.equal(days.get('2026-04-02').getAttribute('aria-label'), 'Thursday, April 2, 2026, end of the range');
+    assert.equal(cells.get('2026-03-31').getAttribute('aria-selected'), 'true');
+    assert.equal(cells.get('2026-04-03').getAttribute('aria-selected'), 'false');
+    controller.choose(on('2026-03-30'));
+    assert.equal(input.value, '2026-03-30');
+    assert.equal(endInput.value, '2026-04-02');
+    assert.equal(endInput.min, '2026-03-30');
+});
+
+test('date range: the preview shrinks back, and the days it leaves are no longer marked', () => {
+    const { controller, open, on, collect, days, marked } = rangePicker();
+    open();
+    collect();
+    controller.choose(on('2026-03-20'));
+    controller.hover(on('2026-04-02'));
+    controller.hover(on('2026-03-22'));
+    const cells = collect();
+    assert.deepEqual(marked(), ['2026-03-20:start', '2026-03-21:within', '2026-03-22:end']);
+    assert.equal(days.get('2026-04-02').dataset.range, undefined);
+    assert.equal(days.get('2026-04-02').getAttribute('aria-label'), 'Thursday, April 2, 2026');
+    assert.equal(cells.get('2026-04-02').getAttribute('aria-selected'), 'false');
+});
+
+test('date range: before the first choice, the focus previews nothing; after it, the focus or the pointer last moved is the preview', () => {
+    const { controller, open, on, press, collect, marked } = rangePicker();
+    open();
+    const fields = ['2026-03-15:start', '2026-03-16:within', '2026-03-17:within', '2026-03-18:end'];
+    press('ArrowDown');
+    assert.deepEqual(marked(), fields);
+    collect();
+    controller.choose(on('2026-03-22'));
+    press('ArrowLeft');
+    assert.deepEqual(marked(), ['2026-03-21:start', '2026-03-22:end']);
+    controller.hover(on('2026-03-24'));
+    assert.deepEqual(marked(), ['2026-03-22:start', '2026-03-23:within', '2026-03-24:end']);
+    press('ArrowRight');
+    assert.deepEqual(marked(), ['2026-03-22:start']);
+});
+
+test('date range: right to left, the keys preview backwards across the months, swap, and move the view past them', () => {
+    browser({ direction: 'rtl' });
+    const { controller, open, on, press, focused, headings, collect, marked, input, endInput } = rangePicker({
+        value: '2026-04-01',
+        end: '2026-04-01',
+    });
+    open();
+    assert.equal(headings[0].textContent, 'April 2026');
+    collect();
+    controller.choose(on('2026-04-01'));
+    press('ArrowRight');
+    assert.equal(focused(), '2026-03-31');
+    assert.deepEqual(marked(), ['2026-03-31:start', '2026-04-01:end']);
+    assert.equal(headings[0].textContent, 'March 2026');
+    assert.equal(headings[1].textContent, 'April 2026');
+    press('ArrowLeft');
+    press('ArrowLeft');
+    assert.equal(focused(), '2026-04-02');
+    assert.deepEqual(marked(), ['2026-04-01:start', '2026-04-02:end']);
+    collect();
+    controller.choose(on('2026-03-31'));
+    assert.equal(input.value, '2026-03-31');
+    assert.equal(endInput.value, '2026-04-01');
+});
+
+test('date range: a click after the keys starts on the day clicked, which takes the focus', () => {
+    const { controller, open, on, press, focused, collect, days, marked } = rangePicker();
+    open();
+    press('ArrowDown');
+    collect();
+    controller.choose(on('2026-03-25'));
+    assert.deepEqual(marked(), ['2026-03-25:start']);
+    collect();
+    assert.deepEqual(
+        [...days.values()].filter((day) => day.tabIndex === 0).map((day) => day.dataset.date),
+        ['2026-03-25'],
+    );
+    press('ArrowRight');
+    assert.equal(focused(), '2026-03-26');
+});
+
+test('date range: a month button that would hide the day held by a limit keeps it in view', () => {
+    const { controller, open, headings, focused, press } = rangePicker({ max: '2026-03-20' });
+    open();
+    controller.next();
+    assert.equal(headings[0].textContent, 'March 2026');
+    assert.equal(headings[1].textContent, 'April 2026');
+    press('ArrowLeft');
+    assert.equal(focused(), '2026-03-19');
+});
