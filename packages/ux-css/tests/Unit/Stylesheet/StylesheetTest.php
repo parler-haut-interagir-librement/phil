@@ -38,6 +38,7 @@ final class StylesheetTest extends TestCase
         'isCopyButton', 'isAnimatedButton', 'hasShine', 'hasLift', 'hasArrow', 'isStepperItem', 'isStepperLabel', 'isActivityCalendarDay',
         'isTree', 'isTreeItem', 'isRating', 'isRatingStar', 'isNumberInput', 'isFileInput', 'isFileInputZone', 'isTag', 'isTagRemove',
         'isRelativeTime', 'isProgressRing', 'isSparkline', 'isBeforeAfter', 'isColorPicker', 'isDatePicker', 'isDatePickerDay',
+        'hasRange', 'isDatePickerPart', 'isDatePickerMonths', 'isDatePickerCalendar',
     ];
 
     public function testTheEntryImportsEachFileIntoItsLayerInOrder(): void

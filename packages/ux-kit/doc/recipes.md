@@ -1309,6 +1309,14 @@ php bin/console ux:install clipboard --kit=common
 `panel`, `heading`, `weekdays` and `weeks`, the classes `day` and `weekday`, written by the template on what the script
 creates.
 
+With `range`, a `div` of classes `isDatePicker hasRange` and role `group`: two date fields, each in an
+`isDatePickerPart` label, and two months side by side in `isDatePickerMonths`, each an `isDatePickerCalendar` with its
+heading and its grid. The controller adds the actions `limit`, on the start, which writes the `min` of the end, and
+`hover`, the targets `end` and `status`, a live region, and the values `rangeStartLabel` and `rangeEndLabel`; it shows
+as many months as there are `weeks` targets. A day of the range carries `data-range`, `start`, `within` or `end`, and
+its cell `aria-selected`. The end is never before the start in the browser; the application checks the range again on
+the server.
+
 | Prop | Default | |
 |---|---|---|
 | `id` | required | The identifier of the field, from which those of the panel are made |
@@ -1324,6 +1332,16 @@ creates.
 | `nextLabel` | `Next month` | The name of the button that goes forward a month |
 | `required` | `false` | Whether a date has to be given |
 | `disabled` | `false` | Whether the field cannot be changed for now |
+| `range` | `false` | Whether two fields give the start and the end of a range, chosen on two months side by side |
+| `endName` | `null` | The name of the field of the end of the range |
+| `endValue` | `null` | The end of the range, as `YYYY-MM-DD` |
+| `startLabel` | `Start` | The label of the field of the start of the range |
+| `endLabel` | `End` | The label of the field of the end of the range |
+| `rangeStartLabel` | `start of the range` | What the name of the first day of the range ends with |
+| `rangeEndLabel` | `end of the range` | What the name of the last day of the range ends with |
+
+With `range`, `id`, `name` and `value` are those of the start, `label` names the group of both fields, and
+`min`, `max`, `required` and `disabled` apply to both.
 
 ## CopyButton
 

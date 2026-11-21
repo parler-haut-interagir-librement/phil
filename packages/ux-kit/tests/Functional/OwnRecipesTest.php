@@ -250,4 +250,42 @@ final class OwnRecipesTest extends KitTestCase
         self::assertStringContainsString('data-date-picker-locale-value="" data-date-picker-first-day-value="-1"', $html);
         self::assertStringContainsString('<input class="isDatePickerField" type="date" id="d" data-date-picker-target="input">', $html);
     }
+
+    public function testADateRangeWorksAsTwoNativeFieldsWithoutAScript(): void
+    {
+        $html = $this->render('<twig:DatePicker id="stay" name="arrival" endName="departure" value="2026-07-01" endValue="2026-07-08" min="2026-06-01" max="2026-12-31" label="Stay" startLabel="Arrival" endLabel="Departure" openLabel="Choose dates" rangeStartLabel="arrival" rangeEndLabel="departure" :range="true" :required="true" />');
+
+        self::assertStringContainsString('data-date-picker-range-start-label-value="arrival" data-date-picker-range-end-label-value="departure"', $html);
+        self::assertStringContainsString('class="isDatePicker hasRange" data-controller="date-picker" role="group" aria-label="Stay"', $html);
+        self::assertStringContainsString('<label class="isDatePickerPart" for="stay"><span>Arrival</span><input class="isDatePickerField" type="date" id="stay" name="arrival" value="2026-07-01" min="2026-06-01" max="2026-12-31" required data-date-picker-target="input" data-action="date-picker#limit"></label>', $html);
+        self::assertStringContainsString('<label class="isDatePickerPart" for="stay-end"><span>Departure</span><input class="isDatePickerField" type="date" id="stay-end" name="departure" value="2026-07-08" min="2026-07-01" max="2026-12-31" required data-date-picker-target="end"></label>', $html);
+        self::assertStringContainsString('class="isDatePickerTrigger" hidden popovertarget="stay-panel" aria-label="Choose dates"', $html);
+        self::assertStringContainsString('<div class="isDatePickerPanel" id="stay-panel" popover role="dialog" aria-labelledby="stay-heading stay-heading-end"', $html);
+        self::assertStringContainsString('mouseover->date-picker#hover', $html);
+        self::assertStringContainsString('<span class="isVisuallyHidden" aria-live="polite" data-date-picker-target="status"></span>', $html);
+        self::assertSame(2, substr_count($html, 'role="grid"'));
+        self::assertSame(2, substr_count($html, 'aria-multiselectable="true"'));
+        self::assertStringContainsString('id="stay-heading" aria-live="polite" data-date-picker-target="heading"', $html);
+        self::assertStringContainsString('aria-labelledby="stay-heading-end" aria-multiselectable="true"', $html);
+        self::assertStringNotContainsString('aria-label="Stay" required', $html);
+    }
+
+    public function testADateRangeEndsNoEarlierThanTheFirstDateAllowed(): void
+    {
+        $html = $this->render('<twig:DatePicker id="r" min="2026-06-01" :range="true" :disabled="true" />');
+
+        self::assertStringContainsString('data-date-picker-range-start-label-value="start of the range" data-date-picker-range-end-label-value="end of the range"', $html);
+        self::assertStringContainsString('class="isDatePicker hasRange" data-controller="date-picker" role="group">', $html);
+        self::assertStringContainsString('<span>Start</span><input class="isDatePickerField" type="date" id="r" min="2026-06-01" disabled data-date-picker-target="input"', $html);
+        self::assertStringContainsString('<span>End</span><input class="isDatePickerField" type="date" id="r-end" min="2026-06-01" disabled data-date-picker-target="end">', $html);
+        self::assertStringContainsString('aria-expanded="false" disabled data-date-picker-target="trigger"', $html);
+    }
+
+    public function testADateRangeWithoutLimits(): void
+    {
+        $html = $this->render('<twig:DatePicker id="r" :range="true" />');
+
+        self::assertStringContainsString('<input class="isDatePickerField" type="date" id="r-end" data-date-picker-target="end">', $html);
+        self::assertStringContainsString('<input class="isDatePickerField" type="date" id="r" data-date-picker-target="input" data-action="date-picker#limit">', $html);
+    }
 }

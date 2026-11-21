@@ -69,6 +69,43 @@ export function weeks(time, firstDay) {
     return rows;
 }
 
+/** The first day of the month of a time. */
+export const monthOf = (time) => {
+    const date = new Date(time);
+
+    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1);
+};
+
+/**
+ * The first month shown so that a time stays in view: `first` kept while the time is within its `count` months, moved
+ * otherwise just enough to bring it back, on the left when it went before, on the right when it went past.
+ */
+export function shownFrom(first, time, count) {
+    const month = monthOf(time);
+
+    if (month < first) {
+        return month;
+    }
+
+    return month > addMonths(first, count - 1) ? addMonths(month, 1 - count) : first;
+}
+
+/**
+ * The range from a start and an end, in order: the earlier is the start whichever was chosen first; null without a
+ * start.
+ */
+export function ordered(start, end) {
+    if (start === null) {
+        return null;
+    }
+
+    if (end === null) {
+        return { start, end: start };
+    }
+
+    return start > end ? { start: end, end: start } : { start, end };
+}
+
 /** The same day some months away, or the last of its month when that month is shorter. */
 export function addMonths(time, count) {
     const date = new Date(time);
@@ -82,31 +119,59 @@ export function addMonths(time, count) {
  * arrows move by day and week, mirrored right to left, Home and End to the ends of the week, Page Up and Page Down by
  * month, and by year with Shift. Enter and the Space bar are those of the button of a day; the browser closes on
  * Escape and gives the focus back.
+ *
+ * With an `end` target, a range on as many months as there are `weeks` targets: the first day chosen is the start, the
+ * second the end, the two swapped when the end comes first; until then the days between the start and the day under
+ * the pointer or the focus are previewed. The field of the end never takes a date before that of the start.
  */
 export default class extends Controller {
-    static targets = ['input', 'trigger', 'panel', 'heading', 'weekdays', 'weeks'];
+    static targets = ['input', 'end', 'trigger', 'panel', 'heading', 'weekdays', 'weeks', 'status'];
 
     static classes = ['day', 'weekday'];
 
     static values = {
         locale: String,
         firstDay: { type: Number, default: -1 },
+        rangeStartLabel: { type: String, default: 'start of the range' },
+        rangeEndLabel: { type: String, default: 'end of the range' },
     };
 
     #focused = 0;
+    #first = 0;
+    #pending = null;
+    #preview = null;
+    #buttons = [];
     #follow = () => this.#place();
 
     connect() {
         this.triggerTarget.hidden = !('popover' in HTMLElement.prototype);
+        this.limit();
     }
 
     disconnect() {
         this.#stopFollowing();
     }
 
+    /** The end of a range starts where its start is, or at the first date allowed. */
+    limit() {
+        if (!this.hasEndTarget) {
+            return;
+        }
+
+        const start = this.inputTarget.value || this.inputTarget.min;
+
+        if (start) {
+            this.endTarget.min = start;
+        } else {
+            this.endTarget.removeAttribute('min');
+        }
+    }
+
     toggled(event) {
         const open = event.newState === 'open';
         this.triggerTarget.setAttribute('aria-expanded', String(open));
+        this.#pending = null;
+        this.#preview = null;
 
         if (!open) {
             this.#stopFollowing();
@@ -115,6 +180,8 @@ export default class extends Controller {
         }
 
         this.#focused = this.#clamp(parse(this.inputTarget.value) ?? this.#today());
+        this.#first = monthOf(this.#focused);
+        this.#announce('');
         this.#render();
         this.#place();
         this.#day(this.#focused)?.focus();
@@ -123,13 +190,11 @@ export default class extends Controller {
     }
 
     previous() {
-        this.#focused = this.#clamp(addMonths(this.#focused, -1));
-        this.#render();
+        this.#turn(-1);
     }
 
     next() {
-        this.#focused = this.#clamp(addMonths(this.#focused, 1));
-        this.#render();
+        this.#turn(1);
     }
 
     choose(event) {
@@ -139,12 +204,41 @@ export default class extends Controller {
             return;
         }
 
-        const input = this.inputTarget;
-        input.value = day.dataset.date;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-        this.panelTarget.hidePopover();
-        this.triggerTarget.focus();
+        if (!this.hasEndTarget) {
+            this.#write(this.inputTarget, day.dataset.date);
+            this.#close();
+
+            return;
+        }
+
+        const time = parse(day.dataset.date);
+
+        if (this.#pending === null) {
+            this.#pending = time;
+            this.#preview = time;
+            this.#focused = time;
+            this.#mark();
+            this.#announce(`${this.#formatter({ dateStyle: 'full' }).format(time)}, ${this.rangeStartLabelValue}`);
+
+            return;
+        }
+
+        const { start, end } = ordered(this.#pending, time);
+        this.#write(this.inputTarget, iso(start));
+        this.limit();
+        this.#write(this.endTarget, iso(end));
+        this.#close();
+    }
+
+    hover(event) {
+        const day = event.target.closest('[data-date]');
+
+        if (this.#pending === null || !day || day.disabled) {
+            return;
+        }
+
+        this.#preview = parse(day.dataset.date);
+        this.#mark();
     }
 
     navigate(event) {
@@ -160,8 +254,41 @@ export default class extends Controller {
 
         event.preventDefault();
         this.#focused = this.#clamp(target);
-        this.#render();
+        this.#preview = this.#focused;
+        const first = shownFrom(this.#first, this.#focused, this.weeksTargets.length);
+
+        if (first === this.#first) {
+            this.#mark();
+        } else {
+            this.#first = first;
+            this.#render();
+        }
+
         this.#day(this.#focused)?.focus();
+    }
+
+    #turn(count) {
+        this.#first = addMonths(this.#first, count);
+        this.#focused = this.#clamp(addMonths(this.#focused, count));
+        this.#first = shownFrom(this.#first, this.#focused, this.weeksTargets.length);
+        this.#render();
+    }
+
+    #write(input, value) {
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    #close() {
+        this.panelTarget.hidePopover();
+        this.triggerTarget.focus();
+    }
+
+    #announce(text) {
+        if (this.hasStatusTarget) {
+            this.statusTarget.textContent = text;
+        }
     }
 
     #destination({ key, shiftKey }) {
@@ -183,67 +310,138 @@ export default class extends Controller {
 
     #render() {
         const month = this.#formatter({ month: 'long', year: 'numeric' });
-        const long = this.#formatter({ dateStyle: 'full' });
-        const number = this.#formatter({ day: 'numeric' });
         const short = this.#formatter({ weekday: 'short' });
         const full = this.#formatter({ weekday: 'long' });
-        const rows = weeks(this.#focused, this.#firstDay());
-        const shown = iso(this.#focused).slice(0, 7);
-        const selected = this.inputTarget.value;
+        const number = this.#formatter({ day: 'numeric' });
         const today = iso(this.#today());
+        const firstDay = this.#firstDay();
+        const single = this.weeksTargets.length === 1;
+        this.#buttons = [];
 
-        this.headingTarget.textContent = month.format(this.#focused);
-        this.weekdaysTarget.replaceChildren(
-            ...rows[0].map((time) => {
-                const cell = document.createElement('th');
-                cell.scope = 'col';
-                cell.abbr = full.format(time);
-                cell.textContent = short.format(time);
-                cell.classList.add(...this.weekdayClasses);
+        this.weeksTargets.forEach((target, index) => {
+            const shown = addMonths(this.#first, index);
+            const rows = weeks(shown, firstDay);
+            const prefix = iso(shown).slice(0, 7);
 
-                return cell;
-            }),
-        );
-        this.weeksTarget.replaceChildren(
-            ...rows.map((week) => {
-                const row = document.createElement('tr');
-                row.append(...week.map((time) => this.#cell(time, { long, number, shown, selected, today })));
+            this.headingTargets[index].textContent = month.format(shown);
+            this.weekdaysTargets[index].replaceChildren(
+                ...rows[0].map((time) => {
+                    const cell = document.createElement('th');
+                    cell.scope = 'col';
+                    cell.abbr = full.format(time);
+                    cell.textContent = short.format(time);
+                    cell.classList.add(...this.weekdayClasses);
 
-                return row;
-            }),
-        );
+                    return cell;
+                }),
+            );
+            target.replaceChildren(
+                ...rows.map((week) => {
+                    const row = document.createElement('tr');
+                    row.append(
+                        ...week.map((time) =>
+                            this.#cell(time, { inside: iso(time).startsWith(prefix), single, number, today }),
+                        ),
+                    );
+
+                    return row;
+                }),
+            );
+        });
+
+        this.#mark();
     }
 
-    #cell(time, { long, number, shown, selected, today }) {
-        const date = iso(time);
+    /** A day of the month, or one of the next or the last shown muted; left empty beside another month. */
+    #cell(time, { inside, single, number, today }) {
         const cell = document.createElement('td');
-        const button = document.createElement('button');
+        cell.setAttribute('role', 'gridcell');
 
+        if (!inside && !single) {
+            return cell;
+        }
+
+        const button = document.createElement('button');
         button.type = 'button';
-        button.dataset.date = date;
+        button.dataset.date = iso(time);
         button.textContent = number.format(time);
-        button.tabIndex = time === this.#focused ? 0 : -1;
         button.disabled = !this.#allowed(time);
         button.classList.add(...this.dayClasses);
-        button.setAttribute('aria-label', long.format(time));
-        button.setAttribute('aria-pressed', String(date === selected));
 
-        if (date === today) {
+        if (button.dataset.date === today) {
             button.setAttribute('aria-current', 'date');
         }
 
-        if (!date.startsWith(shown)) {
+        if (!inside) {
             button.dataset.outside = 'true';
         }
 
-        cell.setAttribute('role', 'gridcell');
         cell.append(button);
+        this.#buttons.push({ time, button, cell });
 
         return cell;
     }
 
+    /** The focus, the name and the state of each day, kept on the buttons as they are, for the pointer under them. */
+    #mark() {
+        const long = this.#formatter({ dateStyle: 'full' });
+        const range = this.#range();
+        const selected = this.inputTarget.value;
+        const words = { start: this.rangeStartLabelValue, end: this.rangeEndLabelValue };
+
+        for (const { time, button, cell } of this.#buttons) {
+            const name = long.format(time);
+            button.tabIndex = time === this.#focused ? 0 : -1;
+
+            if (range === undefined) {
+                button.setAttribute('aria-label', name);
+                button.setAttribute('aria-pressed', String(button.dataset.date === selected));
+
+                continue;
+            }
+
+            const edge = this.#edge(time, range);
+            cell.setAttribute('aria-selected', String(edge !== null));
+            button.setAttribute('aria-label', edge === null || edge === 'within' ? name : `${name}, ${words[edge]}`);
+
+            if (edge === null) {
+                delete button.dataset.range;
+            } else {
+                button.dataset.range = edge;
+            }
+        }
+    }
+
+    /** Where a day stands in a range: `start`, `end`, `within`, or null out of it. */
+    #edge(time, range) {
+        if (range === null || time < range.start || time > range.end) {
+            return null;
+        }
+
+        if (time === range.start) {
+            return 'start';
+        }
+
+        return time === range.end ? 'end' : 'within';
+    }
+
+    /** The range shown: undefined for a single date, null when nothing is chosen. */
+    #range() {
+        if (!this.hasEndTarget) {
+            return undefined;
+        }
+
+        if (this.#pending !== null) {
+            return ordered(this.#pending, this.#preview ?? this.#pending);
+        }
+
+        return ordered(parse(this.inputTarget.value), parse(this.endTarget.value));
+    }
+
     #day(time) {
-        return this.weeksTarget.querySelector(`[data-date="${iso(time)}"]`);
+        const date = iso(time);
+
+        return this.#buttons.find(({ button }) => button.dataset.date === date)?.button ?? null;
     }
 
     #place() {
