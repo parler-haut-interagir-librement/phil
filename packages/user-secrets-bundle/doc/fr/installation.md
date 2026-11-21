@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c20118fd03ecb47d906abc4ca95689755dbd523d486656e67a980303d95e9800 -->
+<!-- phil-dev source-sha256=c02468278d8b7d2da50c3f3fb59af210d0c70f090fe1d952f0623d3d8e0215c9 -->
 # Installation
 
 ## Prérequis
@@ -86,3 +86,39 @@ bin/console doctrine:migrations:migrate
 
 La table `phil_user_secret` a pour clé `owner` et `name` ; elle contient `service`, `kind`, `key_id`, `ciphertext`,
 `format`, `expires_at`, `created_at`, `updated_at`, `last_used_at` et `revoked_at`.
+
+### Les instants en UTC
+
+Chaque instant que le bundle enregistre est écrit et relu en UTC, quel que soit le fuseau horaire du processus PHP —
+`phil_user_secret` : `expires_at`, `created_at`, `updated_at`, `last_used_at`, `revoked_at`. Les colonnes sont associées au type `datetime_utc_immutable` et les requêtes qui les comparent passent le même
+type : un serveur web, une commande de la console et un worker de Messenger qui tournent dans des fuseaux horaires
+différents lisent le même instant, et une expiration ne peut pas se décaler de quelques heures. Le type SQL est celui de
+`datetime_immutable` : le schéma ne change donc pas. Un instant relu est en UTC ; affichez-le dans le fuseau horaire du
+lecteur, comme le fait le filtre `date` de Twig.
+
+#### Migrer depuis 0.1
+
+Une base écrite par 0.1 garde chaque instant dans le fuseau horaire du processus qui l'a écrit. Quand ce fuseau était
+UTC, il n'y a rien à faire. Sinon, convertissez les lignes une seule fois, application arrêtée pour qu'aucune ligne ne
+soit écrite sous les deux formes, en donnant le fuseau dans lequel les processus tournaient — `America/Toronto` ici :
+
+```sql
+-- MySQL and MariaDB: named zones need the time zone tables (mysql_tzinfo_to_sql).
+UPDATE phil_user_secret SET
+    expires_at = CONVERT_TZ(expires_at, 'America/Toronto', 'UTC'),
+    created_at = CONVERT_TZ(created_at, 'America/Toronto', 'UTC'),
+    updated_at = CONVERT_TZ(updated_at, 'America/Toronto', 'UTC'),
+    last_used_at = CONVERT_TZ(last_used_at, 'America/Toronto', 'UTC'),
+    revoked_at = CONVERT_TZ(revoked_at, 'America/Toronto', 'UTC');
+-- PostgreSQL
+UPDATE phil_user_secret SET
+    expires_at = (expires_at AT TIME ZONE 'America/Toronto') AT TIME ZONE 'UTC',
+    created_at = (created_at AT TIME ZONE 'America/Toronto') AT TIME ZONE 'UTC',
+    updated_at = (updated_at AT TIME ZONE 'America/Toronto') AT TIME ZONE 'UTC',
+    last_used_at = (last_used_at AT TIME ZONE 'America/Toronto') AT TIME ZONE 'UTC',
+    revoked_at = (revoked_at AT TIME ZONE 'America/Toronto') AT TIME ZONE 'UTC';
+```
+
+La nuit où l'on recule les horloges, l'heure entre 01 h 00 et 02 h 00 se produit deux fois et une heure locale
+enregistrée ne dit pas laquelle c'était : une ligne de cette heure peut finir avec une heure d'écart. Quand les
+processus écrivaient dans des fuseaux horaires différents, on ne peut pas distinguer les lignes : enregistrez de nouveau les identifiants dont l'expiration compte.
