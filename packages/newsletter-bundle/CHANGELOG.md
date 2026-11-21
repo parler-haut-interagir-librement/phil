@@ -39,6 +39,16 @@ an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
   `BounceHandler` take the `SendRuns` as their last, optional argument.
 - The development requirements accept `phil/privacy-bundle` 0.3 and `phil/standard-webhooks-bundle` 0.2, the minor
   versions of their main branches and no earlier one, so that the package installs on its own beside those bundles.
+- `SendDeliveryHandler` and `SendConfirmationHandler` take a Mailer `TransportInterface`, the service
+  `mailer.transports`, instead of `MailerInterface`.
+
+### Security
+
+- A campaign message or a confirmation no longer goes through `MailerInterface`, which put a second message on the bus
+  when the application routed `SendEmailMessage`: the subscriber's address and the signed confirmation or
+  unsubscription link waited in the Messenger transport and its failure transport. The handlers send through the
+  Mailer transports, and a refusal of the transport fails the handler, for Messenger to retry its message, which
+  carries identifiers only.
 
 ## 0.3.0-alpha - 2026-11-20
 
@@ -62,19 +72,12 @@ be answered `429`, and a confirmation of a double opt-in goes to the same subscr
 
 - `SubscriptionController` takes the `SubscriptionRateLimiter` as its last argument.
 - `phil/standard-webhooks-bundle` 0.2 is accepted beside 0.1 in `require-dev`.
-- `SendDeliveryHandler` and `SendConfirmationHandler` take a Mailer `TransportInterface`, the service
-  `mailer.transports`, instead of `MailerInterface`.
 
 ### Security
 
 - The public subscription form had neither a limit nor a delay per address: each post of a double opt-in sent a new
   confirmation to the same address, so that anyone could flood an address that never asked for it and spend the
   sender's quota. The counts and the answers are the same whether the address is subscribed or not.
-- A campaign message or a confirmation no longer goes through `MailerInterface`, which put a second message on the bus
-  when the application routed `SendEmailMessage`: the subscriber's address and the signed confirmation or
-  unsubscription link waited in the Messenger transport and its failure transport. The handlers send through the
-  Mailer transports, and a refusal of the transport fails the handler, for Messenger to retry its message, which
-  carries identifiers only.
 
 ## 0.2.0-alpha - 2026-11-18
 
