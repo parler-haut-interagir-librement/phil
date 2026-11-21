@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d0c2b7803761af8dc98e77d5953433bcbef8a7633b7f6447172ad360b575bca3 -->
+<!-- phil-dev source-sha256=a8076017832e7d8135bae4f7d71a2b86f626aa86ac89e0c3b97d57f5f5e78096 -->
 # La médiathèque
 
 `MediaLibrary` est le service qu'appelle une application ; `MediaRepository` enregistre ce qu'il change.
@@ -66,7 +66,8 @@ $media->aiDisclosure();        // AiDisclosure::Assisted
 
 La divulgation de l'IA suit le type : `Generated` pour un média créé par l'IA générative, `Assisted` pour un média
 retouché par elle ou qui peut contenir des éléments générés, `None` sinon. Un type retiré est déclaré comme son
-remplaçant. Le code est gardé dans la colonne `digital_source_type` et donné à schema.org comme `digitalSourceType` ;
+remplaçant. Le code est gardé dans la colonne `digital_source_type` et donné à schema.org comme `digitalSourceType` et écrit
+dans le XMP de chaque image rendue à partir du média ([métadonnées des rendus](formats.md#métadonnées-des-rendus)) ;
 `license()` avec une divulgation de l'IA l'oublie.
 
 ## Collections

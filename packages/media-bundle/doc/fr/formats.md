@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3841fcc2d2e28c3b01a4f8ff185699f9e3b047408e730e1ecea21f683a4ef411 -->
+<!-- phil-dev source-sha256=e703f97a691db8579bd245c739ff4a865e2a50180bfc5fd968e9bf310dfd56df -->
 # Formats et URL
 
 ## Formats
@@ -101,10 +101,51 @@ phil_media:
 étapes que GD : libvips lit une image par tuiles au lieu de la décoder en entier, et une grande photo prend une
 fraction de la mémoire. Chaque étape est un recadrage (`extract_area`), une mise à l'échelle (`resize`) et un placement
 sur un canevas (`embed`), sur des fichiers au format natif de libvips dans un répertoire temporaire privé, retirés
-ensuite ; le résultat est enregistré à la qualité du format, sans métadonnées. Seule une image JPEG, PNG, GIF, WebP ou
-AVIF qui respecte `max_pixels` atteint libvips, pour qu'aucun de ses autres lecteurs ne lise un téléversement ; chaque
-outil tourne sans shell, avec `VIPS_BLOCK_UNTRUSTED`, une minute au plus. Avec `processor: vips` et aucun `vips` trouvé,
-le traitement échoue à sa première utilisation avec `InvalidMedia`.
+ensuite ; le résultat est enregistré à la qualité du format, sans métadonnées ([ce qui est réécrit](#métadonnées-des-rendus)). Seule une image
+JPEG, PNG, GIF, WebP ou AVIF qui respecte `max_pixels` atteint libvips, pour qu'aucun de ses autres lecteurs ne lise un
+téléversement ; chaque outil tourne sans shell, avec `VIPS_BLOCK_UNTRUSTED`, une minute au plus. Avec `processor: vips`
+et aucun `vips` trouvé, le traitement échoue à sa première utilisation avec `InvalidMedia`.
+
+## Métadonnées des rendus
+
+Un rendu ne porte aucune métadonnée de l'original : l'EXIF, sa position GPS et le numéro de série de l'appareil, le XMP
+et l'IPTC de l'original, et les commentaires sont tous écartés, par GD, par libvips (`strip`) et par `cwebp` et
+`avifenc`.
+
+Une propriété est réécrite. Quand `phil/creation-disclosure` est installé et qu'un média déclare comment il a été
+fait — `Media::disclose()` —, chacun de ses rendus porte ce type de source numérique dans son XMP,
+`Iptc4xmpExt:DigitalSourceType`, et rien d'autre :
+
+```xml
+<rdf:Description rdf:about=""
+    xmlns:Iptc4xmpExt="http://iptc.org/std/Iptc4xmpExt/2008-02-29/"
+    Iptc4xmpExt:DigitalSourceType="http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia"/>
+```
+
+La raison est le marquage des médias générés et retouchés : l'article 50(2) du règlement de l'Union européenne sur
+l'intelligence artificielle demande au fournisseur d'un système génératif de marquer ses images synthétiques dans un
+format lisible par machine, et un marquage que la première vignette retire ne marque rien. Le type déclaré est celui
+qui est écrit ; un type retiré est écrit comme son remplaçant ; un média qui ne déclare rien, ou qui ne déclare qu'une
+`AiDisclosure` par `license()`, ne reçoit aucune métadonnée.
+
+| Type de fichier | Où va le paquet |
+|---|---|
+| JPEG | Un segment `APP1` après l'en-tête `JFIF` ; les autres segments `APP1`, `APP13` et les commentaires retirés ; le profil ICC gardé |
+| PNG | Un bloc `iTXt` non compressé de mot-clé `XML:com.adobe.xmp` après `IHDR` ; `eXIf`, `tIME` et les autres blocs de texte retirés |
+| WebP | Un bloc `XMP` dans le format étendu (`VP8X`), que reçoit une image simple avec perte ou sans perte ; les blocs `EXIF` retirés |
+| AVIF | Un élément de métadonnées de type `application/rdf+xml` qui décrit l'image principale, comme HEIF porte le XMP |
+
+Le paquet est écrit après l'encodage, en PHP, quel que soit le traitement d'images, et pèse environ 400 octets. Un
+fichier dont l'écrivain ne lit pas la structure est gardé tel qu'il a été rendu, sans la propriété et sans échec : une
+image AVIF dont une boîte est dimensionnée jusqu'à la fin du fichier, ou dont les étendues n'ont pas de champ de
+décalage, ce que n'écrivent ni `avifenc`, ni libvips, ni GD. Les minuscules aperçus de `placeholder` restent sans
+métadonnées : ce sont des substituts flous insérés dans la page, pas l'image.
+
+L'activer demande d'installer `phil/creation-disclosure` : le bundle câble alors `CreationDisclosureSourceType` derrière
+le port `DeclaredSourceType` ([points d'extension](extension-points.md#declaredsourcetype)). Un rendu marqué d'un type
+est gardé sous une clé à lui, de sorte que déclarer un type, ou le changer, produit de nouveau le rendu des formats à
+leur prochaine requête ; les rendus faits avant restent en stockage jusqu'à ce que la prochaine version ou le prochain
+point focal du média les supprime.
 
 ## URL signées
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f0cd80e2f62a9f1c0e9b76b2d292a18124ee6e739d61d8f4a765b5e26aedddd0 -->
+<!-- phil-dev source-sha256=04500fc7612755769e5839f018c0c936e786c738c918bbf477d65da6def13f82 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -22,6 +22,9 @@
 | `Application\MediaStorage`, `ImageProcessor` | interfaces | Où les fichiers sont gardés ; comment les images sont rendues |
 | `Application\Contract\SvgPurifier` | interface | Comment une image SVG est purifiée avant d'être gardée |
 | `Application\Contract\StreamingMediaStorage` | interface | Un stockage qui lit aussi un fichier comme un flux ; facultatif |
+| `Application\Contract\DeclaredSourceType` | interface | Comment un média déclare comment il a été fait, comme l'adresse d'un type de source numérique de l'IPTC |
+| `Application\Xmp\SourceTypeXmp` | `final class` | Le paquet XMP d'un type de source numérique, écrit dans une image JPEG, PNG, WebP ou AVIF rendue ; `XMP_PROPERTY`, `XMP_NAMESPACE` |
+| `Infrastructure\CreationDisclosure\CreationDisclosureSourceType` | adaptateur | Le type déclaré avec `phil/creation-disclosure`, un type retiré comme son remplaçant |
 | `Infrastructure\Storage\FilesystemStorage` | adaptateur | Un répertoire |
 | `Infrastructure\Storage\FlysystemStorage` | adaptateur | Un système de fichiers Flysystem : local, S3, SFTP |
 | `Infrastructure\Image\GdImageProcessor` | adaptateur | GD, avec une limite de pixels et des encodeurs binaires facultatifs |

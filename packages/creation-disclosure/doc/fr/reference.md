@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=ce291fa95850c49d1049ea4352a67768b174332b6ff67c72f43a1aa405d7a886 -->
+<!-- phil-dev source-sha256=4c9ef1d282a13ffdf29635d1cb56b573b69bcc70e070ea5ff226b25d3250ae7a -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.
 
 | Type | Rôle |
 |---|---|
-| `DigitalSourceType` | Le vocabulaire Digital Source Type de l'IPTC : codes, adresses, libellés, codes retirés, la vue de chacun |
+| `DigitalSourceType` | Le vocabulaire Digital Source Type de l'IPTC : codes, adresses, libellés, codes retirés, la vue de chacun ; la propriété XMP et son espace de noms |
 | `Part` | Une partie d'une œuvre déclarée à part : texte, image, audio, vidéo, code |
 | `CreationDisclosure` | Comment une œuvre a été faite, partie par partie, immuable ; ses vues et sa conservation en tableau |
 | `GenerativeAi` | Ce qu'une partie ou une œuvre doit à l'IA générative, leur combinaison et leur ordre |

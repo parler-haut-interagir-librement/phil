@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=985367fb35061bae0966e987e5ca2d42c5210836fb9e4324638b77cbac1e2fc5 -->
+<!-- phil-dev source-sha256=5e441679db09a77f1e8eba30b3d23eb83fc4aa5bdd62b12f511b0c4892ebaa87 -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace, configure ou redéfinit. Chaque port est un alias que remplace un service
@@ -40,6 +40,20 @@ et l'AVIF à `cwebp` et `avifenc` quand ils sont installés. Voir [Formats et UR
 Un traitement d'images propre à l'application borne ce qu'il décode, comme `GdImageProcessor` refuse une image plus
 grande que `max_pixels` avant de la décoder : les fichiers viennent de téléversements. `VipsImageProcessor` est
 l'autre adaptateur, choisi par `processor`.
+
+### `DeclaredSourceType`
+
+`Phil\MediaBundle\Application\Contract\DeclaredSourceType` : comment un média déclare comment il a été fait, écrit dans
+le XMP de ses rendus. `CreationDisclosureSourceType`, câblé quand `phil/creation-disclosure` est installé, lit le type
+que `Media::disclose()` a gardé. Sans service derrière le port, les rendus ne portent aucune métadonnée. Voir
+[Métadonnées des rendus](formats.md#métadonnées-des-rendus).
+
+| Méthode | Contrat |
+|---|---|
+| `uriOf(Media $media): ?string` | L'adresse d'un type de source numérique de l'IPTC, `http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia`, ou `null` quand le média n'en déclare aucun. Une adresse hors du vocabulaire donne une `InvalidMedia` au rendu |
+
+Un service propre à l'application déclare des types d'ailleurs — une table à elle, le système génératif qui a fait
+l'image — ; son résultat nomme la clé du rendu, il répond donc la même chose pour le même média.
 
 ### `SvgPurifier`
 

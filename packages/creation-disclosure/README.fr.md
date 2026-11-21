@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a8e5309d72952fd41c6b6581e1179e5371456455f64fe27ae17587bf92a9c7ad -->
+<!-- phil-dev source-sha256=97d529302d74bcaf28463791065bd812df7e6c9d61704f6389e90a55bbfdcb55 -->
 # phil/creation-disclosure
 
 **Comment une œuvre a été faite, déclarée partie par partie dans le vocabulaire Digital Source Type de l'IPTC :
@@ -39,7 +39,7 @@ parties ; `DisclosureRequirement` est ce que demande un concours ou une boutique
 | Document | Contenu |
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis et l'installation. |
-| [Déclarer](doc/fr/declaring.md) | Les parties, les déclarations, les vues, la conservation d'une déclaration. |
+| [Déclarer](doc/fr/declaring.md) | Les parties, les déclarations, les vues, la conservation d'une déclaration, les métadonnées et le marquage des médias générés. |
 | [Vocabulaire](doc/fr/vocabulary.md) | Chaque type de source numérique, ce qu'il dit de l'IA générative, les codes retirés. |
 | [Exigences](doc/fr/requirements.md) | Ce que demande un concours, une boutique ou un catalogue, et comment vérifier une œuvre. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application peut remplacer ou ajouter, et quand c'est stable. |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=244a23fee3dbf3f9bda0dbd72d8b42c5a08073594cca2d9b7b40ccd02c577e74 -->
+<!-- phil-dev source-sha256=12f052e15417bb3d04b5e606c111a0928697eac3dbb97e047370923d6f5a3890 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -24,6 +24,7 @@
 | La politique « contenu d'usager » | Les en-têtes de l'original et d'un format, ce qui est affiché sous la politique par défaut et sous une politique propre |
 | `getMany()` | L'ordre demandé, les doublons et les identifiants inconnus, une requête par 500 |
 | Comment un média a été fait | La divulgation de l'IA selon chaque sorte de type de source numérique, les types retirés, schema.org |
+| `SourceTypeXmp`, `CreationDisclosureSourceType` | Le paquet et les adresses refusées ; chaque type de fichier rendu par GD et par `cwebp` et `avifenc` avec exactement la propriété et sans EXIF, décodé aux mêmes pixels ; EXIF avec une position GPS, XMP, IPTC, commentaires et blocs de texte retirés, le profil ICC gardé ; WebP simple rendu étendu avec son canevas et son alpha ; éléments et références AVIF, décalages déplacés ; fichiers que l'écrivain ne sait pas lire gardés tels quels ; rendus de médias déclarés et non déclarés, clés propres ; `heif-info` et `exiftool` quand ils sont installés |
 | `BinaryKeysListener` | Les clés en `utf8mb4_bin` dans le schéma généré pour MySQL et MariaDB, la collation par défaut sur SQLite, les options qu'un champ a déjà conservées |
 
 La suite `tests/Integration` exécute `BinaryKeysListener` sur un vrai MySQL 8.4 et un vrai PostgreSQL 17 : quatre clés de

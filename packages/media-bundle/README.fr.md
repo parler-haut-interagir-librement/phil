@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=76e27a5c64b2553988249acdce53a27529aeb51efbaa1c14456218079119e30c -->
+<!-- phil-dev source-sha256=5206aaf7595c24acb8403989d6fcd95e6b98d69429408175149e3f37f524fed9 -->
 # phil/media-bundle
 
 **Des fichiers et des images téléversés, décrits, versionnés et servis à des URL signées dans les formats que vous
@@ -64,6 +64,7 @@ quand on l'ouvre directement.
 | `MediaRepository::getMany()` : plusieurs médias en une requête | Implémenté et testé |
 | L'original lu comme un flux ou copié vers un chemin : `readOriginal()`, `copyOriginalTo()`, `StreamingMediaStorage` | Implémenté et testé |
 | Comment un média a été fait, par un type de source numérique de l'IPTC de `phil/creation-disclosure` | Implémenté et testé |
+| Ce type dans le XMP de chaque rendu, et aucune autre métadonnée : JPEG, PNG, WebP, AVIF | Implémenté et testé ; relu par ImageMagick et libheif |
 
 ## Documentation
 
@@ -71,7 +72,7 @@ quand on l'ouvre directement.
 |---|---|
 | [Installation](doc/fr/installation.md) | Prérequis, enregistrement, configuration, routes, tables. |
 | [La médiathèque](doc/fr/library.md) | Téléverser, remplacer, décrire, attribuer une licence, les collections, lire l'original comme un flux, supprimer. |
-| [Formats et URL](doc/fr/formats.md) | Les formats et leurs transformations, le point focal, le rendu et les encodeurs, les URL signées, le cache. |
+| [Formats et URL](doc/fr/formats.md) | Les formats et leurs transformations, le point focal, le rendu et les encodeurs, les métadonnées des rendus, les URL signées, le cache. |
 | [Stockage](doc/fr/storage.md) | Le répertoire, les systèmes de fichiers Flysystem (local, S3), la lecture en flux, un stockage propre à l'application. |
 | [Images adaptatives](doc/fr/images.md) | Les composants `Img` et `Picture` : tailles, `srcset`, types de fichiers, solutions de repli, priorité, aperçus. |
 | [Enregistrements qui montrent des médias](doc/fr/doctrine.md) | Le type de colonne `phil_media`, la contrainte `MediaFile`, ce que fait une suppression. |
