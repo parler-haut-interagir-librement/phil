@@ -4,6 +4,17 @@ All notable changes to `phil/creation-disclosure` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Added
+
+- `DigitalSourceType::XMP_NAMESPACE`, the namespace of the IPTC Extension schema that the prefix of
+  `DigitalSourceType::XMP_PROPERTY` stands for, to write the property into an XMP packet.
+- The documentation of the marking of generated and edited media: what a file carries, and why the type is written
+  back into the files derived from a declared one.
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

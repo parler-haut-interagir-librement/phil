@@ -99,9 +99,48 @@ phil_media:
 as GD: libvips streams an image in tiles instead of decoding it whole, so a large photo takes a fraction of the memory.
 Each step is a crop (`extract_area`), a scale (`resize`) and a placement on a canvas (`embed`), on files in the native
 format of libvips in a private temporary directory, removed afterwards; the result is saved at the format's quality,
-without metadata. Only a JPEG, PNG, GIF, WebP or AVIF image that passes `max_pixels` reaches libvips, so that none of
-its other loaders reads an upload; each tool runs without a shell, with `VIPS_BLOCK_UNTRUSTED` set, for a minute at
-most. With `processor: vips` and no `vips` found, the processor fails on its first use with `InvalidMedia`.
+without metadata ([what is written back](#metadata-of-the-renderings)). Only a JPEG, PNG, GIF, WebP or AVIF image that
+passes `max_pixels` reaches libvips, so that none of its other loaders reads an upload; each tool runs without a shell,
+with `VIPS_BLOCK_UNTRUSTED` set, for a minute at most. With `processor: vips` and no `vips` found, the processor fails
+on its first use with `InvalidMedia`.
+
+## Metadata of the renderings
+
+A rendering carries no metadata of the original: EXIF, its GPS position and camera serial number, the original's XMP
+and IPTC, and comments are all left out, by GD, by libvips (`strip`) and by `cwebp` and `avifenc`.
+
+One property is written back. When `phil/creation-disclosure` is installed and a medium declares how it was made —
+`Media::disclose()` —, each of its renderings carries that digital source type in its XMP,
+`Iptc4xmpExt:DigitalSourceType`, and nothing else:
+
+```xml
+<rdf:Description rdf:about=""
+    xmlns:Iptc4xmpExt="http://iptc.org/std/Iptc4xmpExt/2008-02-29/"
+    Iptc4xmpExt:DigitalSourceType="http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia"/>
+```
+
+The reason is the marking of generated and edited media: Article 50(2) of the European Union's Artificial Intelligence
+Act asks the provider of a generative system to mark its synthetic images in a machine-readable format, and a marking
+that the first thumbnail strips marks nothing. The declared type is the one written; a retired type is written as its
+replacement; a medium that declares nothing, or declares only an `AiDisclosure` through `license()`, gets no metadata
+at all.
+
+| File type | Where the packet goes |
+|---|---|
+| JPEG | An `APP1` segment after the `JFIF` header; other `APP1` segments, `APP13` and comments dropped; the ICC profile kept |
+| PNG | An uncompressed `iTXt` chunk of keyword `XML:com.adobe.xmp` after `IHDR`; `eXIf`, `tIME` and other text chunks dropped |
+| WebP | An `XMP` chunk in the extended format (`VP8X`), which a simple lossy or lossless image is given; `EXIF` chunks dropped |
+| AVIF | A metadata item of type `application/rdf+xml` that describes the primary image, as HEIF carries XMP |
+
+The packet is written after encoding, in PHP, whatever the processor, and is about 400 bytes. A file whose structure
+the writer does not read is kept as rendered, without the property and without failing: an AVIF image with a box
+sized to the end of the file, or extents without an offset field, which neither `avifenc`, libvips nor GD write. The
+tiny previews of `placeholder` stay without metadata: they are blurred stand-ins inlined in the page, not the image.
+
+Turning it on takes installing `phil/creation-disclosure`: the bundle then wires `CreationDisclosureSourceType` behind
+the `DeclaredSourceType` port ([extension points](extension-points.md#declaredsourcetype)). A rendering marked with a
+type is kept under a key of its own, so declaring a type, or changing it, renders the formats anew on their next
+request; the renderings made before stay in storage until the next version or focal point of the medium deletes them.
 
 ## Signed URLs
 

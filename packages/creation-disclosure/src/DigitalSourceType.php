@@ -21,6 +21,9 @@ enum DigitalSourceType: string
     /** The XMP property that carries the address of a type. */
     public const string XMP_PROPERTY = 'Iptc4xmpExt:DigitalSourceType';
 
+    /** The namespace of the IPTC Extension schema, which the prefix `Iptc4xmpExt` of the property stands for. */
+    public const string XMP_NAMESPACE = 'http://iptc.org/std/Iptc4xmpExt/2008-02-29/';
+
     case DigitalCapture = 'digitalCapture';
     case ComputationalCapture = 'computationalCapture';
     case NegativeFilm = 'negativeFilm';

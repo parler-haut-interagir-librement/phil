@@ -40,6 +40,20 @@ A processor of the application's own bounds what it decodes, as `GdImageProcesso
 `max_pixels` before decoding it: the files come from uploads. `VipsImageProcessor` is the other adapter, chosen by
 `processor`.
 
+### `DeclaredSourceType`
+
+`Phil\MediaBundle\Application\Contract\DeclaredSourceType` — how a medium declares it was made, written into the XMP
+of its renderings. `CreationDisclosureSourceType`, wired when `phil/creation-disclosure` is installed, reads the type
+`Media::disclose()` kept. Without a service behind the port, renderings carry no metadata. See
+[Metadata of the renderings](formats.md#metadata-of-the-renderings).
+
+| Method | Contract |
+|---|---|
+| `uriOf(Media $media): ?string` | The address of an IPTC digital source type, `http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia`, or `null` when the medium declares none. An address outside the vocabulary is an `InvalidMedia` on rendering |
+
+A service of the application's own declares types from elsewhere — a table of its own, the generative system that
+made the image —; its result names the rendering's key, so it answers the same for the same medium.
+
 ### `SvgPurifier`
 
 `Phil\MediaBundle\Application\Contract\SvgPurifier` — purifies an SVG image before it is kept.

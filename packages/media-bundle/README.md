@@ -57,6 +57,7 @@ downloaded rather than shown; a purified SVG image shows in an `<img>`, and is s
 | `MediaRepository::getMany()`: several media in one query | Implemented and tested |
 | The original read as a stream or copied to a path: `readOriginal()`, `copyOriginalTo()`, `StreamingMediaStorage` | Implemented and tested |
 | How a medium was made, as an IPTC digital source type of `phil/creation-disclosure` | Implemented and tested |
+| That type in the XMP of every rendering, and no other metadata: JPEG, PNG, WebP, AVIF | Implemented and tested; read back by ImageMagick and libheif |
 
 ## Documentation
 
@@ -64,7 +65,7 @@ downloaded rather than shown; a purified SVG image shows in an `<img>`, and is s
 |---|---|
 | [Installation](doc/installation.md) | Requirements, registering, configuration, routes, tables. |
 | [The library](doc/library.md) | Uploading, replacing, describing, licensing, collections, reading the original as a stream, deleting. |
-| [Formats and URLs](doc/formats.md) | Formats and their transformations, the focal point, rendering and encoders, signed URLs, caching. |
+| [Formats and URLs](doc/formats.md) | Formats and their transformations, the focal point, rendering and encoders, the metadata of renderings, signed URLs, caching. |
 | [Storage](doc/storage.md) | The directory, Flysystem filesystems — local, S3 —, streaming, a storage of the application's own. |
 | [Responsive images](doc/images.md) | The `Img` and `Picture` components: sizes, `srcset`, file types, fallbacks, priority, placeholders. |
 | [Records that show media](doc/doctrine.md) | The `phil_media` column type, the `MediaFile` constraint, what a deletion does. |

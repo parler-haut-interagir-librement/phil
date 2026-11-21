@@ -37,7 +37,7 @@ parts; `DisclosureRequirement` is what a contest or a shop asks.
 | Document | What it covers |
 |---|---|
 | [Installation](doc/installation.md) | Requirements and installing. |
-| [Declaring](doc/declaring.md) | Parts, declarations, the views, storing a disclosure. |
+| [Declaring](doc/declaring.md) | Parts, declarations, the views, storing a disclosure, metadata and the marking of generated media. |
 | [Vocabulary](doc/vocabulary.md) | Every digital source type, what it says of generative AI, the retired codes. |
 | [Requirements](doc/requirements.md) | What a contest, a shop or a catalogue asks, and how to check an entry. |
 | [Extension points](doc/extension-points.md) | What an application may replace or add, and when it is stable. |

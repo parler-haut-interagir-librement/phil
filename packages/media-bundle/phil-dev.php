@@ -7,11 +7,13 @@ declare(strict_types=1);
  */
 return [
     'paths' => ['src', 'tests'],
-    'docs' => ['public' => true, 'words' => ['configurator', 'CSSOM', 'embeddables', 'Flysystem', 'HMAC', 'importmap', 'IPTC', 'libvips']],
+    'docs' => ['public' => true, 'words' => ['configurator', 'CSSOM', 'embeddables', 'Flysystem', 'HMAC', 'importmap', 'IPTC', 'libheif', 'libvips']],
     'fuzz' => [
-        // The purifier of SVG images, from the seeds of tests/Fuzz/corpus/<target>.
+        // The purifier of SVG images and the writer of the digital source type into renderings, from the seeds of
+        // tests/Fuzz/corpus/<target>.
         'targets' => [
             'svg-purifier' => 'tests/Fuzz/svg-purifier.php',
+            'source-type-xmp' => 'tests/Fuzz/source-type-xmp.php',
         ],
     ],
     'phpstan' => [

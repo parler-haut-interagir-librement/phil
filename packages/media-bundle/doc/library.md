@@ -65,8 +65,9 @@ $media->aiDisclosure();        // AiDisclosure::Assisted
 
 The AI disclosure follows the type: `Generated` for media created with generative AI, `Assisted` for media edited with
 it or that may hold generated elements, `None` otherwise. A retired type is declared as its replacement. The code is
-kept in the `digital_source_type` column and given to schema.org as `digitalSourceType`; `license()` with an AI
-disclosure forgets it.
+kept in the `digital_source_type` column, given to schema.org as `digitalSourceType` and written into the XMP of every
+image rendered from the medium ([metadata of the renderings](formats.md#metadata-of-the-renderings)); `license()` with
+an AI disclosure forgets it.
 
 ## Collections
 

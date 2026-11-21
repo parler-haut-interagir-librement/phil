@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Phil\MediaBundle\Application;
 
 use DateTimeImmutable;
+use Phil\MediaBundle\Application\Contract\DeclaredSourceType;
 use Phil\MediaBundle\Application\Contract\SvgPurifier;
+use Phil\MediaBundle\Application\Xmp\SourceTypeXmp;
 use Phil\MediaBundle\Domain\Exception\InvalidMedia;
 use Phil\MediaBundle\Domain\Exception\MediaInUse;
 use Phil\MediaBundle\Domain\Model\Media;
@@ -24,6 +26,11 @@ use Psr\Clock\ClockInterface;
  * medium, computed once when the file arrives. With an SVG purifier, an SVG image is purified and optimised before it
  * is kept, and purified again the first time it is served, so that one kept before the purifier was turned on is
  * served as safely as the others.
+ *
+ * With the declared source types, each image rendered from a medium that declares how it was made carries that
+ * digital source type in its XMP, `Iptc4xmpExt:DigitalSourceType`, and no other metadata: the marking of generated or
+ * edited media survives the stripping of EXIF, GPS and the original's XMP. A rendering of a medium that declares
+ * nothing carries no metadata at all.
  */
 final readonly class MediaLibrary
 {
@@ -43,6 +50,7 @@ final readonly class MediaLibrary
      * @param MediaReferences            $references  the records that show media, which a deletion respects; none by default
      * @param ImageFormat|null           $placeholder the format of the tiny previews, rendered to WebP; none by default
      * @param SvgPurifier|null           $svg         what purifies SVG images before they are kept; kept as uploaded by default
+     * @param DeclaredSourceType|null    $sourceTypes how media declare they were made, written into their renderings; nothing written by default
      */
     public function __construct(
         private MediaRepository $media,
@@ -54,6 +62,7 @@ final readonly class MediaLibrary
         private MediaReferences $references = new NoMediaReferences(),
         private ?ImageFormat $placeholder = null,
         private ?SvgPurifier $svg = null,
+        private ?DeclaredSourceType $sourceTypes = null,
     ) {
     }
 
@@ -280,11 +289,14 @@ final readonly class MediaLibrary
         }
 
         [$x, $y] = $media->focalPoint();
-        $key = \sprintf('formats/%s/%d/%s-%s%s.%s', $media->id, $media->version(), $format, $this->renderedKey([$x, $y]), null === $width ? '' : '@'.$width, $type);
+        $sourceType = $this->sourceTypes?->uriOf($media);
+        // A rendering marked with a source type is a file of its own: declaring one, or another, renders anew.
+        $key = \sprintf('formats/%s/%d/%s-%s%s%s.%s', $media->id, $media->version(), $format, $this->renderedKey([$x, $y]), null === $width ? '' : '@'.$width, null === $sourceType ? '' : '-'.hash('xxh3', $sourceType), $type);
         $rendered = $this->storage->read($key);
 
         if (null === $rendered) {
             $rendered = $this->images->render($this->original($media), $imageFormat, [$x, $y], $type);
+            $rendered = null === $sourceType ? $rendered : SourceTypeXmp::write($rendered, $type, $sourceType);
             $this->storage->write($key, $rendered);
         }
 
