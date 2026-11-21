@@ -23,7 +23,7 @@
         "ext-mbstring": "*"
     },
     "require-dev": {
-        "phil/forms-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/forms-bundle": "^0.2@dev",
         "php-webdriver/webdriver": "^1.16",
         "phpunit/phpunit": "^13.4",
         "symfony/asset-mapper": "^8.2",

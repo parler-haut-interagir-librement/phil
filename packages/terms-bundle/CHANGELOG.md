@@ -12,8 +12,8 @@ Development only.
 
 ### Changed
 
-- The development requirements accept `phil/notifications-bundle` 0.3 and `phil/privacy-bundle` 0.2 and 0.3, so that the
-  package installs on its own beside the published version of those bundles.
+- The development requirements accept `phil/notifications-bundle` 0.3 and `phil/privacy-bundle` 0.3, the minor versions
+  of their main branches and no earlier one, so that the package installs on its own beside those bundles.
 
 ## 0.2.0-alpha - 2026-11-18
 

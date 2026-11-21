@@ -37,8 +37,8 @@ an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
 - `Campaigns` takes the `SendRuns`, then an optional `ApprovalPolicy`, authorization checker, token storage and event
   dispatcher; `SendCampaignHandler` takes the `SendRuns` and whether approval is required; `SendDeliveryHandler` and
   `BounceHandler` take the `SendRuns` as their last, optional argument.
-- The development requirements accept `phil/privacy-bundle` 0.2 and 0.3, so that the package installs on its own beside
-  the published version of that bundle.
+- The development requirements accept `phil/privacy-bundle` 0.3 and `phil/standard-webhooks-bundle` 0.2, the minor
+  versions of their main branches and no earlier one, so that the package installs on its own beside those bundles.
 
 ## 0.3.0-alpha - 2026-11-20
 

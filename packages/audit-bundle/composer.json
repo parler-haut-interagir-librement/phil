@@ -23,7 +23,7 @@
         "ext-pdo_sqlite": "*",
         "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
-        "phil/tenancy-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/tenancy-bundle": "^0.2@dev",
         "phil/url": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",

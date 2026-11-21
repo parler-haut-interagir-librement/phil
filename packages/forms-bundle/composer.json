@@ -44,7 +44,7 @@
         "doctrine/doctrine-bundle": "^3.3",
         "doctrine/persistence": "^4.1",
         "phil/form-logic": "^0.1@dev",
-        "phil/privacy-bundle": "^0.1@dev || ^0.2@dev || ^0.3@dev",
+        "phil/privacy-bundle": "^0.3@dev",
         "phil/spam-protection": "^0.1@dev",
         "php-webdriver/webdriver": "^1.16",
         "phpunit/phpunit": "^13.4",

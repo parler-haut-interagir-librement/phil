@@ -12,8 +12,9 @@ Development only.
 
 ### Changed
 
-- The development requirements accept `phil/privacy-bundle` 0.2 and 0.3 and `phil/search-bundle` 0.2, so that the
-  package installs on its own beside the published version of those bundles.
+- The development requirements accept `phil/privacy-bundle` 0.3, `phil/search-bundle` 0.2 and `phil/slug-bundle` 0.2,
+  the minor versions of their main branches and no earlier one, so that the package installs on its own beside those
+  bundles.
 
 ## 0.3.0-alpha - 2026-11-20
 

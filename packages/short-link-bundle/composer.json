@@ -40,8 +40,8 @@
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.3",
-        "phil/analytics-bundle": "^0.1@dev || ^0.2@dev",
-        "phil/safe-http": "^0.1@dev || ^0.2@dev",
+        "phil/analytics-bundle": "^0.2@dev",
+        "phil/safe-http": "^0.2@dev",
         "phpunit/phpunit": "^13.4",
         "psr/cache": "^3.0",
         "roave/security-advisories": "dev-latest",

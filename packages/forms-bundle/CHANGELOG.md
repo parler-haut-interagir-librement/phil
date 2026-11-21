@@ -10,8 +10,8 @@ The next version is 0.2.1-alpha.
 
 ### Changed
 
-- The development requirements accept `phil/privacy-bundle` 0.2 and 0.3, so that the package installs on its own beside
-  the published version of that bundle.
+- The development requirements accept `phil/privacy-bundle` 0.3, the minor version of its main branch and no earlier
+  one, so that the package installs on its own beside that bundle.
 
 ### Fixed
 

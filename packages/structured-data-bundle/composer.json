@@ -34,7 +34,7 @@
     },
     "require-dev": {
         "ext-intl": "*",
-        "phil/browser-security-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/browser-security-bundle": "^0.2@dev",
         "phil/menu-bundle": "^0.1@dev",
         "phil/social-cards": "^0.1@dev",
         "phil/social-cards-bundle": "^0.1@dev",

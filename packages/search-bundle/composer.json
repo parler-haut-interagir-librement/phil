@@ -32,7 +32,7 @@
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.3",
         "phil/search-synonyms": "^0.1@dev",
-        "phil/ux-kit": "^0.4@dev || ^0.5@dev",
+        "phil/ux-kit": "^0.5@dev",
         "php-webdriver/webdriver": "^1.15",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",

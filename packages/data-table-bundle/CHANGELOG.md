@@ -14,8 +14,8 @@ Development only.
 
 - The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
-- The development requirements accept `phil/settings-bundle` 0.2, so that the package installs on its own beside the
-  published version of that bundle.
+- The development requirements accept `phil/settings-bundle` 0.2, the minor version of its main branch and no earlier
+  one, so that the package installs on its own beside that bundle.
 
 ## 0.1.0-alpha - 2026-11-14
 

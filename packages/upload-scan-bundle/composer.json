@@ -34,7 +34,7 @@
     },
     "require-dev": {
         "easycorp/easyadmin-bundle": "^5.8",
-        "phil/media-bundle": "^0.1@dev || ^0.2@dev",
+        "phil/media-bundle": "^0.2@dev",
         "phil/monitoring-bundle": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
         "symfony/browser-kit": "^8.2",

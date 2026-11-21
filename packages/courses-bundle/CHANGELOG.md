@@ -60,8 +60,9 @@ and takes `Equivalences` as its second argument.
 - Upgrade: `CourseTables::upgrade()` creates the five tables of the learning paths and the equivalent courses; with the
   ORM, `doctrine:migrations:diff` writes the same migration. An application that implements `CourseRepository` removes
   the steps and the group membership of a removed course.
-- The development requirements accept `phil/privacy-bundle` 0.2 and 0.3, so that the package installs on its own beside
-  the published version of that bundle.
+- The development requirements accept `phil/notifications-bundle` 0.3, `phil/privacy-bundle` 0.3 and `phil/safe-http`
+  0.2, the minor versions of their main branches and no earlier one, so that the package installs on its own beside those
+  packages.
 
 ### Fixed
 
