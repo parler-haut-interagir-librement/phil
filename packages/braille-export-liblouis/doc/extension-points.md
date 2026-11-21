@@ -14,7 +14,8 @@ The package is one adapter: `LiblouisTranslator`, the `Phil\BrailleExport\Contra
 | Point to another program | `$binary`: a name found on the `PATH`, or a path |
 | Change how long a batch may take, or how large it may be | `$timeout`, `$maxInputBytes`, `$maxOutputBytes` |
 | Use another display table that writes Unicode braille | `$displayTable` |
-| Check the program at deployment | `LiblouisTranslator::isAvailable()` and `version()` |
+| Check the program at deployment | `LiblouisTranslator::isAvailable()`, and `version()` against `LiblouisTranslator::MINIMUM_VERSION` |
+| Run a liblouis older than 3.39.0 for a time | `$allowOutdatedLiblouis`, with `$logger` for its warning |
 | Use another translation program | Write another `Translator` |
 
 `LiblouisTranslator` is final: an application decorates it as a service.

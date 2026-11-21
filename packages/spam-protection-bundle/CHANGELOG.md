@@ -32,6 +32,8 @@ In the `prod` environment, the container build fails without
 
 - By default, the used tokens were kept in the cache pool without a lock, even in production: two simultaneous
   submissions of one token could both pass, such as a form posted twice by a robot that solved one proof of work.
+- `CacheUsedTokens` no longer puts the nonce in clear in the key of its lock or of its cache item: both use the SHA-256
+  of the nonce, so a lock store or a shared pool that logs or lists its keys never sees a token's nonce.
 
 ## 0.2.0-alpha - 2026-11-17
 

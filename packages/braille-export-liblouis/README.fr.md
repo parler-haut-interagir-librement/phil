@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=41e9a28dd6a6ac8e22da1ce611668e4f77664e81828be83f7db4d388efe0d6e0 -->
+<!-- phil-dev source-sha256=dcd3764ba4dcfcfa2391115bdf62376fc62f58793863b01f65ae8870c87d8f84 -->
 # phil/braille-export-liblouis
 
 **Du braille abrégé et intégral pour phil/braille-export par liblouis, dans toutes les langues pour lesquelles il a des tables.**
@@ -18,16 +18,18 @@ paquets du système ou dans l'image de l'application. Voir [Installation](doc/fr
 `LiblouisTables` choisit la table de chaque langue et de chaque contraction : Unified English Braille et le Code
 braille français uniformisé par défaut. Le programme est démarré avec ses arguments en liste, jamais par un interpréteur
 de commandes ; son temps, son entrée et sa sortie sont bornés, et un programme ou une table manquants lancent leur
-propre exception. Voir [Sécurité](doc/fr/security.md).
+propre exception. Un liblouis antérieur à 3.39.0, qui corrige des défauts de sûreté de la mémoire, est refusé avant que
+tout texte ne lui parvienne, sauf si `allowOutdatedLiblouis` le laisse passer avec un avertissement dans le journal.
+Voir [Sécurité](doc/fr/security.md).
 
 ## État
 
 | Partie | État |
 |---|---|
-| `LiblouisTranslator` : lots, morceaux des textes longs, braille Unicode vérifié, limites, version | Implémenté et testé avec un programme de remplacement |
+| `LiblouisTranslator` : lots, morceaux des textes longs, braille Unicode vérifié, limites, version, liblouis 3.39.0 ou plus récent | Implémenté et testé avec un programme de remplacement |
 | `LiblouisTables` : la table de chaque langue et contraction | Implémenté et testé |
 | Les exceptions : programme manquant, table manquante, autres échecs | Implémenté et testé |
-| La suite d'intégration contre le vrai `lou_translate` | Écrite ; ignorée sur une machine sans liblouis |
+| La suite d'intégration contre le vrai `lou_translate` | Écrite ; ignorée sur une machine sans liblouis 3.39.0 ou plus récent |
 
 ## Documentation
 
@@ -63,8 +65,8 @@ file_put_contents('book.brf', new BrfWriter()->write($book));
 
 ## Prérequis
 
-PHP 8.5 ou une version plus récente avec `mbstring` ; `phil/braille-export` 0.1 ; `symfony/process` 8.2 ; liblouis 3
-avec son programme `lou_translate` et ses tables sur la machine qui traduit.
+PHP 8.5 ou une version plus récente avec `mbstring` ; `phil/braille-export` 0.1 ; `symfony/process` 8.2 ; `psr/log` 3 ; liblouis 3.39.0
+ou plus récent avec son programme `lou_translate` et ses tables sur la machine qui traduit.
 
 ## Contribuer
 

@@ -4,7 +4,7 @@
 composer require phil/braille-export-liblouis
 ```
 
-The package needs PHP 8.5 or later with `mbstring`, `phil/braille-export` 0.1 and `symfony/process` 8.2.
+The package needs PHP 8.5 or later with `mbstring`, `phil/braille-export` 0.1, `symfony/process` 8.2 and `psr/log` 3.
 
 ## Installing liblouis
 
@@ -27,8 +27,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 ```
 
-`lou_translate --version` then names the version, and `LiblouisTranslator::version()` reads it. The package is
-written for liblouis 3.
+`lou_translate --version` then names the version, and `LiblouisTranslator::version()` reads it. The translator needs
+liblouis 3.39.0 or later, which fixes memory-safety defects, and refuses an older one by default: the package of a
+system may be older, so check the version it installs, and install a later liblouis from its releases when it is. An
+application that must run an older one for a time says so with `$allowOutdatedLiblouis`; see
+[Configuration](configuration.md#the-oldest-liblouis).
 
 The tables are installed in the table directory of liblouis, such as `/usr/share/liblouis/tables`. Tables kept
 elsewhere are given by `$tablePath`; see [Configuration](configuration.md).
@@ -49,7 +52,8 @@ services:
             - '@Phil\BrailleExport\Translation\UncontractedTranslator'
 ```
 
-`LiblouisTranslator::isAvailable()` says whether the program is found, for a health check or a deployment check.
+`LiblouisTranslator::isAvailable()` says whether the program is found, for a health check or a deployment check;
+`version()` compared with `LiblouisTranslator::MINIMUM_VERSION` says whether it is recent enough.
 `supports()` reads the tables only: on a machine without liblouis, the chain gives a contracted batch to liblouis all
 the same, and `ExecutableNotFound` says so. An application that would rather fall back to uncontracted braille puts
 `LiblouisTranslator` in its chain only when `isAvailable()` says yes.
