@@ -31,7 +31,7 @@ final class AvifXmp
         }
 
         [$metaStart, $metaPayload, $metaEnd, $children] = $meta;
-        $primary = self::primary($image, $children);
+        $primary = self::primary($image, $children['pitm']);
         $infos = self::infos($image, $children['iinf']);
 
         if (null === $primary || null === $infos) {
@@ -52,9 +52,11 @@ final class AvifXmp
         }
 
         $replaced = ['iinf' => self::iinf($infos, $id).(isset($children['iref']) ? '' : $iref), 'iref' => $iref];
-        $measured = ItemLocations::write($locations, $metaEnd, 0, 0, $id, \strlen($packet));
-        $delta = null === $measured ? 0 : \strlen(self::assemble($image, $metaPayload, $children, [...$replaced, 'iloc' => $measured])) - ($metaEnd - $metaStart);
-        $iloc = null === $measured ? null : ItemLocations::write($locations, $metaEnd, $delta, \strlen($image) + $delta + 8, $id, \strlen($packet));
+        // The box as it will be written, to measure how much `meta` grows: its length does not depend on the offsets. A box
+        // that cannot be written is refused by the second writing.
+        $measured = ItemLocations::write($locations, $metaEnd, 0, 0, $id, \strlen($packet)) ?? '';
+        $delta = \strlen(self::assemble($image, $metaPayload, $children, [...$replaced, 'iloc' => $measured])) - ($metaEnd - $metaStart);
+        $iloc = ItemLocations::write($locations, $metaEnd, $delta, \strlen($image) + $delta + 8, $id, \strlen($packet));
 
         if (null === $iloc) {
             return null;
@@ -79,7 +81,7 @@ final class AvifXmp
 
         $metas = array_values(array_filter($top, static fn (array $box): bool => 'meta' === $box[0]));
 
-        if (1 !== \count($metas) || $metas[0][2] + 4 > $metas[0][3]) {
+        if (1 !== \count($metas)) {
             return null;
         }
 
@@ -104,13 +106,13 @@ final class AvifXmp
     /**
      * The identifier of the primary item, from `pitm`.
      *
-     * @param array<string, array{string, int, int, int}> $children
+     * @param array{string, int, int, int} $pitm
      */
-    private static function primary(string $image, array $children): ?int
+    private static function primary(string $image, array $pitm): ?int
     {
-        [, , $payload, $end] = $children['pitm'] ?? ['', 0, 0, 0];
+        [, , $payload, $end] = $pitm;
 
-        return IsoBoxes::uint($image, $payload + 4, 0 === \ord(($image[$payload] ?? "\0")[0]) ? 2 : 4, $end);
+        return IsoBoxes::uint($image, $payload + 4, 0 === Bytes::bigEndian($image, $payload, 1) ? 2 : 4, $end);
     }
 
     /**
@@ -138,7 +140,7 @@ final class AvifXmp
     private static function infos(string $image, array $iinf): ?array
     {
         [, , $payload, $end] = $iinf;
-        $version = \ord(($image[$payload] ?? "\0")[0]);
+        $version = Bytes::bigEndian($image, $payload, 1);
         $first = $payload + (0 === $version ? 6 : 8);
         $entries = $first > $end ? null : IsoBoxes::read($image, $first, $end);
 
@@ -150,7 +152,7 @@ final class AvifXmp
         $ids = [];
 
         foreach ($entries as [$type, $start, $content, $stop]) {
-            $id = 'infe' === $type ? IsoBoxes::uint($image, $content + 4, \ord(($image[$content] ?? "\0")[0]) < 3 ? 2 : 4, $stop) : null;
+            $id = 'infe' === $type ? IsoBoxes::uint($image, $content + 4, Bytes::bigEndian($image, $content, 1) < 3 ? 2 : 4, $stop) : null;
 
             if (null === $id) {
                 return null;

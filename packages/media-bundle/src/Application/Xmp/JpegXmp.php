@@ -44,17 +44,10 @@ final class JpegXmp
                 return "\xFF\xD8".$head."\xFF\xE1".pack('n', \strlen($segment) + 2).$segment.$kept.substr($image, $offset);
             }
 
-            if ($offset + 4 > $length) {
-                return null;
-            }
-
+            // A size below 2, or one that runs past the file, leaves the offset where no marker starts or past the end:
+            // the loop stops and the image is refused.
             $size = Bytes::bigEndian($image, $offset + 2, 2);
             $end = $offset + 2 + $size;
-
-            if ($size < 2 || $end > $length) {
-                return null;
-            }
-
             $bytes = substr($image, $offset, $end - $offset);
 
             if (0xE0 === $marker && '' === $kept) {

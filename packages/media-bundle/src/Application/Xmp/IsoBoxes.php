@@ -23,10 +23,6 @@ final class IsoBoxes
         $offset = $from;
 
         while ($offset < $to) {
-            if ($offset + 8 > $to) {
-                return null;
-            }
-
             $size = Bytes::bigEndian($image, $offset, 4);
             $header = 8;
 
@@ -56,13 +52,11 @@ final class IsoBoxes
             return null;
         }
 
-        $value = match ($size) {
-            0 => 0,
-            2 => Bytes::bigEndian($image, $offset, 2),
-            4 => Bytes::bigEndian($image, $offset, 4),
-            8 => Bytes::bigEndian($image, $offset, 8),
-            default => -1,
-        };
+        if (!\in_array($size, [0, 2, 4, 8], true)) {
+            return null;
+        }
+
+        $value = Bytes::bigEndian($image, $offset, $size);
 
         return $value < 0 ? null : $value;
     }

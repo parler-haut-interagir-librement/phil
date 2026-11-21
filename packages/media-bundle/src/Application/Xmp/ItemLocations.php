@@ -28,17 +28,13 @@ final class ItemLocations
     {
         [, , $payload, $end] = $iloc;
 
-        if ($payload + 8 > $end) {
-            return null;
-        }
-
-        $version = \ord($image[$payload]);
+        $version = Bytes::bigEndian($image, $payload, 1);
         $indexed = 1 === $version || 2 === $version;
         $sizes = [
-            'offset' => \ord($image[$payload + 4]) >> 4,
-            'length' => \ord($image[$payload + 4]) & 0xF,
-            'base' => \ord($image[$payload + 5]) >> 4,
-            'index' => $indexed ? \ord($image[$payload + 5]) & 0xF : 0,
+            'offset' => Bytes::bigEndian($image, $payload + 4, 1) >> 4,
+            'length' => Bytes::bigEndian($image, $payload + 4, 1) & 0xF,
+            'base' => Bytes::bigEndian($image, $payload + 5, 1) >> 4,
+            'index' => $indexed ? Bytes::bigEndian($image, $payload + 5, 1) & 0xF : 0,
         ];
 
         if ($version > 2 || array_any($sizes, static fn (int $size): bool => !isset(self::MAX[$size]))) {

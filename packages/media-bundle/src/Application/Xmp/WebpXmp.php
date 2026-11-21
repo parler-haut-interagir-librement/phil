@@ -61,13 +61,12 @@ final class WebpXmp
      */
     private static function chunks(string $image): ?array
     {
-        $length = \strlen($image);
+        $length = Bytes::littleEndian($image, 4, 4) + 8;
 
-        if ($length < 12 || !str_starts_with($image, 'RIFF') || 'WEBP' !== substr($image, 8, 4) || Bytes::littleEndian($image, 4, 4) + 8 > $length) {
+        if (!str_starts_with($image, 'RIFF') || 'WEBP' !== substr($image, 8, 4) || $length > \strlen($image)) {
             return null;
         }
 
-        $length = Bytes::littleEndian($image, 4, 4) + 8;
         $chunks = [];
         $offset = 12;
 

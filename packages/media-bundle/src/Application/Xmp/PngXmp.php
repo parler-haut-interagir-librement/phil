@@ -29,21 +29,22 @@ final class PngXmp
         }
 
         $written = self::SIGNATURE;
-        $offset = 8;
-        $length = \strlen($image);
+        $rest = substr($image, 8);
+        $first = true;
 
-        while ($offset + 12 <= $length) {
-            $size = Bytes::bigEndian($image, $offset, 4);
-            $type = substr($image, $offset + 4, 4);
-            $end = $offset + 12 + $size;
+        // Each chunk is cut off the rest of the file: a chunk that runs past it, or a file that ends before `IEND`, is refused.
+        while ('' !== $rest) {
+            $length = 12 + Bytes::bigEndian($rest, 0, 4);
+            $type = substr($rest, 4, 4);
 
-            if ($end > $length) {
+            if ($length > \strlen($rest)) {
                 return null;
             }
 
-            $chunk = substr($image, $offset, $end - $offset);
+            $chunk = substr($rest, 0, $length);
+            $rest = substr($rest, $length);
 
-            if (8 === $offset) {
+            if ($first) {
                 if ('IHDR' !== $type) {
                     return null;
                 }
@@ -55,8 +56,8 @@ final class PngXmp
                 $chunk = '';
             }
 
+            $first = false;
             $written .= $chunk;
-            $offset = $end;
         }
 
         return null;
