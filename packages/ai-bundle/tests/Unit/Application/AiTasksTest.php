@@ -13,6 +13,7 @@ use Phil\AiBundle\Application\Completion;
 use Phil\AiBundle\Application\Exception\MissingPrompt;
 use Phil\AiBundle\Application\Exception\NoUserKey;
 use Phil\AiBundle\Application\Exception\TaskFailed;
+use Phil\AiBundle\Application\Exception\TooManyTasks;
 use Phil\AiBundle\Application\Exception\UnknownSuggestion;
 use Phil\AiBundle\Application\Exception\UnknownTask;
 use Phil\AiBundle\Application\KeyPolicy;
@@ -53,6 +54,10 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Clock\MockClock;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
+use Symfony\Component\Semaphore\SemaphoreFactory;
+use Symfony\Component\Semaphore\Store\LockStore;
 
 #[CoversClass(AiTasks::class)]
 #[CoversClass(Suggestion::class)]
@@ -69,6 +74,10 @@ final class AiTasksTest extends TestCase
     private InMemoryJournalRepository $journal;
 
     private ?UsageMeter $taskMeter = null;
+
+    private ?UsageMeter $fullMeter = null;
+
+    private ?SemaphoreFactory $semaphores = null;
 
     #[Override]
     protected function setUp(): void
@@ -210,6 +219,105 @@ final class AiTasksTest extends TestCase
 
         self::assertCount(3, $model->calls);
         self::assertSame(3, $tasks->totals('project-1', new DateTimeImmutable('2026-01-01'), new DateTimeImmutable('2027-01-01'))->tasks);
+    }
+
+    public function testTheTaskReservesItsTokensAndItsCostBoundThenSettlesThem(): void
+    {
+        $quota = $this->fullQuota();
+        $stream = $this->tasks(new ScriptedCompletions(new Completion('ab', new Tokens(12, 5)), null, null, 0.0, ['a', 'b']), quota: $quota)->stream(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+
+        // The bound: 50 tokens reserved read at 3.00 and 512 written at 15.00 a million, rounded up to the micro.
+        self::assertSame([50, 1, 7_830, 7_830], $this->fullUsed(), 'The reservation is consumed before the first piece.');
+
+        iterator_to_array($stream);
+        self::assertSame([17, 1, 111, 111], $this->fullUsed(), 'The reservation is settled with what the task spent.');
+
+        $definition = new TaskDefinition(TaskKind::fromString('draft.rewrite'), 'main', 'model-a', [], 50);
+        $this->tasks(new ScriptedCompletions(new Completion('ab', new Tokens(40, 60))), quota: $quota, catalog: new TaskCatalog($definition), prices: new PriceList('USD', ['model-a' => new Price(3_000_000, 15_000_000, 'USD', 4)]))->run(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+
+        // Without max_tokens, the bound counts the reserve written too: 150 + 750 + 4 per call = 904; the task cost
+        // 120 + 900 + 4 = 1 024, past its bound, and its 100 tokens are past its reserve of 50.
+        self::assertSame([117, 2, 1_135, 1_135], $this->fullUsed());
+    }
+
+    public function testAStreamLeftEarlyGivesItsWholeReservationBack(): void
+    {
+        $tasks = $this->tasks(new ScriptedCompletions(new Completion('ab', new Tokens(12, 5)), null, null, 0.0, ['a', 'b']), quota: $this->fullQuota());
+        $stream = $tasks->stream(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+
+        $pieces = $stream->getIterator();
+        self::assertSame(['a', [50, 1, 7_830, 7_830]], [$pieces->current(), $this->fullUsed()]);
+
+        unset($stream, $pieces);
+        gc_collect_cycles();
+        self::assertSame([0, 0, 0, 0], $this->fullUsed());
+
+        try {
+            $this->tasks(new ScriptedCompletions(null, new RuntimeException('down')), quota: $this->fullQuota())->run(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+            self::fail('A failed call proposed something.');
+        } catch (TaskFailed) {
+            self::assertSame([0, 0, 0, 0], $this->fullUsed());
+        }
+    }
+
+    public function testAQuotaRefusalCallsNothingAndKeepsNothing(): void
+    {
+        $model = $this->model();
+        $definition = new TaskDefinition(TaskKind::fromString('draft.rewrite'), 'main', 'model-a', ['max_tokens' => 70_000], 50);
+
+        try {
+            $this->tasks($model, quota: $this->fullQuota(), catalog: new TaskCatalog($definition))->run(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+            self::fail('A task whose cost bound is past the budget ran.');
+        } catch (QuotaExceeded $quotaExceeded) {
+            self::assertSame(['ai_budget', 1_050_150], [$quotaExceeded->usage->meter, $quotaExceeded->requested]);
+        }
+
+        self::assertSame([[], [0, 0, 0, 0]], [$model->calls, $this->fullUsed()]);
+    }
+
+    public function testASemaphoreBoundsTheTasksOfASubjectRunningAtOnce(): void
+    {
+        $quota = $this->fullQuota(1);
+        $tasks = $this->tasks(new ScriptedCompletions(new Completion('a', new Tokens(1, 1)), null, null, 0.0, ['a']), quota: $quota);
+
+        $stream = $tasks->stream(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+
+        try {
+            $tasks->run(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+            self::fail('A second task ran at once.');
+        } catch (TooManyTasks) {
+            self::assertSame([50, 1, 7_830, 7_830], $this->fullUsed(), 'A task refused for its place reserves nothing.');
+        }
+
+        iterator_to_array($stream);
+        $tasks->run(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+        $tasks->run(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+
+        $never = $tasks->stream(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+        unset($never);
+        $left = $tasks->stream(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+
+        $pieces = $left->getIterator();
+        self::assertSame('a', $pieces->current());
+
+        unset($left, $pieces);
+        gc_collect_cycles();
+
+        try {
+            $this->tasks(new ScriptedCompletions(null, new RuntimeException('down')), quota: $quota)->run(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+        } catch (TaskFailed) {
+        }
+
+        $definition = new TaskDefinition(TaskKind::fromString('draft.rewrite'), 'main', 'model-a', ['max_tokens' => 70_000], 50);
+
+        try {
+            $this->tasks($this->model(), quota: $quota, catalog: new TaskCatalog($definition))->run(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+        } catch (QuotaExceeded) {
+        }
+
+        self::assertSame(3, $this->fullUsed()[1]);
+        $tasks->run(new TaskRequest('draft.rewrite', 'project-1', 'en'));
+        self::assertSame(4, $this->fullUsed()[1], 'Every way a task ends gives its place back.');
     }
 
     public function testTheApplicationDecidesOnEachSuggestion(): void
@@ -398,6 +506,35 @@ final class AiTasksTest extends TestCase
     private function entries(): array
     {
         return $this->journal->ofSubject(Subject::fromString('project-1'), new DateTimeImmutable('2026-01-01'), new DateTimeImmutable('2027-01-01'));
+    }
+
+    /**
+     * Every meter: 1 000 tokens, 10 tasks, a budget of 1 000 000 micros and a ceiling of 2 000 000.
+     */
+    private function fullQuota(?int $concurrency = null): Quota
+    {
+        $this->fullMeter ??= new UsageMeter(
+            new Meters(new Meter('ai_tokens', CalendarPeriod::month(), Limit::of(1_000)), new Meter('ai_tasks', CalendarPeriod::month(), Limit::of(10)), new Meter('ai_budget', CalendarPeriod::month(), Limit::of(1_000_000)), new Meter('ai_ceiling', CalendarPeriod::month(), Limit::of(2_000_000))),
+            new InMemoryUsageStore(),
+            $this->clock,
+        );
+        $this->semaphores ??= new SemaphoreFactory(new LockStore(new LockFactory(new InMemoryStore())));
+
+        return new Quota($this->fullMeter, 'ai_tokens', 'ai_tasks', false, 'ai_budget', 'ai_ceiling', 'site', null === $concurrency ? null : $this->semaphores, $concurrency);
+    }
+
+    /**
+     * The tokens, tasks and budget of `project-1`, and the ceiling of the site.
+     *
+     * @return list<int>
+     *
+     * @phpstan-impure
+     */
+    private function fullUsed(): array
+    {
+        $meter = $this->fullMeter ?? self::fail('No quota of every meter.');
+
+        return [$meter->usage('project-1', 'ai_tokens')->used, $meter->usage('project-1', 'ai_tasks')->used, $meter->usage('project-1', 'ai_budget')->used, $meter->usage('site', 'ai_ceiling')->used];
     }
 
     private function taskQuota(): Quota

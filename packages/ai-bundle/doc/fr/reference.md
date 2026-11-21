@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=72565a9df0c1201d1cfba14b10d91b25d8f77ed212f0dbcb0a30da12c9325436 -->
+<!-- phil-dev source-sha256=b3c1d2b0da860d17a9f0d4942047e272266f35c9be8eb54f2c81b93ecaf2b42e -->
 # Référence
 
 | Type | Genre | Rôle |
@@ -36,7 +36,7 @@
 | `Phil\AiBundle\Application\ModelCall` | `final readonly class` | Un appel à un modèle |
 | `Phil\AiBundle\Application\Completion` | `final readonly class` | La réponse du modèle et les jetons |
 | `Phil\AiBundle\Application\PriceList` | `final readonly class` | Les prix par modèle, dans une seule devise |
-| `Phil\AiBundle\Application\Quota` | `final readonly class` | Les compteurs de jetons, de tâches, de budget et de plafond de `phil/usage-meter` |
+| `Phil\AiBundle\Application\Quota` | `final readonly class` | Les compteurs de jetons, de tâches, de budget et de plafond de `phil/usage-meter`, réservés par `admit()`, réglés par `charge()`, rendus par `release()` ; les places parmi les tâches en cours en même temps, par `enter()` |
 | `Phil\AiBundle\Application\KeyPolicy` | enum | `application`, `prefer_user`, `require_user` |
 | `Phil\AiBundle\Application\NoUserKeys` | `final readonly class` | Personne ne prête de clé |
 | `Phil\AiBundle\Application\Port\Completions` | interface | Les modèles |
@@ -45,6 +45,7 @@
 | `Phil\AiBundle\Application\Exception\MissingPrompt` | `final class` | Une invite utilisateur sans traduction |
 | `Phil\AiBundle\Application\Exception\NoUserKey` | `final class` | Une tâche qui exige la clé de la personne, qui n'en a aucune |
 | `Phil\AiBundle\Application\Exception\TaskFailed` | `final class` | Un appel au modèle échoué |
+| `Phil\AiBundle\Application\Exception\TooManyTasks` | `final class` | Un sujet qui exécute déjà autant de tâches en même temps que permis |
 | `Phil\AiBundle\Application\Exception\UnknownSuggestion` | `final class` | Une décision sur une tâche inconnue |
 | `Phil\AiBundle\Application\Exception\UnknownPlatform` | `final class` | Une plateforme non déclarée, ou sans fabrique pour la clé de la personne |
 | `Phil\AiBundle\Infrastructure\SymfonyAi\SymfonyAiCompletions` | `final readonly class` | Les modèles par Symfony AI |

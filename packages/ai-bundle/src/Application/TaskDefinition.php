@@ -71,4 +71,15 @@ final readonly class TaskDefinition
             $names[] = $tool->name;
         }
     }
+
+    /**
+     * The most tokens an answer of the task writes: its option `max_tokens` when it is a positive integer, its reserve
+     * otherwise.
+     */
+    public function maxOutputTokens(): int
+    {
+        $maxTokens = $this->options['max_tokens'] ?? null;
+
+        return \is_int($maxTokens) && $maxTokens > 0 ? $maxTokens : $this->reserve;
+    }
 }

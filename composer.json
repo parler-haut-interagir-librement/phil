@@ -112,6 +112,7 @@
         "symfony/security-core": "^8.2",
         "symfony/security-csrf": "^8.2",
         "symfony/security-http": "^8.2",
+        "symfony/semaphore": "^8.2",
         "symfony/serializer": "^8.2",
         "symfony/service-contracts": "^3.6",
         "symfony/slack-notifier": "^8.2",

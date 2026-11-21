@@ -11,11 +11,13 @@ key.
 | `Application\Exception\MissingPrompt` | `LogicException` | A kind without user prompt in the locale nor its fallbacks |
 | `Application\Exception\NoUserKey` | `RuntimeException` | Under `require_user`, a task without owner, or whose owner has no key for the platform |
 | `Application\Exception\TaskFailed` | `RuntimeException` | The model call failed; the provider's exception is the previous one |
+| `Application\Exception\TooManyTasks` | `RuntimeException` | The subject already runs as many tasks at once as `quota.concurrency` allows; nothing was counted nor called |
 | `Application\Exception\UnknownSuggestion` | `RuntimeException` | A decision on an identifier the journal does not hold |
 | `Application\Exception\UnknownPlatform` | `LogicException` | A platform that is not declared, or a person's key for a platform without `user_key_factory`; reported as the previous exception of `TaskFailed` |
 
-`run()` also lets through `Phil\UsageMeter\Exception\QuotaExceeded` when the subject's quota is reached: its `usage`
-tells how much is used, the limit and when the window frees room.
+`run()` and `stream()` also let through `Phil\UsageMeter\Exception\QuotaExceeded` when the task's reservation does not
+fit: its `usage` names the meter that refused, how much is used, the limit and when the window frees room; its
+`requested` is what the task tried to reserve. Nothing stays reserved.
 
 Examples of messages:
 
@@ -25,6 +27,7 @@ The task "draft.rewrite" has no prompt "draft.rewrite.user" in the translation d
 The task runs only on the person's own key, and they have none for the platform "main".
 The task "draft.rewrite" failed at the model (Symfony\AI\Platform\Exception\RateLimitExceededException).
 The suggestion "0194f3d2-…" is already accepted.
+The subject already runs 3 tasks at once, the most the quota allows.
 ```
 
 A configuration out of shape fails when the container is built, with Symfony's `InvalidConfigurationException`.

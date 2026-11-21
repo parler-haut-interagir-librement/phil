@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5345786226458b37e794590ec3b11d475e353c688ecfbbf418aa640794ad8a1b -->
+<!-- phil-dev source-sha256=f0d6241447f27e6b4f7658f7ff33f65b9bd6ad78c090373a98eef22f0a9b001e -->
 # Tâches et suggestions
 
 ## Une tâche est une sorte
@@ -56,8 +56,8 @@ $suggestion = $tasks->run(new TaskRequest(
 ));
 ```
 
-`run()` produit le rendu des invites, choisit la clé, vérifie le quota, appelle le modèle, écrit le journal et retourne
-une `Suggestion` ; `stream()` fait de même avec la réponse par morceaux ([Flux continu](outputs.md#flux-continu)) :
+`run()` produit le rendu des invites, choisit la clé, réserve le quota, appelle le modèle, écrit le journal, règle le
+quota et retourne une `Suggestion` ; `stream()` fait de même avec la réponse par morceaux ([Flux continu](outputs.md#flux-continu)) :
 
 | Propriété | Signification |
 |---|---|
@@ -97,6 +97,6 @@ l'identifiant. `Suggestion::disclosure()` dit ensuite comment l'œuvre qui la re
 ## Échecs
 
 Quand la plateforme échoue (refus, limite de débit, injoignable), la tâche est journalisée comme échouée, sans jetons,
-la tâche qu'elle a consommée du quota du sujet est rendue, et `TaskFailed` est levée avec l'exception du fournisseur
-comme exception précédente. Son message nomme la tâche et la
+la réservation qu'elle a faite sur le quota du sujet est rendue (la tâche, ses jetons et sa borne de coût), et
+`TaskFailed` est levée avec l'exception du fournisseur comme exception précédente. Son message nomme la tâche et la
 classe de l'exception du fournisseur, jamais le message du fournisseur, qui peut citer l'invite.

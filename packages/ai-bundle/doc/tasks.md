@@ -54,7 +54,8 @@ $suggestion = $tasks->run(new TaskRequest(
 ));
 ```
 
-`run()` renders the prompts, picks the key, checks the quota, calls the model, writes the journal and returns a
+`run()` renders the prompts, picks the key, reserves the quota, calls the model, writes the journal, settles the quota
+and returns a
 `Suggestion`; `stream()` does the same with the answer in pieces ([Streaming](outputs.md#streaming)):
 
 | Property | Meaning |
@@ -93,6 +94,6 @@ them in its own draft, its session or its form between two requests, and decides
 ## Failures
 
 When the platform fails — refused, rate-limited, unreachable — the task is journaled as failed, with no tokens, the
-task it consumed of the subject's quota is given back, and `TaskFailed` is thrown with the provider's exception as its
-previous one. Its message names the task and the class of
-the provider's exception, never the provider's message, which may quote the prompt.
+reservation it made on the subject's quota is given back — the task, its tokens and its cost bound —, and `TaskFailed`
+is thrown with the provider's exception as its previous one. Its message names the task and the class of the provider's
+exception, never the provider's message, which may quote the prompt.

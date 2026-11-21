@@ -95,8 +95,9 @@ final class AiServices
         if (null !== $config['usage_meter']) {
             $limits = \is_array($config['quota']) ? $config['quota'] : [];
             $quota = new Reference(Quota::class);
+            $concurrency = $limits['concurrency'] ?? null;
             $container->register(Quota::class, Quota::class)
-                ->setArguments([new Reference(self::text($config['usage_meter'])), $limits['tokens_meter'], $limits['tasks_meter'], $limits['count_user_keys'], $limits['budget_meter'], $limits['ceiling_meter'], $limits['ceiling_subject']]);
+                ->setArguments([new Reference(self::text($config['usage_meter'])), $limits['tokens_meter'], $limits['tasks_meter'], $limits['count_user_keys'], $limits['budget_meter'], $limits['ceiling_meter'], $limits['ceiling_subject'], null === $concurrency ? null : new Reference(self::text($limits['semaphore_factory'])), $concurrency]);
         }
 
         $container->register(AiTasks::class, AiTasks::class)

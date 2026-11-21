@@ -57,6 +57,18 @@ final class DefinitionsTest extends TestCase
         }
     }
 
+    public function testTheLargestAnswerIsTheOptionMaxTokensOrTheReserve(): void
+    {
+        $kind = TaskKind::fromString('draft.rewrite');
+
+        self::assertSame(512, new TaskDefinition($kind, 'main', 'm', ['max_tokens' => 512], 300)->maxOutputTokens());
+        self::assertSame(1, new TaskDefinition($kind, 'main', 'm', ['max_tokens' => 1], 300)->maxOutputTokens());
+
+        foreach ([[], ['max_tokens' => 0], ['max_tokens' => -5], ['max_tokens' => '512'], ['max_tokens' => null]] as $options) {
+            self::assertSame(300, new TaskDefinition($kind, 'main', 'm', $options, 300)->maxOutputTokens(), json_encode($options, \JSON_THROW_ON_ERROR));
+        }
+    }
+
     public function testADefinitionNamesWhatItAsksForItsToolsAndItsPurpose(): void
     {
         $kind = TaskKind::fromString('rules.answer');

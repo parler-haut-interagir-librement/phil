@@ -3,15 +3,15 @@
 **Language-model tasks that propose and never impose, counted to the token, and forgetful of every word.**
 
 phil/ai-bundle runs the language-model tasks of a Symfony application on Symfony AI. A task has a kind —
-`draft.rewrite`, `character.describe` — whose prompts are translation messages, rendered in the locale the person
-reads; it runs on a platform and a model of the configuration, on the application's key or on the person's own key
-kept by `phil/user-secrets-bundle`; the subject it is charged to — an account, a tenant, a project — must have room in
-its quotas and budget of `phil/usage-meter` before it starts, and is charged with the tokens and the cost it spent
-after; a call that fails is given back. A task asks for text, streamed or whole, data shaped by a class, an image or
-speech, and may offer the model tools to propose. What the model answers comes back as a `Suggestion`: nothing is
-applied, and no tool is run, until the application accepts it, as proposed or changed by the person, or rejects it. A
-journal keeps each task's kind, subject, platform, model, whose key paid, tokens, cost, duration and decision — and
-never the prompt, the answer, nor anything the person wrote.
+`draft.rewrite`, `character.describe` — whose prompts are translation messages, rendered in the locale the person reads;
+it runs on a platform and a model of the configuration, on the application's key or on the person's own key kept by
+`phil/user-secrets-bundle`; the subject it is charged to — an account, a tenant, a project — reserves its tokens and a
+bound of its cost on its quotas and budget of `phil/usage-meter` before it starts, atomically, and settles them with the
+tokens and the cost it spent after; a call that fails gives its reservation back. A task asks for text, streamed or
+whole, data shaped by a class, an image or speech, and may offer the model tools to propose. What the model answers
+comes back as a `Suggestion`: nothing is applied, and no tool is run, until the application accepts it, as proposed or
+changed by the person, or rejects it. A journal keeps each task's kind, subject, platform, model, whose key paid,
+tokens, cost, duration and decision — and never the prompt, the answer, nor anything the person wrote.
 
 It is for Symfony applications that put a model beside a person's work: a writing tool that rewrites, proofreads or
 translates a passage, a game master's assistant that invents a character, a place or a cover image, a free tier
@@ -39,7 +39,8 @@ of `phil/user-secrets-bundle`, the privacy module, the Doctrine and in-memory jo
 | Suggestions accepted, accepted after edits, or rejected by the application | Implemented and tested |
 | A journal of kind, output, subject, platform, model, key, tokens, cost, duration and decision, without content | Implemented and tested |
 | Costs from a price list per model and per call, totals summed in SQL by subject and span, erasure by subject | Implemented and tested, on SQLite, MySQL 8.4 and PostgreSQL 17 |
-| Quotas of tokens and of tasks, budgets of cost and an application-wide ceiling through `phil/usage-meter`; a failed call given back | Implemented and tested |
+| Quotas of tokens and of tasks, budgets of cost and an application-wide ceiling through `phil/usage-meter`, reserved atomically before a task and settled after it; a failed call given back | Implemented and tested |
+| A bound of the tasks a subject runs at once, through `symfony/semaphore` | Implemented and tested |
 | Streamed answers, structured output, tool calls proposed and never run, through Symfony AI | Implemented and tested |
 | Images and speech: Hugging Face and text-to-speech through Symfony AI's bridges, Replicate images through the bundle's adapter | Implemented and tested |
 | Notices that a person talks to an AI, the disclosure of what a suggestion made through `phil/creation-disclosure`, the usage register | Implemented and tested |
@@ -56,7 +57,7 @@ of `phil/user-secrets-bundle`, the privacy module, the Doctrine and in-memory jo
 | [Configuration](doc/configuration.md) | Every option of `phil_ai`. |
 | [Tasks and suggestions](doc/tasks.md) | Defining tasks, writing their prompts, running them, deciding on what they propose. |
 | [Outputs, streaming and tools](doc/outputs.md) | Structured output, proposed tool calls, images and speech, the Replicate adapter, streaming. |
-| [Keys and quotas](doc/keys-and-quotas.md) | Whose key a task runs on, the person's own key, the quotas of tokens and tasks, budgets and the ceiling. |
+| [Keys and quotas](doc/keys-and-quotas.md) | Whose key a task runs on, the person's own key, the quotas of tokens and tasks, budgets and the ceiling, their reservation and settlement, the tasks running at once. |
 | [The journal](doc/journal.md) | What is recorded and what never is, costs, totals, erasure. |
 | [Transparency and privacy](doc/transparency.md) | The notices, the disclosure of what a suggestion made, the usage register, privacy requests. |
 | [Exceptions](doc/exceptions.md) | What the bundle throws, and when. |

@@ -52,13 +52,17 @@
         "symfony/http-client": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/key-management": "^8.2",
+        "symfony/lock": "^8.2",
+        "symfony/process": "^8.2",
+        "symfony/semaphore": "^8.2",
         "symfony/translation": "^8.2",
         "symfony/yaml": "^8.2"
     },
     "suggest": {
         "phil/privacy-bundle": "For the journal in the export and the erasure of a subject's data",
         "phil/user-secrets-bundle": "To run a person's tasks on their own key",
-        "symfony/http-client": "For the Replicate image platform, ReplicatePlatformFactory"
+        "symfony/http-client": "For the Replicate image platform, ReplicatePlatformFactory",
+        "symfony/semaphore": "To bound how many tasks of one subject run at once, quota.concurrency"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
