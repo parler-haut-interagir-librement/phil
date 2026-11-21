@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=aae2c4544a8b6d58db5e13479532a7f5aebd1118edd2041d9d2498be447841c0 -->
+<!-- phil-dev source-sha256=df4a5694377b0161062329e5489000726e48c198803e5d447ae45cff969bd78b -->
 # Points d'extension
 
 Ce que le module branche dans `phil/commerce-bundle`, et ce qu'une application implémente, configure ou utilise. Les
@@ -27,7 +27,12 @@ retourner à sa carte — annulée, expirée — est refusé.
 ## Dépôts
 
 `InstrumentRepository` est un alias public de `DoctrineStoredValueRepository` ; un stockage propre à l'application ne
-trouve une carte que par l'empreinte de son code — un code n'est jamais gardé en clair.
+trouve une carte que par l'empreinte de son code — un code n'est jamais gardé en clair. Il empêche aussi qu'une valeur soit créée deux fois :
+
+| Méthode | Contrat |
+|---|---|
+| `addIssuedCards(array $cards): bool` | Stocke d'un coup, en entier ou pas du tout, les cartes qu'une commande émet avec leurs mouvements `Issued` ; retourne `false`, sans rien stocker, quand une carte de la même commande et du même rang (`Movement::$issuedUnit`) est déjà stockée — une vérification que le stockage rend atomique, par une contrainte d'unicité ou un verrou, jamais en lisant d'abord |
+| `movementUnderKey(string $instrument, string $idempotencyKey): ?Movement` | Le mouvement qu'un instrument a enregistré sous cette clé ; le stockage en refuse un second |
 
 ## Configuration
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c9088ea8cba54f4ccc1ad43dc04872e1c6bceb3762aea136f436bff61433a0c0 -->
+<!-- phil-dev source-sha256=07febe7db119c66b42fd471e6d69292e45c9a68d90b46856edcfee557a1573db -->
 # Référence
 
 Chaque type public du module.
@@ -7,7 +7,7 @@ Chaque type public du module.
 |---|---|---|
 | `PhilCommerceStoredValueBundle` | `final class`, `AbstractBundle` | Alias `phil_commerce_stored_value` ; refuse de se charger sans `PhilCommerceBundle` |
 | `Domain\Model\Instrument` | `final class`, entité Doctrine | Une carte-cadeau ou un crédit en magasin, son solde |
-| `Domain\Model\Movement` | `final class`, entité Doctrine | Un changement d'un solde |
+| `Domain\Model\Movement` | `final class`, entité Doctrine | Un changement d'un solde ; le rang d'une carte émise par sa commande, une clé d'idempotence |
 | `Domain\Instrument\InstrumentKind` | énumération | `GiftCard`, `StoreCredit` |
 | `Domain\Instrument\GiftCardOrigin` | énumération | `Given`, `Paid` : si une carte-cadeau peut expirer |
 | `Domain\Instrument\MovementKind` | énumération | `Issued`, `Loaded`, `Granted`, `Redeemed`, `Restored`, `Voided` |
@@ -17,6 +17,7 @@ Chaque type public du module.
 | `Application\GiftCards` | `final readonly class` | Émettre, recharger, annuler, trouver une carte ; annuler les cartes d'une commande annulée |
 | `Application\Port\StoreCreditHolders` | interface | Le client d'une commande, pour un remboursement qu'une carte annulée ou expirée ne peut pas prendre |
 | `Application\IssuedGiftCard` | `final readonly class` | Une carte tout juste émise, et son code |
+| `Application\GiftCardIssuance` | `final readonly class`, itérable sur les cartes émises maintenant | Ce qu'a fait `GiftCards::issueFor()` : les cartes émises maintenant, avec leurs codes, et chaque carte de la commande |
 | `Application\StoreCredits` | `final readonly class` | Accorder du crédit, les soldes |
 | `Application\StoredValuePayments` | `final readonly class` | Payer avec une carte ou du crédit |
 | `Application\GiftCardSellables` | `final readonly class`, le `SellableResolver` du noyau | Le type de vendable `gift_card` |

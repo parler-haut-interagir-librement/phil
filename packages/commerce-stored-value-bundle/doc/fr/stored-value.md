@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=437c01022504784ec96b4d991abdf3c02fdd7255e95c1725d95e3c7363d9b03d -->
+<!-- phil-dev source-sha256=ed9822747271a08dd85f2a9684f635b75d28ec160850efeeb45c6363f8c447b0 -->
 # Valeur stockée
 
 Deux instruments gardent une valeur dans une devise : une **carte-cadeau**, connue par son code, au bénéfice de qui la
@@ -27,8 +27,13 @@ foreach ($giftCards->issueFor($order, $clock->now()) as $issued) {
 Une carte par unité, à la valeur nominale de la ligne, quelle que soit la promotion qui a baissé son prix. **Une
 commande qui a encore un montant à payer n'émet aucune carte** : `issueFor()` lève `StoredValueRefused` tant que
 `Payments::summary()` du noyau trouve encore quelque chose à payer — un paiement différé ou porté au compte compte une
-fois terminé. **Émettre deux fois ne change rien** : les cartes déjà émises de la commande ne sont pas émises de
-nouveau. Le code n'est connu qu'à ce moment ; ensuite, le module garde son empreinte et ses quatre derniers caractères.
+fois terminé. **Émettre deux fois ne change rien**, même depuis deux serveurs au même moment — voir
+[Valeur créée une seule fois](#valeur-créée-une-seule-fois). Le code n'est connu qu'à ce moment ; ensuite, le module
+garde son empreinte et ses quatre derniers caractères.
+
+`issueFor()` retourne une `GiftCardIssuance` : la parcourir revient à parcourir les cartes émises par cet appel, chacune
+avec son code ; sa propriété `issued` les liste, et sa propriété `cards` liste chaque carte de la commande, émise
+maintenant ou avant.
 
 ### Annuler une commande qui a vendu des cartes
 
@@ -149,6 +154,85 @@ final class OrderCustomers implements StoreCreditHolders
 
 Sans ce service, ou pour une commande dont le client est inconnu, un tel remboursement lève `StoredValueRefused`, tout
 comme un remboursement vers un crédit en magasin annulé depuis ; l'application rembourse alors par un autre moyen.
+
+## Valeur créée une seule fois
+
+Une carte-cadeau émise deux fois pour une même commande, ou du crédit accordé deux fois pour un même retour, est de la
+valeur donnée pour rien. Le module empêche l'un et l'autre, dans la base de données plutôt qu'en mémoire, pour que la
+garantie tienne d'un processus et d'un serveur à l'autre.
+
+### Émettre les cartes d'une commande
+
+`issueFor()` stocke d'un coup les cartes qu'elle émet, en entier ou pas du tout, dans une transaction à elle — ou dans
+un point de sauvegarde de la transaction de l'appelant quand il y en a une d'ouverte. Le mouvement `Issued` de chaque
+carte porte son rang parmi les cartes de la commande, à partir de 0, dans l'ordre des lignes ; une contrainte d'unicité
+sur le numéro de commande, le genre de mouvement et ce rang refuse une seconde carte au même rang.
+
+Deux requêtes qui émettent au même moment les cartes de la même commande — une notification de paiement et sa
+répétition, deux workers qui prennent le même message — comptent toutes deux les cartes déjà émises, n'en trouvent
+aucune, et essaient toutes deux de les stocker. La base garde la première ; la seconde est refusée, ne stocke rien, et
+retourne les cartes de la première dans `GiftCardIssuance::$cards`, avec rien dans `issued` : elle n'a aucun code à
+envoyer, et n'en envoie aucun.
+
+```php
+$issuance = $giftCards->issueFor($order, $clock->now());
+
+foreach ($issuance as $issued) {          // nothing when another request issued them first
+    $mailer->send(/* $issued->code->toString() */);
+}
+
+$issuance->cards;                         // every card of the order, whoever issued it
+```
+
+Le refus n'atteint pas le gestionnaire d'entités de l'application : les cartes sont stockées par un gestionnaire
+d'entités à elles sur la même connexion, si bien que ce que l'application détient reste géré, et que son propre flush
+continue. Les cartes retournées sont celles que lit le gestionnaire d'entités de l'application.
+
+Une carte émise au comptoir avec `issue($value, $at, null, $orderNumber)` ne porte aucun rang et n'est pas liée par la
+contrainte ; elle compte tout de même parmi les cartes de la commande que `issueFor()` trouve déjà émises.
+
+### Une clé d'idempotence sur une recharge ou un octroi
+
+`GiftCards::load()` et `StoreCredits::grant()` prennent une clé d'idempotence facultative, leur dernier argument :
+
+```php
+$giftCards->load($code, Money::of(1_000, Currency::of('CAD')), $clock->now(), 'Top-up', idempotencyKey: $messageId);
+$storeCredits->grant('customer-42', Money::of(1_500, Currency::of('CAD')), $clock->now(), 'Return of A-0042', 'A-0042', idempotencyKey: 'return:'.$returnId);
+```
+
+Redemandée avec la même clé sur le même instrument, l'opération n'ajoute rien : `load()` retourne la carte telle
+qu'elle est, `grant()` retourne le mouvement enregistré en premier. Une autre clé, ou aucune, enregistre un autre
+mouvement. On attend le même montant : une clé rejouée avec un autre montant est une erreur, refusée par
+`InvalidValue`. Une clé compte de 1 à 128 caractères, sans espaces autour, et est gardée sur le mouvement ; une
+contrainte d'unicité sur l'instrument et la clé refuse un second mouvement de même clé, si bien que deux requêtes de
+même clé au même moment n'enregistrent qu'un mouvement — le flush de la seconde lève la
+`UniqueConstraintViolationException` de Doctrine, ou l'`OptimisticLockException` quand la version de l'instrument a
+bougé d'abord, et sa reprise trouve le mouvement.
+
+La clé est celle de l'opération, choisie pour qu'une reprise de la même opération porte la même clé : l'identifiant du
+retour qui accorde le crédit, de l'achat qui recharge la carte, du message qui le demande.
+
+### Rejouer un message de Messenger
+
+Un message traité deux fois — repris après un échec, livré deux fois par le transport, ou rejoué par qui peut écrire
+dans le transport — exécute deux fois son handler. Signer un message prouve qui l'a envoyé, pas qu'il est nouveau : un
+message rejoué porte une signature valide. On rend plutôt le handler sûr à réexécuter :
+
+```php
+#[AsMessageHandler]
+final readonly class GrantReturnCreditHandler
+{
+    public function __invoke(GrantReturnCredit $message): void
+    {
+        $return = $this->returns->get($message->returnId);   // the message carries identifiers only
+
+        $this->storeCredits->grant($return->customer, $return->credit, $this->clock->now(), null, $return->orderNumber, idempotencyKey: 'return:'.$message->returnId);
+    }
+}
+```
+
+Un handler qui émet les cartes d'une commande n'a besoin d'aucune clé : `issueFor()` est idempotente par la commande
+elle-même.
 
 ## Mouvements
 

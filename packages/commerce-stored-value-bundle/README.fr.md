@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9cda5bd10fb01229ec86886f8e5776b9516f2ca1f2e560e39312ed8e6dcad54d -->
+<!-- phil-dev source-sha256=c1423b94844b60efb9973a44b0d82865d0b24d638b7301fbcc6f7651241684d8 -->
 # phil/commerce-stored-value-bundle
 
 **Des cartes-cadeaux numériques et du crédit en magasin, vendus, rechargés et dépensés comme paiements d'une
@@ -11,7 +11,9 @@ jamais, à moins d'être marquée pour un service précis ; chaque boutique vér
 de fixer une expiration. Un crédit en magasin est un solde par client et par
 devise, accordé lors d'un retour ou en geste commercial. L'un ou l'autre paie une partie ou la totalité d'une commande,
 à côté d'une carte ou d'argent comptant pour un paiement partagé, et un remboursement lui rend la valeur. Chaque
-changement d'un solde est un mouvement, conservé pour de bon.
+changement d'un solde est un mouvement, conservé pour de bon. La valeur n'est créée qu'une fois : les cartes d'une
+commande sont émises une seule fois, même par deux serveurs au même moment, et une recharge ou un octroi fait sous une
+clé d'idempotence n'est enregistré qu'une fois, quoi qui le rejoue.
 
 Il s'adresse à une boutique qui vend des cartes-cadeaux ou donne du crédit en magasin.
 `phil/commerce-returns-bundle` s'en sert pour régler un retour en crédit en magasin, et `phil/commerce-pos-bundle`
@@ -34,6 +36,7 @@ qu'une personne tape, et n'est enregistré que sous forme d'empreinte et de ses 
 | Le crédit en magasin : accordé, solde | Implémenté et testé |
 | Le paiement avec l'un ou l'autre, les paiements partagés, les remboursements vers l'instrument | Implémenté et testé |
 | Les mouvements, l'historique de chaque solde | Implémenté et testé |
+| La valeur créée une seule fois : les cartes d'une commande sous des rangs uniques, les recharges et les octrois sous des clés d'idempotence | Implémenté et testé |
 | Les cartes physiques, l'envoi du code, la limite de débit | Relèvent de l'application |
 
 ## Documentation
@@ -41,7 +44,7 @@ qu'une personne tape, et n'est enregistré que sous forme d'empreinte et de ses 
 | Document | Ce qu'il couvre |
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis, l'installation, l'enregistrement, la configuration. |
-| [Valeur stockée](doc/fr/stored-value.md) | Les cartes-cadeaux, le crédit en magasin, le paiement avec eux, les remboursements, les mouvements. |
+| [Valeur stockée](doc/fr/stored-value.md) | Les cartes-cadeaux, le crédit en magasin, le paiement avec eux, les remboursements, la valeur créée une seule fois, les mouvements. |
 | [Portée](doc/fr/scope.md) | Ce que le module contient, ce qu'il ne fait pas encore, et les ports du noyau qu'il implémente. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application implémente, configure, remplace ou utilise. |
 | [Tests](doc/fr/testing.md) | Comment le module est testé, et comment lancer ses tests. |
@@ -65,7 +68,7 @@ return [
 ## Prérequis
 
 PHP 8.5 ou plus récent avec `ext-mbstring` ; `phil/commerce-bundle`, `phil/ddd-bundle`, `phil/money` et
-`phil/paged-media` 0.1 ; Doctrine ORM 3.7 ; `psr/clock` 1.0 ; `symfony/config`, `symfony/dependency-injection` et
+`phil/paged-media` 0.1 ; Doctrine ORM 3.7, DBAL 4.5 et Event Manager 2.1 ; `psr/clock` 1.0 ; `symfony/config`, `symfony/dependency-injection` et
 `symfony/uid` 8.2 ou plus récent.
 
 ## Contribuer
