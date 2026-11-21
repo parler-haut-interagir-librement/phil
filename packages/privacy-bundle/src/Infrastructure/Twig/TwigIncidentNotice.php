@@ -43,7 +43,6 @@ final readonly class TwigIncidentNotice
         }
 
         $markdown = $this->twig->render(\sprintf('@PhilPrivacy/incident_notice/%s.md.twig', $draft->isFollowUp() ? 'follow_up' : $draft->recipient->value), [
-            'draft' => $draft,
             'incident' => $incident,
             'organisation' => $draft->organisation,
             'locale' => $locale,

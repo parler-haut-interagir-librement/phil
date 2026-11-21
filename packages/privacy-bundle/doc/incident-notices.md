@@ -175,7 +175,6 @@ A template receives:
 
 | Variable | What it holds |
 |---|---|
-| `draft` | The `IncidentNoticeDraft`: the recipient, the rubrics shown and those left to complete, `since` for a follow-up. |
 | `incident` | The `Incident`. |
 | `organisation` | The `NoticeOrganisation`: `name`, `enterpriseNumber`, `contactName`, `contactDetails`, null when not known. |
 | `locale` | `fr` or `en`. |

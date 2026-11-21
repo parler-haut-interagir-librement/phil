@@ -152,6 +152,23 @@ final class IncidentNoticeCommandTest extends TestCase
         self::assertSame("No incident has that identifier.\n", $unknown->getErrorOutput());
     }
 
+    public function testEmptyOptionsAreLeftOut(): void
+    {
+        $tester = $this->tester(self::register(NoticeFixtures::complete()));
+
+        self::assertSame(Command::SUCCESS, $tester->execute(['incident' => NoticeFixtures::ID, '--to' => 'commission', '--locale' => 'en', '--output' => '', '--since' => ''], ['capture_stderr_separately' => true]));
+        self::assertSame(file_get_contents(NoticeFixtures::SNAPSHOTS.'/commission-complete.en.md'), $tester->getDisplay());
+    }
+
+    public function testTheOptionsNameTheirValues(): void
+    {
+        $definition = $this->command(self::register(NoticeFixtures::complete()))->getDefinition();
+
+        self::assertSame('Who the notice is for: commission, subject, public', $definition->getOption('to')->getDescription());
+        self::assertSame('The language of the draft: fr, en', $definition->getOption('locale')->getDescription());
+        self::assertSame('fr', $definition->getOption('locale')->getDefault());
+    }
+
     public function testWithoutARiskOfSeriousInjuryTheCommandSaysTheNoticesAreNotOwed(): void
     {
         $tester = $this->tester($this->register(NoticeFixtures::complete()->update(seriousRisk: false)));

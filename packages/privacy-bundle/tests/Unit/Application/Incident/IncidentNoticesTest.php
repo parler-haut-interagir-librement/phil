@@ -89,6 +89,7 @@ final class IncidentNoticesTest extends TestCase
         }
 
         self::assertTrue($notices->draft($line->update(measures: ' ', information: '   ', riskAssessment: ' '), NoticeRecipient::Commission)->lacks(NoticeRubric::Information));
+        self::assertTrue($notices->draft($line->update(undescribedReason: '  '), NoticeRecipient::Subject)->lacks(NoticeRubric::Information));
         self::assertTrue($notices->draft($line->update(riskAssessment: ' '), NoticeRecipient::Commission)->lacks(NoticeRubric::RiskAssessment));
         self::assertTrue($notices->draft($line->update(measures: ' '), NoticeRecipient::Commission)->lacks(NoticeRubric::Measures));
     }

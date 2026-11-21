@@ -109,8 +109,8 @@ final class IncidentNoticeCommand extends Command
             return Command::FAILURE;
         }
 
-        if ($draft->isFollowUp() && [] === $draft->changes()) {
-            $messages->writeln(\sprintf('No rubric of section 3 changed since %s: there is no follow-up to draft.', $draft->since?->format('Y-m-d H:i') ?? ''));
+        if ($draft->since instanceof DateTimeImmutable && [] === $draft->changes()) {
+            $messages->writeln(\sprintf('No rubric of section 3 changed since %s: there is no follow-up to draft.', $draft->since->format('Y-m-d H:i')));
 
             return Command::SUCCESS;
         }
@@ -179,7 +179,7 @@ final class IncidentNoticeCommand extends Command
         $incident = $draft->incident;
 
         if ([] !== $draft->missing) {
-            $messages->writeln(\sprintf('To complete in the draft: %s.', implode('; ', array_map(static fn (NoticeRubric $rubric): string => \sprintf('s. %d, para. %d (%s)', $draft->recipient->section(), $rubric->paragraph($draft->recipient) ?? 0, str_replace('_', ' ', $rubric->value)), $draft->missing))));
+            $messages->writeln(\sprintf('To complete in the draft: %s.', implode('; ', array_map(static fn (NoticeRubric $rubric): string => \sprintf('s. %d, para. %s (%s)', $draft->recipient->section(), $rubric->paragraph($draft->recipient), str_replace('_', ' ', $rubric->value)), $draft->missing))));
         }
 
         if (!$incident->seriousRisk) {
@@ -191,7 +191,7 @@ final class IncidentNoticeCommand extends Command
                 ? 'Nothing was sent. Review the follow-up, send it to the Commission promptly (section 4), and keep its date: give it to --since for the next follow-up.'
                 : \sprintf('Nothing was sent. Review the draft, send it to the Commission in writing, then record the date: phil:privacy:incident --id=%s --authority-notified=<date>.', $incident->id),
             NoticeRecipient::Subject => \sprintf('Nothing was sent. Review the draft, send it to each person concerned, then record the date: phil:privacy:incident --id=%s --subjects-notified=<date>.', $incident->id),
-            NoticeRecipient::Public => \sprintf('Nothing was sent. Review the draft, publish it by a means that can reasonably be expected to reach the people concerned, then record it: phil:privacy:incident --id=%s --public-notice=<date> --public-notice-reason=%s.', $incident->id, $incident->publicNoticeReason?->value),
+            NoticeRecipient::Public => \sprintf('Nothing was sent. Review the draft, publish it by a means that can reasonably be expected to reach the people concerned, then record it: phil:privacy:incident --id=%s --public-notice=<date> --public-notice-reason=%s.', $incident->id, $incident->publicNoticeReason->value ?? ''),
         });
 
         if (NoticeRecipient::Commission === $draft->recipient) {
