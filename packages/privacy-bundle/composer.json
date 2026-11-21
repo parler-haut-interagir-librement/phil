@@ -44,6 +44,7 @@
         "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
         "doctrine/persistence": "^4.1",
+        "phil/legal-notices": "^0.1@dev",
         "phil/outbox": "^0.2@dev",
         "phil/outbox-bundle": "^0.2@dev",
         "phpunit/phpunit": "^13.4",
@@ -64,6 +65,7 @@
         "symfony/security-bundle": "^8.2",
         "symfony/stimulus-bundle": "^3.7",
         "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2"
     },
     "suggest": {
@@ -71,10 +73,11 @@
         "doctrine/dbal": "For phil:privacy:anonymize, and the tables of the account deletions, the consent proofs, the requests without an account, the incidents and the erasure requests",
         "doctrine/orm": "To draw the anonymization plan from #[Anonymize] and #[PersonalData] on Doctrine entities",
         "doctrine/persistence": "To draw the register of processing from every Doctrine entity",
+        "phil/legal-notices-bundle": "To fill the drafts of the notices of an incident with the name, the registration and the privacy officer of the site",
         "phil/outbox-bundle": "For erasure_workflow: one message per module through the outbox, written in the transaction of the request",
         "phpunit/phpunit": "For AssertsDeclaredCookies, which fails a functional test on a response that sets an undeclared cookie",
         "symfony/asset-mapper": "To serve the Stimulus controllers of the consent and of the frames held until it without a build step",
-        "symfony/console": "For phil:privacy:export, phil:privacy:erase, phil:privacy:register, phil:privacy:anonymize, phil:privacy:retention, phil:privacy:deletions, phil:privacy:incident, phil:privacy:incidents and phil:privacy:erasure",
+        "symfony/console": "For phil:privacy:export, phil:privacy:erase, phil:privacy:register, phil:privacy:anonymize, phil:privacy:retention, phil:privacy:deletions, phil:privacy:incident, phil:privacy:incidents, phil:privacy:incident-notice and phil:privacy:erasure",
         "symfony/mailer": "To send the links of the requests made without an account",
         "symfony/rate-limiter": "Required by the requests made without an account, guest_requests.enabled",
         "symfony/scheduler": "For the schedule phil_privacy, which runs the account deletions and the retention schedule",

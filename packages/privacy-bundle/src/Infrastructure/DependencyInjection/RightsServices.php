@@ -15,6 +15,7 @@ use Phil\PrivacyBundle\Application\Contract\EmailTrackingStore;
 use Phil\PrivacyBundle\Application\Contract\ExportArchive;
 use Phil\PrivacyBundle\Application\Contract\ExportReadme;
 use Phil\PrivacyBundle\Application\Contract\IncidentRegister;
+use Phil\PrivacyBundle\Application\Contract\NoticeOrganisationSource;
 use Phil\PrivacyBundle\Application\Contract\RetentionPurger;
 use Phil\PrivacyBundle\Application\EmailTracking\EmailTrackingConsents;
 use Phil\PrivacyBundle\Application\Erasure\ErasureRequests;
@@ -24,6 +25,7 @@ use Phil\PrivacyBundle\Application\GuestRequest\GuestRequests;
 use Phil\PrivacyBundle\Application\Handler\AdvanceAccountDeletionHandler;
 use Phil\PrivacyBundle\Application\Handler\ProcessDueAccountDeletionsHandler;
 use Phil\PrivacyBundle\Application\Handler\RunRetentionHandler;
+use Phil\PrivacyBundle\Application\Incident\IncidentNotices;
 use Phil\PrivacyBundle\Application\Message\AdvanceAccountDeletion;
 use Phil\PrivacyBundle\Application\Message\ProcessDueAccountDeletions;
 use Phil\PrivacyBundle\Application\Message\RunRetention;
@@ -43,6 +45,7 @@ use Phil\PrivacyBundle\Domain\Retention\RetentionPeriod;
 use Phil\PrivacyBundle\Domain\Retention\RetentionSchedule;
 use Phil\PrivacyBundle\Infrastructure\Console\DisabledRightsWarning;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentCommand;
+use Phil\PrivacyBundle\Infrastructure\Console\IncidentNoticeCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentsCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\ProcessDeletionsCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\RunRetentionCommand;
@@ -69,6 +72,7 @@ use Phil\PrivacyBundle\Infrastructure\Security\SecurityCurrentDataSubject;
 use Phil\PrivacyBundle\Infrastructure\Twig\ConsentExtension;
 use Phil\PrivacyBundle\Infrastructure\Twig\EmbedExtension;
 use Phil\PrivacyBundle\Infrastructure\Twig\TwigExportReadme;
+use Phil\PrivacyBundle\Infrastructure\Twig\TwigIncidentNotice;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -155,11 +159,24 @@ final class RightsServices
         $services->set(DbalEmailTrackingConsents::class)->args([$connection]);
         $services->set(PrivacySchemaListener::class)->args([$connection])->tag('doctrine.event_listener', ['event' => 'postGenerateSchema']);
         $services->alias(IncidentRegister::class, $incidents ?? DbalIncidentRegister::class)->public();
+        self::notices($services);
 
         if (class_exists(Command::class)) {
             $services->set(IncidentCommand::class)->args([new Reference(IncidentRegister::class), new Reference('clock')])->tag('console.command');
             $services->set(IncidentsCommand::class)->args([new Reference(IncidentRegister::class)])->tag('console.command');
+            $services->set(IncidentNoticeCommand::class)->args([new Reference(IncidentRegister::class), new Reference(IncidentNotices::class), new Reference(TwigIncidentNotice::class), new Reference('clock')])->tag('console.command');
         }
+    }
+
+    /**
+     * The drafts of the notices of an incident. Who gives them comes from a `NoticeOrganisationSource` the application
+     * names, or from the identity of the site of phil/legal-notices (`PrivacyServicesPass`); without one, the drafts
+     * leave those rubrics to complete. Nothing here can send a notice.
+     */
+    private static function notices(ServicesConfigurator $services): void
+    {
+        $services->set(IncidentNotices::class)->args([new Reference(NoticeOrganisationSource::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)]);
+        $services->set(TwigIncidentNotice::class)->args([new Reference('twig')]);
     }
 
     /**

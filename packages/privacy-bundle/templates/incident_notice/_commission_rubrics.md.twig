@@ -1,0 +1,113 @@
+{% autoescape false %}
+{% import '@PhilPrivacy/incident_notice/_macros.md.twig' as m %}
+{% if rubric.organisation.shown %}
+## {{ rubric.organisation.paragraph }}. {{ 'incident_notice.heading.organisation'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.organisation, locale) }})
+
+{% if rubric.organisation.missing %}
+{{ m.todo('organisation', rubric.organisation, locale) }}
+{% else %}
+{{ 'incident_notice.value.name'|trans({'%name%': organisation.name}, 'phil_privacy', locale) }}
+{% endif %}
+
+{% if rubric.enterprise_number.missing %}
+{{ m.todo('enterprise_number', rubric.enterprise_number, locale) }}
+{% else %}
+{{ 'incident_notice.value.enterprise_number'|trans({'%number%': organisation.enterpriseNumber}, 'phil_privacy', locale) }}
+{% endif %}
+
+{% endif %}
+{% if rubric.contact.shown %}
+## {{ rubric.contact.paragraph }}. {{ 'incident_notice.heading.contact'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.contact, locale) }})
+
+{{ m.contact(organisation, rubric.contact, locale) }}
+
+{% endif %}
+{% if rubric.information.shown %}
+## {{ rubric.information.paragraph }}. {{ 'incident_notice.heading.information'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.information, locale) }})
+
+{% if rubric.information.missing %}
+{{ m.todo('information', rubric.information, locale) }}
+{% else %}
+{{ m.information(incident, locale) }}
+{% endif %}
+
+{% endif %}
+{% if rubric.circumstances.shown %}
+## {{ rubric.circumstances.paragraph }}. {{ 'incident_notice.heading.circumstances'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.circumstances, locale) }})
+
+{{ incident.summary }}
+
+{{ m.todo('cause', rubric.cause, locale) }}
+
+{% endif %}
+{% if rubric.occurrence.shown %}
+## {{ rubric.occurrence.paragraph }}. {{ 'incident_notice.heading.occurrence'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.occurrence, locale) }})
+
+{% if rubric.occurrence.missing %}
+{{ m.todo('occurrence', rubric.occurrence, locale) }}
+{% else %}
+{{ m.period(dates.occurred, dates.occurred_until, incident.occurrenceApproximate, locale) }}
+{% endif %}
+
+{% endif %}
+{% if rubric.discovery.shown %}
+## {{ rubric.discovery.paragraph }}. {{ 'incident_notice.heading.discovery'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.discovery, locale) }})
+
+{{ m.period(dates.discovered, dates.discovered_until, false, locale) }}
+
+{% endif %}
+{% if rubric.affected.shown %}
+## {{ rubric.affected.paragraph }}. {{ 'incident_notice.heading.affected'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.affected, locale) }})
+
+{% if rubric.affected.missing %}
+{{ m.todo('affected', rubric.affected, locale) }}
+{% elseif incident.affectedApproximate %}
+{{ 'incident_notice.value.affected'|trans({'%count%': incident.affected}, 'phil_privacy', locale) }} {{ 'incident_notice.approximate'|trans({}, 'phil_privacy', locale) }}
+{% else %}
+{{ 'incident_notice.value.affected'|trans({'%count%': incident.affected}, 'phil_privacy', locale) }}
+{% endif %}
+
+{{ m.todo('affected_in_quebec', rubric.affected_in_quebec, locale) }}
+
+{% endif %}
+{% if rubric.risk_assessment.shown %}
+## {{ rubric.risk_assessment.paragraph }}. {{ 'incident_notice.heading.risk_assessment'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.risk_assessment, locale) }})
+
+{% if rubric.risk_assessment.missing %}
+{{ m.todo('risk_assessment', rubric.risk_assessment, locale) }}
+{% else %}
+{{ incident.riskAssessment }}
+{% endif %}
+
+{% endif %}
+{% if rubric.subject_notification.shown %}
+## {{ rubric.subject_notification.paragraph }}. {{ 'incident_notice.heading.subject_notification'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.subject_notification, locale) }})
+
+{% if rubric.subject_notification.missing %}
+{{ m.todo('subject_notification', rubric.subject_notification, locale) }}
+{% endif %}
+{% if dates.subjects_notified %}
+{{ 'incident_notice.value.subjects_notified'|trans({'%date%': dates.subjects_notified}, 'phil_privacy', locale) }}
+
+{% endif %}
+{% if dates.public_notice %}
+{{ 'incident_notice.value.public_notice'|trans({'%date%': dates.public_notice, '%reason%': ('incident_notice.public_reason.' ~ incident.publicNoticeReason.value)|trans({}, 'phil_privacy', locale)}, 'phil_privacy', locale) }}
+{% endif %}
+
+{% endif %}
+{% if rubric.measures.shown %}
+## {{ rubric.measures.paragraph }}. {{ 'incident_notice.heading.measures'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.measures, locale) }})
+
+{% if rubric.measures.missing %}
+{{ m.todo('measures', rubric.measures, locale) }}
+{% else %}
+{{ incident.measures }}
+{% endif %}
+
+{% endif %}
+{% if rubric.other_authority.shown %}
+## {{ rubric.other_authority.paragraph }}. {{ 'incident_notice.heading.other_authority'|trans({}, 'phil_privacy', locale) }} ({{ m.where(rubric.other_authority, locale) }})
+
+{{ m.todo('other_authority', rubric.other_authority, locale) }}
+{% endif %}
+{% endautoescape %}

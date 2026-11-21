@@ -299,6 +299,19 @@ A register that keeps its corrections also implements `IncidentHistory`, and `ph
 A register that also purges, as a `RetentionPurger` on its own store, never removes a line known for less than
 `Incident::MINIMUM_RETENTION`, whatever the cutoff it is given. See [incidents.md](incidents.md#keeping-it).
 
+## `NoticeOrganisationSource`
+
+Who gives the notices of an incident, which `phil:privacy:incident-notice` writes in its drafts. With
+phil/legal-notices-bundle, the bundle reads the identity of the site; alias this interface to a service of your own to
+give another.
+
+| Method | Contract |
+|---|---|
+| `organisation()` | A `NoticeOrganisation`: the name, the Québec enterprise number, the person to contact and how to reach them, each null when not known; a null value leaves its rubric to complete. |
+
+The drafts themselves are templates of `@PhilPrivacy/incident_notice/` and texts of the domain `phil_privacy`; see
+[incident-notices.md](incident-notices.md#changing-the-drafts).
+
 ## `EmailTrackingStore`
 
 Where each member's choice about tracked emails is kept, when `email_tracking.enabled`. The table of the bundle is the
@@ -398,6 +411,7 @@ asked columns keyed by the names as given, writes one row's values by its key, a
 | `phil_privacy.retention_purger` | the bundle | Given by autoconfiguration to every `RetentionPurger` service (`RightsServices::PURGER_TAG`). |
 | `Phil\PrivacyBundle\Application\RetentionRun`, `RetentionJob` | the bundle | Public services, with a schedule. |
 | `phil:privacy:retention`, `phil:privacy:deletions`, `phil:privacy:incident`, `phil:privacy:incidents` | the bundle | Commands, registered with Symfony Console. |
+| `phil:privacy:incident-notice` | the bundle | Command, registered with Symfony Console when Twig and the translator are there. |
 | `Phil\PrivacyBundle\Application\Erasure\ErasureRequests` | the bundle | Public service, when `erasure_workflow.enabled`. |
 | `phil_privacy.external_eraser` | the bundle | Given by autoconfiguration to every `ExternalPersonalDataEraser` service (`ErasureWorkflowServices::EXTERNAL_ERASER_TAG`). |
 | `phil:privacy:erasure` | the bundle | Command, when `erasure_workflow.enabled`. |

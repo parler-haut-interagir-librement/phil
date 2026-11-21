@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4e35fa1c41d13662b8829f94fb0bad4a0bb092b855054ae19fee8293b37fbf6d -->
+<!-- phil-dev source-sha256=1156659ac3b9cc7e255daa01e2a35b95286f9b749e1ac4fedd5b8bff6b38b277 -->
 # Référence de la configuration
 
 L'alias de l'extension est `phil_privacy`. L'arbre de configuration est défini dans `PhilPrivacyBundle::configure()` et
@@ -258,6 +258,8 @@ composant Config (`Unrecognized option ... under "phil_privacy"`).
 | `EmbedExtension` | — | privé | `privacy_embed()`. |
 | `ExportPackage`, `ExportReadme` | — | public, privé | L'archive d'une réponse d'accès ; le README par Twig, ou en anglais simple sans Twig. |
 | `IncidentRegister`, `DbalIncidentRegister`, `IncidentCommand`, `IncidentsCommand` | — | alias public, privé | Le registre des incidents et ses commandes ; absents sans base de données sauf si un stockage est nommé. |
+| `IncidentNotices`, `TwigIncidentNotice`, `IncidentNoticeCommand` | — | privé | Les brouillons des avis d'un incident ; la commande est absente sans le registre, une horloge, Twig ou le traducteur. |
+| `NoticeOrganisationSource`, `SiteIdentityOrganisation` | — | privé | Qui donne les avis, d'après l'identité du site quand phil/legal-notices-bundle l'enregistre et que l'application ne nomme aucune source propre. |
 | `EmailTrackingConsents`, `EmailTrackingStore`, `DbalEmailTrackingConsents` | — | public, alias privé, privé | Le consentement aux courriels suivis, étiqueté `phil_privacy.exporter` et `phil_privacy.eraser` ; seulement quand `email_tracking.enabled`. |
 | `GuestRequests`, `GuestRequestController`, `DbalGuestRequests`, `MailerGuestLinkSender`, `phil_privacy.guest_requests.per_client`, `phil_privacy.guest_requests.per_address` | — | public, privé | Les demandes sans compte, leurs pages et leurs deux fabriques de limiteurs de débit ; `GuestRequests` et les limiteurs seulement quand `guest_requests.enabled`. |
 | `ErasureRequests`, `DbalErasureRequests`, `EraseModuleHandler`, `EraseModuleCodec`, `EraseModuleRelay`, `ErasureFailureListener`, `ErasureRequestCommand` | — | public, privé | Le workflow d'effacement, seulement quand `erasure_workflow.enabled` ; `ErasureRequests` est public. |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7376d2353b75762e60d7355c7f67e302955e1fc6c6b24c1838905ccea138b033 -->
+<!-- phil-dev source-sha256=93dd1bdddee44be49bbfae91d7333c74707bce5083ab4ac1f18142496f80249d -->
 # phil/privacy-bundle
 
 **Déclarer les champs personnels, caviarder les journaux, respecter les droits des membres et des personnes sans compte,
@@ -15,10 +15,11 @@ déclare le registre des traitements — finalité, destinataires, sous-traitant
 commande affiche avec les champs déclarés et qui la fait échouer en CI tant qu'il reste une lacune ; il devient aussi des
 ordres de purge, et une exécution est refusée quand une ligne de tâche n'a pas de purgeur. Un registre garde chaque
 incident de confidentialité avec les huit paragraphes que le Québec demande pour chaque ligne, nomme les avis et les
-paragraphes encore dus, garde ses corrections et garde chaque ligne au moins cinq ans. Une copie de la base est anonymisée colonne par colonne —
-courriels, noms, téléphones dans des plages fictives, adresses, IBAN, dates décalées, empreintes, texte de remplissage —
-à partir de `#[Anonymize]`, des catégories déclarées et de la configuration, avec des paquets de locale pour huit locales
-et une garde qui refuse de toucher une base de production.
+paragraphes encore dus, garde ses corrections et garde chaque ligne au moins cinq ans ; des brouillons des avis à
+l'autorité et aux personnes en sont tirés en Markdown, et personne ne les envoie sauf la personne responsable. Une copie
+de la base est anonymisée colonne par colonne — courriels, noms, téléphones dans des plages fictives, adresses, IBAN,
+dates décalées, empreintes, texte de remplissage — à partir de `#[Anonymize]`, des catégories déclarées et de la
+configuration, avec des paquets de locale pour huit locales et une garde qui refuse de toucher une base de production.
 
 D'emblée, un membre télécharge ses données, en archive ZIP avec un README lisible et un fichier JSON par module, et
 supprime son compte depuis ses préférences. Une suppression est un workflow : une demande, un délai pendant lequel elle
@@ -79,6 +80,7 @@ l'application décide.
 | L'export et l'effacement d'un membre depuis ses préférences, en archive ZIP | Implémentés, testés et actifs par défaut |
 | Les demandes des personnes sans compte, par un lien vérifié | Implémentées, testées et branchées ; inactives tant qu'elles ne sont pas activées |
 | Le registre des incidents de confidentialité, `phil:privacy:incident`, `phil:privacy:incidents` : les huit paragraphes de l'article 7 du règlement québécois (r. 3.1), corrections gardées, cinq ans au moins (article 8) | Implémentés, testés et branchés |
+| Les brouillons des avis d'un incident, `phil:privacy:incident-notice` : à la Commission, ses suivis, à chaque personne et au public (r. 3.1, articles 3 à 6), en Markdown, en français et en anglais, remplis à partir du registre ; rien n'est envoyé | Implémentés, testés et branchés |
 | Le consentement de chaque membre aux courriels suivis, `EmailTrackingConsents` | Implémenté, testé et branché ; inactif tant qu'il n'est pas activé |
 | Les contrôleurs Stimulus par AssetMapper et StimulusBundle | Implémentés et testés |
 | `PersonalDataExporter`, `PersonalDataEraser`, `ExternalPersonalDataEraser`, `RetentionScheduleSource`, `RetentionPurger`, `ErasureRequestStore` | Ports |
@@ -124,6 +126,9 @@ l'application décide.
 - [Le registre des incidents](doc/fr/incidents.md) — ce que demandent la loi et le règlement du Québec
   (P-39.1, art. 3.5 à 3.8 ; r. 3.1), inscrire, compléter, corriger et afficher une ligne, les avis qu'exige un risque
   sérieux, les cinq ans de conservation, et la migration de ses tables.
+- [Les brouillons des avis d'un incident](doc/fr/incident-notices.md) — les avis à la Commission, leurs suivis, à chaque
+  personne et au public (r. 3.1, art. 3 à 6), les rubriques remplies à partir du registre et celles laissées à
+  compléter, qui décide et qui envoie, et le remplacement des gabarits.
 - [Courriels suivis](doc/fr/email-tracking.md) — le consentement de chaque membre au comptage des ouvertures et au suivi
   des clics, ce que demande un expéditeur, la version du texte, et son export et son effacement.
 - [Cadre juridique](doc/fr/legal-framework.md) — ePrivacy et la CNIL, la loi 25 du Québec, le RGPD et l'Omnibus

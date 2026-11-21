@@ -9,8 +9,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 The next version is 0.3.0-alpha: the erasure can run as a workflow, one step per module through phil/outbox-bundle,
 `ErasureEffect::Anonymised` tells a skeleton judged non-identifiable from a pseudonymised record, and the register of
 confidentiality incidents holds the eight paragraphs of section 7 of the Québec *Regulation respecting confidentiality
-incidents* (chapter A-2.1, r. 3.1), keeps its corrections, and is kept at least five years (section 8).
-See [Erasure as a workflow](doc/erasure-workflow.md) and [The register of incidents](doc/incidents.md).
+incidents* (chapter A-2.1, r. 3.1), keeps its corrections, is kept at least five years (section 8), and drafts in
+Markdown the notices to the Commission, their follow-ups, and the notices to each person and in public (sections 3 to
+6), which the person in charge reviews and sends. See [Erasure as a workflow](doc/erasure-workflow.md),
+[The register of incidents](doc/incidents.md) and [The drafts of the notices](doc/incident-notices.md).
 
 To update: a `GuestRequestStore` of your own implements `retain()`. Code that reads the register's JSON, or the
 rows of `RegisterEntry::toArray()`, finds `personal_data_left` added, and the Markdown register a column more. Review
@@ -91,6 +93,24 @@ columns more and a table of corrections; `phil:privacy:incident` prints the para
   `--undescribed-reason`, `--approximate-affected`, `--risk-assessment`, `--public-notice`, `--public-notice-reason`
   and `--clear`, and names the paragraphs a line still lacks; `phil:privacy:incidents` prints every field,
   `missing_paragraphs` and the corrections, in Markdown and in JSON.
+- `phil:privacy:incident-notice <incident> --to=commission|subject|public [--locale=fr|en] [--output=file]`: a draft
+  in Markdown of the notice to the Commission (section 3 of the regulation), of the notice to each person (section 5)
+  or of the public notice (section 6), filled from the register and from the organisation; each rubric the register
+  does not know stays in place marked to complete and is listed after the draft. The draft goes to the standard output
+  or to a new file readable by its owner only; nothing is sent, nothing is recorded, and the draft is never logged.
+- `--follow-up`, with `--since`: the follow-up to the Commission of section 4, with the rubrics of section 3 corrected
+  after the notice, read from `IncidentHistory`.
+- `--to=public` refused for an incident without a public notice reason, with the three cases of section 6; the
+  command reminds when the notice to each person is still owed, and the command that records the date of the notice.
+- `Application\Incident\IncidentNotices`, `IncidentNoticeDraft`, `Exception\NoticeRefused`, and
+  `Domain\Incident\NoticeRecipient`, `NoticeRubric` and `NoticeOrganisation`.
+- `Application\Contract\NoticeOrganisationSource`, and `Infrastructure\LegalNotices\SiteIdentityOrganisation`, which
+  reads the publisher, its registration and the privacy officer from the identity of the site of
+  phil/legal-notices-bundle when it is installed.
+- `Infrastructure\Twig\TwigIncidentNotice` and the templates `@PhilPrivacy/incident_notice/`, with their texts in
+  French and in English in the domain `phil_privacy`.
+- [The drafts of the notices of an incident](doc/incident-notices.md): sections 3 to 6 of the regulation, the rubrics
+  filled and those left to complete, who decides and who sends.
 
 ### Changed
 

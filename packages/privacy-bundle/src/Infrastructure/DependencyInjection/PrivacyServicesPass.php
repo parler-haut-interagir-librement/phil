@@ -6,6 +6,7 @@ namespace Phil\PrivacyBundle\Infrastructure\DependencyInjection;
 
 use LogicException;
 use Override;
+use Phil\LegalNotices\SiteIdentity;
 use Phil\Outbox\Contract\Outbox;
 use Phil\PrivacyBundle\Application\AccountDeletion\AccountDeletions;
 use Phil\PrivacyBundle\Application\Consent\ConsentRecorder;
@@ -18,6 +19,7 @@ use Phil\PrivacyBundle\Application\Contract\ExportReadme;
 use Phil\PrivacyBundle\Application\Contract\GuestLinkSender;
 use Phil\PrivacyBundle\Application\Contract\GuestRequestStore;
 use Phil\PrivacyBundle\Application\Contract\IncidentRegister;
+use Phil\PrivacyBundle\Application\Contract\NoticeOrganisationSource;
 use Phil\PrivacyBundle\Application\EmailTracking\EmailTrackingConsents;
 use Phil\PrivacyBundle\Application\Erasure\ErasureRequests;
 use Phil\PrivacyBundle\Application\Export\ExportPackage;
@@ -29,6 +31,7 @@ use Phil\PrivacyBundle\Application\Handler\RunRetentionHandler;
 use Phil\PrivacyBundle\Application\PersonalDataDownload;
 use Phil\PrivacyBundle\Application\RetentionJob;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentCommand;
+use Phil\PrivacyBundle\Infrastructure\Console\IncidentNoticeCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentsCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\ProcessDeletionsCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\RunRetentionCommand;
@@ -48,6 +51,7 @@ use Phil\PrivacyBundle\Infrastructure\Http\GuestRequestController;
 use Phil\PrivacyBundle\Infrastructure\Http\PreferencesController;
 use Phil\PrivacyBundle\Infrastructure\Http\PrivacyPages;
 use Phil\PrivacyBundle\Infrastructure\Http\UndeclaredCookieListener;
+use Phil\PrivacyBundle\Infrastructure\LegalNotices\SiteIdentityOrganisation;
 use Phil\PrivacyBundle\Infrastructure\Log\LoggedConsentProofs;
 use Phil\PrivacyBundle\Infrastructure\Mailer\MailerGuestLinkSender;
 use Phil\PrivacyBundle\Infrastructure\Routing\MountingRouteLoader;
@@ -56,6 +60,7 @@ use Phil\PrivacyBundle\Infrastructure\Security\SecurityCurrentDataSubject;
 use Phil\PrivacyBundle\Infrastructure\Twig\ConsentExtension;
 use Phil\PrivacyBundle\Infrastructure\Twig\EmbedExtension;
 use Phil\PrivacyBundle\Infrastructure\Twig\TwigExportReadme;
+use Phil\PrivacyBundle\Infrastructure\Twig\TwigIncidentNotice;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -88,7 +93,7 @@ final class PrivacyServicesPass implements CompilerPassInterface
         }
 
         if (!$container->has('clock')) {
-            $this->remove($container, [ExportPackage::class, IncidentCommand::class]);
+            $this->remove($container, [ExportPackage::class, IncidentCommand::class, IncidentNoticeCommand::class]);
         }
 
         if (!$container->has('twig')) {
@@ -100,6 +105,7 @@ final class PrivacyServicesPass implements CompilerPassInterface
             $container->removeDefinition(UndeclaredCookieListener::class);
         }
 
+        $this->notices($container);
         $this->guests($container);
         $this->erasureWorkflow($container);
         $this->emailTracking($container);
@@ -199,6 +205,22 @@ final class PrivacyServicesPass implements CompilerPassInterface
         }
     }
 
+    /**
+     * The drafts of the notices are written with Twig and the translator, and read who gives them from the identity of
+     * the site of phil/legal-notices when the application has one and names no `NoticeOrganisationSource` of its own.
+     */
+    private function notices(ContainerBuilder $container): void
+    {
+        if (!$container->has(NoticeOrganisationSource::class) && $container->has(SiteIdentity::class)) {
+            $container->register(SiteIdentityOrganisation::class, SiteIdentityOrganisation::class)->setArguments([new Reference(SiteIdentity::class)]);
+            $container->setAlias(NoticeOrganisationSource::class, SiteIdentityOrganisation::class);
+        }
+
+        if (!$container->has('twig') || !$container->has('translator')) {
+            $this->remove($container, [TwigIncidentNotice::class, IncidentNoticeCommand::class]);
+        }
+    }
+
     private function database(ContainerBuilder $container): void
     {
         if (!$container->hasDefinition(DbalAccountDeletions::class)) {
@@ -219,7 +241,7 @@ final class PrivacyServicesPass implements CompilerPassInterface
 
         if (DbalIncidentRegister::class === (string) $container->getAlias(IncidentRegister::class)) {
             $container->removeAlias(IncidentRegister::class);
-            $this->remove($container, [IncidentCommand::class, IncidentsCommand::class]);
+            $this->remove($container, [IncidentCommand::class, IncidentsCommand::class, IncidentNoticeCommand::class]);
         }
 
         if ($container->hasAlias(GuestRequestStore::class) && DbalGuestRequests::class === (string) $container->getAlias(GuestRequestStore::class)) {

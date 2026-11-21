@@ -1,0 +1,9 @@
+{% autoescape false %}
+# {{ 'incident_notice.title.commission'|trans({}, 'phil_privacy', locale) }}
+
+> {{ 'incident_notice.draft_note'|trans({}, 'phil_privacy', locale) }}
+
+{{ 'incident_notice.incident_ref'|trans({'%id%': incident.id}, 'phil_privacy', locale) }}
+
+{{ include('@PhilPrivacy/incident_notice/_commission_rubrics.md.twig') }}
+{% endautoescape %}
