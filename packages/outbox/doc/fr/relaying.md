@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e0a2f7bd9933b90742ecd41330f14f0725b1b973709e34977a7220ad30212455 -->
+<!-- phil-dev source-sha256=d7ae3160c1790d0223baf5e20cea79dc0aa211c654c546f60779cebc844d21b0 -->
 # Relais
 
 `Relay::relay()` relaie un lot d'enregistrements :
@@ -44,7 +44,7 @@ comme `lost`.
 Les enregistrements d'une clé d'ordre passent l'un après l'autre : un entrepôt retient un enregistrement tant qu'un
 enregistrement antérieur de sa clé est en attente — à bail, en attente de sa prochaine tentative — ou mort. Un lot
 contient au plus un enregistrement d'une clé ; le suivant passe dans un lot ultérieur, une fois l'enregistrement
-antérieur livré. Un enregistrement mort retient sa clé jusqu'à ce qu'il soit essayé de nouveau ou écarté : voyez
+antérieur livré ou écarté. Un enregistrement mort retient sa clé jusqu'à ce qu'il soit essayé de nouveau ou écarté : voyez
 [Entretien](housekeeping.md). Les enregistrements sans clé n'attendent jamais les uns après les autres.
 
 ## Nouvelles tentatives et enregistrements morts
@@ -60,8 +60,24 @@ mort.
 | `$longestDelay` | 86 400 secondes |
 | `$maxAttempts` | 10 |
 
-Un enregistrement est mort aussitôt, après une seule tentative, quand son type n'a plus de codec, quand sa charge utile
-n'en est pas une, ou quand son codec lance `UndeliverableRecord`.
+Un enregistrement est mort aussitôt, après une seule tentative, quand sa charge utile n'en est pas une, ou quand son
+codec lance `UndeliverableRecord`.
+
+## Les types inconnus
+
+Un enregistrement dont aucun codec ne reconstruit le type est essayé de nouveau pendant le délai de grâce des types
+inconnus, compté depuis le moment où l'enregistrement s'est produit : un processus Web déployé avec un nouveau codec
+peut enregistrer un type avant que les *workers* qui le relaient soient déployés. Ses tentatives suivent le recul,
+jamais plus tard que la fin du délai de grâce et quel que soit leur nombre ; le délai écoulé, la tentative suivante le
+déclare mort. Le délai de grâce est le dernier argument de `Relay` : une heure par défaut
+(`Relay::UNKNOWN_TYPE_GRACE`), de 0, qui enterre l'enregistrement aussitôt, à sept jours
+(`Relay::MAX_UNKNOWN_TYPE_GRACE`).
+
+## Les enregistrements écartés
+
+Un codec lance `ForgottenRecord` quand ce que l'enregistrement nomme a été effacé exprès. Le relais marque
+l'enregistrement écarté, sans tentative comptée et sans erreur : aucun écouteur ne le reçoit, il n'est jamais mort, il
+laisse passer les enregistrements suivants de sa clé, et la purge le retire avec les enregistrements livrés.
 
 ## Le rapport
 
@@ -75,5 +91,6 @@ n'en est pas une, ou quand son codec lance `UndeliverableRecord`.
 | `dead` | déclarés morts |
 | `expired` | laissés sans essai parce que le bail s'est écoulé |
 | `lost` | dont une autre réservation avait repris la marque |
+| `skipped` | écartés parce que ce qu'ils nomment a été effacé |
 
 `isEmpty()` indique une exécution qui n'a rien trouvé ; `plus()` additionne deux exécutions.

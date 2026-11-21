@@ -24,6 +24,6 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
     ->addPathToScan(__DIR__.'/tests', isDev: true)
-    ->ignoreErrorsOnPackages(['symfony/console', 'symfony/scheduler', 'doctrine/persistence', 'doctrine/dbal', 'doctrine/orm', 'symfony/rate-limiter', 'symfony/mailer', 'symfony/mime', 'phpunit/phpunit'], [ErrorType::DEV_DEPENDENCY_IN_PROD])
+    ->ignoreErrorsOnPackages(['symfony/console', 'symfony/scheduler', 'doctrine/persistence', 'doctrine/dbal', 'doctrine/orm', 'symfony/rate-limiter', 'symfony/mailer', 'symfony/mime', 'phpunit/phpunit', 'phil/outbox'], [ErrorType::DEV_DEPENDENCY_IN_PROD])
     ->ignoreErrorsOnPackage('symfony/clock', [ErrorType::PROD_DEPENDENCY_ONLY_IN_DEV])
     ->ignoreErrorsOnExtension('ext-zlib', [ErrorType::SHADOW_DEPENDENCY]);

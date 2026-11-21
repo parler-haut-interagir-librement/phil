@@ -40,7 +40,9 @@ final class HousekeepingTest extends TestCase
         self::assertSame([$dead[0]->value, $dead[1]->value, $dead[2]->value], $this->ids($this->housekeeping->dead()));
         self::assertSame([$dead[1]->value], $this->ids($this->housekeeping->dead(1, 1)));
         self::assertSame($dead[0]->value, $this->housekeeping->find($dead[0])?->id->value);
-        self::assertSame(['pending' => 1, 'delivered' => 2, 'dead' => 3], $this->housekeeping->counts());
+        $this->records(4, RecordState::Skipped);
+
+        self::assertSame(['pending' => 1, 'delivered' => 2, 'skipped' => 4, 'dead' => 3], $this->housekeeping->counts());
     }
 
     public function testADeadRecordIsTriedAgainAtOnce(): void
@@ -91,9 +93,12 @@ final class HousekeepingTest extends TestCase
 
     public function testTheDeliveredRecordsArePurgedAfterTheirRetention(): void
     {
-        $this->records(2, RecordState::Delivered);
+        $this->records(1, RecordState::Delivered);
+        $this->records(1, RecordState::Skipped);
+        $this->records(1, RecordState::Dead);
 
         self::assertSame(2, $this->housekeeping->purge(0, 5));
+        self::assertSame(1, $this->housekeeping->counts()['dead']);
         self::assertSame(0, $this->housekeeping->purge());
 
         self::assertSame('2026-11-17 12:00:00', $this->store->purges[0][0]->format('Y-m-d H:i:s'));

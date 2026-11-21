@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=41f0dee8775c8347e806baf1fc81c3533ad22201f645fd20de092e08110c2caf -->
+<!-- phil-dev source-sha256=b356e5fe44a81f1e94840c99b289c069ccb42765fa36a4edb1ecdd5cfd9cbc32 -->
 # Codecs
 
 Un codec reconstruit les événements de certains types à partir de leurs enregistrements, pour que le relais les
@@ -37,9 +37,13 @@ final readonly class SetEventsCodec implements EventCodec
   manquante ou d'un mauvais type lance `InvalidRecord`, et l'enregistrement est mort aussitôt.
 - Il peut relire le reste de l'événement là où sa bibliothèque le conserve.
 - Il lance `UndeliverableRecord` quand l'enregistrement ne peut jamais redevenir un événement, par exemple quand l'état
-  qu'il nomme a disparu pour de bon : le relais déplace aussitôt l'enregistrement parmi les enregistrements morts. Sa raison est conservée comme
-  dernière erreur de l'enregistrement : des identifiants seulement, jamais de renseignements personnels
-  ([La dernière erreur](housekeeping.md#la-dernière-erreur)).
+  qu'il nomme a disparu pour de bon : le relais déplace aussitôt l'enregistrement parmi les enregistrements morts. Sa
+  raison est conservée comme dernière erreur de l'enregistrement : des identifiants seulement, jamais de
+  renseignements personnels ([La dernière erreur](housekeeping.md#la-dernière-erreur)).
+- Il lance `ForgottenRecord` quand l'état que l'enregistrement nomme a été effacé exprès, par exemple une demande
+  purgée après qu'une personne a demandé à être oubliée : le relais marque l'enregistrement écarté, aucun écouteur ne
+  le reçoit, et il n'est jamais mort. Un enregistrement écarté laisse passer les enregistrements suivants de sa clé
+  d'ordre, et il est purgé avec les enregistrements livrés.
 - Toute autre exception est une tentative échouée : le relais essaie de nouveau l'enregistrement après le délai de son
   recul.
 - Il n'exécute jamais `unserialize()` de PHP : un enregistrement contient du JSON d'identifiants, relu sous les mêmes

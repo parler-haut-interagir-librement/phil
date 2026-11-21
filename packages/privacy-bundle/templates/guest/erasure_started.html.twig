@@ -1,0 +1,10 @@
+{% extends layout %}
+
+{% block title %}{{ 'guest.erasure_started.title'|trans({}, 'phil_privacy') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'guest.erasure_started.title'|trans({}, 'phil_privacy') }}</h1>
+    <p role="status">{{ 'guest.erasure_started.intro'|trans({}, 'phil_privacy') }}</p>
+    <p><a href="{{ path('phil_privacy_erasure_progress', {id: erasure_id, token: token}) }}" rel="noreferrer">{{ 'guest.erasure_started.follow'|trans({}, 'phil_privacy') }}</a></p>
+    <p>{{ 'guest.erasure_started.keep'|trans({}, 'phil_privacy') }}</p>
+{% endblock %}

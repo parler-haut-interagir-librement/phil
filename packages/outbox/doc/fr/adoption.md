@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8bcad523355412a1bc133b9bd9918a41f9a8a459d92530848d5cee6bdbe6e678 -->
+<!-- phil-dev source-sha256=65cee8d3da94009008edeed3bb16be13990a05403c0cc5a7b2ba76d0e210493a -->
 # Guide d'adoption
 
 Ce guide fait passer à l'outbox une bibliothèque qui écrit son état puis répartit un événement PSR-14.
@@ -93,3 +93,26 @@ avec l'identifiant de l'enregistrement, que l'écouteur de récompense conserve 
 fois. Les livraisons en attente, leur recul et le rapport des livraisons qui échouent sans cesse reviennent au relais :
 les enregistrements morts et leur dernière erreur remplacent le rapport, et un exploitant les essaie de nouveau une
 fois l'écouteur corrigé.
+
+## L'effacement
+
+Une bibliothèque dont les enregistrements nomment une personne tient l'outbox à l'écart d'un effacement :
+
+- **Des identifiants dans l'enregistrement.** La charge utile et les clés nomment la personne par l'identifiant que
+  contiennent les tables de la bibliothèque, jamais par une adresse ou un nom : `Payload::of()` refuse une chaîne
+  contenant `@` ou une espace. Effacer les lignes de la bibliothèque ne laisse alors rien de personnel dans la table de
+  l'outbox, dont les enregistrements livrés durent jusqu'à la fin de leur rétention.
+- **Relire, ou écarter.** Le codec relit le reste de l'événement dans les tables de la bibliothèque. Quand la personne
+  a été effacée entre-temps, il lance `ForgottenRecord` : l'enregistrement est écarté, aucun écouteur ne reçoit un
+  événement concernant quelqu'un qui n'est plus là, et la purge le retire comme un enregistrement livré.
+  `UndeliverableRecord` reste pour ce qui est cassé ; un enregistrement écarté n'est jamais mort, de sorte qu'un
+  exploitant ne le ranime jamais par erreur.
+- **Aucun message d'une exception étrangère.** La dernière erreur d'un enregistrement conserve la classe et le code
+  d'une exception, et le message de celles de l'outbox seulement : un refus citant une adresse n'atteint jamais la
+  table.
+- **Une rétention courte.** Les enregistrements livrés et écartés gardent leurs identifiants jusqu'à la purge :
+  exécutez-la selon un horaire, avec la rétention de [Entretien](housekeeping.md#la-rétention).
+- **Chaque étape son enregistrement.** Un effacement qui traverse plusieurs modules enregistre un événement par
+  module, chacun avec une clé d'idempotence construite à partir de la demande et du module, dans la transaction qui
+  enregistre la demande : chaque module est relayé et réessayé séparément, et enregistrer la demande de nouveau
+  n'ajoute rien.

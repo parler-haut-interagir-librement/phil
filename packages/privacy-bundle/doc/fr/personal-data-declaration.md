@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=309cb6d5baabd8bfca9bb6364f12c54e037c3fdd57c4cb66180175306ef2d54f -->
+<!-- phil-dev source-sha256=55452e715a5be33abe035a0801b91bf67971a33f47517198757e3b590f69da8d -->
 # Déclarer les données personnelles
 
 **État : implémenté et testé.** Du PHP pur, sans conteneur, sans entrée ni sortie.
@@ -108,3 +108,15 @@ final class PersonalDataInventoryTest extends TestCase
 ```
 
 Le bundle ne découvre pas vos modèles : les classes que parcourt le test sont la liste de l'application.
+
+## L'inventaire d'effacement
+
+Les champs disent ce qui est personnel ; les modules disent où cela vit et comment c'est effacé. Chaque module qui
+détient des renseignements personnels déclare un effaceur — un `PersonalDataEraser`, ou un `ExternalPersonalDataEraser`
+quand un service externe efface pour lui —, et l'ensemble de ces modules est l'**inventaire d'effacement** de
+l'application. Sa version, une empreinte des noms de modules triés et de ce que chacun est externe ou non, change dès
+qu'un module est ajouté, retiré ou passe à un service externe.
+
+Une demande d'effacement du [workflow d'effacement](erasure-workflow.md) garde la version et les modules de l'inventaire
+avec lequel elle a été ouverte : ce qu'une demande a promis ne change pas sous elle, et une demande qui nomme un module
+que l'inventaire ne déclare pas est refusée.

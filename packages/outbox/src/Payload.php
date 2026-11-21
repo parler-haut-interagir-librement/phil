@@ -15,6 +15,10 @@ use Phil\Outbox\Exception\InvalidRecord;
  * A name is 1 to 64 letters, digits or `_`, starting with a lowercase letter; a string is valid UTF-8 of at most 255
  * bytes; a payload holds at most 16 values and its JSON at most 4,096 bytes. The same bounds apply to a payload read
  * back from a store.
+ *
+ * **Identifiers, not text.** `of()` refuses a string with `@` or whitespace, which is how an address, a name or a
+ * sentence arrives: an identifier carries neither. `withText()` takes them, for a value the application knows is no
+ * personal data; a payload read back from a store takes them too, so that a record written that way is still relayed.
  */
 final readonly class Payload
 {
@@ -30,6 +34,9 @@ final readonly class Payload
     /** The shape of a name. */
     public const string NAME_PATTERN = '/^[a-z][A-Za-z0-9_]{0,63}$/D';
 
+    /** What `of()` refuses in a string: an `@`, or any whitespace or separator. */
+    public const string TEXT_PATTERN = '/[@\s\p{Z}]/u';
+
     /**
      * @param array<non-empty-string, string|int|bool|null> $values
      */
@@ -41,9 +48,28 @@ final readonly class Payload
     /**
      * @param array<array-key, mixed> $values the identifiers, by name
      *
-     * @throws InvalidRecord when a name, a value or the size is out of bounds
+     * @throws InvalidRecord when a name, a value or the size is out of bounds, or a string holds `@` or whitespace
      */
     public static function of(array $values): self
+    {
+        foreach ($values as $name => $value) {
+            if (\is_string($value) && 1 === preg_match(self::TEXT_PATTERN, $value)) {
+                throw InvalidRecord::because(\sprintf('The value of "%s" holds "@" or whitespace: a payload carries identifiers, never an address, a name or a sentence.', mb_strimwidth((string) $name, 0, 70, '…')));
+            }
+        }
+
+        return self::withText($values);
+    }
+
+    /**
+     * A payload whose strings may hold `@` or whitespace, under the other bounds of `of()`: only for values that are no
+     * personal data, such as a constant of the application.
+     *
+     * @param array<array-key, mixed> $values the values, by name
+     *
+     * @throws InvalidRecord when a name, a value or the size is out of bounds
+     */
+    public static function withText(array $values): self
     {
         if (\count($values) > self::MAX_VALUES) {
             throw InvalidRecord::because(\sprintf('A payload holds at most %d values, not %d.', self::MAX_VALUES, \count($values)));
@@ -86,7 +112,7 @@ final readonly class Payload
             throw InvalidRecord::because('A payload is a JSON object of identifiers, one level deep.');
         }
 
-        return self::of($values);
+        return self::withText($values);
     }
 
     /**

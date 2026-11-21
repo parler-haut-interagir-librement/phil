@@ -52,6 +52,12 @@ final class SpyStore implements OutboxStore
     }
 
     #[Override]
+    public function markSkipped(RecordId $id, string $claim, DateTimeImmutable $at): bool
+    {
+        return $this->inner->markSkipped($id, $claim, $at);
+    }
+
+    #[Override]
     public function release(RecordId $id, string $claim, int $attempts, string $error, DateTimeImmutable $retryAt): bool
     {
         return $this->inner->release($id, $claim, $attempts, $error, $retryAt);

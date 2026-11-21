@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\Outbox;
 
 use Phil\Outbox\Contract\OutboxStore;
+use Phil\Outbox\Exception\ForgottenRecord;
 use Phil\Outbox\Exception\InvalidRecord;
 use Phil\Outbox\Exception\InvalidSetting;
 use Phil\Outbox\Exception\UndeliverableRecord;
@@ -17,9 +18,12 @@ use Throwable;
  * Tells the listeners what the records say, at least once. A run claims a batch of records under a lease, so that
  * concurrent relays never deliver the same record while it runs, rebuilds each event through its codec, dispatches it,
  * and marks the record delivered only once the dispatch returned. A failure gives the record back, to be tried again
- * after the delay of the backoff, or declares it dead after its last attempt; a record of an unknown type, with a payload
- * that is not one, or that its codec declares undeliverable is dead at once. The records of an ordering key go one after
- * the other: the store holds back a record while an earlier one of its key is not delivered.
+ * after the delay of the backoff, or declares it dead after its last attempt; a record with a payload that is not one,
+ * or that its codec declares undeliverable is dead at once. A record that its codec declares forgotten, because what it
+ * names was erased on purpose, is skipped: no listener receives it, and it is never dead. A record of a type no codec
+ * rebuilds is tried again during the grace of unknown types, counted from when it happened, so that a worker deployed
+ * before the code that records the type does not bury it, and is dead after. The records of an ordering key go one
+ * after the other: the store holds back a record while an earlier one of its key is not delivered or skipped.
  *
  * The relay keeps no state between runs: one instance serves every run of a worker.
  */
@@ -34,11 +38,19 @@ final readonly class Relay
     /** How long a claim holds its records, in seconds, unless the application chooses otherwise. */
     public const int LEASE = 60;
 
+    /** How long a record of an unknown type is tried again, in seconds, unless the application chooses otherwise: one hour. */
+    public const int UNKNOWN_TYPE_GRACE = 3600;
+
+    /** The longest grace of unknown types, in seconds: seven days. */
+    public const int MAX_UNKNOWN_TYPE_GRACE = 604_800;
+
     /**
-     * @param int $lease how long a claim holds its records, in seconds, from 1 to 3,600: longer than the slowest
-     *                   listener, or another relay claims the record again and it is delivered twice
+     * @param int $lease            how long a claim holds its records, in seconds, from 1 to 3,600: longer than the
+     *                              slowest listener, or another relay claims the record again and it is delivered twice
+     * @param int $unknownTypeGrace how long after it happened a record of an unknown type is tried again, in seconds,
+     *                              from 0 to 604,800: 0 buries it at once
      *
-     * @throws InvalidSetting when the lease is out of bounds
+     * @throws InvalidSetting when the lease or the grace is out of bounds
      */
     public function __construct(
         private OutboxStore $store,
@@ -47,9 +59,14 @@ final readonly class Relay
         private ClockInterface $clock = new SystemClock(),
         private Backoff $backoff = new Backoff(),
         private int $lease = self::LEASE,
+        private int $unknownTypeGrace = self::UNKNOWN_TYPE_GRACE,
     ) {
         if ($lease < 1 || $lease > 3600) {
             throw InvalidSetting::because(\sprintf('A lease lasts from 1 to 3600 seconds, not %d.', $lease));
+        }
+
+        if ($unknownTypeGrace < 0 || $unknownTypeGrace > self::MAX_UNKNOWN_TYPE_GRACE) {
+            throw InvalidSetting::because(\sprintf('The grace of unknown types lasts from 0 to %d seconds, not %d.', self::MAX_UNKNOWN_TYPE_GRACE, $unknownTypeGrace));
         }
     }
 
@@ -92,7 +109,13 @@ final readonly class Relay
 
         try {
             $event = $this->codecs->get($record->type)->decode($record, $record->payload());
-        } catch (UnknownEventType|InvalidRecord|UndeliverableRecord $undeliverable) {
+        } catch (ForgottenRecord) {
+            return $this->store->markSkipped($record->id, $claim, $this->clock->now())
+                ? new RelayReport(skipped: 1)
+                : new RelayReport(lost: 1);
+        } catch (UnknownEventType $unknownEventType) {
+            return $this->awaitType($record, $claim, $attempts, $unknownEventType);
+        } catch (InvalidRecord|UndeliverableRecord $undeliverable) {
             return $this->bury($record, $claim, $attempts, $undeliverable);
         } catch (Throwable $throwable) {
             return $this->fail($record, $claim, $attempts, $throwable);
@@ -119,6 +142,26 @@ final readonly class Relay
         }
 
         return $this->store->release($record->id, $claim, $attempts, OutboxRecord::error($throwable), $this->backoff->retryAt($attempts, $this->clock->now()))
+            ? new RelayReport(retried: 1)
+            : new RelayReport(lost: 1);
+    }
+
+    /**
+     * Tries a record of an unknown type again while its grace runs, never later than its end, whatever the attempts:
+     * the code that rebuilds it may be on its way to this worker. Buries it once the grace is over.
+     *
+     * @param non-empty-string $claim
+     */
+    private function awaitType(OutboxRecord $record, string $claim, int $attempts, UnknownEventType $unknownEventType): RelayReport
+    {
+        $now = $this->clock->now();
+        $graceEnd = $record->occurredAt->modify(\sprintf('+%d seconds', $this->unknownTypeGrace));
+
+        if ($now >= $graceEnd) {
+            return $this->bury($record, $claim, $attempts, $unknownEventType);
+        }
+
+        return $this->store->release($record->id, $claim, $attempts, OutboxRecord::error($unknownEventType), min($this->backoff->retryAt($attempts, $now), $graceEnd))
             ? new RelayReport(retried: 1)
             : new RelayReport(lost: 1);
     }

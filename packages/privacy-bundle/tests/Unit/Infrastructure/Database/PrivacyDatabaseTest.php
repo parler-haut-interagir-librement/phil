@@ -57,7 +57,7 @@ final class PrivacyDatabaseTest extends TestCase
     {
         $schema = PrivacyTables::configure(Schema::editor()->create());
 
-        self::assertCount(5, PrivacyTables::configure($schema)->getTables());
+        self::assertCount(7, PrivacyTables::configure($schema)->getTables());
     }
 
     public function testIdentifiersPeopleAndHashesCompareByteForByteOnMySqlAndMariaDb(): void
@@ -68,6 +68,8 @@ final class PrivacyDatabaseTest extends TestCase
             PrivacyTables::GUEST_REQUESTS => ['id', 'token_hash'],
             PrivacyTables::INCIDENTS => ['id'],
             PrivacyTables::EMAIL_TRACKING => ['subject'],
+            PrivacyTables::ERASURE_REQUESTS => ['id', 'subject', 'guest_request', 'inventory_version', 'access_hash'],
+            PrivacyTables::ERASURE_STEPS => ['request_id', 'module', 'lease', 'idempotency_key'],
         ];
 
         foreach ([new MySQLPlatform(), new MariaDBPlatform()] as $platform) {
@@ -133,6 +135,29 @@ final class PrivacyDatabaseTest extends TestCase
                 'subjects_notified_at' => [null, false],
                 'closed_at' => [null, false],
             ],
+            PrivacyTables::ERASURE_REQUESTS => [
+                'id' => [32, true],
+                'subject' => [DataSubject::MAX_LENGTH, false],
+                'guest_request' => [32, false],
+                'inventory_version' => [16, true],
+                'state' => [16, true],
+                'requested_at' => [null, true],
+                'closed_at' => [null, false],
+                'access_hash' => [64, false],
+            ],
+            PrivacyTables::ERASURE_STEPS => [
+                'request_id' => [32, true],
+                'module' => [64, true],
+                'state' => [16, true],
+                'attempts' => [null, true],
+                'lease' => [32, false],
+                'lease_until' => [null, false],
+                'idempotency_key' => [97, true],
+                'effects' => [null, false],
+                'reason' => [32, false],
+                'updated_at' => [null, true],
+                'completed_at' => [null, false],
+            ],
         ];
 
         foreach ($expected as $table => $columns) {
@@ -143,6 +168,13 @@ final class PrivacyDatabaseTest extends TestCase
                 self::assertSame([$length, $notNull], [$column->getLength(), $column->getNotnull()], $table.'.'.$name);
             }
         }
+    }
+
+    public function testAStepStartsWithoutFailedAttempts(): void
+    {
+        $default = PrivacyTables::configure(Schema::editor()->create())->getTable(PrivacyTables::ERASURE_STEPS)->getColumn('attempts')->getDefault();
+
+        self::assertSame(0, $default);
     }
 
     public function testASaveChangesItsOwnRequestOnly(): void

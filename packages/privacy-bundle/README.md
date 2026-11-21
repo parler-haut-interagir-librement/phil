@@ -18,6 +18,9 @@ with locale packs for eight locales and a guard that refuses to touch a producti
 Out of the box, a member downloads their data, as a ZIP archive with a readable README and one JSON file per module,
 and deletes their account from their preferences. A deletion is a workflow: a request, a delay during which it can be
 cancelled, an export, then the erasure of every module, one execution per person, confirmed by Symfony's sudo mode.
+Once turned on, the erasure itself runs as a workflow: one step per module, sent through phil/outbox-bundle in the
+transaction of the request, retried and finished on its own, external services acknowledging theirs, with a page and a
+JSON answer where the person follows it.
 Once turned on, a person without an account asks for the same through a link sent to their address, behind rate
 limits and with the same answer whether the address is known or not. Retention periods are applied by a command or a
 scheduled message. Consent to cookies is refused by default, as easy to refuse as to accept, can be withdrawn at any
@@ -64,6 +67,7 @@ for what the application decides.
 | `ProcessingRegister`, `ProcessingActivity`, `phil:privacy:register` | Implemented and tested: the register of processing from the schedule and the declarations, Markdown or JSON, `--strict` |
 | `RetentionRun`, `RetentionJob`, `phil:privacy:retention`, the schedule `phil_privacy` | Implemented, tested and wired from a schedule |
 | `AccountDeletions`, the workflow, `phil:privacy:deletions` | Implemented, tested and wired |
+| The erasure workflow: `ErasureRequests`, one outbox message per module, the progress page and JSON, `phil:privacy:erasure` | Implemented, tested and wired; off until enabled |
 | The consent to cookies: banner, page, Twig functions, Stimulus controller, proofs | Implemented, tested and wired |
 | The cookie inventory, the cookie policy, `AssertsDeclaredCookies` | Implemented, tested and wired |
 | `privacy_embed()`: third-party frames held until consent | Implemented, tested and wired |
@@ -72,7 +76,7 @@ for what the application decides.
 | The register of confidentiality incidents, `phil:privacy:incident`, `phil:privacy:incidents` | Implemented, tested and wired |
 | Each member's consent to tracked emails, `EmailTrackingConsents` | Implemented, tested and wired; off until enabled |
 | The Stimulus controllers through AssetMapper and StimulusBundle | Implemented and tested |
-| `PersonalDataExporter`, `PersonalDataEraser`, `RetentionScheduleSource`, `RetentionPurger` | Ports |
+| `PersonalDataExporter`, `PersonalDataEraser`, `ExternalPersonalDataEraser`, `RetentionScheduleSource`, `RetentionPurger`, `ErasureRequestStore` | Ports |
 | `#[Anonymize]`, `#[AsAnonymizer]`, the thirteen anonymizers, the eight locale packs | Implemented and tested |
 | `AnonymizationPlanReader`, `AnonymizationRun`, `ProductionGuard`, `ConnectionIdentity` | Implemented, tested and wired |
 | `phil:privacy:anonymize` | Implemented and tested on SQLite; MySQL, MariaDB and PostgreSQL through Doctrine DBAL |
@@ -95,6 +99,11 @@ for what the application decides.
   and the ZIP archive of an access answer.
 - [Retention schedule and purges](doc/retention.md) — periods and UTC cutoffs with month clamping, schedule
   lines and their refused contradictions, `RetentionRun`, and running the job.
+- [Erasure as a workflow](doc/erasure-workflow.md) — the erasure inventory and its version, one outbox message per
+  module, the states, failures and replays, external services and their acknowledgement, the progress page, and the
+  migrations for MySQL and PostgreSQL.
+- [Choosing a control](doc/choosing-a-control.md) — which tool answers which problem and where it stops: erasing,
+  retention, redacting, pseudonymising and anonymising, encryption and blind indexes, backups.
 - [Deleting an account](doc/account-deletion.md) — the workflow, the delay and the cancellation, what guarantees one
   execution per person, running the sweep, and where the export goes.
 - [Consent to cookies](doc/consent.md) — declaring categories, the Twig functions, the rules, the cookie and the

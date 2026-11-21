@@ -20,7 +20,7 @@ final readonly class RegisterEntry
     }
 
     /**
-     * @return array{category: string, class: string, property: string, retention: ?string, store: ?string, period: ?string, mechanism: ?string, erasure: ?string}
+     * @return array{category: string, class: string, property: string, retention: ?string, store: ?string, period: ?string, mechanism: ?string, erasure: ?string, personal_data_left: ?bool}
      */
     public function toArray(): array
     {
@@ -33,6 +33,7 @@ final readonly class RegisterEntry
             'period' => $this->rule instanceof RetentionRule ? $this->rule->period->duration ?? $this->rule->period->kind->value : (null),
             'mechanism' => $this->rule?->mechanism->value,
             'erasure' => $this->rule?->erasure->value,
+            'personal_data_left' => $this->rule?->erasure->leavesPersonalData(),
         ];
     }
 }

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=94f5a22f1bb8bf78e8c063464cb2286165cc6e0fe34d9e1c5dcff22bb7bdbf0f -->
+<!-- phil-dev source-sha256=9ba3b996d9e2f8be946ae81689ad00745629084b7e11461e9bba32c202b5ba5d -->
 # Supprimer un compte
 
 `AccountDeletions` supprime un compte par étapes, sur `symfony/workflow` : une demande, un délai pendant lequel la
@@ -107,6 +107,14 @@ bin/console messenger:failed:remove --transport=privacy_failed --failed-before='
 
 Le balayage revient quand même à une demande dont le message a été retiré : le transport d'échec est un registre des
 échecs, pas l'endroit où le travail attend.
+
+## Comme un workflow
+
+Avec [`erasure_workflow`](erasure-workflow.md#suppressions-de-compte) activé, l'étape d'effacement ouvre une demande
+d'effacement sous l'identifiant de la suppression, une seule fois, au lieu d'exécuter chaque module dans le balayage. La
+suppression reste à `exported` pendant que les modules s'exécutent, chacun réessayé séparément, et le balayage suivant
+la ferme une fois la demande terminée. Une demande qu'un exploitant a fermée comme échouée laisse la suppression à
+`exported`, pour que l'exploitant décide.
 
 ## L'export
 

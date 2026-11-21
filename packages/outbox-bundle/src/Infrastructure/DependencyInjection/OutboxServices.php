@@ -51,7 +51,7 @@ use Symfony\Component\Scheduler\RecurringMessage;
  *     clock: string,
  *     dispatcher: string,
  *     generic_types: list<string>,
- *     relay: array{batch_size: int, lease: int, max_attempts: int, first_delay: int, longest_delay: int, lock: bool},
+ *     relay: array{batch_size: int, lease: int, unknown_type_grace: int, max_attempts: int, first_delay: int, longest_delay: int, lock: bool},
  *     retention: int,
  *     scheduler: array{enabled: bool, frequency: int, max_batches: int},
  *     messenger: array{enabled: bool, bus: string},
@@ -139,7 +139,7 @@ final class OutboxServices
         $relay = $config['relay'];
         $container->register(Backoff::class, Backoff::class)->setArguments([$relay['first_delay'], $relay['longest_delay'], $relay['max_attempts']]);
         $container->register(Relay::class, Relay::class)
-            ->setArguments([$store, new Reference(Codecs::class), new Reference(self::DISPATCHER), $clock, new Reference(Backoff::class), $relay['lease']])
+            ->setArguments([$store, new Reference(Codecs::class), new Reference(self::DISPATCHER), $clock, new Reference(Backoff::class), $relay['lease'], $relay['unknown_type_grace']])
             ->setPublic(true);
         $container->register(RelayRunner::class, RelayRunner::class)->setArguments([
             new Reference(Relay::class),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\Outbox\Contract;
 
+use Phil\Outbox\Exception\ForgottenRecord;
 use Phil\Outbox\Exception\UndeliverableRecord;
 use Phil\Outbox\OutboxRecord;
 use Phil\Outbox\Payload;
@@ -27,6 +28,7 @@ interface EventCodec
      * identifier from the event when the codec puts it there.
      *
      * @throws UndeliverableRecord when the record can never become an event: the record goes to the dead records at once
+     * @throws ForgottenRecord     when what the record names was erased on purpose: the record is skipped, never dead
      */
     public function decode(OutboxRecord $record, Payload $payload): object;
 }

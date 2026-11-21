@@ -106,3 +106,16 @@ final class PersonalDataInventoryTest extends TestCase
 ```
 
 The bundle does not discover your models: which classes the test walks is the application's list.
+
+## The erasure inventory
+
+The fields say what is personal; the modules say where it lives and how it is erased. Each module that holds personal
+data declares an eraser — a `PersonalDataEraser`, or an `ExternalPersonalDataEraser` when an external service erases
+for it —, and the set of those modules is the **erasure inventory** of the application. Its version, a fingerprint of
+the sorted module names and of whether each is external, changes whenever a module is added, removed or moves to an
+external service.
+
+An erasure request of the [erasure workflow](erasure-workflow.md) keeps the version and the modules of the inventory it
+was opened with: what a request promised does not change under it, and a request that names a module the inventory
+does not declare is refused.
+

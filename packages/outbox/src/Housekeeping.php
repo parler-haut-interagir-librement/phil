@@ -10,7 +10,7 @@ use Psr\Clock\ClockInterface;
 
 /**
  * What an operator does with the outbox: inspect the dead records, try them again or discard them, purge the
- * delivered records past their retention, and count the records by state.
+ * delivered and skipped records past their retention, and count the records by state.
  */
 final readonly class Housekeeping
 {
@@ -95,7 +95,7 @@ final readonly class Housekeeping
     }
 
     /**
-     * Removes the delivered records settled more than `$retention` seconds ago, at most `$limit` of them.
+     * Removes the delivered and skipped records settled more than `$retention` seconds ago, at most `$limit` of them.
      *
      * @return int how many were removed
      *
@@ -113,13 +113,14 @@ final readonly class Housekeeping
     /**
      * How many records are in each state.
      *
-     * @return array{pending: int, delivered: int, dead: int}
+     * @return array{pending: int, delivered: int, skipped: int, dead: int}
      */
     public function counts(): array
     {
         return [
             'pending' => $this->store->count(RecordState::Pending),
             'delivered' => $this->store->count(RecordState::Delivered),
+            'skipped' => $this->store->count(RecordState::Skipped),
             'dead' => $this->store->count(RecordState::Dead),
         ];
     }

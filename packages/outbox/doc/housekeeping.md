@@ -36,6 +36,6 @@ only, such as `The set 42 is gone.`.
 
 ## Retention
 
-A delivered record is kept for its retention, seven days by default, then purged: the delivered records show what was
+A delivered or skipped record is kept for its retention, seven days by default, then purged: the delivered records show what was
 told, and keep the idempotency keys of their events meanwhile. Run the purge on a schedule; each run removes at most
 `$limit` records, the oldest first, so that it stays short.

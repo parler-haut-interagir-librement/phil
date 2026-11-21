@@ -1,9 +1,10 @@
-<!-- phil-dev source-sha256=ac8153ea16178e8428d97520285bad4cbc1cb46844aaf0bcf4f9c76d7e143496 -->
+<!-- phil-dev source-sha256=b59c74a5d2031e890bce89802db1011c79096fda8d642560f5b39ee97aae4cc6 -->
 # Référence de la configuration
 
 L'alias de l'extension est `phil_privacy`. L'arbre de configuration est défini dans `PhilPrivacyBundle::configure()` et
 a ces clés : `log_redaction`, `public_origin`, `retention_schedule_source`, `retention`, `account_deletion`, `consent`,
-`cookies`, `guest_requests`, `incidents`, `email_tracking`, `rights`, `pages`, `register`, `database` et `anonymization`.
+`cookies`, `guest_requests`, `erasure_workflow`, `incidents`, `email_tracking`, `rights`, `pages`, `register`,
+`database` et `anonymization`.
 
 ## Les clés de premier niveau
 
@@ -65,6 +66,17 @@ Voir [cookie-inventory.md](cookie-inventory.md).
 
 Les demandes d'accès et d'effacement des personnes sans compte, inactives par défaut ; chaque clé est dans
 [requests-without-an-account.md](requests-without-an-account.md#le-lien).
+
+### `phil_privacy.erasure_workflow`
+
+L'effacement comme workflow, inactif par défaut ; voir [erasure-workflow.md](erasure-workflow.md).
+
+| Clé | Défaut | Effet |
+|---|---|---|
+| `enabled` | `false` | Une étape par module, envoyée par phil/outbox-bundle, réessayée et terminée séparément ; les suppressions de compte et les demandes sans compte effacent par ce moyen |
+| `lease` | `900` | Les secondes pendant lesquelles un *worker* garde une étape, de 1 à 86 400 : plus long que l'effaceur le plus lent |
+| `operator_role` | `ROLE_PRIVACY_OPERATOR` | Le rôle qui peut lire la progression de n'importe quelle demande d'effacement |
+| `store` | `null` | L'identifiant de service d'un `ErasureRequestStore` ; `null`, les tables du bundle |
 
 ### `phil_privacy.incidents`
 
@@ -248,6 +260,8 @@ composant Config (`Unrecognized option ... under "phil_privacy"`).
 | `IncidentRegister`, `DbalIncidentRegister`, `IncidentCommand`, `IncidentsCommand` | — | alias public, privé | Le registre des incidents et ses commandes ; absents sans base de données sauf si un stockage est nommé. |
 | `EmailTrackingConsents`, `EmailTrackingStore`, `DbalEmailTrackingConsents` | — | public, alias privé, privé | Le consentement aux courriels suivis, étiqueté `phil_privacy.exporter` et `phil_privacy.eraser` ; seulement quand `email_tracking.enabled`. |
 | `GuestRequests`, `GuestRequestController`, `DbalGuestRequests`, `MailerGuestLinkSender`, `phil_privacy.guest_requests.per_client`, `phil_privacy.guest_requests.per_address` | — | public, privé | Les demandes sans compte, leurs pages et leurs deux fabriques de limiteurs de débit ; `GuestRequests` et les limiteurs seulement quand `guest_requests.enabled`. |
+| `ErasureRequests`, `DbalErasureRequests`, `EraseModuleHandler`, `EraseModuleCodec`, `EraseModuleRelay`, `ErasureFailureListener`, `ErasureRequestCommand` | — | public, privé | Le workflow d'effacement, seulement quand `erasure_workflow.enabled` ; `ErasureRequests` est public. |
+| `ErasureProgressController` | — | public | La page et le JSON de progression d'une demande d'effacement ; un 404 tant que le workflow est inactif. |
 | `PrivacySchedule` | — | privé | Le calendrier `phil_privacy`, avec `symfony/scheduler` et un bus de messages. |
 
 Les services de base de données et la commande sont enregistrés quand Symfony Console et Doctrine DBAL sont installés,
@@ -296,6 +310,8 @@ du conteneur plutôt que la première ligne de journal. Chaque erreur est une
 | Les demandes sans compte activées sans expéditeur | `phil_privacy.guest_requests.from is the sender of the links …` |
 | Les demandes sans compte activées sans le limiteur de débit | `phil_privacy.guest_requests needs symfony/rate-limiter …` |
 | Une durée de vie de lien qui n'est pas une durée | `phil_privacy.guest_requests.link_lifetime: …` |
+| Le workflow d'effacement activé sans phil/outbox-bundle, sans magasin, sans Messenger ou sans l'horloge | `phil_privacy.erasure_workflow is enabled and needs …` |
+| Un bail d'effacement hors de 1 à 86 400 secondes, ou un rôle d'exploitant vide | `Invalid configuration for path "phil_privacy.erasure_workflow.…"` |
 | Une origine avec un chemin, une requête, un fragment ou une adresse IP, ou `localhost` hors du mode débogage, lue au démarrage | `"phil_privacy.public_origin" is an origin …`, `"phil_privacy.public_origin" is the canonical address of the site …` |
 | En `prod`, les demandes activées avec l'expéditeur par courriel, ni `public_origin` ni `framework.trusted_hosts`, au démarrage | `The links of the requests without an account would take the host of the request: …` |
 | Une version malformée du texte sur les courriels suivis | `phil_privacy.email_tracking.version: letters, digits, ".", "_" and "-", 32 at most, …` |

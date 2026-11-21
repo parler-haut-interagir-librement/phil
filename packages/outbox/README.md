@@ -18,7 +18,7 @@ the application's Doctrine DBAL connection and runs the relay in Symfony.
 | Part | State |
 |---|---|
 | `Outbox::record()` on a store, the allowlist of the codecs, the bounded payload of identifiers | Implemented and tested |
-| The relay: leases, order per key, backoff, dead records, at-least-once delivery | Implemented and tested |
+| The relay: leases, order per key, backoff, dead records, skipped records, the grace of unknown types, at-least-once delivery | Implemented and tested |
 | The housekeeping: dead records inspected, tried again or discarded, retention of the delivered records | Implemented and tested |
 | The store in memory, and the contract tests every store passes | Implemented and tested |
 | The fuzz target of the payload reader, the benchmark of a relay batch | Implemented |
@@ -33,7 +33,7 @@ the application's Doctrine DBAL connection and runs the relay in Symfony.
 | [Relaying](doc/relaying.md) | The relay: leases, order per key, retries, dead records, and why listeners are idempotent. |
 | [Housekeeping](doc/housekeeping.md) | The dead records, the retention of the delivered records, the counts. |
 | [Stores](doc/stores.md) | The store contract, the store in memory, and the contract tests of an adapter. |
-| [Adoption guide](doc/adoption.md) | Moving a library that records then dispatches to the outbox, with a worked example. |
+| [Adoption guide](doc/adoption.md) | Moving a library that records then dispatches to the outbox, with a worked example, and keeping it out of the way of an erasure. |
 | [Extension points](doc/extension-points.md) | What an application may replace or add, and when it is stable. |
 | [Testing](doc/testing.md) | The package's tests, its fuzz target and its benchmark. |
 | [Reference](doc/reference.md) | Every public type, with its role. |

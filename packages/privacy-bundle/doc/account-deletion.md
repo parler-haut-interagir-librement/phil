@@ -103,6 +103,13 @@ bin/console messenger:failed:remove --transport=privacy_failed --failed-before='
 The sweep still comes back to a request whose message was removed: the failure transport is a record of failures,
 not the place the work waits in.
 
+## As a workflow
+
+With [`erasure_workflow`](erasure-workflow.md#account-deletions) on, the erasure stage opens an erasure request under
+the identifier of the deletion, once, instead of running every module in the sweep. The deletion stays at `exported`
+while the modules run, each retried on its own, and the next sweep closes it once the request completed. A request an
+operator closed as failed leaves the deletion at `exported`, for the operator to decide.
+
 ## The export
 
 The export is the ZIP archive of an access answer, a `README.txt` and one JSON file per module

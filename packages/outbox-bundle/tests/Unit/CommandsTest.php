@@ -54,9 +54,9 @@ final class CommandsTest extends TestCase
         self::assertSame(Command::SUCCESS, $tester->execute(['--stop-when-empty' => true], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]));
 
         $display = $tester->getDisplay();
-        self::assertStringContainsString($this->flat('Claimed 2: 2 delivered, 0 to try again, 0 dead, 0 left to their lease, 0 taken over.'), $this->flat($display));
+        self::assertStringContainsString($this->flat('Claimed 2: 2 delivered, 0 skipped, 0 to try again, 0 dead, 0 left to their lease, 0 taken over.'), $this->flat($display));
         self::assertStringContainsString($this->flat('Claimed 1: 1 delivered'), $this->flat($display));
-        self::assertStringContainsString($this->flat('[OK] Claimed 3: 3 delivered, 0 to try again, 0 dead, 0 left to their lease, 0 taken over.'), $this->flat($display));
+        self::assertStringContainsString($this->flat('[OK] Claimed 3: 3 delivered, 0 skipped, 0 to try again, 0 dead, 0 left to their lease, 0 taken over.'), $this->flat($display));
         self::assertSame(3, substr_count($display, 'Claimed'), 'Two batches and the sum: an empty batch is not told.');
         self::assertCount(3, $outboxes->received);
     }
@@ -161,7 +161,7 @@ final class CommandsTest extends TestCase
         self::assertSame(Command::SUCCESS, $tester->execute([]));
 
         $display = $tester->getDisplay();
-        self::assertStringContainsString($this->flat('1 pending, 1 delivered, 2 dead.'), $this->flat($display));
+        self::assertStringContainsString($this->flat('1 pending, 1 delivered, 0 skipped, 2 dead.'), $this->flat($display));
         self::assertStringContainsString($this->flat('quiz.completed'), $this->flat($display));
         self::assertStringContainsString($this->flat('RuntimeException (code 0)'), $this->flat($display));
         self::assertStringNotContainsString('The listener is down', $display);

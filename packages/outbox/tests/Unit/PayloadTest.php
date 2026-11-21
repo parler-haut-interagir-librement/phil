@@ -31,6 +31,58 @@ final class PayloadTest extends TestCase
         self::assertSame(7, $payload->int('holder'));
     }
 
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function textValues(): iterable
+    {
+        yield 'an address' => ['ada@example.org'];
+        yield 'a lone at sign' => ['@'];
+        yield 'a name' => ['Ada Lovelace'];
+        yield 'a tab' => ["a\tb"];
+        yield 'a new line at the end' => ["a1\n"];
+        yield 'a no-break space' => ["a\u{00A0}b"];
+        yield 'an ideographic space' => ["a\u{3000}b"];
+    }
+
+    #[DataProvider('textValues')]
+    public function testAStringWithAnAtSignOrWhitespaceIsRefusedByDefault(string $value): void
+    {
+        try {
+            Payload::of(['set' => 's1', 'email' => $value]);
+            self::fail('A value with "@" or whitespace was accepted.');
+        } catch (InvalidRecord $invalidRecord) {
+            self::assertSame('The value of "email" holds "@" or whitespace: a payload carries identifiers, never an address, a name or a sentence.', $invalidRecord->getMessage());
+        }
+
+        self::assertSame(['email' => $value], Payload::withText(['email' => $value])->values);
+        self::assertSame(['email' => $value], Payload::fromJson(Payload::withText(['email' => $value])->toJson())->values);
+    }
+
+    public function testTheNameOfARefusedTextValueIsCut(): void
+    {
+        $this->expectException(InvalidRecord::class);
+        $this->expectExceptionMessageIsOrContains('The value of "'.str_repeat('a', 69).'…" holds');
+
+        Payload::of([str_repeat('a', 80) => 'a b']);
+    }
+
+    public function testTextIsStillHeldToTheOtherBounds(): void
+    {
+        $this->expectException(InvalidRecord::class);
+        $this->expectExceptionMessageIsOrContains('The value of "note" is not valid UTF-8 of at most 255 bytes.');
+
+        Payload::withText(['note' => str_repeat('a b', 100)]);
+    }
+
+    public function testAStringThatIsNotUtf8IsRefusedAsSuch(): void
+    {
+        $this->expectException(InvalidRecord::class);
+        $this->expectExceptionMessageIsOrContains('The value of "note" is not valid UTF-8 of at most 255 bytes.');
+
+        Payload::of(['note' => "\xFF @"]);
+    }
+
     public function testAnEmptyPayloadIsAnObject(): void
     {
         self::assertSame('{}', Payload::of([])->toJson());

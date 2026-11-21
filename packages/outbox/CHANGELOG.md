@@ -6,14 +6,36 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.1.1-alpha.
+The next version is 0.2.0-alpha: a record whose state was erased is skipped instead of dead, a record of an unknown
+type is tried again during a grace, and `Payload::of()` refuses text.
+
+To update: a store of your own implements `OutboxStore::markSkipped()`, claims past the skipped records as past the
+delivered ones, and purges them with `purgeDelivered()`; `OutboxStoreTestCase` checks it. A payload that carries a
+string with `@` or whitespace goes through `Payload::withText()`, or better, carries an identifier instead. Code that
+reads `Housekeeping::counts()` or builds a `RelayReport` by position finds `skipped` added. Set the last argument of
+`Relay` to 0 to keep burying the records of an unknown type at once.
 
 ### Added
 
 - `OutboxRecord::OWN_EXCEPTIONS`, the namespace of the exceptions whose message an error keeps.
+- `Exception\ForgottenRecord`, thrown by a codec when the state a record names was erased on purpose, and
+  `RecordState::Skipped`, the state the relay gives such a record: no listener receives it, no attempt is counted, it
+  is never dead, it lets the later records of its ordering key go, and it is purged with the delivered records.
+- `RecordState::isSettled()`, `RelayReport::$skipped`, and `skipped` in `Housekeeping::counts()`.
+- `OutboxStore::markSkipped()`, in `InMemoryOutboxStore` and in the contract tests of `OutboxStoreTestCase`.
+- The grace of unknown types, the last argument of `Relay`, `Relay::UNKNOWN_TYPE_GRACE` (one hour) and
+  `Relay::MAX_UNKNOWN_TYPE_GRACE` (seven days): a record of a type no codec rebuilds is tried again until the grace,
+  counted from when it happened, is over.
+- `Payload::withText()` and `Payload::TEXT_PATTERN`.
+- An Erasure section in the [Adoption guide](doc/adoption.md).
 
 ### Changed
 
+- `Payload::of()`, and so `Outbox::record()`, refuse a string with `@` or whitespace, Unicode spaces included: a
+  payload carries identifiers, never an address, a name or a sentence. A payload read back from a store still takes
+  them.
+- A record of an unknown type is no longer dead at once: it is tried again during the grace of unknown types.
+- `OutboxStore::claim()` and `purgeDelivered()` treat a skipped record like a delivered one.
 - The documentation says that ordering and idempotency keys are identifiers too, never personal data, and that the
   reason of an `UndeliverableRecord` is kept as the last error.
 

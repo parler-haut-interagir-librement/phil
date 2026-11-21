@@ -80,7 +80,7 @@ final class PhilOutboxBundleTest extends TestCase
         self::assertTrue($container->getAlias(Outbox::class)->isPublic());
         self::assertSame([60, 86_400, 10], $container->getDefinition(Backoff::class)->getArguments());
         self::assertSame('event_dispatcher', (string) $container->getAlias(OutboxServices::DISPATCHER));
-        self::assertEquals([$store, new Reference(Codecs::class), new Reference(OutboxServices::DISPATCHER), $clock, new Reference(Backoff::class), 60], $container->getDefinition(Relay::class)->getArguments());
+        self::assertEquals([$store, new Reference(Codecs::class), new Reference(OutboxServices::DISPATCHER), $clock, new Reference(Backoff::class), 60, 3600], $container->getDefinition(Relay::class)->getArguments());
         self::assertTrue($container->getDefinition(Relay::class)->isPublic());
         self::assertEquals([new Reference(Relay::class), $clock, new Reference('lock.factory', ContainerInterface::NULL_ON_INVALID_REFERENCE), 60], $container->getDefinition(RelayRunner::class)->getArguments());
         self::assertEquals([$store, $clock], $container->getDefinition(Housekeeping::class)->getArguments());
@@ -110,7 +110,7 @@ final class PhilOutboxBundleTest extends TestCase
             'clock' => 'app.clock',
             'dispatcher' => 'app.dispatcher',
             'generic_types' => ['quiz.completed', 'quiz.perfect'],
-            'relay' => ['batch_size' => 25, 'lease' => 90, 'max_attempts' => 4, 'first_delay' => 5, 'longest_delay' => 600, 'lock' => false],
+            'relay' => ['batch_size' => 25, 'lease' => 90, 'unknown_type_grace' => 0, 'max_attempts' => 4, 'first_delay' => 5, 'longest_delay' => 600, 'lock' => false],
             'retention' => 3600,
         ]]);
         $connection = new Reference('doctrine.dbal.events_connection');
@@ -124,6 +124,7 @@ final class PhilOutboxBundleTest extends TestCase
         self::assertTrue($container->getDefinition(RecordedEventCodec::class)->hasTag('phil_outbox.codec'));
         self::assertSame([5, 600, 4], $container->getDefinition(Backoff::class)->getArguments());
         self::assertSame(90, $container->getDefinition(Relay::class)->getArgument(5));
+        self::assertSame(0, $container->getDefinition(Relay::class)->getArgument(6));
         self::assertNull($container->getDefinition(RelayRunner::class)->getArgument(2));
         self::assertSame(90, $container->getDefinition(RelayRunner::class)->getArgument(3));
         self::assertSame(25, $container->getDefinition(RelayCommand::class)->getArgument(1));
@@ -193,6 +194,8 @@ final class PhilOutboxBundleTest extends TestCase
         yield 'a generic type of another shape' => [['generic_types' => ['Quiz']], 'An event type is 1 to 120 lowercase letters and digits'];
         yield 'a batch too large' => [['relay' => ['batch_size' => 1001]], 'phil_outbox.relay.batch_size'];
         yield 'no batch' => [['relay' => ['batch_size' => 0]], 'phil_outbox.relay.batch_size'];
+        yield 'a negative grace of unknown types' => [['relay' => ['unknown_type_grace' => -1]], 'phil_outbox.relay.unknown_type_grace'];
+        yield 'a grace of unknown types too long' => [['relay' => ['unknown_type_grace' => 604_801]], 'phil_outbox.relay.unknown_type_grace'];
         yield 'a lease too long' => [['relay' => ['lease' => 3601]], 'phil_outbox.relay.lease'];
         yield 'no lease' => [['relay' => ['lease' => 0]], 'phil_outbox.relay.lease'];
         yield 'too many attempts' => [['relay' => ['max_attempts' => 101]], 'phil_outbox.relay.max_attempts'];

@@ -6,7 +6,8 @@ namespace Phil\Outbox;
 
 /**
  * What a run of the relay did: the records it claimed, and of those, the ones delivered, given back to be tried again,
- * declared dead, left untried because the lease ran out, and the ones whose mark another claim had taken over.
+ * declared dead, left untried because the lease ran out, the ones whose mark another claim had taken over, and the ones
+ * skipped because what they name was erased.
  */
 final readonly class RelayReport
 {
@@ -17,6 +18,7 @@ final readonly class RelayReport
         public int $dead = 0,
         public int $expired = 0,
         public int $lost = 0,
+        public int $skipped = 0,
     ) {
     }
 
@@ -40,6 +42,7 @@ final readonly class RelayReport
             $this->dead + $other->dead,
             $this->expired + $other->expired,
             $this->lost + $other->lost,
+            $this->skipped + $other->skipped,
         );
     }
 }

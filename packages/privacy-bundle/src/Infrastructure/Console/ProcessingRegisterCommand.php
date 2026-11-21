@@ -110,11 +110,15 @@ final class ProcessingRegisterCommand extends Command
         $output->writeln('');
         $output->writeln('## Personal fields');
         $output->writeln('');
-        $output->writeln('| Category | Class | Property | Retention | Store | Period | Mechanism | Erasure |');
-        $output->writeln('|---|---|---|---|---|---|---|---|');
+        $output->writeln('| Category | Class | Property | Retention | Store | Period | Mechanism | Erasure | Personal data left |');
+        $output->writeln('|---|---|---|---|---|---|---|---|---|');
 
         foreach ($entries as $entry) {
-            $output->writeln('| '.implode(' | ', array_map($this->cell(...), $entry->toArray())).' |');
+            $row = $entry->toArray();
+            $left = $row['personal_data_left'];
+            unset($row['personal_data_left']);
+            $row[] = null === $left ? null : ($left ? 'yes' : 'no');
+            $output->writeln('| '.implode(' | ', array_map($this->cell(...), $row)).' |');
         }
 
         if ([] !== $gaps) {

@@ -20,6 +20,13 @@ interface GuestRequestStore
     public function delete(string $id): void;
 
     /**
+     * Keeps a request whose erasure runs as a workflow until `$until`, past the expiry of its link, so that each module
+     * can still find the person: its link no longer opens it, and it is removed once the erasure is closed, or at
+     * `$until` at the latest.
+     */
+    public function retain(string $id, DateTimeImmutable $until): void;
+
+    /**
      * @return int how many expired requests were removed
      */
     public function purgeExpired(DateTimeImmutable $now): int;

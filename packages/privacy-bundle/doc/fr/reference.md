@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f4e119437865b1d390f97830b4969805c3a435c273f3e46fe73dd3ffee475fe1 -->
+<!-- phil-dev source-sha256=bafaeb5988f587f6df7b14e7d1f9534977a51c25277362cda0420c70a633aeec -->
 # Référence de l'API
 
 Chaque type sous `Phil\PrivacyBundle\`, par couche. « Implémenté » veut dire implémenté et couvert par des tests
@@ -82,7 +82,19 @@ unitaires.
 | `RetentionSchedule` | Les lignes par identifiant ; `has()`, `rule()`, `rules()`, `purgeOrders($now)`, `jobsWithoutCutoff()` | Implémenté |
 | `PurgeOrder` | `$ruleId`, `$store`, `$cutoff` | Implémenté |
 | `Mechanism` | Énumération : `Job`, `Ttl`, `Rotation`, `Event`, `Manual` | Implémenté |
-| `ErasureEffect` | Énumération : `Deleted`, `Pseudonymised`, `Redacted`, `AwaitsExpiry`, `Survives` | Implémenté |
+| `ErasureEffect` | Énumération : `Deleted`, `Anonymised` (un squelette jugé non identifiable), `Pseudonymised` (encore des renseignements personnels pour qui détient le lien de retour), `Redacted`, `AwaitsExpiry`, `Survives` ; `leavesPersonalData()`, faux pour `Deleted` et `Anonymised` seulement | Implémenté |
+
+### `Domain\Erasure`
+
+| Type | Rôle | État |
+|---|---|---|
+| `ErasureInventory` | Les modules dont les effaceurs sont déclarés, et si chacun est externe ; `of($local, $external)`, `has()`, `isExternal()`, `select($modules)` ; `$version`, une empreinte de 16 chiffres hexadécimaux ; `VERSION_PATTERN` | Implémenté |
+| `ErasureRequest` | Une demande d'effacement : une personne ou la demande sans compte dont elle provient, la version de l'inventaire, l'état ; `forSubject()`, `forGuest()`, `isAbout()`, `isOpenedBy($token)` ; `ID_PATTERN`, `TOKEN_PATTERN` | Implémenté |
+| `ErasureStep` | Un module d'une demande ; `pending()`, `keyOf($request, $module)`, `idempotencyKey()` | Implémenté |
+| `ErasureProgress` | Une demande et ses étapes, telles que les donnent la page et le JSON ; `counts()`, `toArray()` | Implémenté |
+| `RequestState` | Énumération : `Running`, `NeedsAttention`, `Completed`, `Failed` ; `isClosed()` | Implémenté |
+| `StepState` | Énumération : `Pending`, `Running`, `Completed`, `NeedsAttention` | Implémenté |
+| `AttentionReason` | Énumération : `RetriesExhausted`, `UnknownModule`, `SubjectUnavailable` | Implémenté |
 | `AccessResponse` | Énumération : `Returned`, `AsCategory`, `NotReturned` | Implémenté |
 
 ### `Domain\AccountDeletion`
@@ -156,11 +168,12 @@ unitaires.
 | `Export\ZipFile` | Une archive ZIP écrite en mémoire ; `add()`, `bytes()` | Implémenté |
 | `Export\ExportPackage` | L'archive d'une réponse d'accès ; `zip($sections)` | Implémenté ; branché |
 | `Export\PlainExportReadme` | Le README en anglais simple | Implémenté ; branché sans Twig |
-| `GuestRequest\GuestRequests` | Les demandes sans compte ; `submit()`, `open()`, `access()`, `erase()` | Implémenté ; branché une fois activé |
+| `GuestRequest\GuestRequests` | Les demandes sans compte ; `submit()`, `open()`, `access()`, `erase()`, `erasesAsAWorkflow()`, `startErasure()` ; `WORKFLOW_RETENTION` | Implémenté ; branché une fois activé |
+| `Erasure\ErasureRequests` | Le workflow d'effacement ; `inventory()`, `open()`, `openForGuest()`, `find()`, `progress()`, `run()`, `acknowledge()`, `giveUp()`, `replay()`, `fail()` ; `LEASE` | Implémenté ; branché quand `erasure_workflow.enabled` |
 | `GuestRequest\EmailGuestSubjects` | L'adresse vérifiée comme personne concernée | Implémenté ; branché une fois activé |
 | `PrivacyRights` | Quels droits sont actifs ; les deux phrases ; `warnings()` | Implémenté ; branché |
-| `Message\AdvanceAccountDeletion`, `Message\ProcessDueAccountDeletions`, `Message\RunRetention` | Des messages, identifiants seulement | Implémenté |
-| `Handler\AdvanceAccountDeletionHandler`, `Handler\ProcessDueAccountDeletionsHandler`, `Handler\RunRetentionHandler` | Leurs gestionnaires | Implémenté ; branché |
+| `Message\AdvanceAccountDeletion`, `Message\ProcessDueAccountDeletions`, `Message\RunRetention`, `Message\EraseModule` | Des messages, identifiants seulement ; `EraseModule::TYPE`, le type de son enregistrement d'outbox | Implémenté |
+| `Handler\AdvanceAccountDeletionHandler`, `Handler\ProcessDueAccountDeletionsHandler`, `Handler\RunRetentionHandler`, `Handler\EraseModuleHandler` | Leurs gestionnaires | Implémenté ; branché |
 | `Anonymization\AnonymizationRun` | Réécrit les colonnes d'un plan en une transaction ; `run($plan, $target, ?$seed, ?$salt)` | Implémenté ; branché |
 | `Anonymization\AnonymizationReport` | Les lignes réécrites par table ; `total()` | Implémenté |
 | `Anonymization\ProductionGuard` | Refuse les environnements de production et les hôtes et bases protégés ; `check($database)` | Implémenté ; branché |
@@ -171,6 +184,9 @@ unitaires.
 |---|---|---|
 | `PersonalDataExporter` | `module()`, `export($subject)` | Port |
 | `PersonalDataEraser` | `module()`, `erase($subject)` ; idempotent | Port |
+| `ExternalPersonalDataEraser` | `module()`, `request($subject, $idempotencyKey)` ; idempotent, accusé de réception plus tard | Port |
+| `ErasureMessages` | `record($requestId, $module, $idempotencyKey)` | Port ; `OutboxErasureMessages` |
+| `ErasureRequestStore` | `open()`, `find()`, `steps()`, `step()`, `lease()`, `complete()`, `await()`, `acknowledge()`, `release()`, `flag()`, `reopen()`, `settle()` | Port ; `DbalErasureRequests` |
 | `RetentionScheduleSource` | `load()` | Port |
 | `RetentionPurger` | `store()`, `purge($order)` | Port |
 | `AnonymizationTarget` | `keyOf()`, `rows()`, `update()`, `transactional()` | Port ; `DbalAnonymizationTarget` |
@@ -180,7 +196,7 @@ unitaires.
 | `CurrentDataSubject` | `current()` | Port ; `SecurityCurrentDataSubject` |
 | `DataSubjectUser` | `dataSubjectIdentifier()`, sur la classe de l'utilisateur de l'application | Port |
 | `ExportReadme` | `render($modules, $madeAt)` | Port ; `TwigExportReadme`, `PlainExportReadme` |
-| `GuestRequestStore` | `save()`, `find()`, `delete()`, `purgeExpired()` | Port ; `DbalGuestRequests` |
+| `GuestRequestStore` | `save()`, `find()`, `delete()`, `retain()`, `purgeExpired()` | Port ; `DbalGuestRequests` |
 | `GuestLinkSender` | `send($request, $token)` | Port ; `MailerGuestLinkSender` |
 | `GuestSubjects` | `subjectOf($email)` | Port ; `EmailGuestSubjects` |
 | `IncidentRegister` | `save()`, `find()`, `all()` | Port ; `DbalIncidentRegister` |
@@ -192,7 +208,8 @@ unitaires.
 |---|---|---|
 | `ErasureIncomplete` | `RuntimeException` ; les rapports `$completed`, les `$failures` par module, aucune enchaînée comme exception précédente ; `after($completed, $failures)` | Implémenté |
 | `AccountErasureIncomplete` | `RuntimeException`, lancée à Messenger par `AdvanceAccountDeletionHandler` ; `$deletionId`, `$modules`, aucune exception précédente ; `of($deletionId, $erasure)` | Implémenté |
-| `MisconfiguredPrivacy` | `LogicException` ; `duplicateModule()`, `duplicatePurger()`, `missingPurger()`, `userWithoutSubject()` | Implémenté |
+| `MisconfiguredPrivacy` | `LogicException` ; `duplicateModule()`, `duplicatePurger()`, `missingPurger()`, `userWithoutSubject()`, `erasureLease()` | Implémenté |
+| `ModuleErasureFailed` | `RuntimeException`, lancée vers Messenger par `EraseModuleHandler` ; nomme la demande et le module, sans exception précédente ; `of($requestId, $module)` | Implémenté |
 | `AccountDeletionBusy` | `RuntimeException` ; un autre processus détient le verrou de cette personne | Implémenté |
 | `LockLost` | `RuntimeException` ; le verrou d'un travail par étapes a expiré, a été pris, ou n'a pas pu être confirmé ; `create()` | Implémenté |
 | `AnonymizationRefused` | `RuntimeException` ; `inEnvironment()`, `protectedDatabase()`, `withoutKey()`, `keyColumn()` | Implémenté |
@@ -222,6 +239,12 @@ unitaires.
 | `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | Les tables, leurs clés en `utf8mb4_bin` sur MySQL et MariaDB quand la plateforme est donnée ; le stockage, les preuves ; les deux derniers purgent aussi | Implémenté |
 | `Infrastructure\Database\DbalGuestRequests` | Les demandes sans compte, l'adresse scellée | Implémenté |
 | `Infrastructure\Database\DbalIncidentRegister` | Le registre des incidents ; purge aussi | Implémenté |
+| `Infrastructure\Database\DbalErasureRequests` | Les demandes d'effacement et leurs étapes ; purge aussi les demandes fermées | Implémenté ; branché une fois activé |
+| `Infrastructure\Outbox\OutboxErasureMessages`, `EraseModuleCodec`, `EraseModuleRelay` | Les messages comme enregistrements d'outbox de type `phil_privacy.erase_module`, le codec d'outbox d'`EraseModule`, qui écarte l'enregistrement d'une demande disparue, et la remise du message au bus | Implémenté ; branché une fois activé |
+| `Infrastructure\Messenger\ErasureFailureListener` | Marque une étape comme demandant de l'attention quand Messenger abandonne son message | Implémenté ; branché une fois activé |
+| `Infrastructure\Console\ErasureRequestCommand` | `phil:privacy:erasure` : une demande module par module, `--replay`, `--fail --confirm` | Implémenté ; branché une fois activé |
+| `Infrastructure\Http\ErasureProgressController` | La page et le JSON de progression, pour la personne, un exploitant ou le détenteur du secret | Implémenté ; branché |
+| `Infrastructure\DependencyInjection\ErasureWorkflowServices` | Les services du workflow d'effacement ; `EXTERNAL_ERASER_TAG`, `OPERATOR_ROLE` | Implémenté |
 | `Infrastructure\Database\DbalEmailTrackingConsents` | Les choix des membres sur les courriels suivis, une ligne chacun | Implémenté |
 | `Infrastructure\Database\UtcMoments` | Les instants des tables, en UTC et au seul format de la plateforme ; `text()`, `read()` | Implémenté |
 | `Infrastructure\Mailer\MailerGuestLinkSender` | Le lien envoyé tout de suite par les transports du service de courriel | Implémenté ; branché une fois activé |

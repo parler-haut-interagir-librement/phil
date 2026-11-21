@@ -126,6 +126,7 @@ final class PhilPrivacyBundle extends AbstractBundle
                 ->append(RightsConfiguration::consent())
                 ->append(RightsConfiguration::cookies())
                 ->append(RightsConfiguration::guestRequests())
+                ->append(RightsConfiguration::erasureWorkflow())
                 ->append(RightsConfiguration::incidents())
                 ->append(RightsConfiguration::emailTracking())
                 ->append(RightsConfiguration::rights())

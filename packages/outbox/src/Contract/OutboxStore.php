@@ -27,8 +27,8 @@ interface OutboxStore
     /**
      * Leases up to `$limit` records to a claim until `$leaseUntil`, and gives them back in the order they were added.
      * A record is claimed when it is pending, available at `$now`, not leased to another claim past `$now`, and when
-     * every record added before it with the same ordering key is delivered: a record pending or dead holds back the
-     * later ones of its key. Two claims never get the same record while its lease runs. None when `$limit` is below 1.
+     * every record added before it with the same ordering key is delivered or skipped: a record pending or dead holds
+     * back the later ones of its key. Two claims never get the same record while its lease runs. None when `$limit` is below 1.
      *
      * @param non-empty-string $claim a token unique to this claim, which the marks below repeat
      *
@@ -42,6 +42,13 @@ interface OutboxStore
      * @return bool false when the record is no longer pending under that claim, the mark then left undone
      */
     public function markDelivered(RecordId $id, string $claim, DateTimeImmutable $at): bool;
+
+    /**
+     * Marks a record of the claim skipped, its lease ended: what it names was erased, and no listener received it.
+     *
+     * @return bool false when the record is no longer pending under that claim, the mark then left undone
+     */
+    public function markSkipped(RecordId $id, string $claim, DateTimeImmutable $at): bool;
 
     /**
      * Gives a record of the claim back after a failed attempt: pending, with its attempts and error, available again at
@@ -87,7 +94,7 @@ interface OutboxStore
     public function discard(RecordId $id): bool;
 
     /**
-     * Removes up to `$limit` delivered records settled before `$before`, in the order they were added.
+     * Removes up to `$limit` delivered or skipped records settled before `$before`, in the order they were added.
      *
      * @return int how many were removed
      */

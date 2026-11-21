@@ -38,7 +38,7 @@ deliver it again; the mark of the first relay is then refused, which its report 
 
 The records of an ordering key go one after the other: a store holds back a record while an earlier record of its key
 is pending — leased, waiting for its next attempt — or dead. A batch holds at most one record of a key; the next one
-goes in a later batch, once the earlier one is delivered. A dead record holds back its key until it is tried again or
+goes in a later batch, once the earlier one is delivered or skipped. A dead record holds back its key until it is tried again or
 discarded: see [Housekeeping](housekeeping.md). Records without a key never wait for each other.
 
 ## Retries and dead records
@@ -53,8 +53,23 @@ that follows, never above its longest delay. After its last attempt, the record 
 | `$longestDelay` | 86,400 seconds |
 | `$maxAttempts` | 10 |
 
-A record is dead at once, after one attempt, when its type has no codec any more, when its payload is not one, or
-when its codec throws `UndeliverableRecord`.
+A record is dead at once, after one attempt, when its payload is not one, or when its codec throws
+`UndeliverableRecord`.
+
+## Unknown types
+
+A record whose type no codec rebuilds is tried again while the grace of unknown types runs, counted from when the
+record happened: a web process deployed with a new codec can record a type before the workers that relay it are
+deployed. Its attempts follow the backoff, never later than the end of the grace and whatever their number; once the
+grace is over, the next attempt declares it dead. The grace is the last argument of `Relay`: one hour by default
+(`Relay::UNKNOWN_TYPE_GRACE`), from 0, which buries the record at once, to seven days
+(`Relay::MAX_UNKNOWN_TYPE_GRACE`).
+
+## Skipped records
+
+A codec throws `ForgottenRecord` when what the record names was erased on purpose. The relay marks the record skipped,
+with no attempt counted and no error: no listener receives it, it is never dead, it lets the later records of its key
+go, and the purge removes it with the delivered records.
 
 ## The report
 
@@ -68,5 +83,6 @@ when its codec throws `UndeliverableRecord`.
 | `dead` | declared dead |
 | `expired` | left untried because the lease ran out |
 | `lost` | whose mark another claim had taken over |
+| `skipped` | skipped because what they name was erased |
 
 `isEmpty()` tells a run that found nothing; `plus()` adds two runs.

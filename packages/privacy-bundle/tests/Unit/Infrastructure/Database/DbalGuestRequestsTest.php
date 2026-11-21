@@ -45,6 +45,27 @@ final class DbalGuestRequestsTest extends TestCase
         self::assertInstanceOf(GuestRequest::class, $store->find($kept->id));
     }
 
+    public function testARetainedRequestIsKeptUntilItsDateAndItsLinkOpensItNoMore(): void
+    {
+        $store = new DbalGuestRequests($this->connection, 'secret');
+        [$request, $token] = GuestRequest::issue(GuestRequestKind::Erasure, 'a@example.org', new DateTimeImmutable('2026-11-10 12:00:00 UTC'), new DateTimeImmutable('2026-11-10 13:00:00 UTC'));
+        $other = $this->request('b@example.org');
+        $store->save($request);
+        $store->save($other);
+
+        $store->retain($request->id, new DateTimeImmutable('2027-02-08 12:00:00 UTC'));
+
+        $kept = $store->find($request->id);
+        self::assertSame('a@example.org', $kept?->email);
+        self::assertSame('2027-02-08 12:00:00', $kept->expiresAt->format('Y-m-d H:i:s'));
+        self::assertFalse($kept->isOpenedBy($token));
+        self::assertNotSame($kept->tokenHash, $store->find($other->id)?->tokenHash);
+        self::assertSame($other->tokenHash, $store->find($other->id)?->tokenHash, 'Only the request named is retained.');
+        self::assertSame(1, $store->purgeExpired(new DateTimeImmutable('2027-02-08 11:59:59 UTC')));
+        self::assertNotNull($store->find($request->id));
+        self::assertSame(1, $store->purgeExpired(new DateTimeImmutable('2027-02-08 12:00:00 UTC')));
+    }
+
     public function testASealedAddressTooShortToOpenReadsAsAbsent(): void
     {
         $store = new DbalGuestRequests($this->connection, 'secret');

@@ -29,13 +29,18 @@ The payload holds the few identifiers the codec rebuilds the event from, by name
 |---|---|
 | Values | strings, integers, booleans or null; never a float, a list, an object or a nested value |
 | Names | 1 to 64 letters, digits or `_`, starting with a lowercase letter |
-| A string | valid UTF-8, at most 255 bytes |
+| A string | valid UTF-8, at most 255 bytes, without `@` or whitespace |
 | The payload | at most 16 values, at most 4,096 bytes of JSON |
 
 A payload carries identifiers only, never personal data nor heavy data: the codec reads the rest again from where the
 library keeps it when the event is rebuilt. A delivered record is kept until its retention ends, and personal data in
 it would outlive its erasure from the library's own tables. `record()` throws `InvalidRecord` for a payload out of its
 bounds.
+
+A string with `@` or whitespace, Unicode spaces included, is refused: that is how an address, a name or a sentence
+arrives, and an identifier carries neither. `Payload::withText()` takes such strings, under the other bounds, for a
+value the application knows is no personal data; `record()` never does. A payload read back from a store takes them
+too, so that a record written that way is still relayed.
 
 ## The ordering key
 

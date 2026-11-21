@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\Outbox\Tests\Unit;
 
+use Phil\Outbox\Exception\ForgottenRecord;
 use Phil\Outbox\Exception\InvalidRecord;
 use Phil\Outbox\Exception\UndeliverableRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -12,6 +13,7 @@ use RuntimeException;
 
 #[CoversClass(InvalidRecord::class)]
 #[CoversClass(UndeliverableRecord::class)]
+#[CoversClass(ForgottenRecord::class)]
 final class ExceptionsTest extends TestCase
 {
     public function testTheExceptionsCarryTheReasonThePreviousExceptionAndNoCode(): void
@@ -25,5 +27,14 @@ final class ExceptionsTest extends TestCase
 
         self::assertSame('Out of bounds.', InvalidRecord::because('Out of bounds.')->getMessage());
         self::assertNull(UndeliverableRecord::because('Gone.')->getPrevious());
+    }
+
+    public function testAForgottenRecordCarriesItsReasonOnly(): void
+    {
+        $exception = ForgottenRecord::because('The request was erased.');
+
+        self::assertSame('The request was erased.', $exception->getMessage());
+        self::assertSame(0, $exception->getCode());
+        self::assertNull($exception->getPrevious());
     }
 }

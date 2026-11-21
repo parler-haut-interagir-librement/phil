@@ -2,8 +2,8 @@
 
 The extension alias is `phil_privacy`. The configuration tree is defined in `PhilPrivacyBundle::configure()`
 and has these keys: `log_redaction`, `public_origin`, `retention_schedule_source`, `retention`, `account_deletion`, `consent`,
-`cookies`, `guest_requests`, `incidents`, `email_tracking`, `rights`, `pages`, `register`, `database` and
-`anonymization`.
+`cookies`, `guest_requests`, `erasure_workflow`, `incidents`, `email_tracking`, `rights`, `pages`, `register`,
+`database` and `anonymization`.
 
 ## Top-level keys
 
@@ -64,6 +64,17 @@ See [cookie-inventory.md](cookie-inventory.md).
 
 The access and erasure requests of people without an account, off by default; every key is in
 [requests-without-an-account.md](requests-without-an-account.md#the-link).
+
+### `phil_privacy.erasure_workflow`
+
+Erasure as a workflow, off by default; see [erasure-workflow.md](erasure-workflow.md).
+
+| Key | Default | Effect |
+|---|---|---|
+| `enabled` | `false` | One step per module, sent through phil/outbox-bundle, retried and finished on its own; the account deletions and the requests without an account erase through it |
+| `lease` | `900` | The seconds a worker holds a step, from 1 to 86,400: longer than the slowest eraser |
+| `operator_role` | `ROLE_PRIVACY_OPERATOR` | The role that may read the progress of any erasure request |
+| `store` | `null` | The service id of an `ErasureRequestStore`; `null`, the tables of the bundle |
 
 ### `phil_privacy.incidents`
 
@@ -246,6 +257,8 @@ writing every child with its default. Any other key under `phil_privacy` is refu
 | `IncidentRegister`, `DbalIncidentRegister`, `IncidentCommand`, `IncidentsCommand` | — | public alias, private | The register of incidents and its commands; absent without a database unless a store is named. |
 | `EmailTrackingConsents`, `EmailTrackingStore`, `DbalEmailTrackingConsents` | — | public, private alias, private | The consent to tracked emails, tagged `phil_privacy.exporter` and `phil_privacy.eraser`; only when `email_tracking.enabled`. |
 | `GuestRequests`, `GuestRequestController`, `DbalGuestRequests`, `MailerGuestLinkSender`, `phil_privacy.guest_requests.per_client`, `phil_privacy.guest_requests.per_address` | — | public, private | The requests without an account, their pages and their two rate limiter factories; `GuestRequests` and the limiters only when `guest_requests.enabled`. |
+| `ErasureRequests`, `DbalErasureRequests`, `EraseModuleHandler`, `EraseModuleCodec`, `EraseModuleRelay`, `ErasureFailureListener`, `ErasureRequestCommand` | — | public, private | The erasure workflow, only when `erasure_workflow.enabled`; `ErasureRequests` is public. |
+| `ErasureProgressController` | — | public | The progress page and JSON of an erasure request; a 404 while the workflow is off. |
 | `PrivacySchedule` | — | private | The schedule `phil_privacy`, with `symfony/scheduler` and a message bus. |
 
 The database services and the command are registered when Symfony Console and Doctrine DBAL are installed, and
@@ -293,6 +306,8 @@ than the first log line. Every error is an
 | The requests without an account turned on without a sender | `phil_privacy.guest_requests.from is the sender of the links …` |
 | The requests without an account turned on without the rate limiter | `phil_privacy.guest_requests needs symfony/rate-limiter …` |
 | A link lifetime that is not a duration | `phil_privacy.guest_requests.link_lifetime: …` |
+| The erasure workflow turned on without phil/outbox-bundle, a store, Messenger or the clock | `phil_privacy.erasure_workflow is enabled and needs …` |
+| An erasure lease out of 1 to 86,400 seconds, or an empty operator role | `Invalid configuration for path "phil_privacy.erasure_workflow.…"` |
 | An origin with a path, a query, a fragment or an IP address, or `localhost` outside debug mode, read at boot | `"phil_privacy.public_origin" is an origin …`, `"phil_privacy.public_origin" is the canonical address of the site …` |
 | In `prod`, the requests on with the mailer sender, neither `public_origin` nor `framework.trusted_hosts`, at boot | `The links of the requests without an account would take the host of the request: …` |
 | A malformed version of the text about tracked emails | `phil_privacy.email_tracking.version: letters, digits, ".", "_" and "-", 32 at most, …` |

@@ -17,8 +17,9 @@ The library is plain PHP and declares no service. The outbox, the relay and the 
 ## `OutboxStore`
 
 `Phil\Outbox\Contract\OutboxStore` — where the records are kept. See [Stores](stores.md). A store of the application's
-own passes the contract tests of `Phil\Outbox\Test\OutboxStoreTestCase`, adds a record in the caller's transaction, and
-never gives one record to two claims while its lease runs.
+own passes the contract tests of `Phil\Outbox\Test\OutboxStoreTestCase`, adds a record in the caller's transaction,
+never gives one record to two claims while its lease runs, and treats a skipped record like a delivered one: settled,
+never holding back its ordering key, purged past its retention.
 
 ## `Outbox`
 

@@ -81,6 +81,13 @@ final readonly class DbalGuestRequests implements GuestRequestStore
     }
 
     #[Override]
+    public function retain(string $id, DateTimeImmutable $until): void
+    {
+        // A hash of a secret nobody holds: the link that opened the request opens it no more.
+        $this->connection->update(PrivacyTables::GUEST_REQUESTS, ['token_hash' => hash('sha256', random_bytes(32)), 'expires_at' => $this->text($until)], ['id' => $id]);
+    }
+
+    #[Override]
     public function purgeExpired(DateTimeImmutable $now): int
     {
         return (int) $this->connection->executeStatement('DELETE FROM '.PrivacyTables::GUEST_REQUESTS.' WHERE expires_at <= ?', [$this->text($now)]);

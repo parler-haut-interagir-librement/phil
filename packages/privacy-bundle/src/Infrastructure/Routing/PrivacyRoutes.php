@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\PrivacyBundle\Infrastructure\Routing;
 
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentController;
+use Phil\PrivacyBundle\Infrastructure\Http\ErasureProgressController;
 use Phil\PrivacyBundle\Infrastructure\Http\GuestRequestController;
 use Phil\PrivacyBundle\Infrastructure\Http\PreferencesController;
 use Symfony\Component\Routing\Route;
@@ -36,6 +37,8 @@ final class PrivacyRoutes
 
     public const string GUEST_CONFIRM = 'phil_privacy_guest_confirm';
 
+    public const string ERASURE_PROGRESS = 'phil_privacy_erasure_progress';
+
     private function __construct()
     {
     }
@@ -50,6 +53,12 @@ final class PrivacyRoutes
         // Answered with a 404 while `guest_requests.enabled` is false.
         $routes->add(self::GUEST_REQUEST, self::route('/request', GuestRequestController::class, 'request', ['GET', 'POST']));
         $routes->add(self::GUEST_CONFIRM, self::route('/request/{id}', GuestRequestController::class, 'confirm', ['GET', 'POST'])->setRequirement('id', '[0-9a-f]{32}'));
+
+        // Answered with a 404 while `erasure_workflow.enabled` is false, and to anyone the request is not about.
+        $routes->add(self::ERASURE_PROGRESS, self::route('/erasure/requests/{id}.{_format}', ErasureProgressController::class, 'progress', ['GET'])
+            ->setRequirement('id', '[0-9a-f]{32}')
+            ->setRequirement('_format', 'html|json')
+            ->setDefault('_format', 'html'));
 
         if ($preferences) {
             $routes->add(self::PREFERENCES, self::route('', PreferencesController::class, 'index', ['GET']));

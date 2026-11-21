@@ -82,9 +82,21 @@ it again on an already erased person must succeed and report the same effects.
   erased nothing still reports each store with `Survives` or `AwaitsExpiry` where that is the answer.
 - A blank store name is refused.
 
-`ErasureEffect` cases: `Deleted`, `Pseudonymised` (the record survives without anything naming the person),
-`Redacted` (some fields blanked or replaced), `AwaitsExpiry` (nothing removed now; the retention period runs
-out), `Survives` (kept on purpose, under a legal obligation or because removing it would undo the request).
+`ErasureEffect` cases:
+
+| Case | What the store keeps | Personal data left |
+|---|---|---|
+| `Deleted` | Nothing | No |
+| `Anonymised` | A skeleton judged non-identifiable: nothing in it, alone or with what the site or anyone else can reasonably use, singles the person out. Reserved to that judgement, written down for the store | No |
+| `Pseudonymised` | The record, the identity replaced by a pseudonym, a token, a keyed hash or an internal identifier | Yes, for whoever holds the link back |
+| `Redacted` | The record, some fields blanked or replaced | Yes, in the other fields |
+| `AwaitsExpiry` | Everything, until the retention period runs out | Yes |
+| `Survives` | Everything, on purpose, under a legal obligation or because removing it would undo the request | Yes |
+
+`ErasureEffect::leavesPersonalData()` gives the last column. `phil:privacy:erase` and `phil:privacy:erasure` mark the
+effects that leave personal data, the register shows it for each field (`personal_data_left`), and the JSON of an
+erasure's progress gives it for each store. [Choosing a control](choosing-a-control.md) says which one answers which
+problem.
 
 ### Service: `SubjectErasure`
 
@@ -96,7 +108,6 @@ try {
 } catch (ErasureIncomplete $incomplete) {
     $incomplete->completed;                        // list<ErasureReport> of the modules that succeeded
     $incomplete->failures;                         // array<string, Throwable> by module name
-    $incomplete->getPrevious();                    // the first failure
     // record, alert, retry later: every eraser runs again, which is why they are idempotent
 }
 ```
