@@ -23,6 +23,7 @@ final class DigitalSourceTypeTest extends TestCase
         self::assertSame(DigitalSourceType::DigitalCapture, DigitalSourceType::declarable()[0]);
         self::assertSame(DigitalSourceType::CompositeSynthetic, DigitalSourceType::declarable()[16]);
         self::assertSame('Iptc4xmpExt:DigitalSourceType', DigitalSourceType::XMP_PROPERTY);
+        self::assertSame('http://iptc.org/std/Iptc4xmpExt/2008-02-29/', DigitalSourceType::XMP_NAMESPACE);
     }
 
     public function testACodeIsRead(): void

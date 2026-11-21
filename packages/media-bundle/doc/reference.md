@@ -21,6 +21,9 @@
 | `Application\MediaStorage`, `ImageProcessor` | interfaces | Where files are kept; how images are rendered |
 | `Application\Contract\SvgPurifier` | interface | How an SVG image is purified before it is kept |
 | `Application\Contract\StreamingMediaStorage` | interface | A storage that also reads a file as a stream; optional |
+| `Application\Contract\DeclaredSourceType` | interface | How a medium declares it was made, as the address of an IPTC digital source type |
+| `Application\Xmp\SourceTypeXmp` | `final class` | The XMP packet of a digital source type, written into a rendered JPEG, PNG, WebP or AVIF image; `XMP_PROPERTY`, `XMP_NAMESPACE` |
+| `Infrastructure\CreationDisclosure\CreationDisclosureSourceType` | adapter | The type declared with `phil/creation-disclosure`, a retired one as its replacement |
 | `Infrastructure\Storage\FilesystemStorage` | adapter | A directory |
 | `Infrastructure\Storage\FlysystemStorage` | adapter | A Flysystem filesystem: local, S3, SFTP |
 | `Infrastructure\Image\GdImageProcessor` | adapter | GD, with a pixel limit and optional binary encoders |

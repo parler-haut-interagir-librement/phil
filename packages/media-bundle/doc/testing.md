@@ -23,6 +23,7 @@
 | The policy of user content | The headers of the original and of a format, what is shown inline under the default and a custom policy |
 | `getMany()` | The order asked, duplicates and unknown identifiers, one query per 500 |
 | How a medium was made | The AI disclosure from each kind of digital source type, retired types, schema.org |
+| `SourceTypeXmp`, `CreationDisclosureSourceType` | The packet and the addresses refused; each file type rendered by GD and by `cwebp` and `avifenc` with exactly the property and no EXIF, decoded to the same pixels; EXIF with a GPS position, XMP, IPTC, comments and text chunks dropped, the ICC profile kept; simple WebP made extended with its canvas and alpha; AVIF items and references, offsets moved; files the writer cannot read kept as they are; renderings of declared and undeclared media, keys of their own; `heif-info` and `exiftool` when they are installed |
 | `BinaryKeysListener` | The keys in `utf8mb4_bin` in the schema generated for MySQL and MariaDB, the default collation on SQLite, the options a field already has kept |
 
 The suite `tests/Integration` runs `BinaryKeysListener` on a real MySQL 8.4 and PostgreSQL 17: four collection keys that differ only by case or accent are four collections, each found by its own key only, and on

@@ -7,11 +7,13 @@ declare(strict_types=1);
  */
 return [
     'paths' => ['src', 'tests'],
-    'docs' => ['public' => true, 'words' => ['configurator', 'CSSOM', 'embeddables', 'Flysystem', 'HMAC', 'importmap', 'IPTC', 'libvips']],
+    'docs' => ['public' => true, 'words' => ['configurator', 'CSSOM', 'embeddables', 'Flysystem', 'HMAC', 'importmap', 'IPTC', 'libheif', 'libvips']],
     'fuzz' => [
-        // The purifier of SVG images, from the seeds of tests/Fuzz/corpus/<target>.
+        // The purifier of SVG images and the writer of the digital source type into renderings, from the seeds of
+        // tests/Fuzz/corpus/<target>.
         'targets' => [
             'svg-purifier' => 'tests/Fuzz/svg-purifier.php',
+            'source-type-xmp' => 'tests/Fuzz/source-type-xmp.php',
         ],
     ],
     'phpstan' => [
@@ -78,12 +80,23 @@ return [
                     // `VipsImageProcessor`: the random part only makes the working directory's name unguessable; seven
                     // or nine bytes do it as well as eight, and the tests never read the name.
                     '\\$directory = sys_get_temp_dir\\(\\)\\.\'/phil-media-vips-\'\\.sodium_bin2hex\\(random_bytes\\(8\\)\\);',
+                    // `AvifXmp::write()` measures the new `iloc` box before it knows where the data lies: only the length of
+                    // the box matters there, and the length of a field does not depend on its value.
+                    '\\$measured = ItemLocations::write\\(\\$locations, \\$metaEnd, 0, 0, \\$id, \\\\strlen\\(\\$packet\\)\\) \\?\\? \'\';',
                 ],
             ],
             // See `DecrementInteger`: the working directory of `VipsImageProcessor`.
             'IncrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
                     '\\$directory = sys_get_temp_dir\\(\\)\\.\'/phil-media-vips-\'\\.sodium_bin2hex\\(random_bytes\\(8\\)\\);',
+                    // `AvifXmp::write()` measures the new `iloc` box before it knows where the data lies: only the length of
+                    // the box matters there, and the length of a field does not depend on its value.
+                    '\\$measured = ItemLocations::write\\(\\$locations, \\$metaEnd, 0, 0, \\$id, \\\\strlen\\(\\$packet\\)\\) \\?\\? \'\';',
+                    // `WebpXmp::lossless()`: the fifth byte of the header never takes part in the width, the height or
+                    // the alpha bit, which lie in the first four.
+                    '\\$bits = Bytes::littleEndian\\(\\$data, 1, 4\\);',
+                    // `WebpXmp::lossy()`: the mask keeps 14 bits, so a third byte read with a width or a height never counts.
+                    'return self::header\\(Bytes::littleEndian\\(\\$data, 6, 2\\) & 0x3FFF, Bytes::littleEndian\\(\\$data, 8, 2\\) & 0x3FFF, false\\);',
                 ],
             ],
             // `VipsImageProcessor`: Symfony Process writes each argument of the command as a string, an integer as its

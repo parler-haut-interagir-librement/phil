@@ -8,7 +8,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.2.1-alpha.
 
-Development only.
+### Added
+
+- The renderings of a medium that declares how it was made carry that digital source type in their XMP,
+  `Iptc4xmpExt:DigitalSourceType`, and no other metadata, so that the marking of generated and edited media survives
+  the stripping of EXIF, GPS and the original's XMP: an `APP1` segment in JPEG, an `iTXt` chunk in PNG, an `XMP` chunk
+  in WebP and a metadata item in AVIF, written by `Application\Xmp\SourceTypeXmp` after encoding, whatever the
+  processor. A medium that declares nothing keeps renderings without metadata.
+- `Application\Contract\DeclaredSourceType`, the port of the declared types, and its adapter
+  `Infrastructure\CreationDisclosure\CreationDisclosureSourceType`, wired when `phil/creation-disclosure` is installed;
+  the optional `$sourceTypes` argument of `MediaLibrary`. A marked rendering is kept under a key of its own, so
+  declaring a type renders the formats anew.
 
 ### Changed
 

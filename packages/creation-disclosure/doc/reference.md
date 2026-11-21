@@ -4,7 +4,7 @@ Every public type of the package, with its role.
 
 | Type | Role |
 |---|---|
-| `DigitalSourceType` | The IPTC Digital Source Type vocabulary: codes, addresses, labels, retired codes, the view of each |
+| `DigitalSourceType` | The IPTC Digital Source Type vocabulary: codes, addresses, labels, retired codes, the view of each; the XMP property and its namespace |
 | `Part` | A part of a work declared on its own: text, image, audio, video, code |
 | `CreationDisclosure` | How a work was made, part by part, immutable; its views and its storage as an array |
 | `GenerativeAi` | What a part or a work owes to generative AI, their combination and their order |

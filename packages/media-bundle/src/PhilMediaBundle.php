@@ -8,6 +8,8 @@ use Doctrine\DBAL\Types\Type;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Field\FieldConfiguratorInterface;
 use Override;
 use Phil\BrowserSecurityBundle\Application\UserContentPolicy;
+use Phil\CreationDisclosure\DigitalSourceType;
+use Phil\MediaBundle\Application\Contract\DeclaredSourceType;
 use Phil\MediaBundle\Application\Contract\SvgPurifier;
 use Phil\MediaBundle\Application\DeleteBehaviour;
 use Phil\MediaBundle\Application\ImageFormat;
@@ -21,6 +23,7 @@ use Phil\MediaBundle\Application\UrlSigner;
 use Phil\MediaBundle\Infrastructure\Admin\ExplorerAccess;
 use Phil\MediaBundle\Infrastructure\Admin\MediaAdminController;
 use Phil\MediaBundle\Infrastructure\Console\PlaceholdersCommand;
+use Phil\MediaBundle\Infrastructure\CreationDisclosure\CreationDisclosureSourceType;
 use Phil\MediaBundle\Infrastructure\DependencyInjection\CsrfProtectionPass;
 use Phil\MediaBundle\Infrastructure\Doctrine\BinaryKeysListener;
 use Phil\MediaBundle\Infrastructure\Doctrine\DoctrineMediaReferences;
@@ -65,10 +68,10 @@ use Twig\Attribute\AsTwigFunction;
  * A media library: files and their versions in Doctrine and a directory or a Flysystem filesystem, images rendered to
  * formats in WebP, AVIF, JPEG or PNG by GD or libvips, served at signed URLs — under the policy of user content of
  * phil/browser-security-bundle when it is enabled —, with their license and what they owe to artificial intelligence,
- * as an IPTC digital source type with phil/creation-disclosure; tiny previews, SVG images purified by
- * phil/svg-sanitizer and served as images; the `Img` and `Picture` components, a file explorer and its picker behind a role and a stateless
- * CSRF token, the `phil_media` column type and its deletion behaviours, an EasyAdmin field, and a profiler panel, each
- * wired when what it needs is installed.
+ * as an IPTC digital source type with phil/creation-disclosure, kept in the XMP of their renderings; tiny previews,
+ * SVG images purified by phil/svg-sanitizer and served as images; the `Img` and `Picture` components, a file explorer
+ * and its picker behind a role and a stateless CSRF token, the `phil_media` column type and its deletion behaviours, an
+ * EasyAdmin field, and a profiler panel, each wired when what it needs is installed.
  */
 final class PhilMediaBundle extends AbstractBundle
 {
@@ -310,8 +313,17 @@ final class PhilMediaBundle extends AbstractBundle
             : null;
         $purifier = $this->svgPurifier($config['svg']['purify'], $config['svg']['precision'], $services);
 
+        // How media declare they were made, written into their renderings, when phil/creation-disclosure is installed.
+        $sourceTypes = null;
+
+        if (enum_exists(DigitalSourceType::class)) {
+            $services->set(CreationDisclosureSourceType::class);
+            $services->alias(DeclaredSourceType::class, CreationDisclosureSourceType::class);
+            $sourceTypes = new Reference(DeclaredSourceType::class);
+        }
+
         $services->set(MediaLibrary::class)
-            ->args([new Reference($port), new Reference(MediaStorage::class), new Reference(ImageProcessor::class), $clock, $formats, $original, new Reference(MediaReferences::class), $placeholder, $purifier])
+            ->args([new Reference($port), new Reference(MediaStorage::class), new Reference(ImageProcessor::class), $clock, $formats, $original, new Reference(MediaReferences::class), $placeholder, $purifier, $sourceTypes])
             ->public();
         // The policy of user content, when phil/browser-security-bundle is enabled.
         $services->set(MediaController::class)

@@ -83,4 +83,29 @@ read as it is, so that an old disclosure keeps saying what it said.
 
 `DigitalSourceType::uri()` is the address of a type, `http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture`,
 the value of the XMP property `DigitalSourceType::XMP_PROPERTY`, `Iptc4xmpExt:DigitalSourceType`, and of a C2PA
-assertion. `fromUri()` reads an address over `http` or `https`, with or without a trailing slash.
+assertion, in the namespace `DigitalSourceType::XMP_NAMESPACE`, `http://iptc.org/std/Iptc4xmpExt/2008-02-29/`.
+`fromUri()` reads an address over `http` or `https`, with or without a trailing slash.
+
+An XMP packet that declares a generated image holds that one property:
+
+```xml
+<rdf:Description rdf:about=""
+    xmlns:Iptc4xmpExt="http://iptc.org/std/Iptc4xmpExt/2008-02-29/"
+    Iptc4xmpExt:DigitalSourceType="http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia"/>
+```
+
+## Marking generated media
+
+Article 50(2) of the European Union's Artificial Intelligence Act (Regulation (EU) 2024/1689) asks the provider of a
+generative system to mark its synthetic images, audio, video and text in a machine-readable format, detectable as
+artificially generated or manipulated. The digital source type in the file's metadata is such a marking:
+`trainedAlgorithmicMedia` for media created with generative AI, `compositeWithTrainedAlgorithmicMedia` for media edited
+with it.
+
+The marking has to survive the files derived from a declared one. A resized copy, a thumbnail or a conversion to
+another format is usually written without the original's metadata, so that no camera serial number or GPS position
+leaks; the application then writes the declared type back into each derived file, and only that property.
+`phil/media-bundle` does so for the images it renders when this library is installed.
+
+The library declares and reads; it does not open files. Writing the packet into a file, and C2PA manifests, belong to
+the code that writes the file.
