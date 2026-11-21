@@ -25,6 +25,7 @@ use Phil\PrivacyBundle\Application\GuestRequest\GuestRequests;
 use Phil\PrivacyBundle\Application\Handler\AdvanceAccountDeletionHandler;
 use Phil\PrivacyBundle\Application\Handler\ProcessDueAccountDeletionsHandler;
 use Phil\PrivacyBundle\Application\Handler\RunRetentionHandler;
+use Phil\PrivacyBundle\Application\Incident\IncidentJournalRecorder;
 use Phil\PrivacyBundle\Application\Incident\IncidentNotices;
 use Phil\PrivacyBundle\Application\Message\AdvanceAccountDeletion;
 use Phil\PrivacyBundle\Application\Message\ProcessDueAccountDeletions;
@@ -45,6 +46,7 @@ use Phil\PrivacyBundle\Domain\Retention\RetentionPeriod;
 use Phil\PrivacyBundle\Domain\Retention\RetentionSchedule;
 use Phil\PrivacyBundle\Infrastructure\Console\DisabledRightsWarning;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentCommand;
+use Phil\PrivacyBundle\Infrastructure\Console\IncidentJournalCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentNoticeCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentsCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\ProcessDeletionsCommand;
@@ -159,11 +161,13 @@ final class RightsServices
         $services->set(DbalEmailTrackingConsents::class)->args([$connection]);
         $services->set(PrivacySchemaListener::class)->args([$connection])->tag('doctrine.event_listener', ['event' => 'postGenerateSchema']);
         $services->alias(IncidentRegister::class, $incidents ?? DbalIncidentRegister::class)->public();
+        $services->set(IncidentJournalRecorder::class)->args([new Reference(IncidentRegister::class), new Reference('clock')])->public();
         self::notices($services);
 
         if (class_exists(Command::class)) {
             $services->set(IncidentCommand::class)->args([new Reference(IncidentRegister::class), new Reference('clock')])->tag('console.command');
             $services->set(IncidentsCommand::class)->args([new Reference(IncidentRegister::class)])->tag('console.command');
+            $services->set(IncidentJournalCommand::class)->args([new Reference(IncidentJournalRecorder::class), new Reference('clock')])->tag('console.command');
             $services->set(IncidentNoticeCommand::class)->args([new Reference(IncidentRegister::class), new Reference(IncidentNotices::class), new Reference(TwigIncidentNotice::class), new Reference('clock')])->tag('console.command');
         }
     }

@@ -57,7 +57,7 @@ final class PrivacyDatabaseTest extends TestCase
     {
         $schema = PrivacyTables::configure(Schema::editor()->create());
 
-        self::assertCount(8, PrivacyTables::configure($schema)->getTables());
+        self::assertCount(9, PrivacyTables::configure($schema)->getTables());
     }
 
     public function testIdentifiersPeopleAndHashesCompareByteForByteOnMySqlAndMariaDb(): void
@@ -68,6 +68,7 @@ final class PrivacyDatabaseTest extends TestCase
             PrivacyTables::GUEST_REQUESTS => ['id', 'token_hash'],
             PrivacyTables::INCIDENTS => ['id'],
             PrivacyTables::INCIDENT_REVISIONS => ['incident_id', 'field'],
+            PrivacyTables::INCIDENT_JOURNAL => ['incident_id'],
             PrivacyTables::EMAIL_TRACKING => ['subject'],
             PrivacyTables::ERASURE_REQUESTS => ['id', 'subject', 'guest_request', 'inventory_version', 'access_hash'],
             PrivacyTables::ERASURE_STEPS => ['request_id', 'module', 'lease', 'idempotency_key'],

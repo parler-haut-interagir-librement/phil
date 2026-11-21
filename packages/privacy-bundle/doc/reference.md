@@ -141,6 +141,8 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `Incident` | A line of the register of incidents, with the eight paragraphs of section 7 of the Québec regulation (r. 3.1); `record()`, `update()` with `clear`, `isClosed()`, `pendingNotifications()`, `missingParagraphs()`, `knownSince()`, `MINIMUM_RETENTION`, `CLEARABLE` | Implemented |
 | `IncidentRevision` | What a line held before a correction: the field, its previous value, the correction's number and instant | Implemented |
 | `PublicNoticeReason` | Enum: `IncreasedInjury`, `ExcessiveHardship`, `NoContactDetails`, `PromptAction`; `replacesIndividualNotice()` | Implemented |
+| `JournalEntry` | An entry of the journal of an incident: its number, kind, when it was done, who, what and why, the expected end of a deferral, when it was written; `numbered()` | Implemented |
+| `JournalKind` | Enum: `ThirdPartyCommunication`, `NoticeDeferral`, `DeferralLifted`, `OfficerConsultation`; `needsDetails()`, `section()` | Implemented |
 | `NoticeRecipient` | Enum: `Commission`, `Subject`, `Public`; `section()`, `rubrics()` | Implemented |
 | `NoticeRubric` | Enum of the rubrics of the notices of sections 3 and 5 of the regulation; `paragraph($recipient)`, `fedBy($field)` | Implemented |
 | `NoticeOrganisation` | Who gives a notice: `name`, `enterpriseNumber`, `contactName`, `contactDetails`, each nullable | Implemented |
@@ -180,6 +182,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `Anonymization\AnonymizationRun` | Rewrites a plan's columns in one transaction; `run($plan, $target, ?$seed, ?$salt)` | Implemented; wired |
 | `Anonymization\AnonymizationReport` | Rows rewritten by table; `total()` | Implemented |
 | `Anonymization\ProductionGuard` | Refuses production environments and protected hosts and databases; `check($database)` | Implemented; wired |
+| `Incident\IncidentJournalRecorder` | The journal of an incident (P-39.1, sections 3.5 and 3.7); `record($incidentId, $kind, $at, $party, $details, ?$until)`, `entries($incidentId)`, `isDeferred($entries)` | Implemented; wired |
 | `Incident\IncidentNotices` | The drafts of the notices of an incident; `draft($incident, $recipient)`, `followUp($incident, $revisions, ?$since)`, `IDENTIFICATION`; sends nothing | Implemented; wired |
 | `Incident\IncidentNoticeDraft` | A draft before it is written: `recipient`, `incident`, `organisation`, `rubrics`, `missing`, `since`; `isFollowUp()`, `shows()`, `lacks()`, `changes()` | Implemented |
 
@@ -206,6 +209,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `GuestSubjects` | `subjectOf($email)` | Port; `EmailGuestSubjects` |
 | `IncidentRegister` | `save()`, `find()`, `all()` | Port; `DbalIncidentRegister` |
 | `IncidentHistory` | `revisions()` | Port; `DbalIncidentRegister` |
+| `IncidentJournal` | `append()`, `journal()` | Port; `DbalIncidentRegister` |
 | `NoticeOrganisationSource` | `organisation()` | Port; `SiteIdentityOrganisation` |
 | `EmailTrackingStore` | `find()`, `save()`, `forget()`, `store()` | Port; `DbalEmailTrackingConsents` |
 
@@ -222,6 +226,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `AnonymizationRefused` | `RuntimeException`; `inEnvironment()`, `protectedDatabase()`, `withoutKey()`, `keyColumn()` | Implemented |
 | `TooManyGuestRequests` | `RuntimeException`; a client over its limit; `retryIn()`, `retryAfter()` | Implemented |
 | `NoticeRefused` | `RuntimeException`; no draft written: `publicWithoutReason()`, `followUpWithoutNotice()`, `followUpWithoutHistory()`, `invalidSince()` | Implemented |
+| `JournalRefused` | `RuntimeException`; nothing added to the journal of an incident: `withoutJournal()`, `unknownIncident()`, `beforeDiscovery()`, `nothingDeferred()` | Implemented |
 
 ## Infrastructure
 
@@ -232,6 +237,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `Infrastructure\Console\EraseSubjectCommand` | `phil:privacy:erase`: every module's erasure, with `--confirm` | Implemented; wired with Symfony Console |
 | `Infrastructure\Console\ProcessingRegisterCommand` | `phil:privacy:register`: the register of processing, Markdown or JSON, `--strict` | Implemented; wired with Symfony Console |
 | `Infrastructure\Console\IncidentCommand`, `IncidentsCommand` | `phil:privacy:incident`, `phil:privacy:incidents` | Implemented; wired with Symfony Console |
+| `Infrastructure\Console\IncidentJournalCommand` | `phil:privacy:incident-journal`: adds an entry to the journal of an incident, or prints it | Implemented; wired with Symfony Console |
 | `Infrastructure\Console\IncidentNoticeCommand` | `phil:privacy:incident-notice`: a draft of a notice of an incident in Markdown, to the standard output or a new file; sends and records nothing | Implemented; wired with Symfony Console, Twig and the translator |
 | `Infrastructure\Twig\TwigIncidentNotice` | Renders a draft from `@PhilPrivacy/incident_notice/`, `LOCALES` | Implemented |
 | `Infrastructure\LegalNotices\SiteIdentityOrganisation` | The `NoticeOrganisationSource` of the identity of the site of phil/legal-notices | Implemented; wired when the identity is a service |

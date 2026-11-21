@@ -11,7 +11,9 @@ The next version is 0.3.0-alpha: the erasure can run as a workflow, one step per
 confidentiality incidents holds the eight paragraphs of section 7 of the Québec *Regulation respecting confidentiality
 incidents* (chapter A-2.1, r. 3.1), keeps its corrections, is kept at least five years (section 8), and drafts in
 Markdown the notices to the Commission, their follow-ups, and the notices to each person and in public (sections 3 to
-6), which the person in charge reviews and sends. See [Erasure as a workflow](doc/erasure-workflow.md),
+6), which the person in charge reviews and sends, with a journal of the communications to a third party, the notices
+put off for an investigation and the consultations of the person in charge (sections 3.5 and 3.7 of chapter P-39.1);
+every `Sec-GPC` header of a request is read. See [Erasure as a workflow](doc/erasure-workflow.md),
 [The register of incidents](doc/incidents.md) and [The drafts of the notices](doc/incident-notices.md).
 
 To update: a `GuestRequestStore` of your own implements `retain()`. Code that reads the register's JSON, or the
@@ -23,10 +25,11 @@ install phil/outbox-bundle on the connection of the bundle, route `EraseModule` 
 [The tables](doc/erasure-workflow.md#the-tables), for `phil_privacy_erasure_request` and `phil_privacy_erasure_step`.
 For the register of incidents, run `doctrine:migrations:diff`, or the SQL of [The tables](doc/incidents.md#the-tables),
 which adds nine columns to `phil_privacy_incident`, nullable or false by default so that its lines are kept, and creates
-`phil_privacy_incident_revision`. A fixed retention period shorter than five years on `phil_privacy_incident` now fails
-the container build: raise it to `P5Y` or more. An `IncidentRegister` of your own that also purges keeps at least five
-years from the discovery. Code that reads the JSON of `phil:privacy:incidents` finds the new fields, and its Markdown ten
-columns more and a table of corrections; `phil:privacy:incident` prints the paragraphs a line still lacks.
+`phil_privacy_incident_revision` and `phil_privacy_incident_journal`. A fixed retention period shorter than five years
+on `phil_privacy_incident` now fails the container build: raise it to `P5Y` or more. An `IncidentRegister` of your own
+that also purges keeps at least five years from the discovery. Code that reads the JSON of `phil:privacy:incidents`
+finds the new fields, and its Markdown ten columns more, a table of corrections and a table of the journal;
+`phil:privacy:incident` prints the paragraphs a line still lacks.
 
 ### Added
 
@@ -111,6 +114,13 @@ columns more and a table of corrections; `phil:privacy:incident` prints the para
   French and in English in the domain `phil_privacy`.
 - [The drafts of the notices of an incident](doc/incident-notices.md): sections 3 to 6 of the regulation, the rubrics
   filled and those left to complete, who decides and who sends.
+- The journal of an incident (sections 3.5 and 3.7 of chapter P-39.1): `Domain\Incident\JournalEntry` and
+  `JournalKind` (`third_party_communication`, `notice_deferral`, `deferral_lifted`, `officer_consultation`), numbered
+  per incident from 1 and only ever added to; `Application\Contract\IncidentJournal`, implemented by
+  `DbalIncidentRegister` over the table `phil_privacy_incident_journal`; `Application\Incident\IncidentJournalRecorder`
+  (`record()`, `entries()`, `isDeferred()`), which refuses an unknown incident, an entry before the start of the
+  discovery or ahead of time, a lift without a deferral in force, and a register without a journal, with
+  `Application\Exception\JournalRefused`; `phil:privacy:incident-journal`, which adds an entry or prints the journal.
 
 ### Changed
 
@@ -119,7 +129,7 @@ columns more and a table of corrections; `phil:privacy:incident` prints the para
 - `GuestRequestStore` has `retain()`.
 - The documentation of `SubjectErasure` no longer shows a previous exception on `ErasureIncomplete`.
 - `PrivacyTables::configure()` adds the columns it lacks to a `phil_privacy_incident` already in the schema, and
-  creates `phil_privacy_incident_revision`.
+  creates `phil_privacy_incident_revision` and `phil_privacy_incident_journal`.
 - `DbalIncidentRegister` takes the clock as an optional second argument, the clock of `pages.clock` in the container;
   its purge counts from the end of the discovery when it is a period.
 - With `--id`, the summary given to `phil:privacy:incident` replaces the one the line had, and `--discovered` and
@@ -129,6 +139,14 @@ columns more and a table of corrections; `phil:privacy:incident` prints the para
 - [The register of incidents](doc/incidents.md) and [The legal framework](doc/legal-framework.md) cite sections 3.5 to
   3.8 of the *Act respecting the protection of personal information in the private sector* (chapter P-39.1) and
   sections 6 to 8 of the regulation, with the SQL of the tables for MySQL 8.4, PostgreSQL 17 and SQLite.
+- `phil:privacy:incidents` prints the journal of each line, in a table of its own in Markdown and under `journal` in
+  JSON, and the purge of `DbalIncidentRegister` removes the journal of a line with it.
+
+### Fixed
+
+- `ConsentContext::sendsGlobalPrivacyControl()` reads every occurrence of `Sec-GPC`, each split on its commas and
+  trimmed: a browser that sent the signal in a second header, or in a list such as `Sec-GPC: 0, 1`, was asked for its
+  consent and could have optional categories granted.
 
 ## 0.2.0-alpha - 2026-11-20
 

@@ -22,6 +22,7 @@ use Phil\AnalyticsBundle\Infrastructure\Http\CollectController;
 use Phil\AnalyticsBundle\Infrastructure\RateLimiter\SymfonyCollectionRateLimiter;
 use Phil\AnalyticsBundle\Infrastructure\Salt\CacheSaltStore;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -137,6 +138,33 @@ final class CollectionTest extends FunctionalTestCase
     {
         self::assertSame(204, $this->send(['path' => '/', 'verdict' => 'human'], ['HTTP_DNT' => '1']));
         self::assertSame([], $this->counts(MeasureNames::PAGEVIEWS, 'route'));
+    }
+
+    /**
+     * Every occurrence of `Sec-GPC` is read: a `1` in the second one, or in a list, is an opt-out.
+     *
+     * @param list<string> $values
+     */
+    #[DataProvider('globalPrivacyControlHeaders')]
+    public function testEveryGlobalPrivacyControlHeaderIsRead(array $values, bool $optOut): void
+    {
+        $request = $this->request(['path' => '/', 'verdict' => 'human'], []);
+        $request->headers->set('Sec-GPC', $values);
+
+        self::assertSame(204, $this->handle($request));
+        self::assertSame($optOut ? [] : ['home' => 1], $this->counts(MeasureNames::PAGEVIEWS, 'route'));
+    }
+
+    /**
+     * @return iterable<string, array{list<string>, bool}>
+     */
+    public static function globalPrivacyControlHeaders(): iterable
+    {
+        yield 'doubled header' => [['0', '1'], true];
+        yield 'list' => [['0, 1'], true];
+        yield 'spaces' => [[' 1 '], true];
+        yield 'empty value' => [[''], false];
+        yield 'zeros only' => [['0', '0, 0'], false];
     }
 
     public function testARobotVerdictAdvancesOnlyTheRobotCounter(): void

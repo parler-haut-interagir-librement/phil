@@ -16,7 +16,9 @@ register:
 | P-39.1, s. 3.6 | An incident is an access, use or communication the law does not authorize, a loss, or any other breach of the protection of personal information. | Every such incident is a line, serious or not. |
 | P-39.1, s. 3.5, para. 1 | Once it has reason to believe an incident occurred, the business takes reasonable measures to reduce the risk of injury and to prevent a new incident of the same nature. | `--measures`, paragraph 8 of the register. |
 | P-39.1, s. 3.5, para. 2 | If the risk of injury is serious, the business promptly notifies the Commission d'accès à l'information and every person concerned. | `pendingNotifications()` names the notices still owed after each record; `--authority-notified` and `--subjects-notified` date them. |
-| P-39.1, s. 3.7 | The risk is judged by the sensitivity of the information, the anticipated consequences of its use and the likelihood of its use for injurious purposes, after consulting the person in charge of the protection of personal information. | `--risk-assessment`, paragraph 6 of the register. The judgement and the consultation belong to that person. |
+| P-39.1, s. 3.5 | The notice to a person concerned is not given while it could hamper an investigation by a person or a body in charge by law of the prevention, detection or repression of crime. | A `notice_deferral` in the journal of the incident, with the body and the reason, and a `deferral_lifted` once the investigation no longer stands in the way ([below](#the-journal-of-an-incident)). |
+| P-39.1, s. 3.5 | The business may communicate personal information concerned by the incident, without consent, to a person or a body that could reduce the risk, giving only what that purpose needs; the person in charge of the protection of personal information records the communication. | A `third_party_communication` in the journal of the incident: when, to whom, which information and why. |
+| P-39.1, s. 3.7 | The risk is judged by the sensitivity of the information, the anticipated consequences of its use and the likelihood of its use for injurious purposes, after consulting the person in charge of the protection of personal information. | `--risk-assessment`, paragraph 6 of the register, and an `officer_consultation` in the journal of the incident: when, who was consulted, and what they answered. The judgement and the consultation belong to that person. |
 | P-39.1, s. 3.8 | The business keeps a register of incidents, and sends a copy to the Commission at its request. | The table `phil_privacy_incident`; `phil:privacy:incidents` prints the copy. |
 | r. 3.1, ss. 3 to 5 | The content of the notice to the Commission, of its follow-ups, and of the notice to each person. | `phil:privacy:incident-notice` writes a draft of each from the register ([incident-notices.md](incident-notices.md)). |
 | r. 3.1, s. 6 | A notice to the person becomes a public notice when sending it would cause greater injury, would be excessively difficult, or when the business has no contact details; a public notice may also be given to act quickly, the notice to each person still owed. | `--public-notice` and `--public-notice-reason`; the first three reasons stand for the notice to each person; `phil:privacy:incident-notice --to=public` drafts the public notice only for an incident with a reason. |
@@ -89,17 +91,59 @@ A correction never loses what the register said: the table `phil_privacy_inciden
 save changes, its previous value and the instant of the correction, numbered per incident, in the same transaction
 (`IncidentHistory::revisions()`). A line is never removed by hand.
 
+## The journal of an incident
+
+Beside the eight paragraphs, sections 3.5 and 3.7 of P-39.1 leave steps to keep a trace of: a communication to a third
+party that could reduce the risk, a notice put off for an investigation, and the consultation of the person in charge of
+the protection of personal information. Each is an entry of the journal of the incident, numbered from 1 and only ever
+added to:
+
+```bash
+bin/console phil:privacy:incident-journal 4f3c… --kind=third_party_communication --at="2026-11-10 10:00" \
+    --party="Card issuer" --details="Card numbers of the 120 clients, to block the cards"
+bin/console phil:privacy:incident-journal 4f3c… --kind=officer_consultation --party="Privacy officer" \
+    --details="Asked whether the risk is serious: yes, card numbers with names"
+bin/console phil:privacy:incident-journal 4f3c… --kind=notice_deferral --party="Municipal police" \
+    --details="Notifying the clients would warn the suspect" --until=2026-12-10
+bin/console phil:privacy:incident-journal 4f3c… --kind=deferral_lifted --party="Municipal police"
+# Entry 4 of the journal of incident 4f3c… recorded (section 3.5 of chapter P-39.1).
+# The notice put off is now owed promptly: record it with phil:privacy:incident --subjects-notified.
+
+bin/console phil:privacy:incident-journal 4f3c…
+# 1. 2026-11-10T15:00:00+00:00, third_party_communication — Card issuer: Card numbers of the 120 clients, to block the cards
+# …
+```
+
+| Kind (`--kind`) | Section | `--party` | `--details` |
+|---|---|---|---|
+| `third_party_communication` | 3.5 | Who received the information | Required: which information, and how it could reduce the risk |
+| `notice_deferral` | 3.5 | The body that investigates | Required: which investigation the notice could hamper; `--until`, its expected end, when known |
+| `deferral_lifted` | 3.5 | The body that investigates | Optional |
+| `officer_consultation` | 3.7 | The person consulted | Required: what they were asked, and what they answered |
+
+`--at`, when it was done, is now by default, never before the start of the discovery and never ahead of time. `--party`
+is at most 255 characters and `--details` at most 4,000. A `deferral_lifted` is refused unless a deferral is in force.
+The notices still owed (`pendingNotifications()`) stay owed during a deferral: the journal says why one is not given
+yet.
+
+In code, `Application\Incident\IncidentJournalRecorder::record()` writes an entry (`Domain\Incident\JournalEntry`,
+of a `JournalKind`), `entries()` reads them, and `isDeferred()` says whether a deferral is in force; a refusal is a
+`JournalRefused`. The register keeps the journal when it implements `Application\Contract\IncidentJournal`, as the
+table of the bundle does; with another store that does not, the recorder refuses every entry.
+
 ### Printing the register
 
 `phil:privacy:incidents` prints the register, the most recently discovered first, to hand to the Commission that asks
-for a copy: a Markdown table with a column per field and the paragraphs still missing, then a table of the corrections;
-or JSON with every field, `pending_notifications`, `missing_paragraphs` and `revisions` for each line.
+for a copy: a Markdown table with a column per field and the paragraphs still missing, then a table of the corrections
+and a table of the journal; or JSON with every field, `pending_notifications`, `missing_paragraphs`, `revisions` and
+`journal` for each line.
 
 ## Keeping it
 
 The register is the table `phil_privacy_incident`, added to the schema the ORM generates; another store is an
 `IncidentRegister` named under `phil_privacy.incidents.store`. Keep it with a retention rule on its store, which
-removes the closed incidents known since before the cutoff, never an open one, with their corrections:
+removes the closed incidents known since before the cutoff, never an open one, with their corrections and their
+journal:
 
 ```yaml
 phil_privacy:
@@ -120,9 +164,29 @@ Section 8 of the regulation keeps each line at least five years after the date o
 
 ## The tables
 
-`PrivacySchemaListener` adds the columns and the table of corrections to the schema the ORM generates, so
-`doctrine:migrations:diff` writes the migration; on a register already in use, the new columns are nullable or false by
-default, and the lines already there are kept. Without the ORM, the migration of a register in use is:
+`PrivacySchemaListener` adds the columns, the table of corrections and the table of the journal to the schema the ORM
+generates, so `doctrine:migrations:diff` writes the migration; on a register already in use, the new columns are
+nullable or false by default, and the lines already there are kept. Without the ORM, the table of the journal is:
+
+MySQL 8.4 and MariaDB:
+
+```sql
+CREATE TABLE phil_privacy_incident_journal (incident_id VARCHAR(32) CHARACTER SET utf8mb4 NOT NULL COLLATE `utf8mb4_bin`, sequence INT NOT NULL, kind VARCHAR(32) NOT NULL, done_at DATETIME NOT NULL, party VARCHAR(255) NOT NULL, details LONGTEXT NOT NULL, until_at DATETIME DEFAULT NULL, recorded_at DATETIME NOT NULL, PRIMARY KEY (incident_id, sequence));
+```
+
+PostgreSQL 17:
+
+```sql
+CREATE TABLE phil_privacy_incident_journal (incident_id VARCHAR(32) NOT NULL, sequence INT NOT NULL, kind VARCHAR(32) NOT NULL, done_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, party VARCHAR(255) NOT NULL, details TEXT NOT NULL, until_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, recorded_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY (incident_id, sequence));
+```
+
+SQLite:
+
+```sql
+CREATE TABLE phil_privacy_incident_journal (incident_id VARCHAR(32) NOT NULL, sequence INTEGER NOT NULL, kind VARCHAR(32) NOT NULL, done_at DATETIME NOT NULL, party VARCHAR(255) NOT NULL, details CLOB NOT NULL, until_at DATETIME DEFAULT NULL, recorded_at DATETIME NOT NULL, PRIMARY KEY (incident_id, sequence));
+```
+
+The migration of a register in use, written before the paragraphs of section 7, is:
 
 MySQL 8.4 and MariaDB:
 
@@ -161,7 +225,7 @@ ALTER TABLE phil_privacy_incident ADD COLUMN public_notice_at DATETIME DEFAULT N
 ALTER TABLE phil_privacy_incident ADD COLUMN public_notice_reason VARCHAR(32) DEFAULT NULL;
 ```
 
-A new install creates both tables whole:
+A new install creates the register and its table of corrections whole, with the table of the journal above:
 
 MySQL 8.4 and MariaDB:
 
@@ -179,4 +243,5 @@ CREATE TABLE phil_privacy_incident_revision (incident_id VARCHAR(32) NOT NULL, s
 ```
 
 Every instant is written in UTC. Two corrections of the same line saved at the same moment never share a number: the
-second fails on the primary key of the table of corrections, and is saved again.
+second fails on the primary key of the table of corrections, and is saved again. The same holds for two entries of the
+journal of one incident.

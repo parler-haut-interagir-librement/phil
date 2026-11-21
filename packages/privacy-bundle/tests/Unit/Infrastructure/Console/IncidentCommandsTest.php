@@ -10,6 +10,8 @@ use Doctrine\DBAL\Schema\Schema;
 use Override;
 use Phil\PrivacyBundle\Application\Contract\IncidentRegister;
 use Phil\PrivacyBundle\Domain\Incident\Incident;
+use Phil\PrivacyBundle\Domain\Incident\JournalEntry;
+use Phil\PrivacyBundle\Domain\Incident\JournalKind;
 use Phil\PrivacyBundle\Domain\Incident\PublicNoticeReason;
 use Phil\PrivacyBundle\Domain\Subject\DataCategory;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentCommand;
@@ -240,6 +242,7 @@ final class IncidentCommandsTest extends TestCase
             'public_notice_reason' => 'no_contact_details',
             'missing_paragraphs' => [],
             'revisions' => [],
+            'journal' => [],
         ], \array_slice($rows[0], 12));
 
         $markdown = new CommandTester(new IncidentsCommand($this->register));
@@ -307,6 +310,42 @@ final class IncidentCommandsTest extends TestCase
         self::assertIsArray($rows);
         self::assertIsArray($rows[0]);
         self::assertSame([['incident_id' => str_repeat('a', 32), 'sequence' => 1, 'field' => 'summary', 'previous' => 'Tpyo | here', 'revised_at' => '2026-11-12T08:00:00+00:00']], $rows[0]['revisions']);
+        self::assertSame([], $rows[0]['journal']);
+    }
+
+    public function testTheJournalOfARegisterThatKeepsOneIsPrinted(): void
+    {
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+
+        foreach (PrivacyTables::configure(Schema::editor()->create())->toSql($connection->getDatabasePlatform()) as $statement) {
+            $connection->executeStatement($statement);
+        }
+
+        $register = new DbalIncidentRegister($connection, new MockClock('2026-11-12T08:00:00Z'));
+        $incident = new Incident(str_repeat('a', 32), 'Cards', new DateTimeImmutable('2026-11-10T09:00:00Z'), null, [], null, true);
+        $register->save($incident);
+        $register->append(new JournalEntry($incident->id, 0, JournalKind::NoticeDeferral, new DateTimeImmutable('2026-11-11T00:00:00Z'), 'Police', "Would warn\nthe | suspect", new DateTimeImmutable('2026-12-01T00:00:00Z'), new DateTimeImmutable('2026-11-12T08:00:00Z')));
+        $register->append(new JournalEntry($incident->id, 0, JournalKind::DeferralLifted, new DateTimeImmutable('2026-11-12T00:00:00Z'), 'Police', '', null, new DateTimeImmutable('2026-11-12T08:00:00Z')));
+
+        $markdown = new CommandTester(new IncidentsCommand($register));
+        self::assertSame(Command::SUCCESS, $markdown->execute([]));
+        self::assertStringContainsString(" |\n\n| Identifier | Entry | Kind | Done | Party | Details | Until | Recorded |\n", $markdown->getDisplay(), 'A blank line sets the journal apart from the register.');
+        self::assertStringEndsWith(implode("\n", [
+            '|---|---|---|---|---|---|---|---|',
+            '| '.str_repeat('a', 32).' | 1 | notice_deferral | 2026-11-11T00:00:00+00:00 | Police | Would warn the \\| suspect | 2026-12-01T00:00:00+00:00 | 2026-11-12T08:00:00+00:00 |',
+            '| '.str_repeat('a', 32).' | 2 | deferral_lifted | 2026-11-12T00:00:00+00:00 | Police | — | — | 2026-11-12T08:00:00+00:00 |',
+        ])."\n", $markdown->getDisplay());
+        self::assertStringNotContainsString('| Correction |', $markdown->getDisplay());
+
+        $json = new CommandTester(new IncidentsCommand($register));
+        $json->execute(['--format' => 'json']);
+        $rows = json_decode($json->getDisplay(), true);
+        self::assertIsArray($rows);
+        self::assertIsArray($rows[0]);
+        self::assertSame([
+            ['incident_id' => str_repeat('a', 32), 'sequence' => 1, 'kind' => 'notice_deferral', 'at' => '2026-11-11T00:00:00+00:00', 'party' => 'Police', 'details' => "Would warn\nthe | suspect", 'until' => '2026-12-01T00:00:00+00:00', 'recorded_at' => '2026-11-12T08:00:00+00:00'],
+            ['incident_id' => str_repeat('a', 32), 'sequence' => 2, 'kind' => 'deferral_lifted', 'at' => '2026-11-12T00:00:00+00:00', 'party' => 'Police', 'details' => '', 'until' => null, 'recorded_at' => '2026-11-12T08:00:00+00:00'],
+        ], $rows[0]['journal']);
     }
 
     public function testTheOptionsToPublishAndToEmptyListTheirValues(): void

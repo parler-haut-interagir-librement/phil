@@ -12,6 +12,8 @@ use Doctrine\DBAL\Schema\TableEditor;
 use Override;
 use Phil\PrivacyBundle\Domain\Incident\Incident;
 use Phil\PrivacyBundle\Domain\Incident\IncidentRevision;
+use Phil\PrivacyBundle\Domain\Incident\JournalEntry;
+use Phil\PrivacyBundle\Domain\Incident\JournalKind;
 use Phil\PrivacyBundle\Domain\Incident\PublicNoticeReason;
 use Phil\PrivacyBundle\Domain\Retention\PurgeOrder;
 use Phil\PrivacyBundle\Domain\Subject\DataCategory;
@@ -23,11 +25,12 @@ use Symfony\Component\Clock\MockClock;
 
 /**
  * The register of incidents on a database: every paragraph of section 7 written and read back, the corrections kept,
- * the floor of five years of section 8 held by the purge, and a register of the version before migrated with its rows.
+ * the journal of each line numbered and read back, the floor of five years of section 8 held by the purge with the
+ * corrections and the journal, and a register of the version before migrated with its rows.
  */
 abstract class IncidentRegisterTestCase extends TestCase
 {
-    private const array TABLES = [PrivacyTables::INCIDENT_REVISIONS, PrivacyTables::INCIDENTS];
+    private const array TABLES = [PrivacyTables::INCIDENT_JOURNAL, PrivacyTables::INCIDENT_REVISIONS, PrivacyTables::INCIDENTS];
 
     private ?Connection $connection = null;
 
@@ -125,6 +128,26 @@ abstract class IncidentRegisterTestCase extends TestCase
         self::assertSame([], $register->revisions(str_repeat('0', 32)));
     }
 
+    public function testTheJournalOfALineIsNumberedAndReadBack(): void
+    {
+        $register = $this->register();
+        $incident = new Incident(str_repeat('a', 32), 'Cards', new DateTimeImmutable('2026-11-10T09:00:00Z'), null, [], null, true);
+        $other = new Incident(str_repeat('b', 32), 'Other', new DateTimeImmutable('2026-11-10T09:00:00Z'), null, [], null, false);
+        $register->save($incident);
+        $register->save($other);
+        $recorded = new DateTimeImmutable('2026-11-20T10:00:00Z');
+
+        $first = $register->append(new JournalEntry($incident->id, 0, JournalKind::ThirdPartyCommunication, new DateTimeImmutable('2026-11-11T08:30:00Z'), 'Card issuer', 'Card numbers, to block the cards', null, $recorded));
+        $second = $register->append(new JournalEntry($incident->id, 0, JournalKind::NoticeDeferral, new DateTimeImmutable('2026-11-12T00:00:00Z'), 'Police', 'Notice would warn the suspect', new DateTimeImmutable('2026-12-12T00:00:00Z'), $recorded));
+        $register->append(new JournalEntry($other->id, 0, JournalKind::OfficerConsultation, new DateTimeImmutable('2026-11-12T00:00:00Z'), 'Privacy officer', 'No serious risk', null, $recorded));
+
+        self::assertSame([1, 2], [$first->sequence, $second->sequence]);
+        self::assertEquals([$first, $second], $register->journal($incident->id));
+        self::assertSame([1], array_map(static fn (JournalEntry $entry): int => $entry->sequence, $register->journal($other->id)));
+        self::assertSame([], $register->journal(str_repeat('0', 32)));
+        self::assertSame('2026-12-12T00:00:00+00:00', $register->journal($incident->id)[1]->until?->format(\DATE_ATOM));
+    }
+
     public function testThePurgeNeverGoesBelowFiveYearsFromTheDiscovery(): void
     {
         $register = $this->register();
@@ -142,12 +165,14 @@ abstract class IncidentRegisterTestCase extends TestCase
         $old = $closed('a', '2021-11-20T09:59:59Z');
         $register->save($old);
         $register->save($old->update(measures: 'Corrected'));
+        $register->append(new JournalEntry($old->id, 0, JournalKind::OfficerConsultation, $old->discoveredAt, 'Privacy officer', 'Low risk', null, $old->discoveredAt));
         $register->save($closed('b', '2021-11-20T10:00:00Z'));
         $register->save($closed('c', '2021-01-01T00:00:00Z', '2022-06-01T00:00:00Z'));
 
         $kept = $closed('d', '2023-01-01T00:00:00Z');
         $register->save($kept);
         $register->save($kept->update(measures: 'Corrected too'));
+        $register->append(new JournalEntry($kept->id, 0, JournalKind::OfficerConsultation, $kept->discoveredAt, 'Privacy officer', 'Low risk', null, $kept->discoveredAt));
         $register->save(new Incident(str_repeat('e', 32), 'Open', new DateTimeImmutable('2010-01-01T00:00:00Z'), null, [], null, false));
 
         self::assertSame(0, $register->purge(new PurgeOrder('R-INC', PrivacyTables::INCIDENTS, new DateTimeImmutable('2021-11-20T09:59:59Z'))), 'A cutoff before the floor applies as it is.');
@@ -156,6 +181,8 @@ abstract class IncidentRegisterTestCase extends TestCase
         self::assertSame([], $register->revisions($old->id));
         self::assertCount(1, $register->revisions($kept->id), 'The corrections of a line that stays stay.');
         self::assertEquals(1, $this->connection()->fetchOne('SELECT COUNT(*) FROM '.PrivacyTables::INCIDENT_REVISIONS));
+        self::assertSame([], $register->journal($old->id), 'The journal goes with its line.');
+        self::assertCount(1, $register->journal($kept->id), 'The journal of a line that stays stays.');
 
         $this->clock->modify('2027-06-01T00:00:01Z');
         self::assertSame(2, $register->purge(new PurgeOrder('R-INC', PrivacyTables::INCIDENTS, new DateTimeImmutable('2030-01-01T00:00:00Z'))), 'The end of the discovery counts.');
@@ -192,6 +219,7 @@ abstract class IncidentRegisterTestCase extends TestCase
         $platform = $connection->getDatabasePlatform();
         $before = PrivacyTables::configure(Schema::editor()->create(), $platform)->edit()
             ->dropTableByUnquotedName(PrivacyTables::INCIDENT_REVISIONS)
+            ->dropTableByUnquotedName(PrivacyTables::INCIDENT_JOURNAL)
             ->modifyTableByUnquotedName(PrivacyTables::INCIDENTS, static function (TableEditor $table): void {
                 foreach (['information', 'undescribed_reason', 'occurred_until', 'occurrence_approximate', 'discovered_until', 'affected_approximate', 'risk_assessment', 'public_notice_at', 'public_notice_reason'] as $column) {
                     $table->dropColumnByUnquotedName($column);
@@ -238,7 +266,7 @@ abstract class IncidentRegisterTestCase extends TestCase
         $platform = $connection->getDatabasePlatform();
         $schema = PrivacyTables::configure(Schema::editor()->create(), $platform);
 
-        foreach ([PrivacyTables::INCIDENTS, PrivacyTables::INCIDENT_REVISIONS] as $table) {
+        foreach ([PrivacyTables::INCIDENTS, PrivacyTables::INCIDENT_REVISIONS, PrivacyTables::INCIDENT_JOURNAL] as $table) {
             foreach ($platform->getCreateTableSQL($schema->getTable($table)) as $statement) {
                 $connection->executeStatement($statement);
             }

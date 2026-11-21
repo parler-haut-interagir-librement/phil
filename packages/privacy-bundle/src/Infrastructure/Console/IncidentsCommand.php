@@ -7,9 +7,11 @@ namespace Phil\PrivacyBundle\Infrastructure\Console;
 use DateTimeImmutable;
 use Override;
 use Phil\PrivacyBundle\Application\Contract\IncidentHistory;
+use Phil\PrivacyBundle\Application\Contract\IncidentJournal;
 use Phil\PrivacyBundle\Application\Contract\IncidentRegister;
 use Phil\PrivacyBundle\Domain\Incident\Incident;
 use Phil\PrivacyBundle\Domain\Incident\IncidentRevision;
+use Phil\PrivacyBundle\Domain\Incident\JournalEntry;
 use Phil\PrivacyBundle\Domain\Subject\DataCategory;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -22,7 +24,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * The register of confidentiality incidents, the most recently discovered first: a Markdown table to hand to the
  * authority that asks for it, or JSON. Each line names the paragraphs of section 7 of the Québec regulation it still
- * lacks; a register that keeps its corrections (`IncidentHistory`) adds what each line held before them.
+ * lacks; a register that keeps its corrections (`IncidentHistory`) adds what each line held before them, and one that
+ * keeps a journal (`IncidentJournal`) the communications to a third party, the notices put off and the consultations.
  */
 #[AsCommand(name: 'phil:privacy:incidents', description: 'Prints the register of confidentiality incidents')]
 final class IncidentsCommand extends Command
@@ -99,11 +102,23 @@ final class IncidentsCommand extends Command
             }
         }
 
+        $journal = array_merge(...array_map(static fn (array $row): array => $row['journal'], $rows));
+
+        if ([] !== $journal) {
+            $output->writeln('');
+            $output->writeln('| Identifier | Entry | Kind | Done | Party | Details | Until | Recorded |');
+            $output->writeln('|---|---|---|---|---|---|---|---|');
+
+            foreach ($journal as $entry) {
+                $output->writeln('| '.implode(' | ', array_map($this->cell(...), [$entry['incident_id'], $entry['sequence'], $entry['kind'], $entry['at'], $entry['party'], $entry['details'], $entry['until'], $entry['recorded_at']])).' |');
+            }
+        }
+
         return Command::SUCCESS;
     }
 
     /**
-     * @return array{id: string, discovered_at: string, occurred_at: ?string, summary: string, categories: list<string>, affected: ?int, serious_risk: bool, measures: string, authority_notified_at: ?string, subjects_notified_at: ?string, closed_at: ?string, pending_notifications: list<string>, discovered_until: ?string, occurred_until: ?string, occurrence_approximate: bool, information: string, undescribed_reason: string, affected_approximate: bool, risk_assessment: string, public_notice_at: ?string, public_notice_reason: ?string, missing_paragraphs: list<int>, revisions: list<array{incident_id: string, sequence: int, field: string, previous: ?string, revised_at: string}>}
+     * @return array{id: string, discovered_at: string, occurred_at: ?string, summary: string, categories: list<string>, affected: ?int, serious_risk: bool, measures: string, authority_notified_at: ?string, subjects_notified_at: ?string, closed_at: ?string, pending_notifications: list<string>, discovered_until: ?string, occurred_until: ?string, occurrence_approximate: bool, information: string, undescribed_reason: string, affected_approximate: bool, risk_assessment: string, public_notice_at: ?string, public_notice_reason: ?string, missing_paragraphs: list<int>, revisions: list<array{incident_id: string, sequence: int, field: string, previous: ?string, revised_at: string}>, journal: list<array{incident_id: string, sequence: int, kind: string, at: string, party: string, details: string, until: ?string, recorded_at: string}>}
      */
     private function row(Incident $incident): array
     {
@@ -137,6 +152,16 @@ final class IncidentsCommand extends Command
                 'previous' => $revision->previous,
                 'revised_at' => $this->date($revision->revisedAt) ?? '',
             ], $this->register->revisions($incident->id)) : [],
+            'journal' => $this->register instanceof IncidentJournal ? array_map(fn (JournalEntry $entry): array => [
+                'incident_id' => $entry->incidentId,
+                'sequence' => $entry->sequence,
+                'kind' => $entry->kind->value,
+                'at' => $this->date($entry->at) ?? '',
+                'party' => $entry->party,
+                'details' => $entry->details,
+                'until' => $this->date($entry->until),
+                'recorded_at' => $this->date($entry->recordedAt) ?? '',
+            ], $this->register->journal($incident->id)) : [],
         ];
     }
 

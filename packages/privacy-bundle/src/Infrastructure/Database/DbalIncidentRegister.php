@@ -10,10 +10,13 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 use Override;
 use Phil\PrivacyBundle\Application\Contract\IncidentHistory;
+use Phil\PrivacyBundle\Application\Contract\IncidentJournal;
 use Phil\PrivacyBundle\Application\Contract\IncidentRegister;
 use Phil\PrivacyBundle\Application\Contract\RetentionPurger;
 use Phil\PrivacyBundle\Domain\Incident\Incident;
 use Phil\PrivacyBundle\Domain\Incident\IncidentRevision;
+use Phil\PrivacyBundle\Domain\Incident\JournalEntry;
+use Phil\PrivacyBundle\Domain\Incident\JournalKind;
 use Phil\PrivacyBundle\Domain\Incident\PublicNoticeReason;
 use Phil\PrivacyBundle\Domain\Retention\PurgeOrder;
 use Phil\PrivacyBundle\Domain\Retention\RetentionPeriod;
@@ -25,13 +28,14 @@ use Symfony\Component\Clock\NativeClock;
  * The register of confidentiality incidents in `phil_privacy_incident`, through DBAL, every date in UTC.
  *
  * A line saved again keeps what each changed field held in `phil_privacy_incident_revision`, in the same transaction:
- * a correction never loses what the register said before.
+ * a correction never loses what the register said before. The journal of each line, in `phil_privacy_incident_journal`,
+ * is only ever added to.
  *
  * It answers for the store of the same name in a retention schedule: a line on it removes the closed incidents known
- * since before the cutoff, never one still open, and never one known for less than `Incident::MINIMUM_RETENTION`
- * (section 8 of the Québec regulation), whatever the cutoff of the rule.
+ * since before the cutoff, with their corrections and their journal, never one still open, and never one known for less
+ * than `Incident::MINIMUM_RETENTION` (section 8 of the Québec regulation), whatever the cutoff of the rule.
  */
-final readonly class DbalIncidentRegister implements IncidentRegister, IncidentHistory, RetentionPurger
+final readonly class DbalIncidentRegister implements IncidentRegister, IncidentHistory, IncidentJournal, RetentionPurger
 {
     private const string COLUMNS = 'id, summary, discovered_at, occurred_at, categories, affected, serious_risk, measures, authority_notified_at, subjects_notified_at, closed_at, information, undescribed_reason, occurred_until, occurrence_approximate, discovered_until, affected_approximate, risk_assessment, public_notice_at, public_notice_reason';
 
@@ -132,6 +136,52 @@ final readonly class DbalIncidentRegister implements IncidentRegister, IncidentH
         ), $rows);
     }
 
+    /**
+     * Numbers the entry after the last one of its incident, in a transaction: two entries added at the same moment never
+     * share a number, the second failing on the primary key of the journal.
+     */
+    #[Override]
+    public function append(JournalEntry $entry): JournalEntry
+    {
+        return $this->connection->transactional(function () use ($entry): JournalEntry {
+            $last = $this->connection->fetchOne('SELECT MAX(sequence) FROM '.PrivacyTables::INCIDENT_JOURNAL.' WHERE incident_id = ?', [$entry->incidentId]);
+            $numbered = $entry->numbered((is_numeric($last) ? (int) $last : 0) + 1);
+
+            $this->connection->insert(PrivacyTables::INCIDENT_JOURNAL, [
+                'incident_id' => $numbered->incidentId,
+                'sequence' => $numbered->sequence,
+                'kind' => $numbered->kind->value,
+                'done_at' => $this->text($numbered->at),
+                'party' => $numbered->party,
+                'details' => $numbered->details,
+                'until_at' => $this->optional($numbered->until),
+                'recorded_at' => $this->text($numbered->recordedAt),
+            ], ['sequence' => ParameterType::INTEGER]);
+
+            return $numbered;
+        });
+    }
+
+    #[Override]
+    public function journal(string $incidentId): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT incident_id, sequence, kind, done_at, party, details, until_at, recorded_at FROM '.PrivacyTables::INCIDENT_JOURNAL.' WHERE incident_id = ? ORDER BY sequence',
+            [$incidentId],
+        );
+
+        return array_map(fn (array $row): JournalEntry => new JournalEntry(
+            $this->string($row, 'incident_id'),
+            is_numeric($row['sequence']) ? (int) $row['sequence'] : 0,
+            JournalKind::from($this->string($row, 'kind')),
+            UtcMoments::read($this->connection, $row['done_at'], 'done_at'),
+            $this->string($row, 'party'),
+            $this->string($row, 'details'),
+            UtcMoments::readOptional($this->connection, $row['until_at'], 'until_at'),
+            UtcMoments::read($this->connection, $row['recorded_at'], 'recorded_at'),
+        ), $rows);
+    }
+
     #[Override]
     public function store(): string
     {
@@ -139,8 +189,8 @@ final readonly class DbalIncidentRegister implements IncidentRegister, IncidentH
     }
 
     /**
-     * Removes the closed incidents known since before the cutoff of the order, and their corrections; a cutoff later
-     * than the floor of section 8 gives way to the floor.
+     * Removes the closed incidents known since before the cutoff of the order, their corrections and their journal; a
+     * cutoff later than the floor of section 8 gives way to the floor.
      */
     #[Override]
     public function purge(PurgeOrder $order): int
@@ -159,6 +209,7 @@ final readonly class DbalIncidentRegister implements IncidentRegister, IncidentH
         foreach (array_chunk($ids, self::PURGE_BATCH) as $batch) {
             $purged += $this->connection->transactional(function () use ($batch): int {
                 $this->connection->executeStatement('DELETE FROM '.PrivacyTables::INCIDENT_REVISIONS.' WHERE incident_id IN (?)', [$batch], [ArrayParameterType::STRING]);
+                $this->connection->executeStatement('DELETE FROM '.PrivacyTables::INCIDENT_JOURNAL.' WHERE incident_id IN (?)', [$batch], [ArrayParameterType::STRING]);
 
                 return (int) $this->connection->executeStatement('DELETE FROM '.PrivacyTables::INCIDENTS.' WHERE id IN (?)', [$batch], [ArrayParameterType::STRING]);
             });

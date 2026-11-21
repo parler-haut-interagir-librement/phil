@@ -24,9 +24,21 @@ final readonly class ConsentContext
     ) {
     }
 
+    /**
+     * Whether the request carries the Global Privacy Control: every occurrence of `Sec-GPC` is read, each split on its
+     * commas, and one value `1`, once trimmed, is the signal.
+     */
     public static function sendsGlobalPrivacyControl(Request $request): bool
     {
-        return '1' === $request->headers->get('Sec-GPC');
+        foreach ($request->headers->all('sec-gpc') as $header) {
+            foreach (explode(',', (string) $header) as $value) {
+                if ('1' === trim($value)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function state(): ConsentState
