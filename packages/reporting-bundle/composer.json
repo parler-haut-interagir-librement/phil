@@ -52,6 +52,7 @@
         "symfony/security-core": "^8.2",
         "symfony/stimulus-bundle": "^3.7",
         "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6",
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-live-component": "^3.7",
@@ -69,6 +70,7 @@
         "symfony/notifier": "To announce the reports on the channels of Notifier",
         "symfony/scheduler": "To export and deliver the reports on a schedule",
         "symfony/security-core": "To restrict a dashboard to a role",
+        "symfony/translation": "To write the headings of the training reports in the reader's language",
         "symfony/ux-live-component": "To change a dashboard's period without reloading the page",
         "symfony/ux-twig-component": "For the dashboards, metrics and charts on a page"
     },
@@ -86,7 +88,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.2.x-dev"
         }
     }
 }

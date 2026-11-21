@@ -8,10 +8,11 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
 /**
  * The bundle's declared dependencies, checked against the bundle installed on its own.
  *
- * Symfony UX, Messenger, Scheduler, Mailer, Mime, Notifier, Console, HttpFoundation, the security component and
- * EasyAdmin are used by the production code but only required in development and suggested: the bundle registers
- * the components, the queue, the schedule, the deliveries, the command, the downloads, the access check and the
- * EasyAdmin page only when their packages are there.
+ * Symfony UX, Messenger, Scheduler, Mailer, Mime, Notifier, Console, HttpFoundation, the security component, the
+ * translation contracts and EasyAdmin are used by the production code but only required in development and
+ * suggested: the bundle registers the components, the queue, the schedule, the deliveries, the command, the
+ * downloads, the access check, the translated headings of the training reports and the EasyAdmin page only when their
+ * packages are there.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
@@ -26,6 +27,7 @@ return new Configuration()
         'symfony/notifier',
         'symfony/scheduler',
         'symfony/security-core',
+        'symfony/translation-contracts',
         'symfony/ux-live-component',
         'symfony/ux-twig-component',
     ], [ErrorType::DEV_DEPENDENCY_IN_PROD]);

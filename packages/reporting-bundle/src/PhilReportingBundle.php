@@ -10,6 +10,7 @@ use Phil\ReportingBundle\Application\Dashboard\ChartRendering;
 use Phil\ReportingBundle\Application\PeriodPreset;
 use Phil\ReportingBundle\Infrastructure\DependencyInjection\KeyedServicesPass;
 use Phil\ReportingBundle\Infrastructure\DependencyInjection\ReportingServices;
+use Phil\ReportingBundle\Infrastructure\DependencyInjection\TrainingReportsPass;
 use Phil\SvgChart\ChartType;
 use Phil\SvgChart\Raster\ResvgRasterizer;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
@@ -32,6 +33,7 @@ final class PhilReportingBundle extends AbstractBundle
     #[Override]
     public function build(ContainerBuilder $container): void
     {
+        $container->addCompilerPass(new TrainingReportsPass());
         $container->addCompilerPass(new KeyedServicesPass());
     }
 

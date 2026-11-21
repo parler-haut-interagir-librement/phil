@@ -37,6 +37,34 @@ A report: its columns and its rows for a request. See [Reports](reports.md).
 A report that has a chart, which the `mail` delivery puts in its e-mail as a PNG image: `chart()` gives a
 `ReportChart`, the key of a series source, a `ChartType` and a title. See [Reports](reports.md#the-chart-of-a-report-in-its-e-mail).
 
+## `TrainingSource`, `UnitDirectory` and `PayrollSource`
+
+The ports of the training reports, each a single service the application aliases: the activities of its learning
+system, in a currency; the path of an organisational unit from its root; the payroll of a period. Without a
+`TrainingSource`, the training reports are not registered; the two others are optional. See
+[Training hours and costs](training.md) and [The 1 % of payroll template](quebec-one-percent.md).
+
+```php
+interface TrainingSource
+{
+    public function currency(): string;
+
+    /** @return iterable<TrainingActivity> */
+    public function activities(Period $period): iterable;
+}
+
+interface UnitDirectory
+{
+    /** @return list<UnitNode> */
+    public function path(string $unit): array;
+}
+
+interface PayrollSource
+{
+    public function payroll(Period $period): ?int;
+}
+```
+
 ## `ReportFormat`
 
 A file format beside CSV, TSV and JSON: its key, media type and extension, and how it writes the headings and the

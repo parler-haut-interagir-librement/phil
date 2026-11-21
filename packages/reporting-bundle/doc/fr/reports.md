@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=62d649147ce5d8ad8d8c3e5045d85c75062c51b8f7cf15defc06d9c60ba649c4 -->
+<!-- phil-dev source-sha256=0a9ceeb973260c262ba7110b309e7b05be2ee4b8f81773bc87898a7431ee0dc3 -->
 # Rapports
 
 ## Une définition
@@ -39,6 +39,9 @@ Les lignes sont lues à mesure qu'elles sont écrites : produisez-les à partir 
 et un export ne garde qu'une ligne à la fois en mémoire. Chaque ligne a une cellule par colonne — une chaîne, un
 entier, un nombre à virgule flottante, un booléen ou `null` —, sinon l'export s'arrête avec `InvalidReportJob`.
 Au-delà de `max_rows`, il s'arrête avec `ReportTooLarge`.
+
+Deux rapports sont fournis avec le bundle dès que l'application branche un système d'apprentissage : les
+[heures et coûts de formation](training.md) et le [gabarit du 1 % de la masse salariale](quebec-one-percent.md).
 
 Un `ReportRequest` est la période et les paramètres : au plus 32 scalaires sous des clés de 1 à 64 lettres, chiffres,
 points, tirets ou traits de soulignement, chaque texte comptant au plus 200 caractères.

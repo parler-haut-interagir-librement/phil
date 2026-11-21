@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5b6cebb846de17b71d65fefcdea0857ce880e14519e279b018edb75b836b3feb -->
+<!-- phil-dev source-sha256=858602ccb4d4e81bcd8e0193dc2980b8f72be6cc0b0064d8b27ba2cbeb532694 -->
 # phil/reporting-bundle
 
 **Des tableaux de bord et des rapports pour les applications Symfony : des chiffres fournis par n'importe quel bundle,
@@ -24,6 +24,11 @@ Mailer ou Notifier depuis un *worker* de Messenger. Un message ne porte qu'un id
 destinataires et ses paramètres, et le fichier exporté attendent dans des magasins que seul leur propriétaire peut
 lire. C'est le *claim check*.
 
+Deux rapports sont fournis avec le bundle pour un système d'apprentissage : les heures et les coûts de formation de
+chaque période et unité organisationnelle, et le gabarit du 1 % de la masse salariale du Québec pour le développement
+des compétences de la main-d'œuvre — heures, coûts admissibles, masse salariale, investissement requis, ratio et
+écart à combler. Le système d'apprentissage, l'arbre des unités et la masse salariale se branchent chacun par un port.
+
 Il s'appuie sur la bibliothèque `phil/svg-chart` pour dessiner les images ; Symfony UX, Messenger, Scheduler, Mailer,
 Notifier, Console et EasyAdmin sont chacun utilisés quand ils sont installés.
 
@@ -43,6 +48,8 @@ Notifier, Console et EasyAdmin sont chacun utilisés quand ils sont installés.
 | Téléchargements `ReportResponses`, `phil:reporting:export`, la page EasyAdmin | Implémenté et testé |
 | Graphiques PNG par l'extension `resvg`, quand elle est chargée : téléchargements `ChartResponses`, le graphique d'un `ChartedReport` dans son courriel | Implémenté et testé |
 | Exports qui échouent en entier : `ExportFailed`, nouvelle tentative, aucun fichier tronqué conservé | Implémenté et testé |
+| `training_hours` : heures et coûts de formation par période et unité organisationnelle, par `TrainingSource` et `UnitDirectory` | Implémenté et testé |
+| `training_quebec_1_percent` : le gabarit du 1 % de la masse salariale du Québec, par `PayrollSource` | Implémenté et testé |
 
 ## Documentation
 
@@ -53,6 +60,8 @@ Notifier, Console et EasyAdmin sont chacun utilisés quand ils sont installés.
 | [Sources](doc/fr/sources.md) | Fournir des mesures et des séries, périodes et limites. |
 | [Tableaux de bord](doc/fr/dashboards.md) | Les composants, les rendus, leur accessibilité, EasyAdmin. |
 | [Rapports](doc/fr/reports.md) | Définitions, formats, téléchargements, la commande, calendriers, livraisons et le *claim check*. |
+| [Heures et coûts de formation](doc/fr/training.md) | Le rapport de formation par période et unité, ses ports et leurs adaptateurs. |
+| [Le gabarit du 1 % de la masse salariale (Québec)](doc/fr/quebec-one-percent.md) | Les chiffres de l'obligation québécoise de développement des compétences. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce que l'application peut remplacer ou ajouter, et quand c'est stable. |
 | [Tests](doc/fr/testing.md) | Les tests du bundle, et comment tester le code qui l'utilise. |
 | [Référence](doc/fr/reference.md) | Chaque type public, avec son rôle. |

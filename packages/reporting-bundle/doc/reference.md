@@ -9,6 +9,15 @@
 | `Phil\ReportingBundle\Application\Contract\ReportFormat` | interface | A file format |
 | `Phil\ReportingBundle\Application\Contract\ReportDelivery` | interface | How a file reaches its recipients |
 | `Phil\ReportingBundle\Application\Contract\JobStore`, `ExportStore` | interface | The claim check |
+| `Phil\ReportingBundle\Application\Contract\TrainingSource`, `UnitDirectory`, `PayrollSource` | interface | The ports of the training reports |
+| `Phil\ReportingBundle\Application\Training\TrainingHoursReport` | `final readonly class` | `training_hours`, by period and organisational unit |
+| `Phil\ReportingBundle\Application\Training\QuebecTrainingReport` | `final readonly class` | `training_quebec_1_percent`, the 1 % of payroll template |
+| `Phil\ReportingBundle\Application\Training\TrainingLedger` | `final readonly class` | The activities totalled by period and unit, in the tree's order |
+| `Phil\ReportingBundle\Application\Training\TrainingTotals` | `final readonly class` | The totals of a period and a unit |
+| `Phil\ReportingBundle\Application\Training\TrainingStep` | enum | `month`, `quarter`, `year` |
+| `Phil\ReportingBundle\Application\Training\TrainingHeadings` | `final readonly class` | The titles and headings, translated |
+| `Phil\ReportingBundle\Application\Training\TrainingParameters` | `final class` | The parameters of the training reports, checked |
+| `Phil\ReportingBundle\Application\Training\CurrencyAmounts` | `final readonly class` | Minor units written in a currency's digits |
 | `Phil\ReportingBundle\Application\Sources` | `final readonly class` | The sources by key |
 | `Phil\ReportingBundle\Application\PeriodPreset` | enum | The named periods: `period()`, `previous()` |
 | `Phil\ReportingBundle\Application\Periods` | `final readonly class` | The presets in the configured time zone |
@@ -29,6 +38,7 @@
 | `Phil\ReportingBundle\Application\Exception\ExportFailed` | `final class` | A file not written whole; retried |
 | `Phil\ReportingBundle\Application\Exception\PngUnavailable` | `final class` | A PNG asked where none is drawn |
 | `Phil\ReportingBundle\Domain\ValueObject\Period`, `Metric`, `Series`, `SeriesSet` | `final readonly class` | The figures |
+| `Phil\ReportingBundle\Domain\Training\TrainingActivity`, `UnitNode` | `final readonly class` | An activity of a learning system; a unit on a path |
 | `Phil\ReportingBundle\Domain\Format\MetricFormat` | enum | `number`, `percent`, `currency` |
 | `Phil\ReportingBundle\Domain\Exception\ReportingException` | interface | Every exception of the bundle |
 | `Phil\ReportingBundle\Domain\Exception\InvalidFigures` | `final class` | Figures that cannot be shown |
@@ -47,3 +57,4 @@
 | `Phil\ReportingBundle\Infrastructure\EasyAdmin\ReportingAdmin` | `final class` | The EasyAdmin template and menu link |
 | `Phil\ReportingBundle\Infrastructure\DependencyInjection\ReportingServices` | `final class` | The services and the tags `phil_reporting.*` |
 | `Phil\ReportingBundle\Infrastructure\DependencyInjection\KeyedServicesPass` | `final class` | The keys of the tagged services |
+| `Phil\ReportingBundle\Infrastructure\DependencyInjection\TrainingReportsPass` | `final class` | The training reports left out without a `TrainingSource` |

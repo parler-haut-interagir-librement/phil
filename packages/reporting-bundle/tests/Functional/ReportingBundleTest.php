@@ -15,6 +15,7 @@ use Phil\ReportingBundle\Application\Periods;
 use Phil\ReportingBundle\Application\Report\ReportJob;
 use Phil\ReportingBundle\Application\Report\ReportRequest;
 use Phil\ReportingBundle\Application\Report\Reports;
+use Phil\ReportingBundle\Application\Report\ReportStream;
 use Phil\ReportingBundle\Application\Sources;
 use Phil\ReportingBundle\Infrastructure\Http\ChartResponses;
 use Phil\ReportingBundle\Infrastructure\Memory\InMemoryExportStore;
@@ -202,7 +203,27 @@ final class ReportingBundleTest extends KernelTestCase
         $exports = self::getContainer()->get(ExportStore::class);
         self::assertInstanceOf(InMemoryExportStore::class, $exports);
         self::assertSame(["[\n{\"Name\":\"Ada\",\"Since\":\"2026-11-07\"},\n{\"Name\":\"=HYPERLINK(\\\"http://example.com\\\")\",\"Since\":\"2026-11-07\"}\n]\n"], array_values($exports->contents()));
-        self::assertSame(['members'], $reports->keys());
+        self::assertSame(['members', 'training_hours', 'training_quebec_1_percent'], $reports->keys());
+    }
+
+    public function testTheTemplateOfTheOnePercentInFrench(): void
+    {
+        $reports = self::getContainer()->get(Reports::class);
+        self::assertInstanceOf(Reports::class, $reports);
+        $periods = self::getContainer()->get(Periods::class);
+        self::assertInstanceOf(Periods::class, $periods);
+        $stream = ReportStream::temporary();
+
+        $request = new ReportRequest($periods->period($periods->preset('this_year')), ['payroll' => 4_000_000, 'locale' => 'fr']);
+        self::assertSame(1, $reports->write('training_quebec_1_percent', 'csv', $request, $stream));
+        $stream->rewind();
+
+        self::assertSame(
+            'Début,Fin,Activités,Heures,Coûts,"Dépenses admissibles","Masse salariale","Investissement requis (1 %)","Dépenses admissibles sur masse salariale (%)","Écart à combler","Masse salariale au-dessus du seuil",Devise'."\r\n"
+            ."2026-01-01,2026-12-31,1,3.5,450,400,40000,400,1,0,false,CAD\r\n",
+            $stream->contents(),
+        );
+        self::assertSame('training_quebec_1_percent-20260101-20261231.csv', $reports->filename('training_quebec_1_percent', 'csv', $request));
     }
 
     private function twig(): Environment

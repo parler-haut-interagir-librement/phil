@@ -41,7 +41,7 @@ final readonly class Period
     /**
      * The period cut in consecutive buckets of the step — `1 day`, `1 week`, `1 month` —, the last one cut at the end.
      *
-     * @return list<self>
+     * @return non-empty-list<self>
      *
      * @throws InvalidFigures when the step is not a relative date format, or gives more than 500 buckets
      */

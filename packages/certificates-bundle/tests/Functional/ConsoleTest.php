@@ -23,6 +23,7 @@ use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Lock\LockFactory;
 
 /**
@@ -115,6 +116,36 @@ final class ConsoleTest extends KernelTestCase
             self::assertFalse($locks->createLock(Awarding::LOCK)->acquire());
         } finally {
             $lock->release();
+        }
+    }
+
+    /**
+     * The locks of the status index belong to this application alone: another application of the same project — another
+     * process of ParaTest running its own tests — never holds them. A store shared by the project, the semaphore or the
+     * lock file Symfony picks by default, would refuse the second lock here as it refused this test's lock while
+     * another process awarded a certificate.
+     */
+    public function testAnotherApplicationOfTheProjectNeverHoldsTheLockOfTheStatusIndex(): void
+    {
+        $locks = self::getContainer()->get('lock.factory');
+        self::assertInstanceOf(LockFactory::class, $locks);
+        $lock = $locks->createLock(Awarding::LOCK);
+        self::assertTrue($lock->acquire());
+
+        $other = new TestKernel('test', true);
+        $other->boot();
+
+        try {
+            $services = $other->getContainer()->get('test.service_container');
+            self::assertInstanceOf(ContainerInterface::class, $services);
+            $otherLocks = $services->get('lock.factory');
+            self::assertInstanceOf(LockFactory::class, $otherLocks);
+            $otherLock = $otherLocks->createLock(Awarding::LOCK);
+            self::assertTrue($otherLock->acquire());
+            $otherLock->release();
+        } finally {
+            $lock->release();
+            $other->shutdown();
         }
     }
 

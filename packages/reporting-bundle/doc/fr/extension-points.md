@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=591dfd342ce215cf8f2e62b6056be35d0342998a38510580b4f275c8f8c64773 -->
+<!-- phil-dev source-sha256=824b278b144f93fecb6cc33239da98d545bd843cd13f93fe29709af54061cffc -->
 # Points d'extension
 
 Chaque port se trouve dans `Phil\ReportingBundle\Application\Contract`. Jusqu'à la première version, chacun peut encore
@@ -38,6 +38,34 @@ Un rapport : ses colonnes et ses lignes pour une requête. Voir [Rapports](repor
 Un rapport qui a un graphique, que la livraison `mail` met dans son courriel sous forme d'image PNG : `chart()` donne un
 `ReportChart`, la clé d'une source de séries, un `ChartType` et un titre. Voir
 [Rapports](reports.md#le-graphique-dun-rapport-dans-son-courriel).
+
+## `TrainingSource`, `UnitDirectory` et `PayrollSource`
+
+Les ports des rapports de formation, chacun un service unique que l'application aliase : les activités de son système
+d'apprentissage, dans une devise ; le chemin d'une unité organisationnelle depuis sa racine ; la masse salariale d'une
+période. Sans `TrainingSource`, les rapports de formation ne sont pas enregistrés ; les deux autres sont facultatifs.
+Voir [Heures et coûts de formation](training.md) et [Le gabarit du 1 % de la masse salariale](quebec-one-percent.md).
+
+```php
+interface TrainingSource
+{
+    public function currency(): string;
+
+    /** @return iterable<TrainingActivity> */
+    public function activities(Period $period): iterable;
+}
+
+interface UnitDirectory
+{
+    /** @return list<UnitNode> */
+    public function path(string $unit): array;
+}
+
+interface PayrollSource
+{
+    public function payroll(Period $period): ?int;
+}
+```
 
 ## `ReportFormat`
 
