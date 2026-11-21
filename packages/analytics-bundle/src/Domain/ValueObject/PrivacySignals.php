@@ -29,13 +29,7 @@ final readonly class PrivacySignals
      */
     private static function listsOne(?string $header): bool
     {
-        foreach (explode(',', $header ?? '') as $value) {
-            if ('1' === trim($value)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(explode(',', $header ?? ''), static fn (string $value): bool => '1' === trim($value));
     }
 
     public static function none(): self

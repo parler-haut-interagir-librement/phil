@@ -34,7 +34,7 @@ final readonly class CollectController
                 (string) $request->getClientIp(),
                 $request->headers->get('User-Agent', ''),
                 $request->headers->get('DNT'),
-                self::allValues($request, 'Sec-GPC'),
+                $this->allValues($request, 'Sec-GPC'),
                 $this->bodyOf($request),
             ));
 
@@ -44,7 +44,7 @@ final readonly class CollectController
     /**
      * Every occurrence of a header, joined by commas, or null when the request does not carry it.
      */
-    private static function allValues(Request $request, string $name): ?string
+    private function allValues(Request $request, string $name): ?string
     {
         $values = $request->headers->all($name);
 

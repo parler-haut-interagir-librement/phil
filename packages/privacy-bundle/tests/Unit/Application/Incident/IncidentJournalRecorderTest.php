@@ -42,6 +42,7 @@ final class IncidentJournalRecorderTest extends TestCase
         $clock = new MockClock('2026-11-20T10:00:00Z');
         $this->register = new DbalIncidentRegister($connection, $clock);
         $this->register->save(new Incident(self::ID, 'Cards', new DateTimeImmutable('2026-11-10T09:00:00Z'), null, [], 40, true));
+
         $this->recorder = new IncidentJournalRecorder($this->register, $clock);
     }
 

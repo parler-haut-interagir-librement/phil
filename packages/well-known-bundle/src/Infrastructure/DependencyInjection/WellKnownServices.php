@@ -73,9 +73,10 @@ final class WellKnownServices
     public const string DID_CONFIGURATION_CONTEXT = 'https://identity.foundation/.well-known/did-configuration/v1';
 
     /**
-     * The bundle that honours the Global Privacy Control, named as text: the bundle does not require it.
+     * The name, in `kernel.bundles`, of phil/privacy-bundle, which honours the Global Privacy Control: the bundle does
+     * not require it.
      */
-    public const string PRIVACY_BUNDLE = 'Phil\\PrivacyBundle\\PhilPrivacyBundle';
+    public const string PRIVACY_BUNDLE = 'PhilPrivacyBundle';
 
     private const string JSON = 'application/json';
 
@@ -240,7 +241,7 @@ final class WellKnownServices
     {
         $bundles = $container->hasParameter('kernel.bundles') ? $container->getParameter('kernel.bundles') : [];
 
-        return \is_array($bundles) && \in_array(self::PRIVACY_BUNDLE, $bundles, true);
+        return \is_array($bundles) && \array_key_exists(self::PRIVACY_BUNDLE, $bundles);
     }
 
     /**

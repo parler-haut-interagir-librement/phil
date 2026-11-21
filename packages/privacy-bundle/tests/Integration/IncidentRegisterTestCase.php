@@ -135,6 +135,7 @@ abstract class IncidentRegisterTestCase extends TestCase
         $other = new Incident(str_repeat('b', 32), 'Other', new DateTimeImmutable('2026-11-10T09:00:00Z'), null, [], null, false);
         $register->save($incident);
         $register->save($other);
+
         $recorded = new DateTimeImmutable('2026-11-20T10:00:00Z');
 
         $first = $register->append(new JournalEntry($incident->id, 0, JournalKind::ThirdPartyCommunication, new DateTimeImmutable('2026-11-11T08:30:00Z'), 'Card issuer', 'Card numbers, to block the cards', null, $recorded));

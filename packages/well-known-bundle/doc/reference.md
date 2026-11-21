@@ -50,7 +50,7 @@
 | `WellKnownServices::DOCUMENT_TAG` | `phil_well_known.document` |
 | `WellKnownServices::RESOLVER_TAG` | `phil_well_known.webfinger_resolver` |
 | `WellKnownServices::NODEINFO_ROUTE` | `phil_well_known_nodeinfo_document` |
-| `WellKnownServices::PRIVACY_BUNDLE` | `Phil\PrivacyBundle\PhilPrivacyBundle`, the class whose registration serves `gpc.json` |
+| `WellKnownServices::PRIVACY_BUNDLE` | `PhilPrivacyBundle`, the name in `kernel.bundles` whose registration serves `gpc.json` |
 | `WellKnownRouteLoader::TYPE` | `phil_well_known` |
 | `WellKnownRouteLoader::PARAMETER` | `phil_well_known.routes` |
 | `WellKnownController::DOCUMENT` | `_phil_well_known` |

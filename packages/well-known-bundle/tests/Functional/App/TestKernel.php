@@ -48,7 +48,7 @@ final class TestKernel extends Kernel
         $parameters = parent::getKernelParameters();
 
         if ('without_privacy' !== $this->environment && \is_array($parameters['kernel.bundles'])) {
-            $parameters['kernel.bundles']['PhilPrivacyBundle'] = WellKnownServices::PRIVACY_BUNDLE;
+            $parameters['kernel.bundles'][WellKnownServices::PRIVACY_BUNDLE] = self::class;
         }
 
         return $parameters;

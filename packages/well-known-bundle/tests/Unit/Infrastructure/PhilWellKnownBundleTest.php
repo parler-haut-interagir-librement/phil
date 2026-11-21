@@ -89,29 +89,29 @@ final class PhilWellKnownBundleTest extends TestCase
 
     public function testGpcJsonIsServedWhileThePrivacyBundleIsRegistered(): void
     {
-        $container = $this->load(['gpc' => ['last_update' => '2026-11-21']], [WellKnownServices::PRIVACY_BUNDLE]);
+        $container = $this->load(['gpc' => ['last_update' => '2026-11-21']], [WellKnownServices::PRIVACY_BUNDLE => 'App\\PrivacyBundle']);
 
         self::assertSame([StaticDocument::class, ['{"gpc":true,"lastUpdate":"2026-11-21"}', 'application/json', true]], $this->document($container, 'gpc.json'));
-        self::assertSame('Phil\\PrivacyBundle\\PhilPrivacyBundle', WellKnownServices::PRIVACY_BUNDLE);
+        self::assertSame('PhilPrivacyBundle', WellKnownServices::PRIVACY_BUNDLE);
 
         new WellKnownPass()->process($container);
         self::assertContains('/.well-known/gpc.json', (array) $container->getParameter('phil_well_known.routes'));
     }
 
     /**
-     * @return iterable<string, array{array<string, mixed>, list<string>|null}>
+     * @return iterable<string, array{array<string, mixed>, array<string, string>|null}>
      */
     public static function withoutGpc(): iterable
     {
-        yield 'without the privacy bundle' => [['gpc' => ['last_update' => '2026-11-21']], ['Other\\Bundle']];
+        yield 'without the privacy bundle' => [['gpc' => ['last_update' => '2026-11-21']], ['OtherBundle' => 'Other\\Bundle', 'Other' => WellKnownServices::PRIVACY_BUNDLE]];
         yield 'without the bundles of a kernel' => [['gpc' => ['last_update' => '2026-11-21']], null];
-        yield 'without a date' => [[], [WellKnownServices::PRIVACY_BUNDLE]];
-        yield 'turned off' => [['gpc' => ['enabled' => false, 'last_update' => '2026-11-21']], [WellKnownServices::PRIVACY_BUNDLE]];
+        yield 'without a date' => [[], [WellKnownServices::PRIVACY_BUNDLE => 'App\\PrivacyBundle']];
+        yield 'turned off' => [['gpc' => ['enabled' => false, 'last_update' => '2026-11-21']], [WellKnownServices::PRIVACY_BUNDLE => 'App\\PrivacyBundle']];
     }
 
     /**
-     * @param array<string, mixed> $config
-     * @param list<string>|null    $bundles
+     * @param array<string, mixed>       $config
+     * @param array<string, string>|null $bundles
      */
     #[DataProvider('withoutGpc')]
     public function testGpcJsonIsServedOnlyByASiteThatHonoursTheSignal(array $config, ?array $bundles): void
@@ -481,8 +481,8 @@ final class PhilWellKnownBundleTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $config
-     * @param list<string>|null    $bundles the classes of the bundles of the kernel, or none
+     * @param array<string, mixed>       $config
+     * @param array<string, string>|null $bundles the classes of the bundles of the kernel by name, or none
      */
     private function load(array $config, ?array $bundles = null): ContainerBuilder
     {

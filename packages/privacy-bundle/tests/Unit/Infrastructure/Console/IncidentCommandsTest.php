@@ -339,6 +339,7 @@ final class IncidentCommandsTest extends TestCase
 
         $json = new CommandTester(new IncidentsCommand($register));
         $json->execute(['--format' => 'json']);
+
         $rows = json_decode($json->getDisplay(), true);
         self::assertIsArray($rows);
         self::assertIsArray($rows[0]);
