@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6a3d3ca492b72e19f169c292af19b797710e9b98300720204a39e924781aa27b -->
+<!-- phil-dev source-sha256=a83523ed7ac2d3a06986bbf0751aad1e520d84c83c3229a3d68d6e962fc74c8a -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -7,10 +7,11 @@
 | `ContactFormController`, `ContactFormType`, `ContactMessage` | La page, un message envoyé, un message incomplet, un transport en panne, les options, chaque vérification |
 | `PhilContactFormBundle` | Les services, la configuration et ses refus, la protection contre le pourriel requise |
 
-Une suite fonctionnelle démarre un noyau avec FrameworkBundle — un service d'envoi de courriels qui n'envoie nulle part
-—, TwigBundle, la protection contre le pourriel et le bundle sous `/contact` : `ContactFormBundleTest` produit le rendu
-de la page en français, la soumet comme le ferait un navigateur, preuve de travail résolue, lit le courriel envoyé et
-constate qu'une soumission sans protection est retenue. Lorsque le bundle est installé seul, où FrameworkBundle est un
+Une suite fonctionnelle démarre un noyau avec FrameworkBundle — un service d'envoi de courriels qui n'envoie nulle part,
+`SendEmailMessage` acheminé vers un transport asynchrone en mémoire —, TwigBundle, la protection contre le pourriel et
+le bundle sous `/contact` : `ContactFormBundleTest` produit le rendu de la page en français, la soumet comme le ferait
+un navigateur, preuve de travail résolue, lit le courriel envoyé, constate que rien n'attend dans la file d'attente et
+qu'une soumission sans protection est retenue. Lorsque le bundle est installé seul, où FrameworkBundle est un
 prérequis de développement, la suite est ignorée.
 
 ```sh

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=179df3c5c2967a3f9e81c63670494462520c01b29a1a7d63200fc45d0da0ac28 -->
+<!-- phil-dev source-sha256=b1bcb9dc56b64014f2b5ac7c3007e23e8f8038e17a924234c5f2571fb4e3e77b -->
 # Envoi du courriel
 
 `ContactMailer` envoie un `TemplatedEmail` :
@@ -20,14 +20,14 @@ adresse par l'intermédiaire du site.
 
 ## Envoyer par Messenger
 
-Lorsque l'application dirige `SendEmailMessage` vers un transport Messenger asynchrone, `ContactMailer::send()` ne fait
-que mettre le courriel en file d'attente. La page se redirige alors comme si le message était parti : un transport qui
-le refuse échoue dans le *worker*, qui fait une nouvelle tentative et journalise l'échec, et la réponse `503` avec le
-formulaire encore rempli ne se produit jamais.
+`ContactMailer` envoie par les transports de Symfony Mailer (`mailer.transports`), jamais par `MailerInterface` : le
+courriel est produit et envoyé durant la requête, et le refus d'un transport est connu aussitôt, ce à quoi la page
+répond par un `503` avec le formulaire encore rempli. Une application qui dirige `SendEmailMessage` vers un transport
+Messenger asynchrone ne met quand même rien d'un message en file d'attente : par `MailerInterface`, le message mis en
+file contiendrait le courriel non produit, avec le nom, l'adresse et le message du visiteur dans son contexte, gardé par
+le transport et par son transport d'échecs jusqu'à ce que quelqu'un le relance ou le retire.
 
-Le courriel en file d'attente contient le nom, l'adresse et le message du visiteur. Ils restent dans le transport
-Messenger jusqu'à ce que le *worker* les envoie et, s'il est configuré, dans son transport d'échecs jusqu'à ce que
-quelqu'un les relance ou les retire. Le bundle ne conserve rien lui-même, mais une telle application y conserve bel et
-bien des renseignements personnels : il lui faut une règle de conservation pour son transport d'échecs —
-`messenger:failed:show` pour consulter, `messenger:failed:remove` pour purger — et elle devrait l'indiquer dans sa
-politique de vie privée.
+Ce qui reste à l'application : la configuration propre du service d'envoi — DSN, `X-Transport`, `envelope`, `headers` —,
+que les transports appliquent comme à n'importe quel courriel, et les courriels qu'elle envoie elle-même. Un contrôleur
+de l'application qui appelle `ContactMailer::send()` attrape `TransportExceptionInterface`, comme le fait la page du
+bundle.

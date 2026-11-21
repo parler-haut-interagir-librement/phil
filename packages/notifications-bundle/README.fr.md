@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=be5651c1459b220a0b7b59cb632440b65bb37696caef8223257acca04eabb60e -->
+<!-- phil-dev source-sha256=1341c4f259c35c8ec7645c83a4de546aca1d42d3900d8d0aa3ed38104850a054 -->
 # phil/notifications-bundle
 
 **Des notifications pour les applications Symfony : un centre avec des messages éphémères, le courriel et son résumé,
@@ -46,6 +46,7 @@ le visiteur en demande moins.
 | `NotificationPreferences` : résumé, heures de silence, canaux désactivés, locale ; `ConfiguredPreferences`, `DbalPreferences` | Implémenté et testé |
 | `NotificationRepository` : `DbalNotificationRepository`, `InMemoryNotificationRepository`, les tables et l'écouteur de schéma | Implémenté et testé sur SQLite ; le nombre de non-lues et la livraison mesurés par banc d'essai |
 | `Digests`, `MailerDigestSender` et son suivi désactivé sans `EmailTrackingConsent`, `NotificationSchedule`, `Retention`, `phil:notifications:purge` | Implémenté et testé |
+| La partie texte du résumé, son lien vers les préférences et son lien signé qui l'arrête, en un clic (RFC 8058) : `DigestLinks`, `DigestUnsubscriber`, `DigestUnsubscribeController` | Implémenté et testé |
 | `MercureToasts`, `FlashToasts`, les points de terminaison du centre et ses composants Twig | Implémenté et testé |
 | Le contrôleur Stimulus `notifications` | Implémenté ; son module testé sous Node |
 | `RemoteNotificationReceiver` et son point de terminaison, sur phil/standard-webhooks-bundle | Implémenté et testé |

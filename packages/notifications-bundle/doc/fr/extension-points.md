@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=12b402eb3239deb7afa00e5997c725c698e22768b141099a026e02c321baa062 -->
+<!-- phil-dev source-sha256=519a3e834e51cf7f8c510d740fb76b0cf91564badf34862520474d5824cbd994 -->
 # Points d'extension
 
 Ce qu'une application implémente, configure, remplace ou utilise. Chaque port est une interface d'un espace de noms
@@ -152,6 +152,16 @@ final readonly class MemberRecipient implements CurrentRecipient
 |---|---|
 | `send(RecipientInterface $contact, DigestFrequency $frequency, non-empty-list<RenderedNotification> $notifications, ?string $locale): void` | Envoie un résumé |
 
+### `DigestUnsubscriber`
+
+`Phil\NotificationsBundle\Application\Contract\DigestUnsubscriber` (`digest.unsubscriber`) : `DbalPreferences` avec les
+préférences `dbal` ; aucun avec les autres, et un résumé ne porte alors aucun lien de désinscription. Une application qui
+garde elle-même les réglages de ses membres l'implémente à côté de son `NotificationPreferences`.
+
+| Méthode | Contrat |
+|---|---|
+| `unsubscribe(string $recipient): void` | Le résumé du destinataire devient `never`, le reste de ses réglages gardé ; deux fois ne change rien |
+
 ### `RemoteNotificationReceiver`
 
 `Phil\NotificationsBundle\Application\Contract\RemoteNotificationReceiver` (`remote.receiver`) :
@@ -209,7 +219,8 @@ ils contiennent des adresses et du texte ; voir [Envoi](sending.md#messenger).
 ## Gabarits et traductions
 
 `@PhilNotifications/components/Bell.html.twig`, `List.html.twig`, `Toasts.html.twig`, `WebPush.html.twig`, `_list.html.twig`,
-`_toast.html.twig` et `email/digest.html.twig` se redéfinissent sous `templates/bundles/PhilNotificationsBundle/`. Le
+`_toast.html.twig`, `email/digest.html.twig`, `email/digest.txt.twig` et `digest/unsubscribe.html.twig` se redéfinissent
+sous `templates/bundles/PhilNotificationsBundle/`. Le
 domaine `phil_notifications` contient les gabarits des types, qu'écrit l'application, et les libellés du centre, fournis
 en anglais et en français.
 

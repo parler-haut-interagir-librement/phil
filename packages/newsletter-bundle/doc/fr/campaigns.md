@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=baf3aba9a9db18ac3cfe6ed2b60680961d7e8cbfb79b3600d9816e4678143f10 -->
+<!-- phil-dev source-sha256=827bd992329f1a2d1849d0f452063240cbd07ca33e6fc27669a1253b6b0fb348 -->
 # Campagnes
 
 Une `Campaign` est un message à une liste, ou à un segment de celle-ci : un sujet, un préentête — la ligne que les
@@ -50,7 +50,13 @@ d'événement, rien qu'un message ne doive contenir. Il est ensuite mis en page 
 - ou par un gabarit que nomme la campagne, écrit par un administrateur ou un membre, produit dans le bac à sable.
 
 Une mise en page lit `subject`, `preheader`, `content` — le corps, déjà assaini —, `list_name`, `site`,
-`unsubscribe_url` et `preferences_url`. La partie texte du message est tirée de son HTML.
+`unsubscribe_url` et `preferences_url`.
+
+La partie texte du message est tirée de son HTML par `TextPart`, qui écrit l'adresse de chaque lien web entre chevrons
+après ses mots : un lecteur de la partie texte trouve quand même les liens de désinscription, du centre de préférences
+et, dans une confirmation, de confirmation. L'en-tête, les styles et ce qui est caché, le texte de préaperçu compris,
+sont omis. `ContentRenderer` accepte en dernier argument un autre `HtmlToTextConverterInterface` de Mime ; il retourne
+du texte décodé.
 
 ## Les gabarits des administrateurs et des membres
 
