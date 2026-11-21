@@ -54,6 +54,11 @@ How long a store keeps a record. Four shapes, because a schedule holds all four 
 - `cutoff(DateTimeImmutable $now): ?DateTimeImmutable` — the instant before which a record has outlived the
   period, or `null` when the period is not a number. A "not yet fixed" period is a counted blank that **never**
   produces a cutoff.
+- `lastsAtLeast(RetentionPeriod $minimum): bool` — whether the period never purges a record before `$minimum` would:
+  a period that is not a number never purges, and two durations are compared through their cutoffs from the ends of
+  month and the leap days of a four-year cycle, so that `P60M` lasts at least `P5Y` and `P1826D` does not. The build
+  uses it to refuse a rule shorter than five years on the register of incidents
+  ([incidents.md](incidents.md#keeping-it)).
 
 **Cutoffs are computed in UTC, and month arithmetic clamps.** PHP turns 31 March minus one month into 3 March;
 a purge on that cutoff deletes three days early. Here it is 28 February (29 in a leap year), and 29 February

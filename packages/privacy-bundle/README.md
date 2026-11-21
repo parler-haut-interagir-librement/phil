@@ -10,8 +10,9 @@ exception messages before a line is written. Subject access and erasure answers 
 module, wired by autoconfiguration and run from the console. The retention schedule declares the register of
 processing — purpose, recipients, processors and location of each store —, which the command prints with the
 declared fields and fails on in CI while a gap remains; it also becomes purge orders, with a run refused when a job
-line has no purger. A small register keeps every confidentiality incident and names the notifications still owed. A
-copy of the database is anonymized column by column — emails, names, telephones in fictional ranges, addresses,
+line has no purger. A register keeps every confidentiality incident with the eight paragraphs Québec asks of each
+line, names the notifications and paragraphs still owed, keeps its corrections and keeps each line at least five
+years. A copy of the database is anonymized column by column — emails, names, telephones in fictional ranges, addresses,
 IBANs, shifted dates, hashes, placeholder text — from `#[Anonymize]`, the declared categories and the configuration,
 with locale packs for eight locales and a guard that refuses to touch a production database.
 
@@ -73,7 +74,7 @@ for what the application decides.
 | `privacy_embed()`: third-party frames held until consent | Implemented, tested and wired |
 | A member's export and erasure from their preferences, as a ZIP archive | Implemented, tested and on by default |
 | The requests of people without an account, by a verified link | Implemented, tested and wired; off until enabled |
-| The register of confidentiality incidents, `phil:privacy:incident`, `phil:privacy:incidents` | Implemented, tested and wired |
+| The register of confidentiality incidents, `phil:privacy:incident`, `phil:privacy:incidents`: the eight paragraphs of section 7 of the Québec regulation (r. 3.1), corrections kept, five years at least (section 8) | Implemented, tested and wired |
 | Each member's consent to tracked emails, `EmailTrackingConsents` | Implemented, tested and wired; off until enabled |
 | The Stimulus controllers through AssetMapper and StimulusBundle | Implemented and tested |
 | `PersonalDataExporter`, `PersonalDataEraser`, `ExternalPersonalDataEraser`, `RetentionScheduleSource`, `RetentionPurger`, `ErasureRequestStore` | Ports |
@@ -114,8 +115,9 @@ for what the application decides.
   that write fewer trackers, and the Stimulus controller.
 - [Requests without an account](doc/requests-without-an-account.md) — the verified link, the steps, the guards
   against abuse, and who a verified address is.
-- [The register of incidents](doc/incidents.md) — recording, completing and printing it, the notifications a serious
-  risk asks for, and how long it is kept.
+- [The register of incidents](doc/incidents.md) — what the Québec law and regulation ask (P-39.1, sections 3.5 to
+  3.8; r. 3.1), recording, completing, correcting and printing a line, the notifications a serious risk asks for, the
+  five years it is kept, and the migration of its tables.
 - [Tracked emails](doc/email-tracking.md) — each member's consent to the counting of opens and the following of
   clicks, what a sender asks, the version of the text, and its export and erasure.
 - [Legal framework](doc/legal-framework.md) — ePrivacy and the CNIL, Québec's Law 25, the GDPR and the proposed

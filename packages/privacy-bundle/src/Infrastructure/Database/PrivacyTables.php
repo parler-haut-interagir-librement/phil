@@ -13,6 +13,7 @@ use Doctrine\DBAL\Schema\Index\IndexType;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Schema\TableEditor;
 use Doctrine\DBAL\Types\Types;
 use Phil\PrivacyBundle\Domain\Subject\DataSubject;
 
@@ -24,6 +25,7 @@ use Phil\PrivacyBundle\Domain\Subject\DataSubject;
  * - `phil_privacy_guest_request`: one row per request made without an account, while its link is valid, its address
  *   sealed;
  * - `phil_privacy_incident`: the register of confidentiality incidents;
+ * - `phil_privacy_incident_revision`: what a line of that register held before each correction, only ever added;
  * - `phil_privacy_email_tracking`: each member's last choice about tracked emails, one row per member;
  * - `phil_privacy_erasure_request`: one row per erasure request, naming a person by their opaque identifier or the
  *   request made without an account it came from, never by an address;
@@ -46,6 +48,8 @@ final class PrivacyTables
 
     public const string INCIDENTS = 'phil_privacy_incident';
 
+    public const string INCIDENT_REVISIONS = 'phil_privacy_incident_revision';
+
     public const string EMAIL_TRACKING = 'phil_privacy_email_tracking';
 
     public const string ERASURE_REQUESTS = 'phil_privacy_erasure_request';
@@ -57,8 +61,9 @@ final class PrivacyTables
     }
 
     /**
-     * The schema with the tables added, those it already has left as they are. Give the platform of the connection, so
-     * that MySQL and MariaDB compare identifiers, people and hashes byte for byte.
+     * The schema with the tables added, those it already has left as they are but for the register of incidents, which
+     * gets the columns it lacks. Give the platform of the connection, so that MySQL and MariaDB compare identifiers,
+     * people and hashes byte for byte.
      */
     public static function configure(Schema $schema, ?AbstractPlatform $platform = null): Schema
     {
@@ -108,8 +113,10 @@ final class PrivacyTables
                 ->create());
         }
 
+        $added = self::incidentColumns();
+
         if (!$schema->hasTable(self::INCIDENTS)) {
-            $editor->addTable(Table::editor()
+            $incidents = Table::editor()
                 ->setUnquotedName(self::INCIDENTS)
                 ->addColumn(self::string('id', 32, $binary))
                 ->addColumn(self::text('summary'))
@@ -123,7 +130,36 @@ final class PrivacyTables
                 ->addColumn(self::maybeMoment('subjects_notified_at'))
                 ->addColumn(self::maybeMoment('closed_at'))
                 ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('id')->create())
-                ->addIndex(Index::editor()->setUnquotedName('idx_phil_privacy_incident_discovered')->setUnquotedColumnNames('discovered_at')->create())
+                ->addIndex(Index::editor()->setUnquotedName('idx_phil_privacy_incident_discovered')->setUnquotedColumnNames('discovered_at')->create());
+
+            foreach ($added as $column) {
+                $incidents->addColumn($column);
+            }
+
+            $editor->addTable($incidents->create());
+        } else {
+            // A register created before the paragraphs of section 7 gets their columns, its rows kept.
+            $table = $schema->getTable(self::INCIDENTS);
+            $missing = array_filter($added, static fn (string $name): bool => !$table->hasColumn($name), \ARRAY_FILTER_USE_KEY);
+
+            if ([] !== $missing) {
+                $editor->modifyTableByUnquotedName(self::INCIDENTS, static function (TableEditor $table) use ($missing): void {
+                    foreach ($missing as $column) {
+                        $table->addColumn($column);
+                    }
+                });
+            }
+        }
+
+        if (!$schema->hasTable(self::INCIDENT_REVISIONS)) {
+            $editor->addTable(Table::editor()
+                ->setUnquotedName(self::INCIDENT_REVISIONS)
+                ->addColumn(self::string('incident_id', 32, $binary))
+                ->addColumn(Column::editor()->setUnquotedName('sequence')->setTypeName(Types::INTEGER)->setNotNull(true)->create())
+                ->addColumn(self::string('field', 32, $binary))
+                ->addColumn(self::maybeText('previous'))
+                ->addColumn(self::moment('revised_at'))
+                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('incident_id', 'sequence', 'field')->create())
                 ->create());
         }
 
@@ -192,6 +228,47 @@ final class PrivacyTables
     private static function text(string $name): Column
     {
         return Column::editor()->setUnquotedName($name)->setTypeName(Types::TEXT)->setNotNull(true)->create();
+    }
+
+    /**
+     * The columns of the paragraphs of section 7 of the Québec regulation, added to the register after its first
+     * version: all nullable or with a default, so that the rows already there stay readable.
+     *
+     * @return array<non-empty-string, Column>
+     */
+    private static function incidentColumns(): array
+    {
+        return [
+            'information' => self::maybeText('information'),
+            'undescribed_reason' => self::maybeText('undescribed_reason'),
+            'occurred_until' => self::maybeMoment('occurred_until'),
+            'occurrence_approximate' => self::flag('occurrence_approximate'),
+            'discovered_until' => self::maybeMoment('discovered_until'),
+            'affected_approximate' => self::flag('affected_approximate'),
+            'risk_assessment' => self::maybeText('risk_assessment'),
+            'public_notice_at' => self::maybeMoment('public_notice_at'),
+            'public_notice_reason' => self::nullableString('public_notice_reason', 32),
+        ];
+    }
+
+    /**
+     * A text added to a table already in use: nullable, since MySQL gives a text column no default.
+     *
+     * @param non-empty-string $name
+     */
+    private static function maybeText(string $name): Column
+    {
+        return Column::editor()->setUnquotedName($name)->setTypeName(Types::TEXT)->setNotNull(false)->create();
+    }
+
+    /**
+     * A flag false by default, so that the rows already there read as false.
+     *
+     * @param non-empty-string $name
+     */
+    private static function flag(string $name): Column
+    {
+        return Column::editor()->setUnquotedName($name)->setTypeName(Types::BOOLEAN)->setNotNull(true)->setDefaultValue(false)->create();
     }
 
     /**

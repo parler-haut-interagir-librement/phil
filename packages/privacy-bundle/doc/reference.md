@@ -72,7 +72,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 
 | Type | Role | State |
 |---|---|---|
-| `RetentionPeriod` | `fixed()`, `untilEvent()`, `indefinite()`, `notYetFixed()`; `isFixed()`, `cutoff($now)` in UTC with month clamping | Implemented |
+| `RetentionPeriod` | `fixed()`, `untilEvent()`, `indefinite()`, `notYetFixed()`; `isFixed()`, `cutoff($now)` in UTC with month clamping, `lastsAtLeast($minimum)` | Implemented |
 | `RetentionPeriodKind` | Enum: `Fixed`, `UntilEvent`, `Indefinite`, `NotYetFixed` | Implemented |
 | `RetentionRule` | One schedule line; refuses a job on an indefinite period and `AwaitsExpiry` without a fixed period; `ID_PATTERN`; `holdsPersonalInformation()`; `$processing` | Implemented |
 | `Processing` | What the register says of a store: `$purpose`, `$recipients`, `$processors`, `$location`; `isComplete()` | Implemented |
@@ -138,7 +138,9 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 
 | Type | Role | State |
 |---|---|---|
-| `Incident` | A line of the register of incidents; `record()`, `update()`, `isClosed()`, `pendingNotifications()` | Implemented |
+| `Incident` | A line of the register of incidents, with the eight paragraphs of section 7 of the Québec regulation (r. 3.1); `record()`, `update()` with `clear`, `isClosed()`, `pendingNotifications()`, `missingParagraphs()`, `knownSince()`, `MINIMUM_RETENTION`, `CLEARABLE` | Implemented |
+| `IncidentRevision` | What a line held before a correction: the field, its previous value, the correction's number and instant | Implemented |
+| `PublicNoticeReason` | Enum: `IncreasedInjury`, `ExcessiveHardship`, `NoContactDetails`, `PromptAction`; `replacesIndividualNotice()` | Implemented |
 
 ### `Domain\Exception`
 
@@ -198,6 +200,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `GuestLinkSender` | `send($request, $token)` | Port; `MailerGuestLinkSender` |
 | `GuestSubjects` | `subjectOf($email)` | Port; `EmailGuestSubjects` |
 | `IncidentRegister` | `save()`, `find()`, `all()` | Port; `DbalIncidentRegister` |
+| `IncidentHistory` | `revisions()` | Port; `DbalIncidentRegister` |
 | `EmailTrackingStore` | `find()`, `save()`, `forget()`, `store()` | Port; `DbalEmailTrackingConsents` |
 
 ### `Application\Exception`
@@ -236,7 +239,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `Infrastructure\Console\DisabledRightsWarning` | The warning before every command when a right is off | Implemented |
 | `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | The tables, their keys in `utf8mb4_bin` on MySQL and MariaDB when the platform is given; the store, the proofs; the last two also purge | Implemented |
 | `Infrastructure\Database\DbalGuestRequests` | The requests without an account, the address sealed | Implemented |
-| `Infrastructure\Database\DbalIncidentRegister` | The register of incidents; also purges | Implemented |
+| `Infrastructure\Database\DbalIncidentRegister` | The register of incidents and its corrections; also purges, never below five years from the discovery | Implemented |
 | `Infrastructure\Database\DbalErasureRequests` | The erasure requests and their steps; also purges the closed requests | Implemented; wired when enabled |
 | `Infrastructure\Outbox\OutboxErasureMessages`, `EraseModuleCodec`, `EraseModuleRelay` | The messages as outbox records of type `phil_privacy.erase_module`, the outbox codec of `EraseModule`, which skips the record of a request that is gone, and the hand-over of the message to the bus | Implemented; wired when enabled |
 | `Infrastructure\Messenger\ErasureFailureListener` | Marks a step as needing attention once Messenger gives up on its message | Implemented; wired when enabled |

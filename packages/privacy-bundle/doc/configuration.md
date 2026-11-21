@@ -301,6 +301,7 @@ than the first log line. Every error is an
 | A duration that is not one, or is zero | `phil_privacy.account_deletion.delay: "x" is not an ISO 8601 duration …` |
 | A malformed category name or text version | `phil_privacy.consent: "A B" is not a consent category …` |
 | A retention line the model refuses | `phil_privacy.retention.rules: …` |
+| A fixed period shorter than five years on `phil_privacy_incident` (section 8 of the Québec regulation, r. 3.1) | `phil_privacy.retention.rules.R-INC: the register of confidentiality incidents is kept at least five years after the discovery …` |
 | Both a source and rules | `phil_privacy: name retention_schedule_source or write retention.rules, not both …` |
 | A cookie inventory the model refuses, or a file that is not YAML of a map | `phil_privacy.cookies.inventory: …` |
 | The requests without an account turned on without a sender | `phil_privacy.guest_requests.from is the sender of the links …` |

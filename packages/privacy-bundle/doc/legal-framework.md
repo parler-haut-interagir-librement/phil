@@ -31,8 +31,9 @@ A pixel in an email reads from the recipient's device too. The bundle tracks no 
 
 ### Québec: Law 25
 
-The *Act respecting the protection of personal information in the private sector*, as amended by Law 25, applies to
-businesses that hold personal information about people in Québec.
+The *Act respecting the protection of personal information in the private sector* (chapter P-39.1), as amended by
+Law 25, applies to businesses that hold personal information about people in Québec; its regulations, such as the
+*Regulation respecting confidentiality incidents* (chapter A-2.1, r. 3.1), apply to the same businesses.
 
 | The rule | What the bundle does by default |
 |---|---|
@@ -40,7 +41,8 @@ businesses that hold personal information about people in Québec.
 | Technology that identifies, locates or profiles a person is off until they turn it on | No optional tracker runs before consent. |
 | Access, rectification and portability | A member downloads their data from their preferences, as a ZIP archive with a JSON file per module ([preferences.md](preferences.md)). |
 | Destroying information once its purpose is served | Retention rules, purged by a scheduled job ([retention.md](retention.md)). |
-| A register of every confidentiality incident, and notices when a risk of serious injury exists | The register and its commands, which name the notices still owed ([incidents.md](incidents.md)). |
+| A register of every confidentiality incident, and notices when a risk of serious injury exists (sections 3.5 to 3.8 of the Act) | The register and its commands, which name the notices still owed ([incidents.md](incidents.md)). |
+| The eight paragraphs of each line of that register, kept up to date and kept at least five years after the discovery (*Regulation respecting confidentiality incidents*, chapter A-2.1, r. 3.1, sections 7 and 8) | A field for each paragraph, the paragraphs still missing named after each record, corrections kept with their previous values, a retention rule under five years refused at the build and a purge that never goes below five years ([incidents.md](incidents.md#what-québec-asks)). |
 | Knowing what is held and where | The register of processing, drawn from the retention schedule and the declared fields ([export-and-erasure.md](export-and-erasure.md#the-register-of-processing)). |
 
 ### The European Union: the GDPR

@@ -19,6 +19,7 @@ use Phil\PrivacyBundle\Infrastructure\Database\DbalIncidentRegister;
 use Phil\PrivacyBundle\Infrastructure\Database\PrivacyTables;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 
 #[CoversClass(DbalGuestRequests::class)]
 #[CoversClass(DbalIncidentRegister::class)]
@@ -122,7 +123,7 @@ final class GuestAndIncidentTablesTest extends TestCase
 
     public function testTheRegisterListsTheMostRecentFirstAndPurgesOnlyWhatIsClosed(): void
     {
-        $register = new DbalIncidentRegister($this->connection);
+        $register = new DbalIncidentRegister($this->connection, new MockClock('2026-11-20T10:00:00Z'));
         $old = Incident::record('Old', new DateTimeImmutable('2020-01-01T00:00:00Z'), null, [], null, false);
         $open = Incident::record('Old and open', new DateTimeImmutable('2020-06-01T00:00:00Z'), null, [], null, false);
         $recent = Incident::record('Recent', new DateTimeImmutable('2026-01-01T00:00:00Z'), null, [], null, false);

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2b04f4301cf8d9871ae57b0e9f9d28d531bc24ff28587417dfe073b68e0c262a -->
+<!-- phil-dev source-sha256=edbdaf498e3c08ba2b567744265a39ba8a0a178de010fd8749a416482248bcf7 -->
 # Points d'extension
 
 Toute interface du bundle est un contrat, sous `Phil\PrivacyBundle\Application\Contract`, ou sous
@@ -299,6 +299,16 @@ Le registre des incidents de confidentialité. La table du bundle est le défaut
 | `save(Incident $incident)` | Ajoute la ligne, ou remplace la ligne du même identifiant. |
 | `find(string $id)` | La ligne, ou `null`. |
 | `all()` | Chaque ligne, celle découverte le plus récemment en premier. |
+
+Un registre qui garde ses corrections implémente aussi `IncidentHistory`, et `phil:privacy:incidents` les affiche :
+
+| Méthode | Contrat |
+|---|---|
+| `revisions(string $id)` | Ce que contenait la ligne avant chaque correction, comme `IncidentRevision` (le champ, sa valeur précédente, le moment), la plus ancienne en premier. |
+
+Un registre qui purge aussi, comme `RetentionPurger` sur son propre stockage, ne retire jamais une ligne connue depuis
+moins de `Incident::MINIMUM_RETENTION`, quelle que soit la date limite qu'on lui donne. Voir
+[incidents.md](incidents.md#le-garder).
 
 ## `EmailTrackingStore`
 

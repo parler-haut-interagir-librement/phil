@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6a78c5ecd3d6e6fe3d2a0a0fa8260bd2fc8cf3f7f2b6c4469b3fad067aa680ed -->
+<!-- phil-dev source-sha256=745906f619061ee8c7c63c112218c55752dd7c0d176929b80a21febca2a26711 -->
 # Calendrier de conservation et purges
 
 Le calendrier vient de la configuration ou d'une `RetentionScheduleSource` de l'application. Les adaptateurs
@@ -59,6 +59,11 @@ qu'une seule est un nombre.
 - `cutoff(DateTimeImmutable $now): ?DateTimeImmutable` — l'instant avant lequel un enregistrement a dépassé la durée, ou
   `null` quand la durée n'est pas un nombre. Une durée « pas encore fixée » est un blanc compté qui ne produit
   **jamais** de date limite.
+- `lastsAtLeast(RetentionPeriod $minimum): bool` — si la durée ne purge jamais un enregistrement avant que `$minimum` le
+  ferait : une durée qui n'est pas un nombre ne purge jamais, et deux durées se comparent par leurs dates limites à
+  partir de fins de mois et des jours bissextiles d'un cycle de quatre ans, de sorte que `P60M` dure au moins autant que
+  `P5Y` et `P1826D` non. La construction s'en sert pour refuser une règle de moins de cinq ans sur le registre des
+  incidents ([incidents.md](incidents.md#le-garder)).
 
 **Les dates limites sont calculées en UTC, et le calcul des mois ramène à la fin du mois.** PHP change le 31 mars moins
 un mois en 3 mars ; une purge sur cette date limite efface trois jours trop tôt. Ici, c'est le 28 février (le 29 une

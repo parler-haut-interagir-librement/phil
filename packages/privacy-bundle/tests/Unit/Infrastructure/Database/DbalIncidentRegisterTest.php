@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Phil\PrivacyBundle\Tests\Unit\Infrastructure\Database;
 
 use DateTimeImmutable;
+use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Logging\Middleware;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Schema\Schema;
 use JsonException;
+use Override;
 use PDO;
 use Phil\PrivacyBundle\Domain\Incident\Incident;
 use Phil\PrivacyBundle\Domain\Subject\DataCategory;
@@ -16,6 +20,8 @@ use Phil\PrivacyBundle\Infrastructure\Database\DbalIncidentRegister;
 use Phil\PrivacyBundle\Infrastructure\Database\PrivacyTables;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\AbstractLogger;
+use Stringable;
 
 #[CoversClass(DbalIncidentRegister::class)]
 final class DbalIncidentRegisterTest extends TestCase
@@ -87,5 +93,48 @@ final class DbalIncidentRegisterTest extends TestCase
         }
 
         return $connection;
+    }
+
+    public function testTheNumberOfACorrectionIsAlwaysGiven(): void
+    {
+        $schema = PrivacyTables::configure(Schema::editor()->create());
+
+        self::assertTrue($schema->getTable(PrivacyTables::INCIDENT_REVISIONS)->getColumn('sequence')->getNotnull());
+    }
+
+    public function testTheNumberOfACorrectionTravelsAsAnInteger(): void
+    {
+        $logger = new class extends AbstractLogger {
+            /**
+             * @var list<array<mixed>>
+             */
+            public array $statements = [];
+
+            /**
+             * @param array<mixed> $context
+             */
+            #[Override]
+            public function log(mixed $level, string|Stringable $message, array $context = []): void
+            {
+                $this->statements[] = $context;
+            }
+        };
+        $configuration = new Configuration();
+        $configuration->setMiddlewares([new Middleware($logger)]);
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $configuration);
+
+        foreach (PrivacyTables::configure(Schema::editor()->create())->toSql($connection->getDatabasePlatform()) as $statement) {
+            $connection->executeStatement($statement);
+        }
+
+        $register = new DbalIncidentRegister($connection);
+        $incident = new Incident(str_repeat('a', 32), 'Tpyo', new DateTimeImmutable('2026-11-10T09:00:00Z'), null, [], null, false);
+        $register->save($incident);
+        $register->save($incident->update(summary: 'Typo'));
+
+        $revisions = array_values(array_filter($logger->statements, static fn (array $context): bool => \is_string($context['sql'] ?? null) && str_starts_with($context['sql'], 'INSERT INTO '.PrivacyTables::INCIDENT_REVISIONS)));
+        self::assertCount(1, $revisions);
+        self::assertIsArray($revisions[0]['types']);
+        self::assertContains(ParameterType::INTEGER, $revisions[0]['types']);
     }
 }

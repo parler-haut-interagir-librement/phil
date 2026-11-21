@@ -290,6 +290,15 @@ The register of confidentiality incidents. The table of the bundle is the defaul
 | `find(string $id)` | The line, or `null`. |
 | `all()` | Every line, the most recently discovered first. |
 
+A register that keeps its corrections also implements `IncidentHistory`, and `phil:privacy:incidents` prints them:
+
+| Method | Contract |
+|---|---|
+| `revisions(string $id)` | What the line held before each correction, as `IncidentRevision` (the field, its previous value, when), the oldest first. |
+
+A register that also purges, as a `RetentionPurger` on its own store, never removes a line known for less than
+`Incident::MINIMUM_RETENTION`, whatever the cutoff it is given. See [incidents.md](incidents.md#keeping-it).
+
 ## `EmailTrackingStore`
 
 Where each member's choice about tracked emails is kept, when `email_tracking.enabled`. The table of the bundle is the

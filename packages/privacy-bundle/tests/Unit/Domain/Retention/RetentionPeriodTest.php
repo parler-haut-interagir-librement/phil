@@ -144,4 +144,35 @@ final class RetentionPeriodTest extends TestCase
 
         RetentionPeriod::notYetFixed('');
     }
+
+    /**
+     * @return iterable<string, array{RetentionPeriod, bool}>
+     */
+    public static function againstFiveYears(): iterable
+    {
+        yield 'the same' => [RetentionPeriod::fixed('P5Y'), true];
+        yield 'in months' => [RetentionPeriod::fixed('P60M'), true];
+        yield 'years and months' => [RetentionPeriod::fixed('P4Y12M'), true];
+        yield 'a second more' => [RetentionPeriod::fixed('P5YT1S'), true];
+        yield '1827 days, two leap days' => [RetentionPeriod::fixed('P1827D'), true];
+        yield 'longer' => [RetentionPeriod::fixed('P7Y'), true];
+        yield '1826 days, short when the five years hold two leap days' => [RetentionPeriod::fixed('P1826D'), false];
+        yield 'a month short' => [RetentionPeriod::fixed('P59M'), false];
+        yield 'a second short' => [RetentionPeriod::fixed('P4Y11M30DT23H59M59S'), false];
+        yield 'an hour' => [RetentionPeriod::fixed('PT1H'), false];
+        yield 'indefinite' => [RetentionPeriod::indefinite(), true];
+        yield 'until an event' => [RetentionPeriod::untilEvent('the end of the contract'), true];
+        yield 'not yet fixed' => [RetentionPeriod::notYetFixed('the retention policy'), true];
+    }
+
+    #[DataProvider('againstFiveYears')]
+    public function testAPeriodLastsAtLeastAnotherWhenItNeverPurgesSooner(RetentionPeriod $period, bool $expected): void
+    {
+        self::assertSame($expected, $period->lastsAtLeast(RetentionPeriod::fixed('P5Y')));
+    }
+
+    public function testAMinimumThatIsNotANumberAsksNothing(): void
+    {
+        self::assertTrue(RetentionPeriod::fixed('P1D')->lastsAtLeast(RetentionPeriod::indefinite()));
+    }
 }

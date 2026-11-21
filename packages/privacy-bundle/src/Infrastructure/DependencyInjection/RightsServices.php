@@ -38,7 +38,9 @@ use Phil\PrivacyBundle\Domain\Consent\ConsentPolicy;
 use Phil\PrivacyBundle\Domain\Consent\ConsentToken;
 use Phil\PrivacyBundle\Domain\Cookie\CookieInventory;
 use Phil\PrivacyBundle\Domain\Exception\InvalidPrivacyValue;
+use Phil\PrivacyBundle\Domain\Incident\Incident;
 use Phil\PrivacyBundle\Domain\Retention\RetentionPeriod;
+use Phil\PrivacyBundle\Domain\Retention\RetentionSchedule;
 use Phil\PrivacyBundle\Infrastructure\Console\DisabledRightsWarning;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentsCommand;
@@ -49,6 +51,7 @@ use Phil\PrivacyBundle\Infrastructure\Database\DbalConsentProofs;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalEmailTrackingConsents;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalGuestRequests;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalIncidentRegister;
+use Phil\PrivacyBundle\Infrastructure\Database\PrivacyTables;
 use Phil\PrivacyBundle\Infrastructure\Doctrine\PrivacySchemaListener;
 use Phil\PrivacyBundle\Infrastructure\Filesystem\EncryptedExportArchive;
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentContext;
@@ -126,7 +129,7 @@ final class RightsServices
         $builder->registerForAutoconfiguration(RetentionPurger::class)->addTag(self::PURGER_TAG);
         $clock = new Reference($config['pages']['clock']);
 
-        self::database($services, $connection, $config['incidents']['store']);
+        self::database($services, $connection, $config['incidents']['store'], $clock);
         self::emailTracking($config['email_tracking'], $services, $clock);
         $rights = self::rights($config['rights'], $services);
         self::export($services);
@@ -143,12 +146,12 @@ final class RightsServices
         return $source;
     }
 
-    private static function database(ServicesConfigurator $services, Reference $connection, ?string $incidents): void
+    private static function database(ServicesConfigurator $services, Reference $connection, ?string $incidents, Reference $clock): void
     {
         $services->set(DbalAccountDeletions::class)->args([$connection])->tag(self::PURGER_TAG);
         $services->set(DbalConsentProofs::class)->args([$connection])->tag(self::PURGER_TAG);
         $services->set(DbalGuestRequests::class)->args([$connection, '%kernel.secret%']);
-        $services->set(DbalIncidentRegister::class)->args([$connection])->tag(self::PURGER_TAG);
+        $services->set(DbalIncidentRegister::class)->args([$connection, new Reference((string) $clock, ContainerInterface::NULL_ON_INVALID_REFERENCE)])->tag(self::PURGER_TAG);
         $services->set(DbalEmailTrackingConsents::class)->args([$connection]);
         $services->set(PrivacySchemaListener::class)->args([$connection])->tag('doctrine.event_listener', ['event' => 'postGenerateSchema']);
         $services->alias(IncidentRegister::class, $incidents ?? DbalIncidentRegister::class)->public();
@@ -359,10 +362,12 @@ final class RightsServices
 
         if ([] !== $rules) {
             try {
-                new ConfiguredRetentionSchedule($rules);
+                $schedule = new ConfiguredRetentionSchedule($rules)->load();
             } catch (InvalidPrivacyValue $invalidPrivacyValue) {
                 throw new InvalidConfigurationException('phil_privacy.retention.rules: '.$invalidPrivacyValue->getMessage(), $invalidPrivacyValue->getCode(), previous: $invalidPrivacyValue);
             }
+
+            self::incidentFloor($schedule);
 
             $services->set(ConfiguredRetentionSchedule::class)->args([$rules]);
             $named = ConfiguredRetentionSchedule::class;
@@ -384,6 +389,21 @@ final class RightsServices
         }
 
         return $source;
+    }
+
+    /**
+     * Section 8 of the Québec regulation keeps the register of incidents at least five years after the discovery: a rule
+     * on its table that would purge sooner fails the build. The purge itself never goes below that floor either.
+     */
+    private static function incidentFloor(RetentionSchedule $schedule): void
+    {
+        $minimum = RetentionPeriod::fixed(Incident::MINIMUM_RETENTION);
+
+        foreach ($schedule->rules() as $rule) {
+            if (PrivacyTables::INCIDENTS === $rule->store && !$rule->period->lastsAtLeast($minimum)) {
+                throw new InvalidConfigurationException(\sprintf('phil_privacy.retention.rules.%s: the register of confidentiality incidents is kept at least five years after the discovery (section 8 of the Regulation respecting confidentiality incidents, chapter A-2.1, r. 3.1); "%s" is shorter than %s.', $rule->id, $rule->period->duration ?? '', Incident::MINIMUM_RETENTION));
+            }
+        }
     }
 
     /**

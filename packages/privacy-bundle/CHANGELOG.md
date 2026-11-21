@@ -6,9 +6,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.3.0-alpha: the erasure can run as a workflow, one step per module through phil/outbox-bundle, and
-`ErasureEffect::Anonymised` tells a skeleton judged non-identifiable from a pseudonymised record.
-See [Erasure as a workflow](doc/erasure-workflow.md).
+The next version is 0.3.0-alpha: the erasure can run as a workflow, one step per module through phil/outbox-bundle,
+`ErasureEffect::Anonymised` tells a skeleton judged non-identifiable from a pseudonymised record, and the register of
+confidentiality incidents holds the eight paragraphs of section 7 of the Québec *Regulation respecting confidentiality
+incidents* (chapter A-2.1, r. 3.1), keeps its corrections, and is kept at least five years (section 8).
+See [Erasure as a workflow](doc/erasure-workflow.md) and [The register of incidents](doc/incidents.md).
 
 To update: a `GuestRequestStore` of your own implements `retain()`. Code that reads the register's JSON, or the
 rows of `RegisterEntry::toArray()`, finds `personal_data_left` added, and the Markdown register a column more. Review
@@ -17,6 +19,12 @@ personal data, and report `Anonymised` only for a skeleton someone judged non-id
 install phil/outbox-bundle on the connection of the bundle, route `EraseModule` to an asynchronous transport, set
 `erasure_workflow.enabled: true`, and run `doctrine:migrations:diff`, or the SQL of
 [The tables](doc/erasure-workflow.md#the-tables), for `phil_privacy_erasure_request` and `phil_privacy_erasure_step`.
+For the register of incidents, run `doctrine:migrations:diff`, or the SQL of [The tables](doc/incidents.md#the-tables),
+which adds nine columns to `phil_privacy_incident`, nullable or false by default so that its lines are kept, and creates
+`phil_privacy_incident_revision`. A fixed retention period shorter than five years on `phil_privacy_incident` now fails
+the container build: raise it to `P5Y` or more. An `IncidentRegister` of your own that also purges keeps at least five
+years from the discovery. Code that reads the JSON of `phil:privacy:incidents` finds the new fields, and its Markdown ten
+columns more and a table of corrections; `phil:privacy:incident` prints the paragraphs a line still lacks.
 
 ### Added
 
@@ -61,6 +69,28 @@ install phil/outbox-bundle on the connection of the bundle, route `EraseModule` 
 - [Choosing a control](doc/choosing-a-control.md): which tool answers which problem and where it stops, tier 1 named,
   the token vault ruled out, the transparent encryption of the database server and the verification of backups.
 - `MisconfiguredPrivacy::erasureLease()`.
+- The paragraphs of section 7 of the Québec *Regulation respecting confidentiality incidents* (chapter A-2.1, r. 3.1) on
+  `Domain\Incident\Incident`: `information` and `undescribedReason` (paragraph 1, never both), `occurredUntil` and
+  `occurrenceApproximate` (paragraph 3), `discoveredUntil` (paragraph 4), `affectedApproximate` (paragraph 5),
+  `riskAssessment` (paragraph 6), `publicNoticeAt` and `publicNoticeReason` (paragraph 7), each text at most
+  `MAX_TEXT` characters and each period never ending before it starts; `missingParagraphs()`, which names the
+  paragraphs a line does not answer yet, and `knownSince()`, the end of the discovery or its date.
+- `Domain\Incident\PublicNoticeReason` (`increased_injury`, `excessive_hardship`, `no_contact_details`,
+  `prompt_action`), the cases of section 6 of the regulation, and `replacesIndividualNotice()`, false for a public
+  notice given to act quickly.
+- `Incident::update()` corrects the summary and the dates of the discovery and of the incident, and empties by name a
+  date or a number recorded by mistake (`clear`, `CLEARABLE`).
+- `Application\Contract\IncidentHistory` and `Domain\Incident\IncidentRevision`: `DbalIncidentRegister` keeps what each
+  field held before a correction in `phil_privacy_incident_revision`, in the transaction of the save, and purges it with
+  its line.
+- `Incident::MINIMUM_RETENTION` (`P5Y`, section 8 of the regulation) and `RetentionPeriod::lastsAtLeast()`: a fixed
+  period shorter than five years on `phil_privacy_incident` fails the container build with a message that cites the
+  section, and `DbalIncidentRegister::purge()` never removes a line known for less than five years, whatever the cutoff
+  it is given.
+- `phil:privacy:incident` takes `--discovered-until`, `--occurred-until`, `--approximate-occurrence`, `--information`,
+  `--undescribed-reason`, `--approximate-affected`, `--risk-assessment`, `--public-notice`, `--public-notice-reason`
+  and `--clear`, and names the paragraphs a line still lacks; `phil:privacy:incidents` prints every field,
+  `missing_paragraphs` and the corrections, in Markdown and in JSON.
 
 ### Changed
 
@@ -68,6 +98,17 @@ install phil/outbox-bundle on the connection of the bundle, route `EraseModule` 
   link back, instead of a record without anything naming the person.
 - `GuestRequestStore` has `retain()`.
 - The documentation of `SubjectErasure` no longer shows a previous exception on `ErasureIncomplete`.
+- `PrivacyTables::configure()` adds the columns it lacks to a `phil_privacy_incident` already in the schema, and
+  creates `phil_privacy_incident_revision`.
+- `DbalIncidentRegister` takes the clock as an optional second argument, the clock of `pages.clock` in the container;
+  its purge counts from the end of the discovery when it is a period.
+- With `--id`, the summary given to `phil:privacy:incident` replaces the one the line had, and `--discovered` and
+  `--occurred` correct its dates.
+- `Incident::pendingNotifications()` counts a public notice given for a reason that replaces the notice to each person
+  as that notice.
+- [The register of incidents](doc/incidents.md) and [The legal framework](doc/legal-framework.md) cite sections 3.5 to
+  3.8 of the *Act respecting the protection of personal information in the private sector* (chapter P-39.1) and
+  sections 6 to 8 of the regulation, with the SQL of the tables for MySQL 8.4, PostgreSQL 17 and SQLite.
 
 ## 0.2.0-alpha - 2026-11-20
 
