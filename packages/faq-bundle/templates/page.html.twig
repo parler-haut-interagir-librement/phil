@@ -1,0 +1,11 @@
+{#
+ # The page of questions of the bundle's route: its heading and the component, given the page the controller read.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'faq.title'|trans({}, 'phil_faq') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'faq.title'|trans({}, 'phil_faq') }}</h1>
+    {{ component('PhilFaq', {page: page}) }}
+{% endblock %}

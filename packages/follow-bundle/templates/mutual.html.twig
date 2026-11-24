@@ -1,0 +1,21 @@
+{#
+ # The current member's mutual relationship with another member, when the application turns them on: ask for it, wait
+ # for the answer, or end it.
+ #
+ #     {{ include('@PhilFollow/mutual.html.twig', {member: member.id}) }}
+ #}
+{%- set domain = 'phil_follow' -%}
+{%- set mutual = phil_follow_mutual(member) -%}
+{%- if mutual is not null %}
+<form class="phil-follow-mutual" method="post" action="{{ mutual.action }}">
+    <input type="hidden" name="_token" value="{{ mutual.token }}">
+    {%- if mutual.mutual %}
+    <button type="submit" name="action" value="end" class="secondary">{{ 'mutual.end'|trans({}, domain) }}</button>
+    {%- elseif mutual.pending %}
+    <p role="status">{{ 'mutual.pending'|trans({}, domain) }}</p>
+    <button type="submit" name="action" value="end" class="secondary">{{ 'mutual.withdraw'|trans({}, domain) }}</button>
+    {%- else %}
+    <button type="submit" name="action" value="request">{{ 'mutual.request'|trans({}, domain) }}</button>
+    {%- endif %}
+</form>
+{%- endif -%}

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="fr-CA">
+  <id>https://example.org/feeds/news.atom</id>
+  <title>Nouvelles &amp; « échos »</title>
+  <subtitle>Ce qui se passe &lt;ici&gt;.</subtitle>
+  <updated>2026-11-21T09:00:00Z</updated>
+  <link rel="self" type="application/atom+xml" href="https://example.org/feeds/news.atom?page=2"/>
+  <link rel="alternate" type="text/html" href="https://example.org/fr/nouvelles"/>
+  <link rel="hub" href="https://hub.example.net/"/>
+  <link rel="first" type="application/atom+xml" href="https://example.org/feeds/news.atom"/>
+  <link rel="previous" type="application/atom+xml" href="https://example.org/feeds/news.atom"/>
+  <link rel="next" type="application/atom+xml" href="https://example.org/feeds/news.atom?page=3"/>
+  <icon>https://example.org/icon.png</icon>
+  <author>
+    <name>Équipe</name>
+    <uri>https://example.org/equipe</uri>
+  </author>
+  <entry xml:lang="fr">
+    <id>tag:example.org,2026:news-2</id>
+    <title type="text">Ouverture &lt;b&gt;officielle&lt;/b&gt; &amp; café</title>
+    <link rel="alternate" type="text/html" href="https://example.org/fr/nouvelles/ouverture"/>
+    <published>2026-11-20T14:30:00Z</published>
+    <updated>2026-11-21T09:00:00Z</updated>
+    <author>
+      <name>Zoé Lévesque</name>
+      <uri>https://example.org/zoe</uri>
+    </author>
+    <category term="ouverture" label="Ouverture"/>
+    <category term="café"/>
+    <summary type="text">Un résumé où 2 &lt; 3 &amp; « guillemets ».</summary>
+    <content type="html">&lt;p&gt;Le &lt;em&gt;contenu&lt;/em&gt; &amp;amp; une &lt;a href=&quot;https://example.org/?a=1&amp;amp;b=2&quot;&gt;adresse&lt;/a&gt;.&lt;/p&gt;</content>
+    <link rel="enclosure" type="audio/mpeg" href="https://example.org/episode-2.mp3" length="12345678" title="Épisode 2"/>
+  </entry>
+  <entry>
+    <id>https://example.org/fr/nouvelles/annonce</id>
+    <title type="text">Annonce</title>
+    <link rel="alternate" type="text/html" href="https://example.org/fr/nouvelles/annonce"/>
+    <published>2026-11-19T08:00:00Z</published>
+    <updated>2026-11-19T08:00:00Z</updated>
+  </entry>
+</feed>

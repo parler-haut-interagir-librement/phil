@@ -1,0 +1,24 @@
+{
+    "name": "@phil/email-address-bundle",
+    "description": "The Stimulus controller of phil/email-address-bundle, which suggests the address meant and warns about shared addresses",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/email_address_controller.js",
+    "symfony": {
+        "controllers": {
+            "email-address": {
+                "main": "src/email_address_controller.js",
+                "webpackMode": "lazy",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Nouvelles &amp; « échos »</title>
+    <link>https://example.org/fr/nouvelles</link>
+    <description>Ce qui se passe &lt;ici&gt;.</description>
+    <language>fr-CA</language>
+    <lastBuildDate>Sat, 21 Nov 2026 09:00:00 +0000</lastBuildDate>
+    <atom:link rel="self" type="application/rss+xml" href="https://example.org/feeds/news.atom?page=2"/>
+    <atom:link rel="hub" href="https://hub.example.net/"/>
+    <atom:link rel="first" type="application/rss+xml" href="https://example.org/feeds/news.atom"/>
+    <atom:link rel="previous" type="application/rss+xml" href="https://example.org/feeds/news.atom"/>
+    <atom:link rel="next" type="application/rss+xml" href="https://example.org/feeds/news.atom?page=3"/>
+    <image>
+      <url>https://example.org/icon.png</url>
+      <title>Nouvelles &amp; « échos »</title>
+      <link>https://example.org/fr/nouvelles</link>
+    </image>
+    <item>
+      <title>Ouverture &lt;b&gt;officielle&lt;/b&gt; &amp; café</title>
+      <link>https://example.org/fr/nouvelles/ouverture</link>
+      <guid isPermaLink="false">tag:example.org,2026:news-2</guid>
+      <pubDate>Fri, 20 Nov 2026 14:30:00 +0000</pubDate>
+      <dc:creator>Zoé Lévesque</dc:creator>
+      <category>Ouverture</category>
+      <category>café</category>
+      <description>Un résumé où 2 &amp;lt; 3 &amp;amp; « guillemets ».</description>
+      <content:encoded>&lt;p&gt;Le &lt;em&gt;contenu&lt;/em&gt; &amp;amp; une &lt;a href=&quot;https://example.org/?a=1&amp;amp;b=2&quot;&gt;adresse&lt;/a&gt;.&lt;/p&gt;</content:encoded>
+      <enclosure url="https://example.org/episode-2.mp3" length="12345678" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Annonce</title>
+      <link>https://example.org/fr/nouvelles/annonce</link>
+      <guid isPermaLink="true">https://example.org/fr/nouvelles/annonce</guid>
+      <pubDate>Thu, 19 Nov 2026 08:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,14 @@
+{#
+ # What adding to a response gave: taken, or refused and why.
+ #
+ # Variables: questionnaire, refused.
+ #}
+{%- set domain = 'phil_survey' -%}
+<section class="phil-survey phil-survey--addendum" role="status">
+    <h1>{{ questionnaire.title }}</h1>
+    {%- if refused is null %}
+    <p>{{ 'survey.addendum.added'|trans({}, domain) }}</p>
+    {%- else %}
+    <p role="alert">{{ ('survey.refused.' ~ refused)|trans({}, domain) }}</p>
+    {%- endif %}
+</section>

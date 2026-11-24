@@ -1,0 +1,2 @@
+googlebot: noindex, max-snippet: 20
+<html><head><meta name="googlebot" content="none"><link rel="canonical alternate" hreflang="x-default" href="//cdn.example.net/"><title></title></head><body><h1></h1><h1>Deux</h1><a href="https://user:pw@example.org/">x</a></body>

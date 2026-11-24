@@ -1,0 +1,4 @@
+# The pages of the surveys and their results.
+phil_survey:
+    resource: '@PhilSurveyBundle/config/routes.php'
+    prefix: /survey

@@ -1,0 +1,13 @@
+{#-
+ # One proposed date, as a `time` element: its start in the machine's form, and for people, its start and its end in
+ # the time zone given — the end's day written only when it is another day. The controller named, when one is, rewrites
+ # the text in the zone the respondent picks.
+ #
+ #   slot         a SlotLine
+ #   zone         the name of the time zone
+ #   controller   the identifier of the timezone controller, or null
+ #}
+{%- set controller = controller ?? null -%}
+<time datetime="{{ slot.startsAt|date('c', false) }}" data-end="{{ slot.endsAt|date('c', false) }}"{% if controller is not null %} data-{{ controller }}-target="time"{% endif %}>
+    {{- slot.startsAt|format_datetime('full', 'short', timezone: zone) }} – {{ slot.spansDays ? slot.endsAt|format_datetime('full', 'short', timezone: zone) : slot.endsAt|format_time('short', timezone: zone) -}}
+</time>

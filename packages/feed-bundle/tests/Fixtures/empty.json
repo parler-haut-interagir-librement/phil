@@ -1,0 +1,7 @@
+{
+    "version": "https://jsonfeed.org/version/1.1",
+    "title": "Empty",
+    "home_page_url": "https://example.org/",
+    "feed_url": "https://example.org/feeds/empty.atom",
+    "items": []
+}

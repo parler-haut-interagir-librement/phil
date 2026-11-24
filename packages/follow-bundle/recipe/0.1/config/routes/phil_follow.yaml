@@ -1,0 +1,4 @@
+# The forms of the templates: follow, change level, unfollow, and the requests.
+phil_follow:
+    resource: '@PhilFollowBundle/config/routes.php'
+    prefix: /follow

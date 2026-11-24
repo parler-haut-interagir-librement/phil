@@ -1,0 +1,96 @@
+{
+    "name": "phil/survey-bundle",
+    "description": "Run surveys that adapt to each answer: conditional sections, ranking and matrix questions, cross quotas, anonymous by default, results shown above a threshold.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "survey",
+        "questionnaire",
+        "conditional-logic",
+        "quotas",
+        "feedback",
+        "anonymity",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "phil/form-logic": "^0.1@dev",
+        "phil/forms-bundle": "^0.2@dev",
+        "phil/poll": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/uid": "^8.2",
+        "twig/html-extra": "^3.24",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phil/privacy-bundle": "^0.3@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/event-dispatcher": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/cache-contracts": "^3.6",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.1",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/lock": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/process": "^8.2",
+        "symfony/scheduler": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/extra-bundle": "^3.24"
+    },
+    "suggest": {
+        "doctrine/orm": "To add the tables to the schema the ORM generates, for doctrine:migrations:diff",
+        "phil/privacy-bundle": "For the responses that name a person, and their participations, in the export and the erasure of their data",
+        "symfony/cache-contracts": "To keep the last run of the schedule in a cache pool",
+        "symfony/console": "For phil:survey:export and phil:survey:import",
+        "symfony/lock": "To keep the schedule to one worker",
+        "symfony/messenger": "To run the purge of the schedule",
+        "symfony/scheduler": "To purge the responses past their retention every day",
+        "twig/extra-bundle": "To register the html_attr function of twig/html-extra the templates use"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SurveyBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SurveyBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

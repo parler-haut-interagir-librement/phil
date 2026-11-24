@@ -1,0 +1,14 @@
+{#
+ # The current member's choice to show or hide the list of their followers.
+ #
+ #     {{ include('@PhilFollow/visibility.html.twig') }}
+ #}
+{%- set domain = 'phil_follow' -%}
+{%- set visibility = phil_follow_visibility() -%}
+{%- if visibility is not null %}
+<form class="phil-follow-visibility" method="post" action="{{ visibility.action }}">
+    <input type="hidden" name="_token" value="{{ visibility.token }}">
+    <p>{{ (visibility.hidden ? 'visibility.hidden' : 'visibility.shown')|trans({}, domain) }}</p>
+    <button type="submit" name="hidden" value="{{ visibility.hidden ? '0' : '1' }}">{{ (visibility.hidden ? 'visibility.show' : 'visibility.hide')|trans({}, domain) }}</button>
+</form>
+{%- endif -%}

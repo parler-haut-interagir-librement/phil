@@ -1,0 +1,8 @@
+# Who follows what, and how they hear of it through phil/notifications-bundle. With Symfony Security, name a FollowAccess
+# service in "access". See the configuration guide of phil/follow-bundle.
+phil_follow:
+    connection: default
+    # access: App\Follow\Access
+    # events: [reply.created, mention.created]
+    mutual:
+        enabled: false

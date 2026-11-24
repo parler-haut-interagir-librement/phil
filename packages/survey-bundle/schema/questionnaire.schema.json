@@ -1,0 +1,141 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ph-il.ca/schema/phil-survey/1/questionnaire.schema.json",
+    "title": "phil-survey/1",
+    "description": "The exchange format of a questionnaire of phil/survey-bundle. The bundle checks more than the schema says: unique names, the conditions as JsonLogic of the subset phil/form-logic reads, typed against the questions, and the bounds of each type.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["format", "questionnaire"],
+    "properties": {
+        "format": {"const": "phil-survey/1"},
+        "questionnaire": {"$ref": "#/$defs/questionnaire"}
+    },
+    "$defs": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 255},
+        "condition": {
+            "description": "One JsonLogic operation of the subset phil/form-logic reads.",
+            "type": "object",
+            "minProperties": 1,
+            "maxProperties": 1
+        },
+        "instant": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[+-]\\d{2}:\\d{2}$"},
+        "choice": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "label"],
+            "properties": {
+                "value": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"},
+                "label": {"$ref": "#/$defs/label"}
+            }
+        },
+        "question": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "label", "type"],
+            "properties": {
+                "name": {"$ref": "#/$defs/name"},
+                "label": {"$ref": "#/$defs/label"},
+                "type": {"enum": ["text", "textarea", "email", "number", "date", "yes_no", "single_choice", "multiple_choice", "ranking", "scale", "net_promoter", "matrix"]},
+                "required": {"type": "boolean", "default": false},
+                "help": {"type": "string", "maxLength": 1000},
+                "choices": {"type": "array", "minItems": 2, "maxItems": 100, "items": {"$ref": "#/$defs/choice"}},
+                "rows": {"type": "array", "minItems": 1, "maxItems": 50, "items": {"$ref": "#/$defs/choice"}},
+                "min": {"type": "integer"},
+                "max": {"type": "integer"},
+                "max_length": {"type": "integer", "minimum": 1, "maximum": 10000},
+                "shown_when": {"$ref": "#/$defs/condition"}
+            }
+        },
+        "section": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "title", "questions"],
+            "properties": {
+                "name": {"$ref": "#/$defs/name"},
+                "title": {"$ref": "#/$defs/label"},
+                "description": {"type": "string", "maxLength": 2000},
+                "shown_when": {"$ref": "#/$defs/condition"},
+                "questions": {"type": "array", "minItems": 1, "maxItems": 100, "items": {"$ref": "#/$defs/question"}}
+            }
+        },
+        "computed": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["compute", "type", "value"],
+            "properties": {
+                "compute": {"$ref": "#/$defs/name"},
+                "type": {"enum": ["text", "number", "boolean", "date"]},
+                "value": {"description": "A JsonLogic rule of the subset phil/form-logic reads."}
+            }
+        },
+        "ending": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "title"],
+            "properties": {
+                "name": {"$ref": "#/$defs/name"},
+                "title": {"$ref": "#/$defs/label"},
+                "message": {"type": "string", "maxLength": 5000},
+                "profile": {"$ref": "#/$defs/label"},
+                "redirect": {"type": "string", "format": "uri", "maxLength": 2048},
+                "when": {"$ref": "#/$defs/condition"}
+            }
+        },
+        "quota": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "limit", "when", "ending"],
+            "properties": {
+                "name": {"$ref": "#/$defs/name"},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 1000000},
+                "when": {"$ref": "#/$defs/condition"},
+                "ending": {"$ref": "#/$defs/name"}
+            }
+        },
+        "questionnaire": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "title", "sections", "endings"],
+            "properties": {
+                "key": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"},
+                "title": {"$ref": "#/$defs/label"},
+                "description": {"type": "string", "maxLength": 5000},
+                "kind": {"enum": ["survey", "session_feedback", "post_game_letter", "routing"], "default": "survey"},
+                "anonymity": {"enum": ["anonymous", "identified"], "default": "anonymous"},
+                "pacing": {"enum": ["question", "section", "all"], "default": "section"},
+                "requires_member": {"type": "boolean", "default": false},
+                "sections": {"type": "array", "minItems": 1, "maxItems": 50, "items": {"$ref": "#/$defs/section"}},
+                "computed": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/computed"}},
+                "endings": {"type": "array", "minItems": 1, "maxItems": 50, "items": {"$ref": "#/$defs/ending"}},
+                "quotas": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/quota"}},
+                "retention_days": {"type": ["integer", "null"], "minimum": 1, "maximum": 3650},
+                "results": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "public": {"type": "boolean", "default": false},
+                        "minimum": {"type": "integer", "minimum": 1, "maximum": 1000, "default": 5}
+                    }
+                },
+                "window": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "opens_at": {"$ref": "#/$defs/instant"},
+                        "closes_at": {"$ref": "#/$defs/instant"}
+                    }
+                },
+                "feedback": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "opens_before": {"type": "integer", "minimum": 0, "maximum": 43200, "default": 15},
+                        "closes_after": {"type": "integer", "minimum": 0, "maximum": 129600, "default": 4320}
+                    }
+                },
+                "addenda": {"type": "boolean", "default": false}
+            }
+        }
+    }
+}

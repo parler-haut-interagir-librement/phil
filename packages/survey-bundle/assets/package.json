@@ -1,0 +1,24 @@
+{
+    "name": "@phil/survey-bundle",
+    "description": "The progress controller: a questionnaire shown a question or a section at a time, with its progress, the questions phil/form-logic hides skipped",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/progress_controller.js",
+    "symfony": {
+        "controllers": {
+            "progress": {
+                "main": "src/progress_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

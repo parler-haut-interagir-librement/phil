@@ -1,0 +1,3 @@
+# The feeds, at /feeds/{name}.{format}.
+phil_feed:
+    resource: '@PhilFeedBundle/config/routes.php'

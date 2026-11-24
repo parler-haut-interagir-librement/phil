@@ -1,0 +1,6 @@
+# The polls of availabilities. The personal links are hashed under the keys below and point to the answer page, the
+# route phil_scheduling_poll_answer. See the installation guide of phil/scheduling-poll-bundle.
+phil_scheduling_poll:
+    links:
+        keys: ['%env(SCHEDULING_POLL_LINK_KEY)%']
+        page: 'https://example.org/scheduling-poll/answer'

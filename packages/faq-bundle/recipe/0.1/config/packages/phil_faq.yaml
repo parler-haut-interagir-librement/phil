@@ -1,0 +1,8 @@
+# The questions of the site. A search without answer links to the contact form below; the administration opens to the
+# role below once its routes are mounted behind the firewall. See the configuration guide of phil/faq-bundle.
+phil_faq:
+    contact_url: /contact
+    admin:
+        enabled: false
+        role: ROLE_ADMIN
+        locales: [en]

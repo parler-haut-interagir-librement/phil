@@ -1,0 +1,72 @@
+{
+    "name": "phil/feed-bundle",
+    "description": "Serve Atom, RSS and JSON Feed for news, contents or events from one list, linked from pages, cached over HTTP and announced to WebSub hubs.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "feed",
+        "atom",
+        "rss",
+        "json-feed",
+        "websub",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-xmlwriter": "*",
+        "phil/publishing": "^0.1@dev",
+        "phil/safe-http": "^0.2@dev",
+        "phil/url": "^0.1@dev",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/routing": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "require-dev": {
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "phil/content-bundle": "^0.3@dev",
+        "phil/locale-dimensions": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/browser-kit": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/twig-bundle": "^8.2"
+    },
+    "suggest": {
+        "phil/content-bundle": "To serve the published contents of a kind as a feed, through phil_feed.content"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\FeedBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\FeedBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

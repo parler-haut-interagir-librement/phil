@@ -1,0 +1,2 @@
+  * Create the tables: <comment>php bin/console doctrine:migrations:diff</> then <comment>php bin/console doctrine:migrations:migrate</>.
+  * With Messenger, route <comment>Phil\FollowBundle\Application\Message\FanOutActivity</> to an asynchronous transport.

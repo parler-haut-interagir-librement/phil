@@ -1,0 +1,26 @@
+{% extends layout %}
+
+{% set d = 'phil_faq' %}
+{% set heading = (section ? 'admin.section.edit' : 'admin.section.new')|trans({}, d) %}
+
+{% block title %}{{ heading }}{% endblock %}
+
+{% block content %}
+    <h1>{{ heading }}</h1>
+    {{ include('@PhilFaq/admin/_nav.html.twig') }}
+    {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+    <form method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+        <input type="hidden" name="locale" value="{{ locale }}">
+        <p>
+            <label for="phil-faq-title">{{ 'admin.section.title'|trans({}, d) }} ({{ locale }})</label>
+            <input type="text" id="phil-faq-title" name="title" value="{{ values.title }}" required maxlength="150">
+        </p>
+        <p>
+            <label for="phil-faq-key">{{ 'admin.section.key'|trans({}, d) }}</label>
+            <input type="text" id="phil-faq-key" name="key" value="{{ values.key }}" maxlength="100" pattern="[a-z0-9]+(-[a-z0-9]+)*" aria-describedby="phil-faq-key-help"{% if section %} readonly{% endif %}>
+            <small id="phil-faq-key-help">{{ 'admin.section.key_help'|trans({}, d) }}</small>
+        </p>
+        <button type="submit">{{ 'admin.action.save'|trans({}, d) }}</button>
+    </form>
+{% endblock %}

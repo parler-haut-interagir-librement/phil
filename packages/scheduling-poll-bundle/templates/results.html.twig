@@ -1,0 +1,98 @@
+{#-
+ # The answers of all, as a table: one row per respondent who answered — their name, or a number once it is erased —,
+ # one column per proposed date, and a last row of the counts. Each cell writes the answer in words for screen readers
+ # and as a sign for the eye. The table scrolls sideways in a region that the keyboard reaches, so that a page of 375
+ # pixels shows every date. While the answers are not the viewer's to see, a sentence says so.
+ #
+ #   results     the ResultsView of `phil_scheduling_poll_results()` or of a sheet
+ #   celebrate   whether the date chosen dispatches its event, true by default; false where the page does already
+ #
+ # Embedding it replaces `chosen`, `celebration` — empty, to fill with the kit's Celebration — or `table`.
+ #}
+{%- set domain = 'phil_scheduling_poll' -%}
+{%- set zone = results.timezone.name -%}
+{%- set id = 'phil-scheduling-poll-results-' ~ results.poll -%}
+{%- set signs = {yes: '✓', if_need_be: '~', no: '✗'} -%}
+{%- set kit = {
+    Table: phil_scheduling_poll_kit('Table'),
+    TableCaption: phil_scheduling_poll_kit('Table:Caption'),
+    TableHeader: phil_scheduling_poll_kit('Table:Header'),
+    TableBody: phil_scheduling_poll_kit('Table:Body'),
+    TableFooter: phil_scheduling_poll_kit('Table:Footer'),
+    TableRow: phil_scheduling_poll_kit('Table:Row'),
+    TableHead: phil_scheduling_poll_kit('Table:Head'),
+    TableCell: phil_scheduling_poll_kit('Table:Cell'),
+} -%}
+<section class="phil-scheduling-poll-results" aria-labelledby="{{ id }}-title">
+    <h3 id="{{ id }}-title">{{ 'results.title'|trans({'%title%': results.title}, domain) }}</h3>
+    <p class="phil-scheduling-poll-results__answered">{{ 'results.answered'|trans({'%count%': results.answered}, domain) }}</p>
+    {%- block chosen %}
+    {%- if (celebrate ?? true) and results.chosen is not null %}
+    {%- set c = 'phil--scheduling-poll-bundle--chosen' -%}
+    <div class="phil-scheduling-poll__chosen" data-controller="{{ c }}" data-{{ c }}-poll-value="{{ results.poll }}" data-{{ c }}-date-value="{{ results.chosen.startsAt|date('c', false) }}">
+        <p role="status"><strong>{{ 'answer.chosen'|trans({}, domain) }}</strong> {{ include('@PhilSchedulingPoll/_slot.html.twig', {slot: results.chosen, zone: zone}) }}</p>
+        {%- block celebration %}{% endblock %}
+    </div>
+    {%- endif %}
+    {%- endblock %}
+    {%- if not results.visible %}
+    <p class="phil-scheduling-poll-results--hidden" role="status">{{ 'results.hidden'|trans({}, domain) }}</p>
+    {%- else %}
+    {%- block table %}
+    <div class="phil-scheduling-poll-results__region" role="region" tabindex="0" aria-labelledby="{{ id }}-caption">
+    {% component (kit.Table) %}
+        {% block content %}
+        {% component (kit.TableCaption) with {id: id ~ '-caption'} %}{% block content %}{{ 'results.caption'|trans({'%timezone%': zone|replace({_: ' '})}, domain) }}{% endblock %}{% endcomponent %}
+        {% component (kit.TableHeader) %}
+            {% block content %}
+            {% component (kit.TableRow) %}
+                {% block content %}
+                {% component (kit.TableHead) %}{% block content %}{{ 'results.respondent'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {%- for slot in results.slots %}
+                {% component (kit.TableHead) with {'data-best': slot.best ? 'true' : false, 'data-chosen': slot.chosen ? 'true' : false} %}{% block content %}{{ include('@PhilSchedulingPoll/_slot.html.twig', {slot: slot, zone: zone}) }}{% endblock %}{% endcomponent %}
+                {%- endfor %}
+                {% endblock %}
+            {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.TableBody) %}
+            {% block content %}
+            {%- for row in results.rows %}
+            {% component (kit.TableRow) with {'data-own': row.own ? 'true' : false} %}
+                {% block content %}
+                {% component (kit.TableHead) with {scope: 'row'} %}{% block content %}{{ row.name ?? 'results.erased'|trans({'%number%': row.number}, domain) }}{% if row.own %} {{ 'results.you'|trans({}, domain) }}{% endif %}{% endblock %}{% endcomponent %}
+                {%- for slot in results.slots %}
+                {%- set answer = row.answerTo(slot.id) -%}
+                {% component (kit.TableCell) with {'data-answer': answer is null ? false : answer.value} %}
+                    {% block content %}
+                    {%- if answer is null -%}
+                    <span aria-hidden="true">–</span><span class="isVisuallyHidden">{{ 'availability.none'|trans({}, domain) }}</span>
+                    {%- else -%}
+                    <span aria-hidden="true">{{ signs[answer.value] }}</span><span class="isVisuallyHidden">{{ ('availability.' ~ answer.value)|trans({}, domain) }}</span>
+                    {%- endif -%}
+                    {% endblock %}
+                {% endcomponent %}
+                {%- endfor %}
+                {% endblock %}
+            {% endcomponent %}
+            {%- endfor %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.TableFooter) %}
+            {% block content %}
+            {% component (kit.TableRow) %}
+                {% block content %}
+                {% component (kit.TableHead) with {scope: 'row'} %}{% block content %}{{ 'results.total'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {%- for slot in results.slots %}
+                {% component (kit.TableCell) %}{% block content %}{{ 'answer.tally'|trans({'%yes%': slot.yes, '%if_need_be%': slot.ifNeedBe, '%no%': slot.no}, domain) }}{% endblock %}{% endcomponent %}
+                {%- endfor %}
+                {% endblock %}
+            {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+    </div>
+    {%- endblock %}
+    {%- endif %}
+</section>

@@ -1,0 +1,147 @@
+{#-
+ # A respondent's page, opened by their personal link: the poll, the date chosen once closed, and a table of the
+ # proposed dates, one row each, whose three radio buttons — yes, if need be, no — answer it. It is a form that works
+ # without JavaScript and with the keyboard alone: each row's buttons are one group, its accessible name the date and
+ # the column. The dates are written in the respondent's time zone, which the form posts with the answers; the
+ # controller `phil--scheduling-poll-bundle--timezone` picks the browser's zone on a first visit and writes the dates in
+ # the zone chosen, before anything is posted.
+ #
+ #   sheet        the AnswerSheet of the link, or null when the link opens nothing
+ #   token        the token of the link, posted back as `token`
+ #   action       the address the form posts to
+ #   csrf_token   the CSRF token, posted as `_token`; none when null
+ #   errors       the messages of answers refused, already translated; none by default
+ #   saved        whether the answers were just saved, to say so
+ #
+ # Embedding it replaces a block: `chosen`, `celebration` — empty, to fill with the kit's Celebration —, `answers` or
+ # `results`. The recipes are named by `phil_scheduling_poll_kit()`, in the map `kit` the blocks may use.
+ #}
+{%- set domain = 'phil_scheduling_poll' -%}
+{%- set errors = errors ?? [] -%}
+{%- set kit = {
+    Table: phil_scheduling_poll_kit('Table'),
+    TableCaption: phil_scheduling_poll_kit('Table:Caption'),
+    TableHeader: phil_scheduling_poll_kit('Table:Header'),
+    TableBody: phil_scheduling_poll_kit('Table:Body'),
+    TableRow: phil_scheduling_poll_kit('Table:Row'),
+    TableHead: phil_scheduling_poll_kit('Table:Head'),
+    TableCell: phil_scheduling_poll_kit('Table:Cell'),
+    Field: phil_scheduling_poll_kit('Field'),
+    FieldLabel: phil_scheduling_poll_kit('Field:Label'),
+    FieldError: phil_scheduling_poll_kit('Field:Error'),
+    NativeSelect: phil_scheduling_poll_kit('NativeSelect'),
+    Button: phil_scheduling_poll_kit('Button'),
+} -%}
+{%- if sheet is null %}
+<p class="phil-scheduling-poll phil-scheduling-poll--unusable" role="status">{{ 'answer.unusable'|trans({}, domain) }}</p>
+{%- else %}
+{%- set id = 'phil-scheduling-poll-' ~ sheet.poll -%}
+{%- set zone = sheet.timezone.name -%}
+{%- set tz = 'phil--scheduling-poll-bundle--timezone' -%}
+<section class="phil-scheduling-poll" aria-labelledby="{{ id }}-title" data-controller="{{ tz }}" data-{{ tz }}-chosen-value="{{ sheet.answered ? 'true' : 'false' }}">
+    <h2 id="{{ id }}-title">{{ sheet.title }}</h2>
+    {%- if sheet.description is not null %}
+    <p class="phil-scheduling-poll__description">{{ sheet.description|nl2br }}</p>
+    {%- endif %}
+    {%- if sheet.location is not null %}
+    <p class="phil-scheduling-poll__location">{{ 'answer.location'|trans({'%location%': sheet.location}, domain) }}</p>
+    {%- endif %}
+    {%- block chosen %}
+    {%- if sheet.chosen is not null %}
+    {%- set c = 'phil--scheduling-poll-bundle--chosen' -%}
+    <div class="phil-scheduling-poll__chosen" data-controller="{{ c }}" data-{{ c }}-poll-value="{{ sheet.poll }}" data-{{ c }}-date-value="{{ sheet.chosen.startsAt|date('c', false) }}">
+        <p role="status"><strong>{{ 'answer.chosen'|trans({}, domain) }}</strong> {{ include('@PhilSchedulingPoll/_slot.html.twig', {slot: sheet.chosen, zone: zone, controller: tz}) }}</p>
+        {%- block celebration %}{% endblock %}
+    </div>
+    {%- endif %}
+    {%- endblock %}
+    <p class="phil-scheduling-poll__status" role="status">
+        {%- if saved ?? false -%}
+            {{ 'answer.saved'|trans({}, domain) }}{{ ' ' }}
+        {%- endif -%}
+        {%- if sheet.closed -%}
+            {{ (sheet.chosen is null ? 'answer.closed_without_date' : 'answer.closed')|trans({}, domain) }}
+        {%- elseif sheet.editable -%}
+            {{ 'answer.deadline'|trans({'%deadline%': sheet.deadline|format_datetime('full', 'short', timezone: zone)}, domain) }}
+        {%- else -%}
+            {{ 'answer.past_deadline'|trans({}, domain) }}
+        {%- endif -%}
+    </p>
+    {%- block answers %}
+    <form method="post" action="{{ action }}" class="phil-scheduling-poll__form">
+        <input type="hidden" name="token" value="{{ token }}">
+        {%- if csrf_token ?? null %}
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+        {%- endif %}
+        {% component (kit.Field) %}
+            {% block content %}
+            {% component (kit.FieldLabel) with {for: id ~ '-timezone'} %}{% block content %}{{ 'answer.timezone'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (kit.NativeSelect) with {name: 'timezone', id: id ~ '-timezone', 'data-action': tz ~ '#change', ('data-' ~ tz ~ '-target'): 'zone', disabled: not sheet.editable} %}
+                {% block content %}
+                {%- for name in phil_scheduling_poll_timezones() %}
+                <option value="{{ name }}"{% if name is same as(zone) %} selected{% endif %}>{{ name|replace({_: ' '}) }}</option>
+                {%- endfor %}
+                {% endblock %}
+            {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {{ component(kit.FieldError, {errors: errors, id: id ~ '-error'}) }}
+        {% component (kit.Table) with {'aria-describedby': errors is empty ? false : id ~ '-error'} %}
+            {% block content %}
+            {% component (kit.TableCaption) %}{% block content %}{{ 'answer.caption'|trans({'%timezone%': zone|replace({_: ' '})}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (kit.TableHeader) %}
+                {% block content %}
+                {% component (kit.TableRow) %}
+                    {% block content %}
+                    {% component (kit.TableHead) with {id: id ~ '-date'} %}{% block content %}{{ 'answer.date'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {%- for value in ['yes', 'if_need_be', 'no'] %}
+                    {% component (kit.TableHead) with {id: id ~ '-' ~ value} %}{% block content %}{{ ('availability.' ~ value)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {%- endfor %}
+                    {%- if sheet.results is not null %}
+                    {% component (kit.TableHead) %}{% block content %}{{ 'answer.counts'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                    {%- endif %}
+                    {% endblock %}
+                {% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+            {% component (kit.TableBody) %}
+                {% block content %}
+                {%- for slot in sheet.slots %}
+                {%- set row = id ~ '-' ~ slot.id -%}
+                {% component (kit.TableRow) with {'data-best': slot.best ? 'true' : false, 'data-chosen': slot.chosen ? 'true' : false} %}
+                    {% block content %}
+                    {% component (kit.TableHead) with {scope: 'row', id: row} %}
+                        {% block content %}
+                        {{ include('@PhilSchedulingPoll/_slot.html.twig', {slot: slot, zone: zone, controller: tz}) }}
+                        {%- if slot.chosen %} <strong>{{ 'answer.chosen_mark'|trans({}, domain) }}</strong>{% elseif slot.best %} <strong>{{ 'answer.best'|trans({}, domain) }}</strong>{% endif %}
+                        {% endblock %}
+                    {% endcomponent %}
+                    {%- for value in ['yes', 'if_need_be', 'no'] %}
+                    {% component (kit.TableCell) %}
+                        {% block content %}
+                        <input type="radio" data-slot="radio-group-item" name="answers[{{ slot.id }}]" value="{{ value }}" id="{{ row }}-{{ value }}" aria-labelledby="{{ row }} {{ id }}-{{ value }}"{% if slot.answer is not null and slot.answer.value is same as(value) %} checked{% endif %}{% if not sheet.editable %} disabled{% endif %}>
+                        {% endblock %}
+                    {% endcomponent %}
+                    {%- endfor %}
+                    {%- if sheet.results is not null %}
+                    {% component (kit.TableCell) %}{% block content %}{{ 'answer.tally'|trans({'%yes%': slot.yes, '%if_need_be%': slot.ifNeedBe, '%no%': slot.no}, domain) }}{% endblock %}{% endcomponent %}
+                    {%- endif %}
+                    {% endblock %}
+                {% endcomponent %}
+                {%- endfor %}
+                {% endblock %}
+            {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {%- if sheet.editable %}
+        {% component (kit.Button) with {type: 'submit'} %}{% block content %}{{ (sheet.answered ? 'answer.change' : 'answer.send')|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {%- endif %}
+    </form>
+    {%- endblock %}
+    {%- block results %}
+    {%- if sheet.results is not null %}
+    {{ include('@PhilSchedulingPoll/results.html.twig', {results: sheet.results, celebrate: false}) }}
+    {%- endif %}
+    {%- endblock %}
+</section>
+{%- endif %}

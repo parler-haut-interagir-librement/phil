@@ -1,0 +1,6 @@
+  * Set <comment>SCHEDULING_POLL_LINK_KEY</> as a secret of Symfony, and <comment>links.page</> in <comment>config/packages/phil_scheduling_poll.yaml</>.
+  * Install the recipes of the kit the pages draw, each with
+    <comment>php bin/console ux:install <recipe> --kit=github.com/parler-haut-interagir-librement/ux-kit</>:
+    table, field, input, native-select and button.
+  * Create the tables: <comment>php bin/console doctrine:migrations:diff</> then <comment>php bin/console doctrine:migrations:migrate</>.
+  * Run a worker: <comment>php bin/console messenger:consume scheduler_phil_scheduling_poll async</>.

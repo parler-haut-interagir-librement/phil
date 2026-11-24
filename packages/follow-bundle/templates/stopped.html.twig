@@ -1,0 +1,19 @@
+{#
+ # What stopped a change sent by a form, with the way back to the page. An application dresses this page by
+ # overriding the template under `templates/bundles/PhilFollowBundle/stopped.html.twig`.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ 'follow.stopped'|trans({}, 'phil_follow') }}</title>
+</head>
+<body>
+    <main>
+        <h1>{{ 'follow.stopped'|trans({}, 'phil_follow') }}</h1>
+        <p role="alert">{{ message }}</p>
+        <p><a href="{{ back }}">{{ 'follow.back'|trans({}, 'phil_follow') }}</a></p>
+    </main>
+</body>
+</html>

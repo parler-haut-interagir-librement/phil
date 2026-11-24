@@ -1,0 +1,58 @@
+{#
+ # The follow button of a subject and the menu of its levels, a plain form that works without JavaScript: the button
+ # follows at the "watching" level, the menu changes the level or stops following, and, when the application declares
+ # kinds of events, a level for each. Shown to members only.
+ #
+ #     {{ include('@PhilFollow/follow_button.html.twig', {subject: 'thread:' ~ thread.id}) }}
+ #}
+{%- set domain = 'phil_follow' -%}
+{%- set follow = phil_follow_button(subject) -%}
+{%- if follow is not null %}
+<form class="phil-follow" method="post" action="{{ follow.action }}">
+    <input type="hidden" name="_token" value="{{ follow.token }}">
+    {%- if follow.pending %}
+    <p class="phil-follow__pending" role="status">{{ 'follow.pending'|trans({}, domain) }}</p>
+    <button type="submit" name="level" value="none" class="secondary">{{ 'follow.withdraw'|trans({}, domain) }}</button>
+    {%- elseif follow.level is null or follow.level == 'ignoring' %}
+    <button type="submit" name="level" value="watching" aria-pressed="false">{{ 'follow.follow'|trans({}, domain) }}</button>
+    {%- if follow.inherited is not null %}
+    <p class="phil-follow__inherited">{{ ('follow.inherited.' ~ follow.inherited)|trans({}, domain) }}</p>
+    {%- endif %}
+    {%- else %}
+    <button type="submit" name="level" value="none" aria-pressed="true">{{ 'follow.following'|trans({}, domain) }}</button>
+    {%- endif %}
+    <details class="phil-follow__levels dropdown">
+        <summary>{{ 'follow.levels'|trans({}, domain) }}</summary>
+        <ul role="list">
+            {%- for level in follow.levels %}
+            <li>
+                <button type="submit" name="level" value="{{ level }}" aria-pressed="{{ follow.level == level ? 'true' : 'false' }}">
+                    {{ ('follow.level.' ~ level)|trans({}, domain) }}
+                    <small>{{ ('follow.level.' ~ level ~ '.help')|trans({}, domain) }}</small>
+                </button>
+            </li>
+            {%- endfor %}
+            {%- if follow.level is not null and follow.level != 'ignoring' %}
+            <li><button type="submit" name="level" value="none" class="secondary">{{ 'follow.unfollow'|trans({}, domain) }}</button></li>
+            {%- endif %}
+        </ul>
+        {%- if follow.events is not empty %}
+        <fieldset class="phil-follow__events">
+            <legend>{{ 'follow.level.custom'|trans({}, domain) }}</legend>
+            {%- for event in follow.events %}
+            <label>
+                {{ ('event.' ~ event.key)|trans({}, domain) }}
+                <select name="events[{{ event.key }}]">
+                    <option value=""{{ event.level == '' ? ' selected' }}>{{ 'follow.level.default'|trans({}, domain) }}</option>
+                    {%- for level in follow.levels %}
+                    <option value="{{ level }}"{{ event.level == level ? ' selected' }}>{{ ('follow.level.' ~ level)|trans({}, domain) }}</option>
+                    {%- endfor %}
+                </select>
+            </label>
+            {%- endfor %}
+            <button type="submit" name="level" value="custom">{{ 'follow.level.custom.save'|trans({}, domain) }}</button>
+        </fieldset>
+        {%- endif %}
+    </details>
+</form>
+{%- endif -%}

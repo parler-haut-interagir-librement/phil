@@ -1,0 +1,12 @@
+{#
+ # What stopped a vote sent by a plain form, with the way back to the page.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'faq.stopped'|trans({}, 'phil_faq') }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'faq.stopped'|trans({}, 'phil_faq') }}</h1>
+    <p role="alert">{{ message }}</p>
+    <p><a href="{{ back }}">{{ 'faq.back'|trans({}, 'phil_faq') }}</a></p>
+{% endblock %}

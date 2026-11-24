@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Page</title></head>
+<body>
+<main>
+    <div id="button">{{ include('@PhilFollow/follow_button.html.twig', {subject: subject}) }}</div>
+    <div id="followers">{{ include('@PhilFollow/followers.html.twig', {subject: 'member:' ~ member}) }}</div>
+    <div id="requests">{{ include('@PhilFollow/requests.html.twig') }}</div>
+    <div id="visibility">{{ include('@PhilFollow/visibility.html.twig') }}</div>
+    <div id="mutual">{{ include('@PhilFollow/mutual.html.twig', {member: member}) }}</div>
+</main>
+</body>
+</html>

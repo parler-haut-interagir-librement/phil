@@ -1,0 +1,66 @@
+{#-
+ # The page of a poll that anyone with its address may answer: its title, the dates it proposes in its time zone, and
+ # a form that asks a name, and an address only to receive the date chosen. Posted, it gives the respondent their own
+ # link, which the page takes them to. It works without JavaScript.
+ #
+ #   poll         the SchedulingPoll
+ #   slots        its Slots, in order
+ #   action       the address the form posts to
+ #   csrf_token   the CSRF token, posted as `_token`; none when null
+ #   errors       the messages of a refusal, already translated; none by default
+ #   values       the name and the address posted, to fill the form again; none by default
+ #   open         whether the poll takes new respondents now
+ #
+ # Embedding it replaces the block `fields`.
+ #}
+{%- set domain = 'phil_scheduling_poll' -%}
+{%- set errors = errors ?? [] -%}
+{%- set values = values ?? {} -%}
+{%- set zone = poll.timezone.name -%}
+{%- set id = 'phil-scheduling-poll-join-' ~ poll.id -%}
+{%- set kit = {
+    Field: phil_scheduling_poll_kit('Field'),
+    FieldLabel: phil_scheduling_poll_kit('Field:Label'),
+    FieldDescription: phil_scheduling_poll_kit('Field:Description'),
+    FieldError: phil_scheduling_poll_kit('Field:Error'),
+    Input: phil_scheduling_poll_kit('Input'),
+    Button: phil_scheduling_poll_kit('Button'),
+} -%}
+<section class="phil-scheduling-poll-join" aria-labelledby="{{ id }}-title">
+    <h2 id="{{ id }}-title">{{ poll.title }}</h2>
+    {%- if poll.description is not null %}
+    <p class="phil-scheduling-poll__description">{{ poll.description|nl2br }}</p>
+    {%- endif %}
+    <h3 id="{{ id }}-dates">{{ 'join.dates'|trans({'%timezone%': zone|replace({_: ' '})}, domain) }}</h3>
+    <ul aria-labelledby="{{ id }}-dates">
+        {%- for slot in slots %}
+        <li><time datetime="{{ slot.startsAt(poll.timezone)|date('c', false) }}">{{ slot.startsAt|format_datetime('full', 'short', timezone: zone) }} – {{ slot.endsAt|format_time('short', timezone: zone) }}</time></li>
+        {%- endfor %}
+    </ul>
+    {%- if not open %}
+    <p class="phil-scheduling-poll__status" role="status">{{ 'answer.past_deadline'|trans({}, domain) }}</p>
+    {%- else %}
+    <form method="post" action="{{ action }}" class="phil-scheduling-poll-join__form">
+        {%- if csrf_token ?? null %}
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+        {%- endif %}
+        {{ component(kit.FieldError, {errors: errors, id: id ~ '-error'}) }}
+        {%- block fields %}
+        {% component (kit.Field) %}
+            {% block content %}
+            {% component (kit.FieldLabel) with {for: id ~ '-name'} %}{% block content %}{{ 'join.name'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {{ component(kit.Input, {type: 'text', name: 'name', id: id ~ '-name', required: true, maxlength: 100, autocomplete: 'name', value: values.name ?? ''}) }}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.Field) %}
+            {% block content %}
+            {% component (kit.FieldLabel) with {for: id ~ '-email'} %}{% block content %}{{ 'join.email'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {{ component(kit.Input, {type: 'email', name: 'email', id: id ~ '-email', maxlength: 254, autocomplete: 'email', 'aria-describedby': id ~ '-email-help', value: values.email ?? ''}) }}
+            {% component (kit.FieldDescription) with {id: id ~ '-email-help'} %}{% block content %}{{ 'join.email_help'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {%- endblock %}
+        {% component (kit.Button) with {type: 'submit'} %}{% block content %}{{ 'join.submit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    </form>
+    {%- endif %}
+</section>

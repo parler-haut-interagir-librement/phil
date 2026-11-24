@@ -1,0 +1,50 @@
+From: <feedback@fbl.example.com>
+To: <abuse@example.net>
+Subject: FW: November news
+Authentication-Results: mail.example.net; dkim=pass (2048-bit key; secure) header.d=fbl.example.com header.s=s1; spf=pass smtp.mailfrom=fbl.example.com
+Authentication-Results: forged.example; dkim=pass header.d=evil.example
+MIME-Version: 1.0
+Content-Type: multipart/report; report-type=feedback-report;
+     boundary="part1_13d.2e68ed54_boundary"
+
+--part1_13d.2e68ed54_boundary
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+
+This is an email abuse report for an email message received from IP
+192.0.2.1 on Thu, 8 Mar 2026 14:00:00 EDT.
+
+--part1_13d.2e68ed54_boundary
+Content-Type: message/feedback-report
+
+Feedback-Type: abuse
+User-Agent: SomeGenerator/1.0
+Version: 1
+Original-Mail-From: <bounces+m-42@example.net>
+Original-Rcpt-To: <Grace@Example.COM>
+Arrival-Date: Thu, 8 Mar 2026 14:00:00 EDT
+Reporting-MTA: dns; mail.fbl.example.com
+Source-IP: 192.0.2.1
+Incidents: 3
+Reported-Domain: example.net
+Reported-Domain: news.example.net
+Reported-URI: https://example.net/unsubscribe
+Authentication-Results: mail.fbl.example.com; spf=pass smtp.mailfrom=example.net
+
+--part1_13d.2e68ed54_boundary
+Content-Type: message/rfc822
+Content-Disposition: inline
+
+From: <news@example.net>
+Received: from mailserver.example.net (mailserver.example.net [192.0.2.1])
+        by example.com with ESMTP id M63d4137594e46;
+        Thu, 08 Mar 2026 14:00:00 -0400
+To: <Undisclosed Recipients>
+Subject: November news
+Message-ID: <m-42@example.net>
+Feedback-ID: 2026-11:news:example.net
+Date: Thu, 02 Sep 2026 12:31:03 -0500
+
+Spam Spam Spam
+
+--part1_13d.2e68ed54_boundary--

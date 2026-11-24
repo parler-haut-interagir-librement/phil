@@ -1,0 +1,6 @@
+  * Install the recipes of the kit the questions draw:
+    <comment>php bin/console ux:install button --kit=github.com/parler-haut-interagir-librement/ux-kit</>
+    <comment>php bin/console ux:install input --kit=github.com/parler-haut-interagir-librement/ux-kit</>
+    <comment>php bin/console ux:install copy-button --kit=github.com/parler-haut-interagir-librement/ux-kit</>
+  * Create the tables: <comment>php bin/console make:migration</> then <comment>php bin/console doctrine:migrations:migrate</>.
+  * Set <comment>contact_url</> in <comment>config/packages/phil_faq.yaml</>, then open <comment>/faq/</>.

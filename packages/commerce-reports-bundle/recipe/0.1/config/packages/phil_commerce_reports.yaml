@@ -1,0 +1,4 @@
+# The sales, sell-through and dead stock reports, among the reports of phil/reporting-bundle. The installation guide of
+# phil/commerce-reports-bundle names the ports to connect.
+phil_commerce_reports:
+    dead_stock_days: 90

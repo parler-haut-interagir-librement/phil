@@ -1,0 +1,15 @@
+# The surveys of the site. An ending may redirect only to the origins listed below. See the configuration guide of
+# phil/survey-bundle.
+phil_survey:
+    connection: default
+    redirect_origins: []
+    schedule:
+        enabled: true
+
+when@dev:
+    phil_survey:
+        allow_localhost: true
+
+when@test:
+    phil_survey:
+        allow_localhost: true

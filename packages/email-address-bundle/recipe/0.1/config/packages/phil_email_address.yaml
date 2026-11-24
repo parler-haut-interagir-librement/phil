@@ -1,0 +1,8 @@
+# The email addresses and bounces of phil/email-address-bundle: see vendor/phil/email-address-bundle/doc/configuration.md
+# for every option.
+phil_email_address:
+    # Looks up a mail server of the domain of each address.
+    check_mail_server: false
+    # The route the email field's Stimulus controller reads its lists from.
+    suggestions:
+        url: /email-address/domains.json
