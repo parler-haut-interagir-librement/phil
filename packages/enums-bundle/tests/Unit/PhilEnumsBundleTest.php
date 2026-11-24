@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\EnumsBundle\Tests\Unit;
 
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Configuration as DbalConfiguration;
 use MessageFormatter;
 use Override;
 use Phil\EnumsBundle\Infrastructure\Console\CheckSetColumnsCommand;
@@ -145,13 +145,13 @@ final class PhilEnumsBundleTest extends TestCase
         $bundle->setContainer($container);
         $bundle->boot();
 
-        $type = Type::getType('phil_test_access');
+        $type = new DbalConfiguration()->getTypeProvider()->get('phil_test_access');
         self::assertInstanceOf(EnumSetType::class, $type);
         self::assertSame(Access::class, $type->enum());
         self::assertSame(EnumSetStorage::Bitmask, $type->storage());
 
         $bundle->boot();
-        self::assertSame($type, Type::getType('phil_test_access'));
+        self::assertSame($type, new DbalConfiguration()->getTypeProvider()->get('phil_test_access'));
     }
 
     public function testTheSetValidatorIsTagged(): void

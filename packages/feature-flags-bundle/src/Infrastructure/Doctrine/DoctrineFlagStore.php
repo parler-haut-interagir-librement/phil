@@ -7,7 +7,6 @@ namespace Phil\FeatureFlagsBundle\Infrastructure\Doctrine;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\ParameterType;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Override;
 use Phil\FeatureFlagsBundle\Application\Toggle\WritableFlagStore;
@@ -78,7 +77,7 @@ final class DoctrineFlagStore implements WritableFlagStore
      */
     private function load(): array
     {
-        $boolean = Type::getType(Types::BOOLEAN);
+        $boolean = $this->connection->getConfiguration()->getTypeProvider()->get(Types::BOOLEAN);
         $platform = $this->connection->getDatabasePlatform();
         $states = [];
 

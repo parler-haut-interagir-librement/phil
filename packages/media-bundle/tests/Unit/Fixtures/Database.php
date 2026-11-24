@@ -6,7 +6,8 @@ namespace Phil\MediaBundle\Tests\Unit\Fixtures;
 
 use Doctrine\DBAL\Driver\Middleware;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Configuration as DbalConfiguration;
+use Doctrine\DBAL\Types\TypeRegistry;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
@@ -24,8 +25,12 @@ final class Database
      */
     public static function entityManager(bool $records = false, array $middlewares = []): EntityManager
     {
-        if (!Type::hasType(MediaType::NAME)) {
-            Type::addType(MediaType::NAME, MediaType::class);
+        // A configuration without a type provider of its own gives the static registry of DBAL.
+        $registry = new DbalConfiguration()->getTypeProvider();
+        \assert($registry instanceof TypeRegistry);
+
+        if (!$registry->has(MediaType::NAME)) {
+            $registry->register(MediaType::NAME, MediaType::class);
         }
 
         $config = new Configuration();

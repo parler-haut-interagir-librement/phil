@@ -12,6 +12,11 @@ parameters:
     scanFiles:
         - vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php
 
+    # The stub of phpstan/phpstan-doctrine replaces the class comment of ClassMetadata, where doctrine/orm 3.8 declares
+    # the shape of an index: without it, PHPStan reads the indexes of `$table` as objects of a class that does not exist.
+    typeAliases:
+        IndexMapping: 'array{name?: string, columns?: list<string>, fields?: non-empty-list<string>, flags?: array<array-key, mixed>, options?: array<array-key, mixed>}'
+
     # The monorepo has no application, so no Symfony container for PHPStan to read. Each exception below names the lines
     # it covers; each one stays until the package line is written so that it holds either way.
     #

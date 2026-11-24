@@ -112,7 +112,7 @@ final class MappingTest extends TestCase
             'table' => $metadata->getTableName(),
             'id' => $metadata->getIdentifierFieldNames(),
             'indexes' => array_column($metadata->table['indexes'] ?? [], 'columns'),
-            'unique' => array_map(static fn (mixed $constraint): mixed => \is_array($constraint) ? $constraint['columns'] ?? null : null, $metadata->table['uniqueConstraints'] ?? []),
+            'unique' => array_map(static fn (array $constraint): ?array => $constraint['columns'] ?? null, $metadata->table['uniqueConstraints'] ?? []),
             'columns' => $columns,
         ];
     }

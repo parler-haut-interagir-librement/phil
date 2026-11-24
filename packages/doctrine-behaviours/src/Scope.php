@@ -82,7 +82,7 @@ final readonly class Scope
             $conditions[] = $column.' = ?';
             $parameters[] = $value;
             $types[] = $type;
-            $key[$field] = Type::getType($type)->convertToDatabaseValue($value, $platform);
+            $key[$field] = $manager->getConnection()->getConfiguration()->getTypeProvider()->get($type)->convertToDatabaseValue($value, $platform);
         }
 
         return new self([] === $conditions ? '1 = 1' : implode(' AND ', $conditions), $parameters, $types, json_encode($key, \JSON_THROW_ON_ERROR), $reachesNothing);

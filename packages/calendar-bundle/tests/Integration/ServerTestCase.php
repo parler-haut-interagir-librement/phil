@@ -6,9 +6,10 @@ namespace Phil\CalendarBundle\Tests\Integration;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use Doctrine\DBAL\Configuration as DbalConfiguration;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\TypeRegistry;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -55,8 +56,12 @@ abstract class ServerTestCase extends TestCase
             self::markTestSkipped(\sprintf('Set %s to run this test against a real server.', $this->variable()));
         }
 
-        if (!Type::hasType(RecurrenceRuleColumnType::NAME)) {
-            Type::addType(RecurrenceRuleColumnType::NAME, RecurrenceRuleColumnType::class);
+        // A configuration without a type provider of its own gives the static registry of DBAL.
+        $registry = new DbalConfiguration()->getTypeProvider();
+        $this->assertInstanceOf(TypeRegistry::class, $registry);
+
+        if (!$registry->has(RecurrenceRuleColumnType::NAME)) {
+            $registry->register(RecurrenceRuleColumnType::NAME, RecurrenceRuleColumnType::class);
         }
 
         $configuration = ORMSetup::createAttributeMetadataConfig([\dirname(__DIR__, 2).'/src/Domain/Model'], true);

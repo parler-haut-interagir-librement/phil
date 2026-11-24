@@ -17,7 +17,6 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Types\Type;
 use Override;
 use Phil\UsageMeter\Counter;
 use Phil\UsageMeter\Dbal\DbalUsageStore;
@@ -306,7 +305,7 @@ final class DbalUsageStoreTest extends UsageStoreTestCase
         $described = [];
 
         foreach ($columns as $column) {
-            $described[$column->getName()] = [Type::lookupName($column->getType()), $column->getLength()];
+            $described[$column->getName()] = [$column->getTypeName(), $column->getLength()];
         }
 
         return $described;

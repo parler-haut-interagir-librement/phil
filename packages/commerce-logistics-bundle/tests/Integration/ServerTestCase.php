@@ -228,7 +228,6 @@ abstract class ServerTestCase extends TestCase
 
         foreach (new SchemaTool($this->entityManager)->getSchemaFromMetadata($metadata)->getTables() as $table) {
             $name = $table->getObjectName()->toString();
-            \assert('' !== $name);
             $diffs[$name] = $comparator->compareTables($schemaManager->introspectTableByUnquotedName($name), $table);
         }
 

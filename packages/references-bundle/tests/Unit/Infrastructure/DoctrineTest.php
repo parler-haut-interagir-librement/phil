@@ -7,7 +7,6 @@ namespace Phil\ReferencesBundle\Tests\Unit\Infrastructure;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 use Phil\ReferencesBundle\Domain\ValueObject\Usage;
@@ -128,7 +127,7 @@ final class DoctrineTest extends TestCase
 
         $schema = $event->getSchema();
         $table = $schema->getTable(UsageTable::NAME);
-        self::assertSame([[64, 'string'], [64, 'string'], [255, 'string'], [255, 'string'], [64, 'string'], [255, 'string']], array_map(static fn (string $name): array => [$table->getColumn($name)->getLength(), Type::lookupName($table->getColumn($name)->getType())], ['usage_key', 'source_kind', 'source_id', 'field', 'target_kind', 'target_id']));
+        self::assertSame([[64, 'string'], [64, 'string'], [255, 'string'], [255, 'string'], [64, 'string'], [255, 'string']], array_map(static fn (string $name): array => [$table->getColumn($name)->getLength(), $table->getColumn($name)->getTypeName()], ['usage_key', 'source_kind', 'source_id', 'field', 'target_kind', 'target_id']));
         self::assertTrue($table->getColumn('usage_key')->getFixed());
         self::assertSame(['usage_key'], array_map(static fn (object $name): string => $name->toString(), $table->getPrimaryKeyConstraint()?->getColumnNames() ?? []));
         self::assertSame(['target_kind', 'target_id'], $table->getIndex('phil_reference_usage_target')->getColumns());

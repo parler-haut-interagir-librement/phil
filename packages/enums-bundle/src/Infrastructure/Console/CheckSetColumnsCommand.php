@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phil\EnumsBundle\Infrastructure\Console;
 
 use Doctrine\DBAL\Types\ConversionException;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Override;
@@ -51,11 +50,12 @@ final class CheckSetColumnsCommand extends Command
 
             $connection = $manager->getConnection();
             $platform = $connection->getDatabasePlatform();
+            $types = $connection->getConfiguration()->getTypeProvider();
 
             foreach ($manager->getMetadataFactory()->getAllMetadata() as $metadata) {
                 foreach ($metadata->getFieldNames() as $field) {
                     $mapping = $metadata->getFieldMapping($field);
-                    $type = Type::hasType($mapping->type) ? Type::getType($mapping->type) : null;
+                    $type = $types->has($mapping->type) ? $types->get($mapping->type) : null;
 
                     if (!$type instanceof EnumSetType) {
                         continue;

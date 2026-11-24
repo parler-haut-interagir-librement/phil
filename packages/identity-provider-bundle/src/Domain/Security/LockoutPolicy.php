@@ -39,7 +39,7 @@ final readonly class LockoutPolicy
         }
 
         $exponent = min($failures - $this->threshold, 30);
-        $seconds = min($this->base * (2 ** $exponent), $this->max);
+        $seconds = min($this->base * (1 << $exponent), $this->max);
 
         return $lastFailure->modify(\sprintf('+%d seconds', $seconds));
     }

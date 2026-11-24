@@ -8,7 +8,6 @@ use Closure;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -217,7 +216,7 @@ final readonly class VersionEraser
     private function rows(array $store, string $where, array $values, array $types = []): array
     {
         $columns = $store['columns'];
-        $json = Type::getType(Types::JSON);
+        $json = $store['connection']->getConfiguration()->getTypeProvider()->get(Types::JSON);
         $platform = $store['connection']->getDatabasePlatform();
         $rows = [];
 

@@ -37,16 +37,17 @@ final class InstantColumnsTest extends KernelTestCase
 
     private const string LIBRARY = 'Phil\\DoctrineBehaviours\\';
 
+    // The mutable date-time types are named by their strings: DBAL deprecates their constants.
     private const array INSTANT_TYPES = [
-        Types::DATETIME_MUTABLE,
+        'datetime',
         Types::DATETIME_IMMUTABLE,
-        Types::DATETIMETZ_MUTABLE,
+        'datetimetz',
         Types::DATETIMETZ_IMMUTABLE,
-        Types::DATETIME_UTC_MUTABLE,
+        'datetime_utc',
         Types::DATETIME_UTC_IMMUTABLE,
     ];
 
-    private const array UTC_TYPES = [Types::DATETIME_UTC_MUTABLE, Types::DATETIME_UTC_IMMUTABLE];
+    private const array UTC_TYPES = ['datetime_utc', Types::DATETIME_UTC_IMMUTABLE];
 
     private string $timezone = 'UTC';
 

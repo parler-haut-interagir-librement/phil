@@ -6,7 +6,6 @@ namespace Phil\CoursesBundle\Infrastructure\Doctrine;
 
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 
 /**
@@ -45,7 +44,7 @@ final readonly class Rows
     public function moment(mixed $value): ?DateTimeImmutable
     {
         // The type reads a null as null.
-        $moment = Type::getType(Types::DATETIME_UTC_IMMUTABLE)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
+        $moment = $this->connection->getConfiguration()->getTypeProvider()->get(Types::DATETIME_UTC_IMMUTABLE)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
 
         return $moment instanceof DateTimeImmutable ? $moment : null;
     }

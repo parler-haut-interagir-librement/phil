@@ -8,7 +8,6 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 use Phil\SearchBundle\Domain\Exception\InvalidSearch;
@@ -246,7 +245,7 @@ final class DbalSearchIndexTest extends TestCase
 
         $schema = $event->getSchema();
         $table = $schema->getTable(SearchTable::NAME);
-        self::assertSame([[64, 'string'], [255, 'string'], [null, 'text'], [null, 'json']], array_map(static fn (string $name): array => [$table->getColumn($name)->getLength(), Type::lookupName($table->getColumn($name)->getType())], ['index_name', 'document_id', 'content', 'filters']));
+        self::assertSame([[64, 'string'], [255, 'string'], [null, 'text'], [null, 'json']], array_map(static fn (string $name): array => [$table->getColumn($name)->getLength(), $table->getColumn($name)->getTypeName()], ['index_name', 'document_id', 'content', 'filters']));
         self::assertSame(['index_name', 'document_id'], array_map(static fn (object $name): string => $name->toString(), $table->getPrimaryKeyConstraint()?->getColumnNames() ?? []));
         self::assertSame($schema, SearchTable::configure($schema));
         self::assertCount(1, $schema->getTables());

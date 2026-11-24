@@ -7,7 +7,6 @@ namespace Phil\AccessibilityStatementBundle\Infrastructure\Doctrine;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Override;
 use Phil\AccessibilityStatement\Exception\InvalidStatement;
@@ -73,7 +72,7 @@ final readonly class DbalStatements implements StatementRepository
     {
         $limit = max(0, $limit);
         $rows = $this->connection->fetchAllKeyValue('SELECT version, published_at FROM '.StatementTables::STATEMENTS.' ORDER BY version DESC LIMIT '.$limit);
-        $type = Type::getType(Types::DATETIME_UTC_IMMUTABLE);
+        $type = $this->connection->getConfiguration()->getTypeProvider()->get(Types::DATETIME_UTC_IMMUTABLE);
         $platform = $this->connection->getDatabasePlatform();
         $publications = [];
 

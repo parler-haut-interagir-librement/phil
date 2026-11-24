@@ -95,7 +95,7 @@ final readonly class ImagickCardRenderer implements CardRenderer
         $width = min($image->width, intdiv($image->height * CardTemplate::WIDTH, CardTemplate::HEIGHT));
         $height = min($image->height, intdiv($image->width * CardTemplate::HEIGHT, CardTemplate::WIDTH));
 
-        if ($width < 1 || $height < 1) {
+        if ($height < 1) {
             return;
         }
 

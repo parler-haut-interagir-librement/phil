@@ -6,7 +6,8 @@ namespace Phil\DoctrineBehaviours\Tests\Unit\Fixtures;
 
 use Doctrine\DBAL\Driver\Middleware;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Configuration as DbalConfiguration;
+use Doctrine\DBAL\Types\TypeRegistry;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Events;
@@ -68,8 +69,12 @@ final class Database
      */
     public static function onConnection(ClockInterface $clock, BlameResolver $blame, ?OwnerResolver $owner, array $parameters, ?Middleware $middleware = null): EntityManager
     {
-        if (!Type::hasType(PrefixedType::NAME)) {
-            Type::addType(PrefixedType::NAME, PrefixedType::class);
+        // A configuration without a type provider of its own gives the static registry of DBAL.
+        $registry = new DbalConfiguration()->getTypeProvider();
+        \assert($registry instanceof TypeRegistry);
+
+        if (!$registry->has(PrefixedType::NAME)) {
+            $registry->register(PrefixedType::NAME, PrefixedType::class);
         }
 
         $config = new Configuration();

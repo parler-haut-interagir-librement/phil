@@ -131,7 +131,7 @@ final readonly class DimensionContentMappingListener
         $constraints = $metadata->table['uniqueConstraints'] ?? [];
 
         foreach ($constraints as $constraint) {
-            if (\is_array($constraint) && ($constraint['columns'] ?? null) === $columns) {
+            if (($constraint['columns'] ?? null) === $columns) {
                 return;
             }
         }

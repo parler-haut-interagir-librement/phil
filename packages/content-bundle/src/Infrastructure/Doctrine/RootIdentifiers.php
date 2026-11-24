@@ -6,7 +6,6 @@ namespace Phil\ContentBundle\Infrastructure\Doctrine;
 
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\ParameterType;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Phil\DddBundle\Domain\Exception\DomainError;
@@ -81,7 +80,7 @@ final readonly class RootIdentifiers
             return [$identifiers, ArrayParameterType::STRING];
         }
 
-        $type = Type::getType($typeName);
+        $type = $this->entityManager->getConnection()->getConfiguration()->getTypeProvider()->get($typeName);
         $platform = $this->entityManager->getConnection()->getDatabasePlatform();
 
         return [

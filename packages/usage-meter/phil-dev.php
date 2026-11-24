@@ -15,7 +15,7 @@ return [
             [
                 'identifier' => 'method.deprecated',
                 'path' => 'tests/Unit/Dbal/DbalUsageStoreTest.php',
-                'count' => 4,
+                'count' => 3,
             ],
             // à corriger : API interne de Doctrine à remplacer par une API publique.
             [
