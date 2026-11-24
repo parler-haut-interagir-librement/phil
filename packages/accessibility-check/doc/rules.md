@@ -12,6 +12,7 @@ message key is the rule's identifier and the case, such as `image-alt.missing`; 
 | `empty-heading` | 2.4.6 Headings and Labels (AA) | warning | headings have text |
 | `link-name` | 2.4.4 Link Purpose (In Context) (A) | error | links have a name |
 | `button-name` | 4.1.2 Name, Role, Value (A) | error | buttons have a name |
+| `tab-name` | 4.1.2 Name, Role, Value (A) | error | tabs have a name |
 | `link-text` | 2.4.4 Link Purpose (In Context) (A) | warning | link names say where they lead |
 | `color-contrast` | 1.4.3 Contrast (Minimum) (AA), or 1.4.6 (AAA) | error | coloured text stands out from its background |
 | `table-headers` | 1.3.1 Info and Relationships (A) | error | tables of data mark their header cells |
@@ -83,6 +84,16 @@ name; a `submit` or `reset` input without a value takes the name the browser giv
 | Key | Placeholders |
 |---|---|
 | `button-name.empty` | |
+
+## `tab-name`
+
+An element of role `tab` has an accessible name: its text, the alternative of an image in it, a name of ARIA, else its
+`title`. Without one, a screen reader announces only its role and its position, "tab, 2 of 3". The role is the first
+token of `role`, as for `button-name`.
+
+| Key | Placeholders |
+|---|---|
+| `tab-name.empty` | |
 
 ## `link-text`
 
@@ -202,3 +213,14 @@ alone. In UJO, the drawings a block keeps in `rendered` are checked as HTML fiel
 What depends on the look and the behaviour of a page rather than on its content: keyboard use, focus, the contrast of
 colours set by style sheets, motion, timing, forms and their errors. What needs a person: whether an alternative text
 describes its image, whether captions say what the sound says, whether a heading names its section.
+
+The success criteria that WCAG 2.2 added are left to tests in a browser, which see the page laid out and in use:
+
+| Criterion | What the browser test checks |
+|---|---|
+| 2.4.11 Focus Not Obscured (Minimum) (AA) | the focused element is not hidden by a sticky header, a banner or a dialog |
+| 2.5.7 Dragging Movements (AA) | what is done by dragging is also done by single pointer actions |
+| 2.5.8 Target Size (Minimum) (AA) | targets are 24 by 24 CSS pixels, or spaced as far apart |
+| 3.2.6 Consistent Help (A) | the help offered on several pages sits in the same order on each |
+| 3.3.7 Redundant Entry (A) | what was entered earlier in a process is filled in or offered again |
+| 3.3.8 Accessible Authentication (Minimum) (AA) | signing in needs no test of memory or of solving, or offers another way |

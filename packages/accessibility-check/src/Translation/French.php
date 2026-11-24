@@ -23,6 +23,7 @@ final class French
         'empty-heading.empty' => 'Ce titre h{level} n’a pas de texte.',
         'link-name.empty' => 'Le lien vers {href} n’a pas de texte : les lecteurs d’écran n’annoncent que son adresse.',
         'button-name.empty' => 'Ce bouton n’a pas de texte : dites ce qu’il fait.',
+        'tab-name.empty' => 'Cet onglet n’a pas de texte : dites ce que contient son panneau.',
         'link-text.generic' => 'Le texte du lien vers {href}, « {text} », ne dit pas où il mène : décrivez sa destination.',
         'color-contrast.insufficient' => 'Le texte « {text} » a un contraste de {ratio}:1 entre {foreground} et {background} ; il lui faut {required}:1.',
         'color-contrast.unresolved' => 'La couleur {value} dépend des feuilles de style de la page : vérifiez le contraste de ce texte dans un navigateur.',

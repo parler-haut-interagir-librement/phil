@@ -36,7 +36,7 @@ final class AccessibilityCheckerTest extends TestCase
     {
         $ids = array_map(static fn (Rule $rule): string => $rule->id(), new AccessibilityChecker()->rules());
 
-        self::assertSame(['image-alt', 'heading-order', 'heading-h1', 'empty-heading', 'link-name', 'button-name', 'link-text', 'color-contrast', 'table-headers', 'html-lang', 'lang-change', 'frame-title', 'video-captions', 'duplicate-id', 'svg-name'], $ids);
+        self::assertSame(['image-alt', 'heading-order', 'heading-h1', 'empty-heading', 'link-name', 'button-name', 'tab-name', 'link-text', 'color-contrast', 'table-headers', 'html-lang', 'lang-change', 'frame-title', 'video-captions', 'duplicate-id', 'svg-name'], $ids);
         self::assertEquals(DefaultRules::all(), new AccessibilityChecker()->rules());
     }
 

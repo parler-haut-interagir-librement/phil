@@ -23,6 +23,7 @@ final class Portuguese
         'empty-heading.empty' => 'Este título h{level} não tem texto.',
         'link-name.empty' => 'A ligação para {href} não tem texto: os leitores de ecrã anunciam apenas o seu endereço.',
         'button-name.empty' => 'Este botão não tem texto: diga o que faz.',
+        'tab-name.empty' => 'Este separador não tem texto: diga o que contém o seu painel.',
         'link-text.generic' => 'O texto da ligação para {href}, «{text}», não diz para onde leva: descreva o seu destino.',
         'color-contrast.insufficient' => 'O texto «{text}» tem um contraste de {ratio}:1 entre {foreground} e {background}; precisa de {required}:1.',
         'color-contrast.unresolved' => 'A cor {value} depende das folhas de estilo da página: verifique o contraste deste texto num navegador.',
