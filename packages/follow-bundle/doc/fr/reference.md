@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=21396d6ea0c192ec7d8a9f46a16b14013aada0f5020246807f5e7fc2c0b55f63 -->
+<!-- phil-dev source-sha256=acef4471f5b7d66729c205207bd63ce6ebcd955a49247dc82183a41124f26579 -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.

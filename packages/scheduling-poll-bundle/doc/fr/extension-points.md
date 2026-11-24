@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a3d8f7559166b2d6504b73d0f5bda29ca01e64232aa46cab5a7d06f06e9bd4e1 -->
+<!-- phil-dev source-sha256=a6213bcd63ce71d05cd9ddd84a9d76b322f4d46371dd80eac93a8d2e43860c20 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension ne sont stables qu'à partir de sa version 1.0. D'ici là, une version

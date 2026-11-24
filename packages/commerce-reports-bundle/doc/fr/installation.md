@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7a54f19d1258fd542720fbd7559902ba84222c443b4f798751ce8b214e8c8334 -->
+<!-- phil-dev source-sha256=a6bd3914bd89f6875d9087da42e3097493fabb49a43576422e1fe27a9a82f0cd -->
 # Installation
 
 ```sh
