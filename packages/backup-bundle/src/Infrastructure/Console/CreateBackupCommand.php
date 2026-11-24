@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Override;
 use Phil\Backup\Backups;
 use Phil\Backup\Exception\BackupError;
+use Phil\BackupBundle\Infrastructure\Lock\BackupLock;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,13 +19,15 @@ use Symfony\Component\Console\Output\OutputInterface;
  *     bin/console phil:backup:create [--label=before-migration] [--no-media] [--no-rotate].
  *
  * Backs the database and the media directories up into a new set of the backup directory, encrypted when a key is
- * configured, then removes the sets the rotation has expired. A labelled set is kept apart from rotation.
+ * configured, then removes the sets the rotation has expired. A labelled set is kept apart from rotation. With a lock,
+ * the backup and the rotation hold it from start to end, and the command fails at once when another holds it.
  */
 #[AsCommand(name: 'phil:backup:create', description: 'Backs the database and the media files up')]
 final class CreateBackupCommand extends Command
 {
     public function __construct(
         private readonly Backups $backups,
+        private readonly ?BackupLock $lock = null,
     ) {
         parent::__construct();
     }
@@ -43,7 +46,7 @@ final class CreateBackupCommand extends Command
     {
         $label = $input->getOption('label');
 
-        try {
+        $work = function () use ($input, $output, $label): void {
             $set = $this->backups->create(new DateTimeImmutable(), \is_string($label) ? $label : '', true !== $input->getOption('no-media'));
             $output->writeln(\sprintf('The %s is backed up in %s.', $this->backups->client()->identity()->describe(), $set->database));
 
@@ -54,6 +57,10 @@ final class CreateBackupCommand extends Command
             foreach (true === $input->getOption('no-rotate') ? [] : $this->backups->prune() as $expired) {
                 $output->writeln(\sprintf('The expired backup %s is removed.', $expired->stem));
             }
+        };
+
+        try {
+            $this->lock instanceof BackupLock ? $this->lock->exclusively($work) : $work();
         } catch (BackupError $backupError) {
             $output->writeln($backupError->getMessage());
 

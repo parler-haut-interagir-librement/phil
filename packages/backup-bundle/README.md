@@ -6,7 +6,9 @@ phil/backup-bundle puts `phil/backup` in a Symfony application. It reads the Doc
 client — SQLite, MySQL, MariaDB or PostgreSQL — and to give it the credentials, which never reach a command line. It
 backs the media directories up beside the database, encrypts every file with a key read from the environment, and
 rotates the backups after each one. Three commands do the work: `phil:backup:create`, `phil:backup:restore` and
-`phil:backup:verify`.
+`phil:backup:verify`, each holding an exclusive lock of the backup directory, so that a rotation never removes a set
+another command is writing or testing; a fourth, `phil:backup:monitor`, tells the monitoring whether the latest backup
+is recent enough.
 
 A restore is a decision taken twice. In production it is refused unless `PHIL_BACKUP_ALLOW_PRODUCTION_RESTORE` holds
 the name of the database; everywhere it needs `--confirm` and the database's name typed again, asked for when the
@@ -16,20 +18,22 @@ once that backup is written; the latest three of these are kept. Media files add
 scratch database for a server — and checks it there, without touching the database.
 
 It is for the developers and operators of a Symfony application who need backups they can trust and restores they
-cannot run by accident. It does not schedule the backups, copy them off the machine, or watch that they run: the
-application's scheduler, storage and monitoring do; see [commands.md](doc/commands.md).
+cannot run by accident. It does not schedule the backups or copy them off the machine: the application's scheduler
+and storage do, and its monitoring reads `phil:backup:monitor`; see [commands.md](doc/commands.md).
 
-It is a Symfony bundle on `phil/backup`, the Console component, Doctrine DBAL and Symfony Process, and needs the
-database's client tools where the commands run.
+It is a Symfony bundle on `phil/backup`, the Console component, Doctrine DBAL, Symfony Lock and Symfony Process, and
+needs the database's client tools where the commands run.
 
 ## Status
 
 | Area | State |
 |---|---|
-| `PhilBackupBundle`: connection, directory, binaries, timeout, warn_after, grace_period, key, allow_unencrypted, media, rotation, restore, verify | Implemented and tested |
+| `PhilBackupBundle`: connection, directory, binaries, timeout, warn_after, grace_period, key, allow_unencrypted, media, rotation, restore, lock, monitor, verify | Implemented and tested |
 | `DatabaseClients`: the client of a DBAL connection, without connecting | Implemented and tested |
 | `ProcessCommandRunner`: Symfony Process, no shell, a warning and an event for a slow tool, an optional time limit | Implemented and tested |
 | `phil:backup:create`, `phil:backup:restore`, `phil:backup:verify` | Implemented and tested on SQLite with the real `sqlite3`; MySQL, MariaDB and PostgreSQL by their command lines |
+| `BackupLock`: one exclusive lock per directory, over Symfony Lock, held by those three commands | Implemented and tested |
+| `phil:backup:monitor`: the age of the latest backup against a threshold in hours | Implemented and tested |
 
 ## Documentation
 
@@ -37,8 +41,8 @@ database's client tools where the commands run.
   tools, a first key.
 - [Configuration](doc/configuration.md) — every key of `phil_backup`, its default and effect, the services it
   wires, and each build-time error.
-- [Commands](doc/commands.md) — creating, restoring and testing a backup, their options and messages, scheduling,
-  and copying a production database to work on.
+- [Commands](doc/commands.md) — creating, restoring, testing and monitoring backups, their options and messages, the
+  lock, scheduling, and copying a production database to work on, with the retention of an anonymized copy.
 - [Restore protection](doc/restore-protection.md) — production, the confirmation, the name typed again, and the
   backup taken first.
 - [Extension points](doc/extension-points.md) — the services you can rely on, another runner or client.

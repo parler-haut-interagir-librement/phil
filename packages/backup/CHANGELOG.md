@@ -4,6 +4,22 @@ All notable changes to `phil/backup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.4-alpha.
+
+### Added
+
+- The [rotation guide](doc/rotation.md#labelled-sets-and-their-retention) gives labelled sets a retention period, by
+  count or by age, and says that a copy labelled `anonymized` is still personal information; it also says that
+  `Backups` takes no lock, and when an application needs one.
+
+### Changed
+
+- `MediaArchive::verify()`, and so `extract()` and `Backups::verify()`, refuse an archive that holds a path twice —
+  two files, two directories, a file and a directory of the same place, or one place under two media names —, which
+  `TarWriter` never writes and a restore would settle by keeping whichever came last.
+
 ## 0.1.3-alpha - 2026-11-20
 
 Restoring a tar archive never creates a directory outside its media directory.

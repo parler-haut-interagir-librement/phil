@@ -17,6 +17,7 @@ use Phil\Backup\Storage\BackupDirectory;
 use Phil\BackupBundle\Infrastructure\Console\CreateBackupCommand;
 use Phil\BackupBundle\Infrastructure\Console\RestoreBackupCommand;
 use Phil\BackupBundle\Infrastructure\Console\VerifyBackupCommand;
+use Phil\BackupBundle\Infrastructure\Lock\BackupLock;
 use Phil\BackupBundle\Infrastructure\Process\ProcessCommandRunner;
 use Phil\BackupBundle\Tests\Unit\Fixture\Files;
 use Phil\BackupBundle\Tests\Unit\Fixture\SilentRunner;
@@ -24,6 +25,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 
 /**
  * The three commands on a SQLite file, with the real `sqlite3`.
@@ -241,6 +244,50 @@ final class BackupCommandsTest extends TestCase
         self::assertSame(Command::SUCCESS, $tester->execute(['file' => $this->directory.'/shop.sql']));
         self::assertSame("The database of shop.sql restores: it was restored into the mysql database shop_restore_test and checked.\n", $tester->getDisplay());
         self::assertSame(['--system-command=OFF', 'shop_restore_test'], \array_slice($runner->commands[0], 2));
+    }
+
+    public function testEachCommandHoldsTheLockAndFailsWhenAnotherHoldsIt(): void
+    {
+        $set = $this->backups->create(new DateTimeImmutable('2026-11-07 03:15:00 UTC'));
+        $factory = new LockFactory(new InMemoryStore());
+        $lock = new BackupLock($factory, $this->directory.'/backup');
+        $busy = \sprintf("Another backup, rotation, restore or restore test of %s/backup is running: try again once it ends.\n", $this->directory);
+        $held = $factory->createLock($lock->resource());
+        self::assertTrue($held->acquire());
+
+        $create = new CommandTester(new CreateBackupCommand($this->backups(new RotationPolicy(last: 1)), $lock));
+        self::assertSame(Command::FAILURE, $create->execute([]));
+        self::assertSame($busy, $create->getDisplay());
+        self::assertCount(1, Files::glob($this->directory.'/backup/app-*.sqlite.enc'), 'Nothing is written while another holds the lock.');
+
+        $restore = new CommandTester(new RestoreBackupCommand($this->backups, new RestoreGuard('dev'), 3, $lock));
+        self::assertSame(Command::FAILURE, $restore->execute(['file' => $set->database, '--confirm' => true, '--database' => 'app.sqlite']));
+        self::assertSame($busy, $restore->getDisplay());
+        self::assertSame([], Files::glob($this->directory.'/backup/*-before-restore.*'));
+
+        $verify = new CommandTester(new VerifyBackupCommand($this->backups, null, $lock));
+        self::assertSame(Command::FAILURE, $verify->execute([]));
+        self::assertSame($busy, $verify->getDisplay());
+
+        $held->release();
+        $create = new CommandTester(new CreateBackupCommand($this->backups(new RotationPolicy(last: 1)), $lock));
+        self::assertSame(Command::SUCCESS, $create->execute([]));
+        self::assertStringContainsString('The expired backup app-20261107-031500 is removed.', $create->getDisplay());
+        self::assertTrue($held->acquire(), 'The lock is freed after the backup and the rotation.');
+        $held->release();
+
+        self::assertSame(Command::SUCCESS, new CommandTester(new VerifyBackupCommand($this->backups, null, $lock))->execute([]));
+        self::assertTrue($held->acquire(), 'The lock is freed after the test.');
+        $held->release();
+
+        self::assertSame(Command::INVALID, new CommandTester(new VerifyBackupCommand(new Backups(new SqliteClient($this->database, new ProcessCommandRunner()), new BackupDirectory($this->directory.'/empty')), null, $lock))->execute([]));
+
+        $latest = $this->only('app-*[0-9].sqlite.enc');
+        $restore = new CommandTester(new RestoreBackupCommand($this->backups, new RestoreGuard('dev'), 3, $lock));
+        self::assertSame(Command::SUCCESS, $restore->execute(['file' => $latest, '--confirm' => true, '--database' => 'app.sqlite']));
+        self::assertStringContainsString('is restored from', $restore->getDisplay());
+        self::assertTrue($held->acquire(), 'The lock is freed after the restore.');
+        $held->release();
     }
 
     private function backups(?RotationPolicy $rotation = null, ?BackupKey $key = null): Backups

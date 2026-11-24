@@ -8,7 +8,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.2-alpha.
 
-Tests only.
+### Added
+
+- `BackupLock`, one exclusive lock per backup directory over Symfony Lock, held by `phil:backup:create` (the backup
+  and the rotation after it), `phil:backup:restore` (the copy taken first, the restore and the removal of the older
+  copies) and `phil:backup:verify`: a command that finds it taken fails at once and changes nothing, so a rotation
+  never removes a set another command is writing or testing. Configured under `lock` — `enabled`, `factory` (a flock
+  store in the system temporary directory by default), `ttl` —; the bundle requires `symfony/lock`.
+- `phil:backup:monitor`: whether the most recent backup without a label was taken less than `monitor.max_age_hours`
+  hours ago, 26 by default, or `--max-age`; it exits with `1` when it was not, for the monitoring to read.
+- The [commands guide](doc/commands.md#how-long-a-copy-labelled-anonymized-is-kept) says that a copy labelled
+  `anonymized` still holds personal information, and how to give it a retention period.
 
 ### Changed
 

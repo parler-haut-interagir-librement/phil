@@ -185,6 +185,52 @@ final class MediaArchiveTest extends TestCase
         }
     }
 
+    public function testAPathHeldTwiceIsRefused(): void
+    {
+        file_put_contents($this->directory.'/a', 'a');
+        $archive = new MediaArchive(['media' => $this->directory.'/target', 'same' => $this->directory.'/target', 'other' => $this->directory.'/elsewhere']);
+
+        foreach ([
+            'a file twice' => [['media/first', 'file'], ['media/first', 'file'], 'media/first'],
+            'a directory twice' => [['media/sub', 'directory'], ['media/sub', 'directory'], 'media/sub'],
+            'a directory and a file' => [['media/sub', 'directory'], ['media/sub', 'file'], 'media/sub'],
+            'a file and a directory' => [['media/sub', 'file'], ['media/sub', 'directory'], 'media/sub'],
+            'the media directory twice' => [['media', 'directory'], ['media', 'directory'], 'media'],
+            'one place under two names' => [['media/first', 'file'], ['same/first', 'file'], 'same/first'],
+        ] as $case => [[$firstPath, $firstKind], [$secondPath, $secondKind], $named]) {
+            $writer = TarWriter::create($this->directory.'/media.tar');
+            $writer->addFile('media/before', $this->directory.'/a', 0o644, 0);
+
+            foreach ([[$firstPath, $firstKind], [$secondPath, $secondKind]] as [$path, $kind]) {
+                'file' === $kind ? $writer->addFile($path, $this->directory.'/a', 0o644, 0) : $writer->addDirectory($path, 0o755, 0);
+            }
+
+            $writer->close();
+
+            foreach (['verify' => $archive->verify(...), 'extract' => $archive->extract(...)] as $method => $read) {
+                try {
+                    $read($this->directory.'/media.tar');
+                    self::fail($case.', '.$method);
+                } catch (BackupFailed $backupFailed) {
+                    self::assertSame(\sprintf('The media archive holds %s twice.', $named), $backupFailed->getMessage(), $case);
+                    self::assertFileDoesNotExist($this->directory.'/target/before', 'Nothing is written before the whole archive is read.');
+                }
+            }
+        }
+
+        $writer = TarWriter::create($this->directory.'/media.tar');
+        $writer->addDirectory('media', 0o755, 0);
+        $writer->addFile('media/a', $this->directory.'/a', 0o644, 0);
+        $writer->addFile('media/ab', $this->directory.'/a', 0o644, 0);
+        $writer->addDirectory('media/a-b', 0o755, 0);
+        $writer->addFile('media/a-b/a', $this->directory.'/a', 0o644, 0);
+        $writer->addDirectory('other', 0o755, 0);
+        $writer->addFile('other/a', $this->directory.'/a', 0o644, 0);
+        $writer->close();
+
+        self::assertSame(4, $archive->verify($this->directory.'/media.tar'), 'paths alike but apart, and the same path under another directory');
+    }
+
     public function testAColonAfterTheFirstLetterIsNotADriveLetter(): void
     {
         file_put_contents($this->directory.'/a', 'a');

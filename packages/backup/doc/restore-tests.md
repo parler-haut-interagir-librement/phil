@@ -11,8 +11,8 @@ gives a `Verification` back.
    - **MySQL, MariaDB, PostgreSQL**: into the scratch database `$scratch`, on the same server and with the same
      credentials; the restore tool's success is the check. Without a scratch database, the database is not
      restored, and `restoredInto` is null.
-3. The media archive is read whole, every header and path checked; `mediaFiles` is its number of files, null when the
-   set has none.
+3. The media archive is read whole, every header and path checked, and a path held twice refused; `mediaFiles` is
+   its number of files, null when the set has none.
 
 A failure at any step is a `BackupFailed` naming the file and the cause.
 

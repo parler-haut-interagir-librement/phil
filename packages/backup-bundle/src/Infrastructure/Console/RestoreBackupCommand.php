@@ -10,6 +10,7 @@ use Phil\Backup\Backups;
 use Phil\Backup\Exception\BackupError;
 use Phil\Backup\Restore\RestoreGuard;
 use Phil\Backup\Storage\BackupSet;
+use Phil\BackupBundle\Infrastructure\Lock\BackupLock;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -28,7 +29,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * `before-restore`, and the restore starts only once that backup is written; once the restore succeeds, the oldest
  * `before-restore` backups are removed but the latest ones, three by default.
  *
- * The media files the backup does not hold are left, unless `--prune` removes them.
+ * The media files the backup does not hold are left, unless `--prune` removes them. With a lock, the copy taken first,
+ * the restore and the removal of the older copies hold it, once the guard has let the restore through.
  */
 #[AsCommand(name: 'phil:backup:restore', description: 'Restores the database and the media files from a backup')]
 final class RestoreBackupCommand extends Command
@@ -39,6 +41,7 @@ final class RestoreBackupCommand extends Command
         private readonly Backups $backups,
         private readonly RestoreGuard $guard,
         private readonly int $keepBeforeRestore = 3,
+        private readonly ?BackupLock $lock = null,
     ) {
         parent::__construct();
     }
@@ -87,11 +90,15 @@ final class RestoreBackupCommand extends Command
             return Command::INVALID;
         }
 
-        try {
+        $work = function () use ($set, $media, $prune, $output): array {
             $before = $this->backups->create(new DateTimeImmutable(), self::LABEL, $media);
             $output->writeln(\sprintf('The current content is backed up in %s first.', $before->database));
-            $restoration = $this->backups->restore($set, $media, $prune);
-            $removed = $this->backups->keepLatest(self::LABEL, $this->keepBeforeRestore);
+
+            return [$this->backups->restore($set, $media, $prune), $this->backups->keepLatest(self::LABEL, $this->keepBeforeRestore)];
+        };
+
+        try {
+            [$restoration, $removed] = $this->lock instanceof BackupLock ? $this->lock->exclusively($work) : $work();
         } catch (BackupError $backupError) {
             $output->writeln($backupError->getMessage());
 

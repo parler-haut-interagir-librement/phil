@@ -9,6 +9,7 @@ use Phil\Backup\Backups;
 use Phil\Backup\Database\DatabaseIdentity;
 use Phil\Backup\Exception\BackupError;
 use Phil\Backup\Storage\BackupSet;
+use Phil\BackupBundle\Infrastructure\Lock\BackupLock;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -21,7 +22,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Tests that a backup restores — the file given, or the most recent set of the backup directory without a label —
  * without touching the database: its files decrypt and authenticate, its media archive reads whole, and its database
  * is restored into a copy and checked there — a temporary file for SQLite, the scratch database of
- * `phil_backup.verify.database` for a server.
+ * `phil_backup.verify.database` for a server. With a lock, the test holds it, so that no rotation removes the set
+ * under test.
  */
 #[AsCommand(name: 'phil:backup:verify', description: 'Tests that a backup restores, without touching the database')]
 final class VerifyBackupCommand extends Command
@@ -29,6 +31,7 @@ final class VerifyBackupCommand extends Command
     public function __construct(
         private readonly Backups $backups,
         private readonly ?string $scratch = null,
+        private readonly ?BackupLock $lock = null,
     ) {
         parent::__construct();
     }
@@ -44,21 +47,27 @@ final class VerifyBackupCommand extends Command
     {
         $file = $input->getArgument('file');
 
-        try {
+        $work = function () use ($file): ?array {
             $set = $this->backups->find(\is_string($file) ? $file : null);
 
-            if (!$set instanceof BackupSet) {
-                $output->writeln('There is no backup to test in the backup directory.');
+            return $set instanceof BackupSet ? [$set, $this->backups->verify($set, $this->scratch)] : null;
+        };
 
-                return Command::INVALID;
-            }
-
-            $verification = $this->backups->verify($set, $this->scratch);
+        try {
+            $tested = $this->lock instanceof BackupLock ? $this->lock->exclusively($work) : $work();
         } catch (BackupError $backupError) {
             $output->writeln($backupError->getMessage());
 
             return Command::FAILURE;
         }
+
+        if (null === $tested) {
+            $output->writeln('There is no backup to test in the backup directory.');
+
+            return Command::INVALID;
+        }
+
+        [$set, $verification] = $tested;
 
         if ([] !== array_filter($set->files(), BackupSet::isEncrypted(...))) {
             $output->writeln(\sprintf('The files of %s decrypt and authenticate.', $set->stem));

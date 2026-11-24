@@ -86,14 +86,24 @@ final readonly class MediaArchive
 
     /**
      * Reads the archive whole, checking every header and every path, without writing anything, and gives the number
-     * of files back.
+     * of files back. A path the archive holds twice — two files, two directories, or a file and a directory of the
+     * same place — is refused: `TarWriter` never writes one, and a restore would leave whichever came last. Each path
+     * read is kept as a 16-byte digest until the end, so the memory grows with the number of entries, not their names.
      */
     public function verify(string $file): int
     {
         $files = 0;
+        $seen = [];
 
-        new TarReader($file)->read(function (TarEntry $entry) use (&$files): void {
-            $this->target($entry->name);
+        new TarReader($file)->read(function (TarEntry $entry) use (&$files, &$seen): void {
+            [$base, $relative] = $this->target($entry->name);
+            $key = hash('xxh128', $base."\0".$relative, true);
+
+            if (isset($seen[$key])) {
+                throw BackupFailed::because(\sprintf('The media archive holds %s twice.', rtrim($entry->name, '/')));
+            }
+
+            $seen[$key] = true;
             $files += $entry->directory ? 0 : 1;
         });
 
