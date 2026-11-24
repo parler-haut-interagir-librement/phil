@@ -153,6 +153,11 @@ final class LogisticsAdaptersTest extends TestCase
         self::assertSame(2, $this->movements->onHand(Fixtures::BOOK, Fixtures::BACK));
         self::assertSame([['returned', 2, 'ORD-1']], $this->journal());
 
+        // A SKU the order never reserved is no customer return, whatever the other lines of the order are.
+        $this->movements->restock('ZINE', Fixtures::BACK, 1, Fixtures::at(12), 'ORD-1');
+
+        self::assertSame([['returned', 2, 'ORD-1'], ['received', 1, 'ORD-1']], $this->journal());
+
         $this->expectException(StockRefused::class);
         $this->movements->restock(Fixtures::BOOK, Fixtures::SHELF, 1, Fixtures::at(13), 'ORD-1');
     }
