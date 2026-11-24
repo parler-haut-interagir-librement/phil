@@ -9,6 +9,7 @@
 | `Stock::returnFromCustomer()`, `Reservation::returnPart()` | Units back on any shelf under the order's number, as `returned`; never more than left and did not come back, over the order's reservations of the SKU in their order; another SKU not counted; nothing moved on a refusal |
 | `Stock::adjust()`, `StockLevel::adjust()` | Differences up and down in the journal as `adjusted`, down to zero and not below, a difference of zero refused before any lookup, less on hand than reserved |
 | `PurchaseLine` | The unit cost and owner carried to the receipt, numeric SKUs, units-only lines storing nothing, every bound of a line |
+| `Costing`, `CostLayer`, `CostShare`, `ShopUnitsFirst` | Both methods through receipts, shipments, counts, adjustments, transfers and returns; landed costs shared to the minor unit, their remainders, by units when every line costs nothing; uncosted units; returns at the cost they left at; consigned units outside every layer of value; an application's `StockOwnership` asked and its wrong answers refused |
 | `DeliveryMethod` | Every rule, zones and currency served, the free threshold |
 | `Stock` | The journal of each movement, unknown and same locations, closed locations, reservations by priority, shortages reserving nothing, release and shipment once, backorders reserved at the first open location and shipped only once received, nothing moved when a level lacks units on hand |
 | `StockPolicy`, `DeferredStock` | Backorders allowed and forbidden, none without a policy store; the stock of a deferred sale held and freed at the clock's moment |
@@ -22,8 +23,8 @@
 | `Parcel`, `ShippingAddress`, `LabelRequest`, `ShippingCost`, `ShippingMargin` | Every bound, incomplete addresses refused for a label, one-line fields, a margin that is a loss |
 | `ShippingLabels` | Every carrier asked, the silent ones left out, the cheapest first, one carrier's failure shown, a cost recorded once, the margin in the order's currency |
 | `CanadaPostCarrier`, `CanadaPostCredentials` | The requests sent — token, headers, JSON bodies, timeouts — and the answers read, through Symfony's `MockHttpClient` on answers kept in `tests/Fixtures/CanadaPost`; the token kept, renewed and reset; every answer it cannot trust refused, links to other hosts refused, answers too large cut off |
-| Mapping | Every column of the sixteen tables, `returned` 0 by default |
-| `PhilCommerceLogisticsBundle` | The services with DoctrineBundle, nothing without but the document types, the mapping, the carriers' and printers' tags, the core's tags, the series and the convention window configured, Canada Post configured or not, the refusal without the core |
+| Mapping | Every column of the eighteen tables, `returned` 0 by default, every value of the cost enumerations fitting its column |
+| `PhilCommerceLogisticsBundle` | The services with DoctrineBundle, nothing without but the document types, the mapping, the carriers' and printers' tags, the core's tags, the series and the convention window configured, Canada Post configured or not, costing off by default and configured, its currency required, the refusal without the core |
 
 A functional suite boots a kernel with FrameworkBundle, DoctrineBundle on an in-memory SQLite database, the core and
 the module: `LogisticsFlowTest` receives stock, reserves and ships an order across two locations, charges its
@@ -32,7 +33,9 @@ the order's margin back; it stores backorders, conventions and print jobs, purch
 slip numbered by the core's register and waves, and reads each back through its own query; and it commits the stock of
 a preorder through the core's `DeferredSales`. `StockPortsFlowTest` announces a partial shipment to a listener of the
 kernel's event dispatcher once, however many flushes follow, takes a customer return back, adjusts a level, and reads
-back the unit cost and owner of a purchase order line, and a purchase order without terms stored as null. No test
+back the unit cost and owner of a purchase order line, and a purchase order without terms stored as null.
+`CostingFlowTest` configures costing first in, first out, receives with a landed cost and consigned units, ships,
+writes off a theft, takes a return back and reads the value through `InventoryValuation`. No test
 calls a carrier over the network. Installed on its own, where FrameworkBundle is a development requirement, the suite
 is skipped.
 
@@ -40,7 +43,9 @@ An integration suite, `tests/Integration`, runs the Doctrine adapter on SQLite, 
 tables created from the mapping, purchase orders with numeric SKUs and the terms of their lines, serial numbers,
 conventions found by their days, documents with and without a shipment, shipments and waves read back; two
 adjustments of one level made at once in two entity managers, the second refused by the level's version and retried,
-both counted; a database of 0.1.0-alpha compared with the mapping, which adds `returned` and `line_terms` and changes
+both counted; cost layers and entries read within one unit of work before they are flushed and across units of work,
+the stock valued at a moment, the cost of sales of a period and the cost journal paged; a database of 0.1.0-alpha
+compared with the mapping, which adds `returned`, `line_terms`, `reason` and the two tables of costing and changes
 nothing else, its rows read back after the change. SQLite runs on a file of the temporary directory, or the one
 `PHIL_TEST_SQLITE_PATH` names; MySQL and PostgreSQL run when `PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL` name a
 server, and are skipped otherwise:

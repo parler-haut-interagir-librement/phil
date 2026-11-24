@@ -7,9 +7,13 @@ namespace Phil\CommerceLogisticsBundle\Tests\Unit;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use LogicException;
 use Phil\CommerceBundle\Application\TaxOrderProcessor;
+use Phil\CommerceLogisticsBundle\Application\Contract\InventoryValuation;
+use Phil\CommerceLogisticsBundle\Application\Contract\StockOwnership;
 use Phil\CommerceLogisticsBundle\Application\ConventionStock;
+use Phil\CommerceLogisticsBundle\Application\Costing;
 use Phil\CommerceLogisticsBundle\Application\DeferredStock;
 use Phil\CommerceLogisticsBundle\Application\DeliveryOptions;
+use Phil\CommerceLogisticsBundle\Application\InventoryValue;
 use Phil\CommerceLogisticsBundle\Application\LogisticsDocumentTypes;
 use Phil\CommerceLogisticsBundle\Application\Port\CarrierGateway;
 use Phil\CommerceLogisticsBundle\Application\Port\PrintOnDemand;
@@ -20,7 +24,9 @@ use Phil\CommerceLogisticsBundle\Application\ShippingDocuments;
 use Phil\CommerceLogisticsBundle\Application\ShippingLabels;
 use Phil\CommerceLogisticsBundle\Application\ShippingProcessor;
 use Phil\CommerceLogisticsBundle\Application\ShippingWaves;
+use Phil\CommerceLogisticsBundle\Application\ShopUnitsFirst;
 use Phil\CommerceLogisticsBundle\Application\Stock;
+use Phil\CommerceLogisticsBundle\Domain\Cost\CostingMethod;
 use Phil\CommerceLogisticsBundle\Domain\Repository\DeliveryMethodRepository;
 use Phil\CommerceLogisticsBundle\Domain\Repository\LocationRepository;
 use Phil\CommerceLogisticsBundle\Domain\Repository\ShippingCostRepository;
@@ -29,6 +35,7 @@ use Phil\CommerceLogisticsBundle\Infrastructure\CanadaPost\CanadaPostCarrier;
 use Phil\CommerceLogisticsBundle\Infrastructure\CanadaPost\CanadaPostCredentials;
 use Phil\CommerceLogisticsBundle\Infrastructure\Doctrine\DoctrineLogisticsRepository;
 use Phil\CommerceLogisticsBundle\PhilCommerceLogisticsBundle;
+use Phil\Money\Currency;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -204,6 +211,73 @@ final class PhilCommerceLogisticsBundleTest extends TestCase
     public function testCanadaPostCanBeConfiguredAndLeftOff(): void
     {
         self::assertFalse($this->load(['carriers' => ['canada_post' => ['enabled' => false, 'api_key' => 'k']]])->hasDefinition(CanadaPostCarrier::class));
+    }
+
+    public function testCostingIsOffByDefaultAndItsValuationReadsNothingYet(): void
+    {
+        $container = $this->load([]);
+
+        self::assertFalse($container->hasDefinition(Costing::class));
+        self::assertFalse($container->hasAlias(StockOwnership::class));
+        self::assertSame(InventoryValue::class, (string) $container->getAlias(InventoryValuation::class));
+        self::assertTrue($container->getAlias(InventoryValuation::class)->isPublic());
+        self::assertTrue($container->getDefinition(InventoryValue::class)->isAutowired());
+
+        foreach ([Stock::class, Purchasing::class] as $service) {
+            $costing = $container->getDefinition($service)->getArgument('$costing');
+            self::assertInstanceOf(Reference::class, $costing);
+            self::assertSame([Costing::class, ContainerInterface::NULL_ON_INVALID_REFERENCE], [(string) $costing, $costing->getInvalidBehavior()], $service);
+        }
+    }
+
+    public function testCostingIsWiredWithItsMethodItsCurrencyAndTheShopsUnitsFirst(): void
+    {
+        $container = $this->load(['costing' => ['method' => 'fifo', 'currency' => 'CAD']]);
+        $arguments = $container->getDefinition(Costing::class)->getArguments();
+
+        self::assertSame(ShopUnitsFirst::class, (string) $container->getAlias(StockOwnership::class));
+        self::assertTrue($container->hasDefinition(ShopUnitsFirst::class));
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertInstanceOf(Reference::class, $arguments[3]);
+        self::assertSame([DoctrineLogisticsRepository::class, StockOwnership::class], [(string) $arguments[0], (string) $arguments[3]]);
+        self::assertSame(CostingMethod::FirstInFirstOut, $arguments[1]);
+        self::assertInstanceOf(Definition::class, $arguments[2]);
+        self::assertSame([[Currency::class, 'of'], ['CAD']], [$arguments[2]->getFactory(), $arguments[2]->getArguments()]);
+        self::assertSame(CostingMethod::WeightedAverage, $this->load(['costing' => ['currency' => 'EUR']])->getDefinition(Costing::class)->getArgument(1));
+        self::assertSame(CostingMethod::WeightedAverage, $this->load(['costing' => ['enabled' => true, 'currency' => 'EUR']])->getDefinition(Costing::class)->getArgument(1));
+        self::assertFalse($this->load(['costing' => ['enabled' => false, 'currency' => 'EUR']])->hasDefinition(Costing::class));
+        self::assertFalse($this->load(['costing' => ['enabled' => false]])->hasDefinition(Costing::class));
+    }
+
+    /**
+     * @param array<string, mixed> $costing
+     */
+    #[DataProvider('incompleteCosting')]
+    public function testCostingNeedsTheCodeOfItsCurrency(array $costing): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('Costing needs the ISO 4217 code of its currency, three capital letters.');
+
+        $this->load(['costing' => $costing]);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>}>
+     */
+    public static function incompleteCosting(): iterable
+    {
+        yield 'no currency' => [['enabled' => true]];
+        yield 'small letters' => [['currency' => 'cad']];
+        yield 'too long' => [['currency' => 'CADX']];
+        yield 'a line after it' => [['currency' => "CAD\n"]];
+        yield 'too short' => [['currency' => 'CA']];
+    }
+
+    public function testCostingKnowsItsMethodsOnly(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+
+        $this->load(['costing' => ['method' => 'lifo', 'currency' => 'CAD']]);
     }
 
     public function testWithDoctrineEverythingIsStored(): void

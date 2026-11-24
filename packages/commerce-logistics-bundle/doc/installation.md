@@ -7,7 +7,7 @@
 | PHP | 8.5 or later | The floor the module declares and is tested on |
 | `phil/commerce-bundle` | ^0.4@dev | The core the module plugs into: its orders, `OrderProcessor`, `StockCommitments` and register of document types |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` and `DomainError` |
-| `phil/money` | ^0.1@dev | The prices of delivery methods and the costs of shipments |
+| `phil/money` | ^0.1@dev | The prices of delivery methods, the costs of shipments and the value of the stock, shared by `Money::allocate()` |
 | `phil/url` | ^0.1@dev | The links of a carrier's answers, read as a browser reads them |
 | `ext-mbstring` | any | The length of an address's fields, in characters |
 | `doctrine/orm` | ^3.7 | The mapping attributes of the logistics entities, and the repository adapter |
@@ -62,13 +62,18 @@ phil_commerce_logistics:
     conventions:
         window_days: 30             # a convention within this many days is near: 0 to 366
         online_channels: [web]      # orders of these channels, and orders without one, are placed online
+    costing:
+        enabled: false              # the value of the stock at cost; see Costing
+        method: weighted_average    # or fifo
+        currency: ~                 # the ISO 4217 code of every cost, required once costing is on
     carriers: {}                    # none by default
 ```
 
 See [Carriers](carriers.md) for Canada Post, whose adapter also needs FrameworkBundle's `http_client` service, and
-[Conventions](conventions.md) for the stock of convention items. The prefixes must differ from every other type of
+[Conventions](conventions.md) for the stock of convention items, and [Costing](costing.md) for the value of the stock
+at cost. The prefixes must differ from every other type of
 the core's register — `R-` and `CN-` for its receipts and credit notes —, or the register refuses them both.
 
 The services read repositories: with DoctrineBundle, the module registers them with its Doctrine adapter — generate a
-migration for its sixteen tables —; without it, the application declares them with its own adapters. The core's
+migration for its eighteen tables —; without it, the application declares them with its own adapters. The core's
 deferred sales and its register of document types need the core's own Doctrine adapters as well.

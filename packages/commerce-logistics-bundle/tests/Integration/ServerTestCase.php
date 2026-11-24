@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\CommerceLogisticsBundle\Tests\Integration;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\TableDiff;
@@ -14,13 +15,23 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Override;
+use Phil\CommerceBundle\Domain\Model\Order;
+use Phil\CommerceBundle\Domain\ValueObject\Sellable;
+use Phil\CommerceBundle\Domain\ValueObject\SellableReference;
+use Phil\CommerceLogisticsBundle\Application\Costing;
+use Phil\CommerceLogisticsBundle\Application\InventoryValue;
 use Phil\CommerceLogisticsBundle\Application\Purchasing;
 use Phil\CommerceLogisticsBundle\Application\SerialNumbers;
 use Phil\CommerceLogisticsBundle\Application\ShippingWaves;
 use Phil\CommerceLogisticsBundle\Application\Stock;
+use Phil\CommerceLogisticsBundle\Domain\Cost\CostEntryKind;
+use Phil\CommerceLogisticsBundle\Domain\Cost\CostingMethod;
+use Phil\CommerceLogisticsBundle\Domain\Cost\VarianceReason;
 use Phil\CommerceLogisticsBundle\Domain\Document\ShippingDocumentKind;
 use Phil\CommerceLogisticsBundle\Domain\Model\Convention;
 use Phil\CommerceLogisticsBundle\Domain\Model\ConventionQuantity;
+use Phil\CommerceLogisticsBundle\Domain\Model\CostEntry;
+use Phil\CommerceLogisticsBundle\Domain\Model\CostLayer;
 use Phil\CommerceLogisticsBundle\Domain\Model\Location;
 use Phil\CommerceLogisticsBundle\Domain\Model\Reservation;
 use Phil\CommerceLogisticsBundle\Domain\Model\Shipment;
@@ -29,6 +40,8 @@ use Phil\CommerceLogisticsBundle\Domain\Model\ShippingWave;
 use Phil\CommerceLogisticsBundle\Domain\Model\StockMovement;
 use Phil\CommerceLogisticsBundle\Domain\Purchasing\PurchaseLine;
 use Phil\CommerceLogisticsBundle\Domain\Stock\MovementKind;
+use Phil\CommerceLogisticsBundle\Domain\ValueObject\SaleCost;
+use Phil\CommerceLogisticsBundle\Domain\ValueObject\ValuedStock;
 use Phil\CommerceLogisticsBundle\Infrastructure\Doctrine\DoctrineLogisticsRepository;
 use Phil\Money\Currency;
 use Phil\Money\Money;
@@ -212,11 +225,113 @@ abstract class ServerTestCase extends TestCase
         self::assertSame([null], $this->entityManager->getConnection()->fetchFirstColumn("SELECT line_terms FROM phil_commerce_logistics_purchase_order WHERE number = 'PO-2'"));
     }
 
+    public function testTheCostOfTheStockIsKeptAcrossUnitsOfWork(): void
+    {
+        $at = new DateTimeImmutable('2026-11-21 10:00:00', new DateTimeZone('America/Toronto'));
+        $this->repository->addLocation(Location::of('warehouse', 'Entrepôt', 10));
+        $this->repository->addLocation(Location::of('store', 'Magasin', 0));
+        $this->entityManager->flush();
+        [$stock, $purchasing] = $this->costed(CostingMethod::WeightedAverage);
+        $purchasing->order('PO-1', 'Dice Works', 'warehouse', ['DICE' => PurchaseLine::of(4, $this->cad(1_000)), 'LENT' => PurchaseLine::of(2, $this->cad(500), '17')], $at);
+
+        // Two receipts in one unit of work join one pool: the second finds the first before it is flushed.
+        $purchasing->receive('PO-1', ['DICE' => 2, 'LENT' => 2], $at, $this->cad(101));
+        $stock->receive('DICE', 'warehouse', 2, $at->modify('+1 hour'), 'PO-2', $this->cad(1_200));
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        self::assertSame([[null, 4, 4_501], ['17', 2, 0]], $this->layersOf('DICE', 'warehouse', 'LENT'));
+        $value = new InventoryValue($this->repository);
+        self::assertSame(1_125, $value->unitCost('DICE')?->minorUnits);
+
+        [$stock] = $this->costed(CostingMethod::WeightedAverage);
+        $stock->reserve($this->order('2026-0001', ['DICE' => 3, 'LENT' => 1]), $at);
+        $this->entityManager->flush();
+        $stock->ship('2026-0001', $at->modify('+1 day'));
+        $stock->adjustFor('DICE', 'warehouse', -1, VarianceReason::Theft, $at->modify('+2 days'), 'COUNT-1');
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        // The pool emptied is gone; the journal keeps it.
+        self::assertSame([['17', 1, 0]], $this->layersOf('DICE', 'warehouse', 'LENT'));
+        self::assertSame(1_200, new InventoryValue($this->repository)->unitCost('DICE')?->minorUnits);
+        self::assertNull($value->unitCost('NONE'));
+
+        [$stock] = $this->costed(CostingMethod::WeightedAverage);
+        $stock->returnFromCustomer('2026-0001', 'DICE', 'store', 2, $at->modify('+3 days'));
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        self::assertSame(
+            [['DICE', 'store', 2, 2_251]],
+            array_map(static fn (ValuedStock $valued): array => [$valued->sku, $valued->location, $valued->units, $valued->value->minorUnits], $value->valuedStock($at->modify('+3 days'))),
+        );
+        self::assertSame(
+            [['DICE', 'warehouse', 4, 4_501]],
+            array_map(static fn (ValuedStock $valued): array => [$valued->sku, $valued->location, $valued->units, $valued->value->minorUnits], $value->valuedStock($at->modify('+1 hour'))),
+        );
+        self::assertSame(
+            [['2026-0001', 'DICE', 1, 0, 1_125]],
+            array_map(static fn (SaleCost $cost): array => [$cost->reference, $cost->sku, $cost->units, $cost->uncosted, $cost->cost->minorUnits], $value->costOfSales($at, $at->modify('+4 days'))),
+        );
+        self::assertSame([], $value->costOfSales($at, $at->modify('+1 day')));
+        self::assertSame(
+            [['2026-0001', 'DICE', 3, 0, 3_376]],
+            array_map(static fn (SaleCost $cost): array => [$cost->reference, $cost->sku, $cost->units, $cost->uncosted, $cost->cost->minorUnits], $value->costOfSales($at->modify('+1 day'), $at->modify('+2 days'))),
+        );
+
+        $variances = $value->entries($at, $at->modify('+4 days'), [CostEntryKind::Variance]);
+        self::assertSame([[-1, -1_125, VarianceReason::Theft, '2026-11-23 15:00']], array_map(static fn (CostEntry $entry): array => [$entry->units, $entry->value()->minorUnits, $entry->reason, $entry->movedAt->format('Y-m-d H:i')], $variances));
+        $first = $value->entries($at, $at->modify('+4 days'), limit: 3);
+        $next = $value->entries($at, $at->modify('+4 days'), [], $first[2]->id, 3);
+        self::assertSame(
+            [CostEntryKind::Received, CostEntryKind::Received, CostEntryKind::Landed, CostEntryKind::Received, CostEntryKind::Issued, CostEntryKind::Issued],
+            array_map(static fn (CostEntry $entry): CostEntryKind => $entry->kind, [...$first, ...$next]),
+        );
+        self::assertSame([], $value->entries($at->modify('+5 days'), $at->modify('+6 days')));
+    }
+
+    public function testFirstInFirstOutLayersAreReadInTheOrderTheyCame(): void
+    {
+        $at = new DateTimeImmutable('2026-11-21 10:00:00');
+        $this->repository->addLocation(Location::of('warehouse', 'Entrepôt', 10));
+        $this->entityManager->flush();
+        [$stock] = $this->costed(CostingMethod::FirstInFirstOut);
+        $stock->receive('DICE', 'warehouse', 1, $at->modify('+1 day'), 'PO-2', $this->cad(1_300));
+        $stock->receive('DICE', 'warehouse', 1, $at, 'PO-1', $this->cad(1_000));
+        $stock->receive('DICE', 'warehouse', 1, $at->modify('+2 days'), 'PO-3');
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        self::assertSame([['PO-1', 1_000], ['PO-2', 1_300]], array_map(static fn (CostLayer $layer): array => [$layer->reference, $layer->value()->minorUnits], $this->repository->layersOf('DICE', 'warehouse')));
+        self::assertSame([], $this->repository->layersOf('DICE', 'store'));
+        // The latest written, whatever the moment it names.
+        self::assertSame('PO-1', $this->repository->latestCostedReceipt('DICE')?->reference);
+
+        [$stock] = $this->costed(CostingMethod::FirstInFirstOut);
+        $stock->adjustFor('DICE', 'warehouse', -1, VarianceReason::Damaged, $at, 'DMG-1');
+        // The layer removed and not flushed yet is no longer found.
+        self::assertSame(['PO-2'], array_map(static fn (CostLayer $layer): ?string => $layer->reference, $this->repository->layersOf('DICE', 'warehouse')));
+        self::assertSame(['PO-2'], array_map(static fn (CostLayer $layer): ?string => $layer->reference, $this->repository->shopLayersOf('DICE')));
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        self::assertSame(['PO-2'], array_map(static fn (CostLayer $layer): ?string => $layer->reference, $this->repository->shopLayersOf('DICE')));
+        self::assertSame([], $this->repository->salesEntriesOf('DMG-1', 'DICE'));
+        self::assertSame(
+            [[MovementKind::Received, null], [MovementKind::Adjusted, VarianceReason::Damaged], [MovementKind::Received, null], [MovementKind::Received, null]],
+            array_map(static fn (StockMovement $movement): array => [$movement->kind, $movement->reason], $this->repository->journal('DICE', 'warehouse')),
+        );
+    }
+
     public function testADatabaseOfTheFirstVersionGainsItsNewColumnsAndKeepsItsRows(): void
     {
         $connection = $this->entityManager->getConnection();
         $connection->executeStatement('ALTER TABLE phil_commerce_logistics_reservation DROP COLUMN returned');
         $connection->executeStatement('ALTER TABLE phil_commerce_logistics_purchase_order DROP COLUMN line_terms');
+        $connection->executeStatement('ALTER TABLE phil_commerce_logistics_stock_movement DROP COLUMN reason');
+        $connection->executeStatement('DROP TABLE phil_commerce_logistics_cost_layer');
+        $connection->executeStatement('DROP TABLE phil_commerce_logistics_cost_entry');
         $connection->insert('phil_commerce_logistics_location', ['code' => 'warehouse', 'name' => 'Entrepôt', 'priority' => 0, 'active' => 1], ['active' => 'boolean']);
         $connection->insert('phil_commerce_logistics_reservation', ['id' => '019a0000-0000-7000-8000-000000000001', 'order_number' => '2026-0001', 'sku' => 'DICE', 'location' => 'warehouse', 'quantity' => 3, 'shipped' => 3, 'state' => 'shipped']);
         $connection->insert('phil_commerce_logistics_purchase_order', ['number' => 'PO-1', 'supplier' => 'Dice Works', 'location' => 'warehouse', 'ordered' => '{"DICE":4}', 'received' => '[]', 'state' => 'open', 'ordered_at' => '2026-11-01 10:00:00', 'expected_on' => null]);
@@ -225,15 +340,29 @@ abstract class ServerTestCase extends TestCase
         $schemaManager = $connection->createSchemaManager();
         $comparator = $schemaManager->createComparator();
         $diffs = [];
+        $created = [];
 
         foreach (new SchemaTool($this->entityManager)->getSchemaFromMetadata($metadata)->getTables() as $table) {
             $name = $table->getObjectName()->toString();
             \assert('' !== $name);
+
+            if (!$schemaManager->tableExists($name)) {
+                $created[] = $name;
+
+                foreach ($connection->getDatabasePlatform()->getCreateTableSQL($table) as $statement) {
+                    $connection->executeStatement($statement);
+                }
+
+                continue;
+            }
+
             $diffs[$name] = $comparator->compareTables($schemaManager->introspectTableByUnquotedName($name), $table);
         }
 
+        sort($created);
+        self::assertSame(['phil_commerce_logistics_cost_entry', 'phil_commerce_logistics_cost_layer'], $created);
         self::assertSame(
-            ['phil_commerce_logistics_purchase_order' => [['line_terms'], 0, 0, 0, 0], 'phil_commerce_logistics_reservation' => [['returned'], 0, 0, 0, 0]],
+            ['phil_commerce_logistics_purchase_order' => [['line_terms'], 0, 0, 0, 0], 'phil_commerce_logistics_reservation' => [['returned'], 0, 0, 0, 0], 'phil_commerce_logistics_stock_movement' => [['reason'], 0, 0, 0, 0]],
             $this->alterations($diffs),
         );
 
@@ -254,6 +383,50 @@ abstract class ServerTestCase extends TestCase
         $this->entityManager->clear();
 
         self::assertSame([2, 2], [$this->repository->reservationsOf('2026-0001')[0]->returned(), $this->repository->level('DICE', 'warehouse')?->onHand()]);
+    }
+
+    /**
+     * @return array{Stock, Purchasing} services on the repository, costing by this method in Canadian dollars
+     */
+    private function costed(CostingMethod $method): array
+    {
+        $costing = new Costing($this->repository, $method, Currency::of('CAD'));
+        $stock = new Stock($this->repository, $this->repository, costing: $costing);
+
+        return [$stock, new Purchasing($this->repository, $this->repository, $stock, $costing)];
+    }
+
+    private function cad(int $minorUnits): Money
+    {
+        return Money::of($minorUnits, Currency::of('CAD'));
+    }
+
+    /**
+     * @return list<array{string|null, int, int}> the owner, units and value of the layers of these SKUs at a location
+     */
+    private function layersOf(string $first, string $location, string $second): array
+    {
+        return array_map(
+            static fn (CostLayer $layer): array => [$layer->owner, $layer->units(), $layer->value()->minorUnits],
+            [...$this->repository->layersOf($first, $location), ...$this->repository->layersOf($second, $location)],
+        );
+    }
+
+    /**
+     * @param array<string, int> $products SKU → units
+     */
+    private function order(string $number, array $products): Order
+    {
+        $price = $this->cad(2_000);
+        $order = Order::open($number, Currency::of('CAD'));
+
+        foreach ($products as $sku => $quantity) {
+            $order->add(Sellable::of(SellableReference::of('product', $sku), $sku, $price, 'goods'), $quantity, $price);
+        }
+
+        $order->place(new DateTimeImmutable('2026-11-21 10:00:00'));
+
+        return $order;
     }
 
     /**

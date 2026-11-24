@@ -26,6 +26,25 @@ The next version is 0.1.1-alpha.
   take in place of the units of a SKU, with an optional `Money` unit cost and an optional owner, the caller's own
   identifier; `PurchaseOrder::line()`, which a receipt reads back; the purchase order's `line_terms` column, null when
   no line gives them. A database of 0.1.0-alpha gains the two columns and nothing else changes.
+- Costing, off by default: the configuration `costing.enabled`, `costing.method` — `weighted_average` or `fifo` — and
+  `costing.currency`; `Costing`, which `Stock` and `Purchasing` call with each movement, `CostLayer` and `CostEntry`,
+  tables `phil_commerce_logistics_cost_layer` and `_cost_entry`, `CostingMethod`, `CostEntryKind`, `CostShare` and
+  `CostRefused`; `CostRepository`, implemented by `DoctrineLogisticsRepository`, which finds the layers and entries
+  given to it and not flushed yet. Units come in at the unit cost of their purchase order line, or the one given to
+  `Stock::receive()`, and leave at the pool's average or from the oldest layer, in integers through
+  `Money::allocate()`; units without a known cost are counted apart, as uncosted.
+- Landed costs: `Purchasing::receive()` takes the freight, duties and brokerage of a receipt and shares them over its
+  lines of the shop's units with a unit cost, in proportion to their value, to the minor unit.
+- Variances by reason: `VarianceReason`, `Stock::adjustFor()` and the reason of `Stock::count()`, kept in the stock
+  journal's `reason` column, null by default, and, with costing, in the cost journal beside the value of the units at
+  cost.
+- Customer returns at their cost: with costing, `Stock::returnFromCustomer()` puts the units back at their share of
+  what the order's issues cost, under either method.
+- Consigned units: units received with an owner hold no value and never enter the shop's layers; `StockOwnership`,
+  whose alias an application points at its own service, says whose units leave a level the shop and owners share, and
+  `ShopUnitsFirst` lets the shop's own leave first.
+- `InventoryValuation`, a public alias of `InventoryValue`: the unit cost of a SKU, the stock valued at a moment
+  (`ValuedStock`), the cost of sales of a period (`SaleCost`) and the cost journal, a page at a time.
 
 ### Fixed
 

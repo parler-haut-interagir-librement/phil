@@ -1,11 +1,14 @@
 # phil/commerce-logistics-bundle
 
-**Stock per location, order reservations, backorders, purchasing, serial numbers, parcels and their documents, delivery charged per zone, and carriers' rates and labels.**
+**Stock per location, its value at cost, order reservations, backorders, purchasing, serial numbers, parcels and their documents, delivery charged per zone, and carriers' rates and labels.**
 
 phil/commerce-logistics-bundle keeps the physical side of an order. It holds stock per SKU and location, with a journal
 of every movement: units received, counted and transferred, goods received against purchase orders, and the serial
 number of each unit that has one, the unit cost and owner a purchase order line gives, customer returns put back on a
-shelf, and adjustments by a difference. It reserves the product lines of a placed order from the open locations by
+shelf, and adjustments by a difference, with the reason of a variance. With costing enabled, it values the shop's stock
+at cost as it moves — weighted average or first in, first out —, shares a receipt's landed cost over its lines to the
+minor unit, puts customer returns back at the cost they left at, and keeps units left on consignment out of the shop's
+value. It reserves the product lines of a placed order from the open locations by
 priority, sells a SKU without stock when its flag allows it, releases them, and ships them in one parcel or several,
 each with its carrier, tracking number and delivery note, after a picking slip, alone or in a planned shipping wave;
 the units that leave are announced by an event that a ledger or a report listens to.
@@ -35,6 +38,7 @@ movements made over the same copy.
 | Reservations of placed orders, released or shipped; backorders; the stock of deferred sales | Implemented and tested |
 | Convention stock, print on demand for orders placed online | Implemented and tested |
 | Purchase orders, the unit cost and owner of their lines, their receipts; serial numbers | Implemented and tested |
+| Costing: weighted average or first in, first out, landed costs, variances by reason, returns at their cost, consigned units kept out, `InventoryValuation` | Implemented and tested |
 | Shipments: an order in one parcel or several, carrier and tracking; `UnitsShipped` | Implemented and tested |
 | Delivery notes, picking slips, shipping waves | Implemented and tested |
 | Delivery methods per zone, free threshold, delivery charges | Implemented and tested |
@@ -48,6 +52,7 @@ movements made over the same copy.
 | [Stock](doc/stock.md) | Locations, levels, the journal, receiving, counts, adjustments, transfers, customer returns, reservations, backorders, deferred sales, storage. |
 | [Conventions](doc/conventions.md) | The stock prepared per convention, what is left to print, orders placed online sent to print. |
 | [Purchasing](doc/purchasing.md) | Purchase orders and their receipts; the serial number of each unit. |
+| [Costing](doc/costing.md) | The value of the stock at cost: methods, landed costs, variances, returns, owners, reading the value, storage. |
 | [Delivery](doc/delivery.md) | Delivery methods, what an order pays, storage. |
 | [Shipments](doc/shipments.md) | Shipping an order in one parcel or several, what is left, delivery notes, picking slips, waves, storage. |
 | [Carriers](doc/carriers.md) | Rates and labels, the cost of each shipment against the delivery charged, Canada Post. |

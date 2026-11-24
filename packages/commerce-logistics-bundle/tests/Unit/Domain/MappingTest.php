@@ -8,11 +8,14 @@ use DateTimeImmutable;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\Persistence\Mapping\RuntimeReflectionService;
+use Phil\CommerceLogisticsBundle\Domain\Cost\CostEntryKind;
 use Phil\CommerceLogisticsBundle\Domain\Cost\VarianceReason;
 use Phil\CommerceLogisticsBundle\Domain\Delivery\DeliveryKind;
 use Phil\CommerceLogisticsBundle\Domain\Document\ShippingDocumentKind;
 use Phil\CommerceLogisticsBundle\Domain\Model\Convention;
 use Phil\CommerceLogisticsBundle\Domain\Model\ConventionQuantity;
+use Phil\CommerceLogisticsBundle\Domain\Model\CostEntry;
+use Phil\CommerceLogisticsBundle\Domain\Model\CostLayer;
 use Phil\CommerceLogisticsBundle\Domain\Model\DeliveryMethod;
 use Phil\CommerceLogisticsBundle\Domain\Model\Location;
 use Phil\CommerceLogisticsBundle\Domain\Model\PrintJob;
@@ -55,6 +58,8 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ShippingDocument::class)]
 #[CoversClass(ShippingWave::class)]
 #[CoversClass(WaveAssignment::class)]
+#[CoversClass(CostLayer::class)]
+#[CoversClass(CostEntry::class)]
 final class MappingTest extends TestCase
 {
     public function testTheTables(): void
@@ -295,6 +300,44 @@ final class MappingTest extends TestCase
 
         foreach ([[StockPolicy::class, 'sku', $policy->sku], [WaveAssignment::class, 'orderNumber', $assignment->orderNumber], [WaveAssignment::class, 'wave', $assignment->wave()]] as [$class, $field, $value]) {
             self::assertSame(\strlen($value), $this->metadata($class)->fieldMappings[$field]->length, $class.'::'.$field);
+        }
+    }
+
+    public function testTheCostTables(): void
+    {
+        self::assertSame(['phil_commerce_logistics_cost_layer', ['id'], [
+            'id' => ['id', 'string', 36, false, true],
+            'sku' => ['sku', 'string', 64, false, null],
+            'location' => ['location', 'string', 64, false, null],
+            'owner' => ['owner', 'string', 64, true, null],
+            'units' => ['units', 'integer', null, false, null],
+            'value' => ['value', 'bigint', null, false, null],
+            'currency' => ['currency', 'string', 3, false, true],
+            'receivedAt' => ['received_at', 'datetime_immutable', null, false, null],
+            'reference' => ['reference', 'string', 64, true, null],
+        ]], $this->table(CostLayer::class));
+        self::assertSame([['columns' => ['sku', 'location']]], array_values($this->metadata(CostLayer::class)->table['indexes'] ?? []));
+
+        self::assertSame(['phil_commerce_logistics_cost_entry', ['id'], [
+            'id' => ['id', 'string', 36, false, true],
+            'sku' => ['sku', 'string', 64, false, null],
+            'location' => ['location', 'string', 64, false, null],
+            'kind' => ['kind', 'string', 16, false, null],
+            'owner' => ['owner', 'string', 64, true, null],
+            'units' => ['units', 'integer', null, false, null],
+            'uncosted' => ['uncosted', 'integer', null, false, null],
+            'value' => ['value', 'bigint', null, false, null],
+            'currency' => ['currency', 'string', 3, false, true],
+            'reason' => ['reason', 'string', 16, true, null],
+            'reference' => ['reference', 'string', 64, true, null],
+            'movedAt' => ['moved_at', 'datetime_immutable', null, false, null],
+        ]], $this->table(CostEntry::class));
+        self::assertSame([['columns' => ['sku', 'location', 'moved_at']], ['columns' => ['reference']], ['columns' => ['moved_at']]], array_values($this->metadata(CostEntry::class)->table['indexes'] ?? []));
+        self::assertSame([CostEntryKind::class, VarianceReason::class], [$this->metadata(CostEntry::class)->fieldMappings['kind']->enumType, $this->metadata(CostEntry::class)->fieldMappings['reason']->enumType]);
+
+        // Every value of the enumerations fits its column.
+        foreach ([...CostEntryKind::cases(), ...VarianceReason::cases()] as $case) {
+            self::assertLessThanOrEqual(16, \strlen($case->value), $case->name);
         }
     }
 
