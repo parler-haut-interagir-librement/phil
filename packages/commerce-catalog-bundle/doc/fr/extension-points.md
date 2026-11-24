@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=164bc059642ddbbbdb1a7fd68c04c44031a9a908ab2cfc4063f61cdddc431784 -->
+<!-- phil-dev source-sha256=722144afe72c13e6db32aab43401ab121fde710ca877ee979a72299ecbe270ae -->
 # Points d'extension
 
 Ce que le module branche dans `phil/commerce-bundle`, et ce qu'une application étend ou remplace. Les ports du noyau
@@ -37,6 +37,9 @@ de ses propres services sous le même contrat.
 | `Application\Contract\ProductClassification` | `TaxonomyProductClassification`, sur `phil/taxonomy-bundle`, enregistré quand sa taxonomie l'est ; sinon, une application fait pointer le port vers un de ses propres services |
 | `Application\Contract\ProductListing` | `DbalProductListing`, un alias public ; une application qui stocke ses produits autrement le fait pointer vers un de ses propres services — les flux le lisent aussi |
 | `ProductSource` de `phil/product-feeds` | `CatalogProductSource`, un par flux, construit par `ProductFeeds` |
+| `Application\Contract\ProductCosts` | `CompositeCosts`, un alias public : le coût d'une unité d'un produit, celui d'un produit composé étant la somme de celui de ses parties — voyez [Variantes et produits composés](variants-and-composites.md#le-coût-dun-produit-composé) |
+| `Application\Contract\UnitCosts` | `LogisticsUnitCosts`, sur le calcul des coûts de `phil/commerce-logistics-bundle`, enregistré quand son bundle l'est ; sinon, une application fait pointer le port vers un de ses propres services |
+
 
 ## Les services
 

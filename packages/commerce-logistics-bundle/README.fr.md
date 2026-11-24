@@ -1,15 +1,19 @@
-<!-- phil-dev source-sha256=ace63db47c974166f8dcb4a986c93b7906e8dad7053f8bd06de67391b4ceae58 -->
+<!-- phil-dev source-sha256=8ad17ac3bf2d6da19b0d62b6875b0592111a12fbb3cda2d33910ef868e9fdf1f -->
 <!-- phil-dev source-sha256=0 -->
 # phil/commerce-logistics-bundle
 
-**Le stock par emplacement, les réservations des commandes, les commandes en attente, les achats, les numéros de série,
+**Le stock par emplacement, sa valeur au coût, les réservations des commandes, les commandes en attente, les achats, les numéros de série,
 les colis et leurs documents, la livraison facturée par zone, et les tarifs et étiquettes des transporteurs.**
 
 phil/commerce-logistics-bundle tient le côté physique d'une commande. Il garde le stock par *SKU* (unité de gestion de
 stock, ou *UGS*) et par emplacement, avec un journal de chaque mouvement : unités reçues, comptées et transférées,
 marchandises reçues contre des bons de commande, numéro de série de chaque unité qui en a un, coût unitaire et
 propriétaire que donne une ligne de bon de commande, retours de clients remis sur une tablette, et ajustements par une
-différence. Il réserve les lignes de produits d'une commande passée dans les emplacements ouverts, par priorité, vend une UGS sans stock quand son
+différence, avec le motif d'un écart. Avec le calcul des coûts activé, il évalue au coût le stock de la boutique à mesure
+qu'il bouge — coût moyen pondéré ou premier entré, premier sorti —, répartit le coût d'approche d'une réception sur ses
+lignes à l'unité mineure près, remet les retours de clients au coût auquel ils sont partis, et garde les unités laissées
+en consignation hors de la valeur de la boutique. Il réserve les lignes de produits d'une commande passée dans les
+emplacements ouverts, par priorité, vend une UGS sans stock quand son
 indicateur le permet, les libère, et les expédie en un colis ou en plusieurs, chacun avec son transporteur, son numéro
 de suivi et son bordereau de livraison, après une liste de prélèvement, seuls ou dans une vague d'expédition planifiée ;
 les unités qui partent sont annoncées par un événement qu'écoute un registre ou un rapport.
@@ -41,6 +45,7 @@ une colonne de version, qui refuse deux mouvements faits sur la même copie.
 | Les réservations des commandes passées, libérées ou expédiées ; les commandes en attente ; le stock des ventes payées plus tard | Implémenté et testé |
 | Le stock des conventions, l'impression à la demande des commandes passées en ligne | Implémenté et testé |
 | Les bons de commande, le coût unitaire et le propriétaire de leurs lignes, leurs réceptions ; les numéros de série | Implémenté et testé |
+| Le calcul des coûts : coût moyen pondéré ou premier entré, premier sorti, coûts d'approche, écarts par motif, retours à leur coût, unités en consignation exclues, `InventoryValuation` | Implémenté et testé |
 | Les expéditions : une commande en un colis ou en plusieurs, le transporteur et le suivi ; `UnitsShipped` | Implémenté et testé |
 | Les bordereaux de livraison, les listes de prélèvement, les vagues d'expédition | Implémenté et testé |
 | Les modes de livraison par zone, le seuil de gratuité, les frais de livraison | Implémenté et testé |
@@ -54,6 +59,7 @@ une colonne de version, qui refuse deux mouvements faits sur la même copie.
 | [Stock](doc/fr/stock.md) | Les emplacements, les niveaux, le journal, la réception, les comptages, les ajustements, les transferts, les retours de clients, les réservations, les commandes en attente, les ventes payées plus tard, le stockage. |
 | [Conventions](doc/fr/conventions.md) | Le stock préparé par convention, ce qui reste à imprimer, les commandes passées en ligne envoyées à l'impression. |
 | [Achats](doc/fr/purchasing.md) | Les bons de commande et leurs réceptions ; le numéro de série de chaque unité. |
+| [Coûts](doc/fr/costing.md) | La valeur du stock au coût : les méthodes, les coûts d'approche, les écarts, les retours, les propriétaires, la lecture de la valeur, le stockage. |
 | [Livraison](doc/fr/delivery.md) | Les modes de livraison, ce que paie une commande, le stockage. |
 | [Expéditions](doc/fr/shipments.md) | Expédier une commande en un colis ou en plusieurs, ce qui reste, les bordereaux de livraison, les listes de prélèvement, les vagues, le stockage. |
 | [Transporteurs](doc/fr/carriers.md) | Les tarifs et les étiquettes, le coût de chaque expédition contre la livraison facturée, Postes Canada. |

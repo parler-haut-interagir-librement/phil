@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c2c5b8deda53c4033fe6d43d12e8565f99225fa0684e151fbe2453a53ff88202 -->
+<!-- phil-dev source-sha256=6eef19e00aba37d41ae62a4e9254350dba665ecc598910d16c24f44a940f41a6 -->
 # Produits
 
 Un produit est nommé par son *SKU* (unité de gestion de stock, ou *UGS*) et vendu au noyau sous le type de référence
@@ -32,6 +32,11 @@ $products->add($dice); // ProductRepository; the application commits its unit of
 | `composeOf()`, `components()`, `isComposite()` | Un produit composé et ses parties |
 | `trackSerialNumbers(bool)`, `tracksSerialNumbers()` | Chaque unité vendue porte un numéro de série ; produits physiques seulement ; une variante prend celui de sa famille |
 | `payWhatYouWant()`, `fixPrice()`, `offerCommunityCopies()` | Les règles de prix — voyez [Règles de prix](price-rules.md) |
+| `suggestRetailPrice(?Money)`, `suggestedRetailPrice()` | Le prix de détail que suggère son fabricant ou son distributeur, plus que zéro, dans la devise du produit ; `null` l'oublie. Il ne fixe jamais le prix d'une ligne |
+
+**Le prix de détail suggéré** est le prix courant auquel une affiche ou une page de produit compare le prix de la
+boutique ; il est gardé à côté du prix de base et relu, et ni le noyau ni les grilles de prix ne s'en servent pour fixer
+le prix d'une ligne. Une variante a le sien, jamais celui de sa famille.
 
 **Les numéros de série** sont tenus avec le stock du module de logistique, qui enregistre le numéro de chaque unité ;
 le catalogue dit quels produits en portent un, pour que l'application le demande à une vente ou à une réception.
@@ -126,6 +131,11 @@ Avec DoctrineBundle, un produit est une rangée de `phil_commerce_catalog_produc
 | `pay_what_you_want` | `BOOLEAN` | Si l'acheteur choisit le prix |
 | `suggested_price`, `maximum_price` | `BIGINT`, nullable | Le prix montré d'abord et le plus haut, en unités mineures ; sans maximum, le `pay_what_you_want.default_maximum` de la configuration borne le prix |
 | `community_copy_price` | `BIGINT`, nullable | Le prix d'une copie communautaire, en unités mineures |
+| `suggested_retail_price` | `BIGINT`, nullable | Le prix de détail suggéré, en unités mineures, dans la devise du produit |
+
+Une table créée pour 0.1.0-alpha gagne la colonne `suggested_retail_price`, nulle pour les rangées existantes, et rien
+d'autre ne change : générez la migration avec `doctrine:migrations:diff` de Doctrine, ou lisez-la d'abord avec
+`doctrine:schema:update --dump-sql`.
 
 Le nom d'un produit dans les autres locales est une rangée de `phil_commerce_catalog_product_translation` par locale :
 voyez [Noms et classement](names-and-classification.md).

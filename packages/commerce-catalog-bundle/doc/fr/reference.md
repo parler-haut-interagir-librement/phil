@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ce10855200140eb7aef790f7d3e366a78637eca17cf9c9557be3d9f23137b685 -->
+<!-- phil-dev source-sha256=0be62001179e7eccfd909ef9f5719794f09d752c4d7fa7ba28532c13686e898d -->
 # Référence
 
 Chaque type public du module.
@@ -6,7 +6,7 @@ Chaque type public du module.
 | Type | Nature | Rôle |
 |---|---|---|
 | `PhilCommerceCatalogBundle` | `final class`, `AbstractBundle` | Alias `phil_commerce_catalog`, avec `translations.locales` et `product_feeds` ; refuse de se charger sans `PhilCommerceBundle` |
-| `Domain\Model\Product` | `final class`, entité Doctrine, `Translatable` | Un produit : *SKU*, nature, nom, prix de base, catégorie de taxe, attributs, offre ; une famille et ses axes, une variante et ses valeurs, un produit composé et ses parties ; les numéros de série ; ses règles de prix |
+| `Domain\Model\Product` | `final class`, entité Doctrine, `Translatable` | Un produit : *SKU*, nature, nom, prix de base, catégorie de taxe, attributs, offre ; une famille et ses axes, une variante et ses valeurs, un produit composé et ses parties ; les numéros de série ; ses règles de prix ; son prix de détail suggéré |
 | `Domain\Model\ProductTranslation` | `final class`, entité Doctrine, `Translation` | Le nom d'un produit dans une locale |
 | `Domain\ValueObject\ProductComponent` | `final readonly class` | Une partie d'un produit composé : un *SKU* et ses unités |
 | `Domain\Product\ProductKind` | énumération adossée à une chaîne | Physique, numérique, service |
@@ -24,11 +24,14 @@ Chaque type public du module.
 | `Application\PriceRuleSellables` | `final readonly class`, le `SellableResolver` et le `SellableOptions` du noyau | Un prix choisi par l'acheteur, sous `pay_what_you_want`, comme option de montant `price`, et une copie communautaire, sous `community_copy` |
 | `Application\CommunityCopies` | `final readonly class`, un écouteur de `OrderPurchased` du noyau | Les copies communautaires financées par les commandes payées, comptées et réclamées |
 | `Application\CompositeProducts` | `final readonly class` | Les produits composés : leurs parties vérifiées, et lues dans une ligne de commande |
+| `Application\CompositeCosts` | `final readonly class`, `ProductCosts` | Le coût d'un produit, celui d'un produit composé étant la somme de celui de ses parties |
 | `Application\ProductTexts` | `final readonly class` | Les noms des produits dans une locale, à partir des traductions stockées ; écrit une traduction |
 | `Application\ProductTextSet` | `final readonly class` | Les noms lus pour une liste de produits |
 | `Application\Contract\ProductClassification` | interface | Les produits classés dans des catégories et des étiquettes |
 | `Application\ProductAvailability` | `final readonly class`, la `SellableAvailability` du noyau | Les sélections des canaux et les offres des produits, celle d'une variante rendue plus stricte par celle de sa famille ; `of()` |
 | `Application\Contract\ProductListing` | interface | Les produits qu'un canal montre, page par page |
+| `Application\Contract\ProductCosts` | interface | Ce que coûte à la boutique une unité d'un produit |
+| `Application\Contract\UnitCosts` | interface | Ce que coûte une unité d'un *SKU*, d'après les valeurs que donne le stock |
 | `Application\ListedProduct` | `final readonly class` | Un produit comme le montre une liste, lu sans son entité ; `isFamily()`, `value()`, `named()` |
 | `Application\ProductPage` | `final readonly class` | Une page de produits et le curseur de la suivante |
 | `Application\PriceBookPrices` | `final class`, le `UnitPriceResolver` du noyau, étiqueté `kernel.reset` | Les prix des grilles, les grilles actives lues et classées une seule fois jusqu'à `reset()` |
@@ -40,6 +43,7 @@ Chaque type public du module.
 | `Infrastructure\Doctrine\DoctrineCommunityCopyLedger` | `final readonly class` | Les copies communautaires par le gestionnaire d'entités, additionnées et comptées en SQL |
 | `Infrastructure\Doctrine\PriceBookOrderMigration` | `final class` | Fait passer une table de grilles classées par `priority` aux listes `after`, depuis une migration de l'application |
 | `Infrastructure\Doctrine\DbalProductListing` | `final readonly class` | `ProductListing` sur DBAL, par un curseur sur le *SKU* |
+| `Infrastructure\Logistics\LogisticsUnitCosts` | `final readonly class`, `UnitCosts` | Les coûts unitaires du calcul des coûts de `phil/commerce-logistics-bundle` |
 | `Infrastructure\ProductFeeds\FeedDefinition` | `final readonly class` | Un flux de la configuration ; `address()` remplit un gabarit |
 | `Infrastructure\ProductFeeds\CatalogProductSource` | `final readonly class`, le `ProductSource` de `phil/product-feeds` | Les produits qu'un canal liste avec leur prix, comme les articles d'un flux |
 | `Infrastructure\ProductFeeds\ProductFeeds` | `final readonly class` | Publie les flux de la configuration par nom ; `names()`, `definition()`, `publish()` |

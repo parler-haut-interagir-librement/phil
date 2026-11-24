@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=900eed009d22eef93e13382c3bce0f0cc2228a164b05f95be6c7a64971373075 -->
+<!-- phil-dev source-sha256=584d9232887f94dfa9966692606fdf6e558920074e5467dadca941a6787d4349 -->
 <!-- phil-dev source-sha256=0 -->
 # Stock
 
@@ -23,9 +23,10 @@ $stock->available('DICE-D20');                                        // 117
 
 | Méthode de `Stock` | Effet |
 |---|---|
-| `receive(sku, location, quantity, at, reference)` | Ajoute des unités en main |
-| `count(sku, location, counted, at, reference)` | Fixe ce qu'un comptage a trouvé ; le journal garde la différence |
+| `receive(sku, location, quantity, at, reference, unitCost, owner)` | Ajoute des unités en main ; avec le calcul des coûts, à leur coût unitaire, ou comme unités d'un propriétaire — voyez [Coûts](costing.md) |
+| `count(sku, location, counted, at, reference, reason)` | Fixe ce qu'un comptage a trouvé ; le journal garde la différence, et son motif s'il est donné |
 | `adjust(sku, location, difference, at, reference)` | Change ce qui est en main d'une différence, jamais sous zéro ; le journal la garde comme `adjusted` |
+| `adjustFor(sku, location, difference, reason, at, reference)` | Ajuste comme le fait `adjust()`, pour un `VarianceReason` que le journal garde à côté de la différence |
 | `transfer(sku, from, to, quantity, at, reference)` | Déplace des unités disponibles d'un emplacement à un autre |
 | `available(sku)` | Le stock en main moins le stock réservé, sur les emplacements ouverts |
 | `reserve(order, at)` | Met de côté les lignes suivies d'une commande passée, une seule fois |
@@ -76,8 +77,10 @@ $stock->adjust('DICE-D20', 'warehouse', 1, $clock->now(), 'COUNT-12');    // one
   différence et vide ; la colonne de version du niveau refuse le second vidage avec l'`OptimisticLockException` de
   Doctrine. L'appelant reprend cette unité de travail dans un nouveau gestionnaire d'entités : la différence
   s'applique de nouveau, au niveau tel que le premier l'a laissé.
-- La référence va au journal : une feuille de comptage, un rapport de dommages. Le journal n'a pas de motif typé en
-  dehors d'elle.
+- La référence va au journal : une feuille de comptage, un rapport de dommages. `adjustFor()` ajoute un motif typé — endommagé,
+  vol, perdu, périmé, erreur de comptage, erreur du fournisseur, usage interne, donné —, gardé dans le `reason` du
+  mouvement ; avec le calcul des coûts, le journal des coûts garde à côté la valeur des unités au coût. Voyez
+  [Coûts](costing.md#les-écarts).
 
 ## Les retours de clients
 
@@ -98,8 +101,10 @@ $stock->returnFromCustomer($order->number, 'DICE-D20', 'returns', 2, $clock->now
 - `Reservation::shipped()`, `returned()` et `returnable()` donnent, pour chaque réservation, ce qui est parti, ce qui
   est revenu et ce qui peut encore revenir. Qu'une unité retournée puisse se revendre, c'est à l'application d'en
   décider ; elle la déplace avec `transfer()` ou `adjust()`.
-- Avec `phil/commerce-returns-bundle`, un `Restocking` propre à l'application appelle `returnFromCustomer()` quand un
-  retour est reçu.
+- **Avec le calcul des coûts, les unités reviennent au coût auquel elles sont parties**, jamais au coût du jour — voyez
+  [Coûts](costing.md#les-retours-de-clients).
+- Avec `phil/commerce-returns-bundle`, sa remise en stock de la logistique, ou un `Restocking` propre à l'application,
+  appelle `returnFromCustomer()` quand un retour est reçu.
 
 ## Vendre sans stock
 
@@ -138,13 +143,15 @@ Avec DoctrineBundle :
 |---|---|
 | `phil_commerce_logistics_location` | `code` (clé primaire), `name`, `priority`, `active` |
 | `phil_commerce_logistics_stock_level` | `sku` et `location` (clé primaire), `on_hand`, `reserved`, `version` |
-| `phil_commerce_logistics_stock_movement` | `id` (UUID v7), `sku`, `location`, `kind`, `on_hand_change`, `reserved_change`, `reference`, `moved_at` ; indexée par *SKU*, emplacement et moment, et par référence |
+| `phil_commerce_logistics_stock_movement` | `id` (UUID v7), `sku`, `location`, `kind`, `on_hand_change`, `reserved_change`, `reference`, `moved_at`, `reason` (nul sans motif) ; indexée par *SKU*, emplacement et moment, et par référence |
 | `phil_commerce_logistics_reservation` | `id` (UUID v7), `order_number` (indexé), `sku`, `location`, `quantity`, `shipped`, `returned` (0 par défaut), `state` |
 | `phil_commerce_logistics_stock_policy` | `sku` (clé primaire), `backorders` |
 
 La colonne de version d'un niveau de stock refuse deux mouvements faits sur la même copie.
 
-Une base créée pour 0.1.0-alpha gagne une colonne par table qui a changé, et rien d'autre ne change : `returned` dans
-`phil_commerce_logistics_reservation`, un entier qui vaut 0 pour les lignes existantes, et `line_terms` dans
-`phil_commerce_logistics_purchase_order` — voyez [Achats](purchasing.md). Générez la migration avec
+Une base créée pour 0.1.0-alpha gagne une colonne par table qui a changé et les deux tables du calcul des coûts, et
+rien d'autre ne change : `returned` dans `phil_commerce_logistics_reservation`, un entier qui vaut 0 pour les lignes
+existantes, `line_terms` dans `phil_commerce_logistics_purchase_order` — voyez [Achats](purchasing.md) —, `reason` dans
+`phil_commerce_logistics_stock_movement`, nul pour les lignes existantes, et `phil_commerce_logistics_cost_layer` et
+`phil_commerce_logistics_cost_entry` — voyez [Coûts](costing.md#stockage). Générez la migration avec
 `doctrine:migrations:diff` de Doctrine, ou `doctrine:schema:update --dump-sql` pour la lire d'abord.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=972bf8965edef582ea225cb80acc785a8ce525c83a67fe514d81b843ef02bc0c -->
+<!-- phil-dev source-sha256=f0a1698cad00bd17a089d4dafc0ae4150d27f9db59b025eccb8d0a0e8c0ba729 -->
 # Retours
 
 ## Le parcours d'un retour
@@ -119,6 +119,26 @@ rendre.
 ne garde lui-même aucun stock. Il reçoit la référence de la ligne de commande, relue par
 `SellableReference::fromValue()` : l'empreinte d'une ligne configurée y reste, et ce qui retourne sur la tablette est
 son vendable `unconfigured()`.
+
+Avec `phil/commerce-logistics-bundle`, `logistics_restocking` les remet dans son stock par `LogisticsRestocking` :
+
+```yaml
+phil_commerce_returns:
+    logistics_restocking:
+        location: returns   # or ~ for where each SKU left from
+```
+
+- **Une ligne de produit seulement.** Les unités du produit de la ligne retournent par `Stock::returnFromCustomer()`,
+  sous la commande du retour ; un autre vendable, ou un *SKU* que le stock n'a jamais réservé pour la commande — un
+  *SKU* qu'il ne suit pas —, ne remet rien en stock.
+- **Où elles vont** : l'emplacement configuré — une zone de retours — ou, sans emplacement, celui d'où sont parties les
+  unités de la commande pour ce *SKU* qui ne sont pas toutes revenues, la première de ces réservations d'abord.
+- **Au coût auquel elles sont parties.** Avec le calcul des coûts du module de logistique activé, les unités reviennent à
+  leur part de ce qu'ont coûté les sorties du *SKU* pour la commande, jamais au coût du jour, sous l'une ou l'autre
+  méthode — voyez la documentation du calcul des coûts du module de logistique.
+- Le stock refuse les unités au-delà de ce qui est parti et n'est pas encore revenu ; le refus fait échouer la
+  réception, qui n'enregistre rien.
+- L'activer sans `PhilCommerceLogisticsBundle` enregistré fait échouer la construction du conteneur.
 
 ## Règlement
 

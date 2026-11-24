@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cf25547faa7cf9736af4ba91e63d82733978e3a147496ba681386a71f29fe880 -->
+<!-- phil-dev source-sha256=75ac53742bcae944458e4e196cf5d2ff6eca41c5c6435fa7b379851104881914 -->
 # Installation
 
 ## Prérequis
@@ -68,6 +68,9 @@ phil_commerce_returns:
     delivery_refund: shops_fault  # never, shops_fault or whole_order
     expiry_days: ~                # how long an authorized return waits for its goods; ~ for ever
     rate_limiter: ~               # a symfony/rate-limiter factory bounding each customer's requests
+    logistics_restocking:
+        enabled: false            # resellable units back in the stock of phil/commerce-logistics-bundle
+        location: ~               # the location every return goes to; ~ for the one each SKU left from
     slips:
         prefix: 'RS-'
         digits: 8
@@ -92,5 +95,6 @@ qui appelle `Returns::expire($clock->now())` et valide.
 
 ## Remise en stock
 
-Implémentez `Restocking` pour remettre les unités revendables sur la tablette — un mouvement de stock de
-`phil/commerce-logistics-bundle`, par exemple ; l'autoconfiguration étiquette le service.
+Avec `phil/commerce-logistics-bundle` 0.1.1 ou plus récent enregistré, activez `logistics_restocking` pour remettre les
+unités revendables dans son stock ; sinon, implémentez `Restocking` pour les remettre sur la tablette propre à
+l'application — l'autoconfiguration étiquette le service. Voyez [Retours](returns.md#remise-en-stock).

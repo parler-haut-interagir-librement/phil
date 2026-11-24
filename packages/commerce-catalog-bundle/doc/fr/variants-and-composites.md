@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3e1900a7b0965a1525e38275dac7a5866c3b2e177a09b21491a726649aa08c7e -->
+<!-- phil-dev source-sha256=f4760b301b3caafde6c849a37ac7261e1cfb7c168b06758875a4a83f3d9f52c4 -->
 # Variantes et produits composés
 
 ## Familles et variantes
@@ -71,3 +71,23 @@ Les parties sont ce que le stock distribue et ce qu'un retour reprend en entier 
 d'une ligne de commande, et n'en trouve aucune pour un produit à part ou un autre article vendable. Une promotion
 entre deux produits vendus séparément — deux lignes, chacune avec sa part du rabais — relève plutôt d'un lot de
 `phil/commerce-promotions-bundle`.
+
+### Le coût d'un produit composé
+
+`Application\Contract\ProductCosts` donne ce que coûte à la boutique une unité d'un produit ; un produit composé coûte la
+somme de ses parties, le coût unitaire de chaque partie multiplié par ses unités.
+
+```php
+$costs->costOf('BOX');   // 1 × RULEBOOK at 12.50 + 2 × DICE-SET at 3.33 = 19.16 CAD
+```
+
+- `CompositeCosts`, le `ProductCosts` du module, lit le coût unitaire de chaque partie dans
+  `Application\Contract\UnitCosts`. Avec `phil/commerce-logistics-bundle` enregistré, `LogisticsUnitCosts` le lit dans le
+  calcul des coûts du module de logistique : les unités propres de la boutique, jamais celles laissées en consignation.
+  Sinon, une application fait pointer l'alias de `UnitCosts` vers un de ses propres services.
+- Un produit composé dont une partie n'a aucun coût connu n'en a pas non plus : `costOf()` donne null plutôt qu'une somme
+  à laquelle il manque une partie. Les coûts des parties sont dans une seule devise, sinon `CatalogRefused::currency()`
+  les refuse.
+- Tout autre *SKU* coûte ce que dit `UnitCosts` ; une famille, jamais vendue elle-même, ne coûte rien de connu ; sans
+  `UnitCosts`, aucun coût n'est connu.
+- `costOf()` lit le produit une fois, puis un coût unitaire par partie, et n'écrit rien.

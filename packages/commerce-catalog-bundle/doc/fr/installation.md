@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=38a3fb87b4954179a0386c58d2f066a3836da234be483f8bb3209cd0ab1aa376 -->
+<!-- phil-dev source-sha256=5eb5f4ed2b8956eeadaf65a98c5b2892121dc8ab73ff7bbdbf837a7c8a7ee099 -->
 # Installation
 
 ## Prérequis
@@ -7,7 +7,7 @@
 |---|---|---|
 | PHP | 8.5 ou plus récent | Le plancher que le module déclare et sur lequel il est testé |
 | `ext-mbstring` | toute version | La longueur des noms et des valeurs d'attributs, en caractères |
-| `phil/commerce-bundle` | ^0.2@dev ou ^0.3@dev | Le noyau auquel le module se branche : `SellableResolver`, `UnitPriceResolver`, `SellableAvailability`, `OrderPurchased` |
+| `phil/commerce-bundle` | ^0.4@dev | Le noyau auquel le module se branche : `SellableResolver`, `UnitPriceResolver`, `SellableAvailability`, `OrderPurchased` |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` et `DomainError` |
 | `phil/doctrine-behaviours` | ^0.2@dev | Les traductions des noms des produits |
 | `phil/locale-dimensions` | ^0.1@dev | Les locales servies et leurs chaînes de repli |
@@ -25,6 +25,9 @@ ses étiquettes. `phil/product-feeds` est suggéré : avec lui, le catalogue est
 `symfony/messenger` les publie par un message, `symfony/console` donne leur commande, et `symfony/http-foundation` le
 contrôleur de la route qui sert leurs fichiers ([Flux de produits](product-feeds.md#servir)).
 `phil/commerce-promotions-bundle` est le module des promotions sur ces produits.
+`phil/commerce-logistics-bundle` 0.1.1 ou plus récent est suggéré : avec lui enregistré, le coût d'un produit — celui
+d'un produit composé étant la somme de celui de ses parties — est lu dans son calcul des coûts
+([Variantes et produits composés](variants-and-composites.md#le-coût-dun-produit-composé)).
 
 ## Installer
 
