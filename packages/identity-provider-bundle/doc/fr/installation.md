@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a42c973f0547a7db13fb3c080a92ebe2a3d98bcab70ca0d8b411e263ea926f9b -->
+<!-- phil-dev source-sha256=9b8542aa27eb04a050d3d139873aaf4ffbfd72125d9650fb990fdec68a0b4025 -->
 # Installation
 
 ```sh
@@ -131,6 +131,7 @@ security:
                 signature_properties: [userIdentifier, passwordChangedAt]
                 lifetime: 600
                 max_uses: 1
+                check_post_only: true         # set by the bundle whatever is written here
             custom_authenticators:
                 - Phil\IdentityProviderBundle\Infrastructure\Security\PasskeyAuthenticator     # passkeys
                 - Phil\IdentityProviderBundle\Infrastructure\Security\OneTimeCodeAuthenticator # totp

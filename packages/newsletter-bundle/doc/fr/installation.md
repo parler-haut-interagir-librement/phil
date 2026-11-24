@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6df96d04421d4a11507f8a28ffe3e2da9d9fcd3768729b71afe896262df59dfb -->
+<!-- phil-dev source-sha256=b7e2c7a487df5c214cba2f3065cc8aef700076a813ffd74bf59bd1a480c9188e -->
 # Installation
 
 ```sh
@@ -11,8 +11,17 @@ TwigBundle, le mailer, Messenger, le planificateur, le limiteur de débit, la pr
 
 Avec Symfony Flex, la recette enregistre le bundle, écrit `config/packages/phil_newsletter.yaml` avec l'adresse de base
 du site et un profil d'expéditeur, importe les routes sous `/newsletter` dans `config/routes/phil_newsletter.yaml` et
-ajoute `NEWSLETTER_SECRET` à `.env` : donnez-lui en production une valeur aléatoire de 32 octets ou plus. Sans Flex,
-enregistrez le bundle :
+ajoute `NEWSLETTER_SECRET` à `.env`, vide : donnez-lui une valeur aléatoire de 32 octets ou plus, hors du dépôt — un
+secret Symfony, `.env.local` ou l'environnement du serveur :
+
+```sh
+php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'
+php bin/console secrets:set NEWSLETTER_SECRET
+```
+
+Le bundle refuse une clé de moins de 16 octets — une clé vide comprise — et une clé qui commence par `change-me` ou
+`changeme`, les substituts qu'emploient les exemples : le premier service qui signe un lien, étiquette une adresse VERP
+ou hache une adresse supprimée échoue avec `LinkRefused`. Sans Flex, enregistrez le bundle :
 
 ```php
 // config/bundles.php

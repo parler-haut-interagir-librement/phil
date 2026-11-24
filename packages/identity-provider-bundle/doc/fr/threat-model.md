@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9131dc593a92a81c44d31a0afd22f5aa8badfceba5b64283e96877364627bc22 -->
+<!-- phil-dev source-sha256=5c5932d82029c67c10692fa827aa5bb4206c3cb9d02d16b768c742accc52cac5 -->
 # Modèle de menaces
 
 Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une revue de sécurité par quelqu'un qui n'a pas
@@ -59,7 +59,7 @@ Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une 
 | Deux comptes pour une boîte de courriel | La forme canonique de l'adresse de connexion est unique ; avec `accounts.strip_subaddress`, `ana+x@` et `ana@` sont une seule boîte. |
 | Un authentificateur d'une marque que le site refuse | Avec une transmission d'attestation, une déclaration `packed` est vérifiée jusqu'aux racines de confiance ; la politique refuse des marques, des attestations sous `trusted`, ou des clés d'accès synchronisées. Sans `require_trusted`, un AAGUID est ce que l'authentificateur prétend. |
 | Un lien ou un code lu dans une file de messages | Les liens de vérification, de réinitialisation et de connexion et les codes envoyés par message texte sont remis aux transports de courriel et de SMS dans la requête, jamais à Messenger : aucune file, aucun transport des échecs, aucune sauvegarde ne les contient. Les courriels désactivent le suivi des ouvertures et des clics du fournisseur. Voir [Pourquoi les courriels de compte et les SMS ne passent jamais par Messenger](links-and-sms.md#pourquoi-les-courriels-de-compte-et-les-sms-ne-passent-jamais-par-messenger). |
-| Un lien ouvert par un analyseur de courriel | `/verify-email` affiche seulement une page qui demande de confirmer ; l'adresse est vérifiée par le formulaire qu'elle envoie, avec un jeton CSRF. |
+| Un lien ouvert par un analyseur de courriel | `/verify-email` affiche seulement une page qui demande de confirmer ; l'adresse est vérifiée par le formulaire qu'elle envoie, avec un jeton CSRF. Un lien de connexion n'est consommé que par POST : le bundle active `check_post_only` sur son authentificateur, et suivre le lien affiche une page dont le bouton l'envoie, de sorte qu'un analyseur qui le suit ne brûle pas son usage unique et ne reçoit pas la session. |
 
 ## Attaques sur les sessions
 
@@ -67,6 +67,7 @@ Ce dont le bundle se défend, comment, et ce qu'il laisse à l'application. Une 
 |---|---|
 | Fixation de session | Symfony Security migre la session à la connexion. |
 | Un appareil volé | Les sessions fermées depuis un autre appareil prennent effet à la requête suivante ; les jetons émis dedans sont révoqués, puis la session fermée, dans une seule transaction. |
+| Un témoin de session volé employé plus tard | Une session se ferme après `sessions.idle_timeout` secondes sans requête (deux heures par défaut) et `sessions.max_age` secondes après son ouverture (douze heures par défaut), avec ses jetons. |
 | Une session volée après un changement de mot de passe | Un mot de passe nouveau ou réinitialisé ferme les autres sessions et leurs jetons ; `AccountUser::isEqualTo()` compare l'empreinte du mot de passe, de sorte qu'une session ouverte avant le changement prend fin à sa requête suivante. |
 | Une session ouverte depuis longtemps utilisée pour une action sensible | `PHIL_STEP_UP` demande une preuve récente de la méthode la plus forte. |
 | Une session mémorisée qui répond à `max_age` | Une session qui ne détient aucune preuve, comme celle que restaure `remember_me`, s'ouvre de nouveau quand un client demande `max_age`. |

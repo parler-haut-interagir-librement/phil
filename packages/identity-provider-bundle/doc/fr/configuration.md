@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7610882a6a0dceca76939253ead224a1c93b11084f6577ae48fc643f72af036c -->
+<!-- phil-dev source-sha256=190fd6b6255d206c35fae256caa17a03e483fd64bd1374c3144cd3ad4e55a3a4 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_identity_provider`. Chaque option a une valeur par défaut, sauf les
@@ -125,6 +125,8 @@ phil_identity_provider:
 | `step_up.attribute` | `PHIL_STEP_UP` | L'attribut qu'exigent les actions sensibles du bundle : `PHIL_STEP_UP`, ou `IS_AUTHENTICATED_RECENTLY` de Symfony Security. |
 | `step_up.lifetime` | `300` | Secondes pendant lesquelles une preuve accorde `PHIL_STEP_UP`. |
 | `sessions.touch_interval` | `300` | Le moins de secondes entre deux écritures du moment où une session a été vue pour la dernière fois. |
+| `sessions.idle_timeout` | `7200` | Le nombre de secondes sans requête après lequel une session est fermée : 0 pour aucune borne, sinon au moins 60 et plus que `sessions.touch_interval`. |
+| `sessions.max_age` | `43200` | Le nombre de secondes après son ouverture au-delà duquel une session est fermée, quelle que soit son activité : 0 pour aucune borne, sinon au moins 60. |
 | `external.link_verified_email` | `false` | Si une identité dont le fournisseur a vérifié l'adresse se lie au compte qui a vérifié la même adresse, au lieu de demander à la personne de se connecter d'abord. |
 | `external.register` | `true` | Si une identité externe inconnue crée un compte. |
 | `oidc.issuer` | `null` | L'adresse https sous laquelle les clients connaissent le fournisseur, sans barre oblique finale. |

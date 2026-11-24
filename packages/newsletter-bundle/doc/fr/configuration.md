@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b01738995b5ed5b02c9e8b1320031326d5caf86b07e08f6d3c048dc93a766e2d -->
+<!-- phil-dev source-sha256=8e7d44cb04ea30f34effbd8517f54e71f10b98330977ebc583a2ae9e00f6b976 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_newsletter` :
@@ -54,7 +54,7 @@ phil_newsletter:
 | Option | Valeur par défaut | Ce qu'elle fait |
 |---|---|---|
 | `enabled` | `true` | Enregistre les services du bundle ; `false` n'en enregistre aucun. |
-| `secret` | `%kernel.secret%` | La clé des liens signés, des étiquettes VERP et des empreintes de suppression : au moins 16 octets. Une nouvelle clé casse les liens de chaque message envoyé. |
+| `secret` | `%kernel.secret%` | La clé des liens signés, des étiquettes VERP et des empreintes de suppression : au moins 16 octets, jamais un substitut qui commence par `change-me` ou `changeme`. Les clés des étiquettes VERP et des empreintes de suppression sont dérivées de sa valeur à l'exécution, une variable d'environnement comprise. Une nouvelle clé casse les liens de chaque message envoyé. |
 | `connection` | `doctrine.dbal.default_connection` | La connexion DBAL des tables. |
 | `check_mail_domain` | `true` | Si le worker qui envoie la confirmation d'une double confirmation demande d'abord au DNS que le domaine de l'adresse reçoit du courriel, et refuse l'abonnement sinon ; la requête n'attend jamais le DNS. |
 | `site` | `default` | Le site d'une application autonome. |
