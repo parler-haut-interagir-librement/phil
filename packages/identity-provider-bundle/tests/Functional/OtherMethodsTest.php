@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\IdentityProviderBundle\Tests\Functional;
 
 use LogicException;
+use Phil\IdentityProviderBundle\Application\AccountUser;
 use Phil\IdentityProviderBundle\Application\Jose\PrivateKey;
 use Phil\IdentityProviderBundle\Application\Oidc\ClientRegistry;
 use Phil\IdentityProviderBundle\Domain\Contract\LinkedIdentityRepository;
@@ -22,12 +23,15 @@ use Phil\IdentityProviderBundle\Infrastructure\Http\ExternalController;
 use Phil\IdentityProviderBundle\Infrastructure\Http\LoginLinkController;
 use Phil\IdentityProviderBundle\Infrastructure\Http\PhoneController;
 use Phil\IdentityProviderBundle\Infrastructure\Security\ExternalAuthenticator;
+use Phil\IdentityProviderBundle\Infrastructure\Security\SemaphorePasswordHasher;
+use Phil\IdentityProviderBundle\Infrastructure\Security\SemaphorePasswordHasherFactory;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\RecordingSms;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
 /**
  * Sign-in links, the phone number, federated identities and the commands.
@@ -45,6 +49,7 @@ use Symfony\Component\Mime\Email;
 #[CoversClass(PurgeCommand::class)]
 #[CoversClass(ReplaceClientKeysCommand::class)]
 #[CoversClass(KeySetFile::class)]
+#[CoversClass(SemaphorePasswordHasherFactory::class)]
 final class OtherMethodsTest extends FunctionalTestCase
 {
     public function testASignInLink(): void
@@ -91,6 +96,39 @@ final class OtherMethodsTest extends FunctionalTestCase
         self::assertResponseRedirects('/login', message: 'The link works once.');
         $this->client->request('GET', '/account');
         self::assertResponseRedirects();
+    }
+
+    public function testAGetAloneNeverSignsInNorSpendsTheLink(): void
+    {
+        $this->account();
+        $crawler = $this->client->request('GET', '/login/link');
+        $this->client->submit($crawler->selectButton('Send me a link')->form(['email' => 'ada@example.com']));
+        $email = self::getMailerMessage();
+        self::assertInstanceOf(Email::class, $email);
+        preg_match('#href="([^"]+)"#', (string) $email->getHtmlBody(), $link);
+        $url = html_entity_decode($link[1] ?? '');
+
+        $scanner = $this->client->request('GET', $url);
+        $this->client->request('HEAD', $url);
+        $this->client->request('GET', $url);
+        self::assertResponseIsSuccessful();
+        $this->client->request('GET', '/account');
+        self::assertResponseRedirects();
+
+        $this->client->submit($scanner->selectButton('Sign in')->form());
+        self::assertResponseRedirects('/account');
+        $this->client->request('GET', '/account');
+        self::assertResponseIsSuccessful();
+    }
+
+    public function testThePasswordsOfTheAccountsGoThroughTheSemaphore(): void
+    {
+        $factory = $this->service(PasswordHasherFactoryInterface::class, 'security.password_hasher_factory');
+
+        self::assertInstanceOf(SemaphorePasswordHasher::class, $factory->getPasswordHasher(AccountUser::class));
+        $this->account();
+        $this->signIn();
+        self::assertResponseRedirects('/home');
     }
 
     public function testThePhoneNumber(): void

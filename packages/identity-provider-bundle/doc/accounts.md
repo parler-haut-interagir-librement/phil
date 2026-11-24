@@ -155,6 +155,26 @@ breach source that does not answer does not refuse the password. The reasons go 
 Passwords are hashed by the password hasher of Symfony Security: the bundle prepends `sodium` — Argon2id — for
 `AccountUser`, and the application may tune it in `security.password_hashers`.
 
+### The cap on password checks
+
+Each Argon2id hash takes tens of mebibytes. A burst of failed sign-ins spread over many accounts and many addresses
+passes under the limiters by address and by account, yet a server that hashed every one at once would run out of
+memory. The bundle decorates the password hasher factory of Symfony Security: every hash and every check of an
+account's password — sign-in, change, reset, registration — takes one of `password.semaphore.slots` locks of the Lock
+component first, and waits up to `password.semaphore.wait` seconds for one to free. Past that wait the sign-in is
+refused with `password.busy`, which never counts towards the lock of the account. Whether a hash needs computing
+again takes no slot. The hashers of other user classes are left as they are.
+
+The cap belongs to each server, since memory does: the default keeps flock files in the temporary directory, and a
+lock dies with the process that held it. `password.semaphore.lock_factory` names another `LockFactory`, such as one on
+`SemaphoreStore`; a store shared by every server would cap the whole site at the number of slots.
+
+```yaml
+phil_identity_provider:
+    password:
+        semaphore: { slots: 8, wait: 2.0 }
+```
+
 ## The forgotten password
 
 `/forgot-password` sends a link to the address when it has an account, and answers the same when it does not. The

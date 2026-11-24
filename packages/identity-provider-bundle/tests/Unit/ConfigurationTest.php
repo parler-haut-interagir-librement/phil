@@ -67,6 +67,7 @@ final class ConfigurationTest extends TestCase
             'min_score' => 2,
             'breach_check' => false,
             'http_client' => 'http_client',
+            'semaphore' => ['enabled' => true, 'slots' => 4, 'wait' => 3.0, 'lock_factory' => null],
         ],
         'lockout' => [
             'enabled' => true,

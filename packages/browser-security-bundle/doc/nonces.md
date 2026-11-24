@@ -74,6 +74,15 @@ A known inline element is allowed by the SHA-256 of its content, from the config
 $csp->allowInline('script', $code);
 ```
 
+## The error page
+
+The HTML error page of the ErrorHandler component, which FrameworkBundle shows when no template of the application
+answers, carries the nonces of the response: the bundle hands `scriptNonce()` and `styleNonce()` of
+`ContentSecurityPolicyContext` to `HtmlErrorRenderer::setNonce()` (Symfony 8.2), read when a page is rendered. Its
+`<style>` element, and the `<script>` and `<style>` elements of the exception page and its dumps, run under a policy
+without `'unsafe-inline'`. In debug, the ErrorListener of HttpKernel drops the policy of an error page, as Symfony
+does without the bundle.
+
 ## Nonces and HTTP caches
 
 A page with a nonce is a page for one response. A shared cache that stores it serves the same nonce to everyone, which

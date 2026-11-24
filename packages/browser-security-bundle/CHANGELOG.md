@@ -8,7 +8,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.2.1-alpha.
 
-Development only.
+### Added
+
+- `ContentSecurityPolicyContext::scriptNonce()` and `styleNonce()`, and `Infrastructure\ErrorHandler\ErrorPageNoncePass`,
+  which hands them to `HtmlErrorRenderer::setNonce()` of the ErrorHandler component: the HTML error page and the
+  exception page carry the nonces of the response. `symfony/error-handler` ^8.2 joins `require`.
 
 ### Changed
 
@@ -16,6 +20,12 @@ Development only.
   `doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, …).
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
   2026-11-24.
+
+### Security
+
+- The HTML error page of the ErrorHandler component wrote its `<style>` element without a nonce: under a policy
+  without `'unsafe-inline'`, the browser refused it, and a site that loosened the policy to show its error pages
+  loosened it for every page.
 
 ## 0.2.0-alpha - 2026-11-20
 

@@ -34,7 +34,8 @@
 | `Application\ResolvedHeaders` | The headers of one response. |
 | `Application\CookieSigner` | Signs and verifies the value of a cookie. |
 | `Application\RequestState` | The overrides, nonces, hashes and headers of a request. |
-| `Application\ContentSecurityPolicyContext` | Nonces, hashes and overrides from code. |
+| `Application\ContentSecurityPolicyContext` | Nonces, hashes and overrides from code; `scriptNonce()` and `styleNonce()` for a caller that takes a closure. |
+| `Infrastructure\ErrorHandler\ErrorPageNoncePass` | Hands the nonces to the HTML error page of the ErrorHandler component. |
 | `Application\HeaderBuilder` | The policy headers of a response. |
 | `Application\SecurityHeaders` | The neighbouring headers, by path and with the overrides of a response. |
 | `Application\ReportParser` | Reads both report formats. |

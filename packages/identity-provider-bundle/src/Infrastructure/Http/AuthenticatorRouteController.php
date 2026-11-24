@@ -8,7 +8,7 @@ use LogicException;
 
 /**
  * The controller of the routes an authenticator of the firewall answers — the passkey sign-in, the code check, the
- * callback of a federated provider, the check of a sign-in link —: reached only when that authenticator is missing
+ * callback of a federated provider —: reached only when that authenticator is missing
  * from the firewall, which it says.
  */
 final readonly class AuthenticatorRouteController

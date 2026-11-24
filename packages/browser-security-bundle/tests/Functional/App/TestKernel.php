@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\BrowserSecurityBundle\Tests\Functional\App;
 
+use LogicException;
 use Override;
 use Phil\BrowserSecurityBundle\Application\Attribute\BrowserSecurity;
 use Phil\BrowserSecurityBundle\Application\Attribute\ContentSecurityPolicy;
@@ -140,6 +141,11 @@ final class TestKernel extends Kernel
         return $response;
     }
 
+    public function broken(): never
+    {
+        throw new LogicException('The page failed.');
+    }
+
     public function leave(): RedirectResponse
     {
         return new RedirectResponse('https://elsewhere.example.net/');
@@ -200,6 +206,7 @@ final class TestKernel extends Kernel
         $routes->add('embed', '/embed/map')->controller($this->plain(...));
         $routes->add('strict', '/strict')->controller($this->strict(...));
         $routes->add('cookie', '/cookie')->controller($this->plainText(...));
+        $routes->add('broken', '/broken')->controller($this->broken(...));
         $routes->add('leave', '/leave')->controller($this->leave(...));
         $routes->add('leave_allowed', '/leave-allowed')->controller($this->leave(...))->defaults(['_browser_security' => ['add' => ['external-redirects' => ['elsewhere.example.net']]]]);
         $routes->add('forced', '/forced')->controller($this->plain(...))->defaults(['_browser_security' => ['replace' => ['https-redirect' => true]]]);

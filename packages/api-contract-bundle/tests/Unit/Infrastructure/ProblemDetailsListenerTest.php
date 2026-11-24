@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\ApiContractBundle\Tests\Unit\Infrastructure;
 
+use Doctrine\ORM\OptimisticLockException;
 use Phil\ApiContract\Exception\ApiContractException;
 use Phil\ApiContract\Problem\ProblemDetails;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemDetailsListener;
@@ -12,6 +13,7 @@ use Phil\ApiContractBundle\Infrastructure\Http\ProblemException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use stdClass;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -71,6 +73,32 @@ final class ProblemDetailsListenerTest extends TestCase
         self::assertNull($this->handle(new ProblemDetailsListener(['^/api/'], true), new RuntimeException('secret'), '/api/x'));
         self::assertNull($this->handle(new ProblemDetailsListener(['^/api/']), new RuntimeException('secret'), '/x'));
         self::assertSame(500, $this->handle(new ProblemDetailsListener(['^/api/']), new HttpException(302), '/api/x')?->getStatusCode());
+    }
+
+    public function testUnderThePathsAWriteConflictIsAStable409(): void
+    {
+        $conflict = OptimisticLockException::lockFailedVersionMismatch(new stdClass(), 2, 3);
+        $expected = ['type' => 'urn:phil:problem:write-conflict', 'status' => 409, 'title' => 'The resource changed since it was read.', 'detail' => 'Read it again, then send the change again.'];
+
+        foreach ([new ProblemDetailsListener(['^/api/']), new ProblemDetailsListener(['^/api/'], true)] as $listener) {
+            $response = $this->handle($listener, $conflict, '/api/orders/7');
+            self::assertInstanceOf(ProblemDetailsResponse::class, $response);
+            self::assertSame([409, 'application/problem+json'], [$response->getStatusCode(), $response->headers->get('Content-Type')]);
+            self::assertSame($expected, json_decode((string) $response->getContent(), true));
+            self::assertStringNotContainsString('stdClass', (string) $response->getContent());
+        }
+
+        self::assertSame('urn:phil:problem:write-conflict', ProblemDetailsListener::WRITE_CONFLICT_TYPE);
+        self::assertNull($this->handle(new ProblemDetailsListener(['^/api/'], true), $conflict, '/orders/7'));
+
+        $wrapped = $conflict;
+
+        for ($i = 1; $i < 8; ++$i) {
+            $wrapped = new RuntimeException('handler failed', previous: $wrapped);
+        }
+
+        self::assertSame(409, $this->handle(new ProblemDetailsListener(['^/api/']), $wrapped, '/api/x')?->getStatusCode());
+        self::assertSame(500, $this->handle(new ProblemDetailsListener(['^/api/']), new RuntimeException('deeper', previous: $wrapped), '/api/x')?->getStatusCode());
     }
 
     private function title(?Response $response): mixed

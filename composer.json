@@ -75,6 +75,7 @@
         "symfony/discord-notifier": "^8.2",
         "symfony/doctrine-bridge": "^8.2",
         "symfony/dom-crawler": "^8.2",
+        "symfony/error-handler": "^8.2",
         "symfony/event-dispatcher": "^8.2",
         "symfony/event-dispatcher-contracts": "^3.8",
         "symfony/expression-language": "^8.2",

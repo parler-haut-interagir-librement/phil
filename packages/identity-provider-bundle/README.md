@@ -32,7 +32,7 @@ people — no address of their connection, no token of a federated provider — 
 | Passwords: Argon2id, strength and breach checks by `phil/passwords`, reset by a link signed over the password and used once, other sessions closed at each change, progressive lock that can be turned off, sign-in limiter per identifier for `login_throttling` | Implemented and tested |
 | Passkeys: registration, sign-in, rename, removal; the last way to sign in kept; AAGUID and backup flags recorded, `packed` attestation read against trusted roots, policy of makes and synced passkeys | Implemented and tested |
 | Authenticator application (TOTP), recovery codes, the second step of a sign-in | Implemented and tested |
-| Sign-in links by email (`login_link` of Symfony Security) | Implemented and tested |
+| Sign-in links by email (`login_link` of Symfony Security, confirmed by a button) | Implemented and tested |
 | Phone number verified by a text message, through the Notifier component or an `SmsSender` of your own | Implemented and tested |
 | Step-up on Symfony 8.2: `PHIL_STEP_UP`, `AuthenticationMethodBadge` proofs (RFC 8176), `requestReAuthentication()` | Implemented and tested |
 | Devices and sessions: list, one or all closed from another device, risky sign-in warned | Implemented and tested |

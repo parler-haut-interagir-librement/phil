@@ -10,6 +10,9 @@ The next version is 0.1.1-alpha.
 
 ### Changed
 
+- The page of a group reads each chain from the top down, the exception thrown first, each previous one marked
+  "Caused by" and the root cause last marked "Root cause"; each run of frames under `vendor/` is folded into a
+  `<details>` element that tells how many it holds and opens without script.
 - The development requirements accept `phil/notifications-bundle` 0.4 and `phil/privacy-bundle` 0.3, the minor versions
   of their main branches and no earlier one, so that the package installs on its own beside those bundles.
 - Requires the latest minor of each dependency (`doctrine/dbal` 4.6, `symfony/service-contracts` 3.8), and of each
