@@ -8,7 +8,7 @@ the browser resolves from the `color-scheme` of the element that uses the role:
 ```css
 :root {
     color-scheme: light dark;
-    --phil-color-surface: light-dark(var(--phil-neutral-99), var(--phil-neutral-10));
+    --phil-color-surface: light-dark(var(--phil-neutral-99), var(--phil-neutral-15));
 }
 ```
 
@@ -24,10 +24,15 @@ By default the page follows the system, through `prefers-color-scheme`. `data-th
 It goes on the root or on any element, which then flips its subtree: a dark band in a light page is a
 `<section data-theme="dark">`.
 
+A page whose reader has chosen a scheme writes it on the root, and leaves `data-theme` out otherwise:
+
 ```twig
-{% set theme = random(['default', 'dark']) %}
-<html lang="{{ app.request.locale }}" data-theme="{{ theme }}">
+{# theme: the reader's choice, "light", "dark", or null for the system's #}
+<html lang="{{ app.request.locale }}"{% if theme in ['light', 'dark'] %} data-theme="{{ theme }}"{% endif %}>
 ```
+
+The `ThemeSwitcher` recipe of the PHIL UX kit offers that choice, keeps it in the browser and writes it on the root
+before the page is first painted.
 
 ## A site's overrides
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c018595f570a4e4f3af634393a73aef08b99e45f360dbb06c5cd643026d3eb0b -->
+<!-- phil-dev source-sha256=559c9e9add516b78475c8ffe2f2c27ada7246277050bddbcbce3169ac56f6c20 -->
 # Jetons
 
 Chaque jeton est une propriété personnalisée de `:root` nommée `--phil-*`, dans l'un de trois fichiers :
@@ -44,7 +44,8 @@ celles du système, rien de téléchargé —, `--phil-focus-width` et `--phil-f
 ## La palette
 
 Sept teintes — `neutral`, `brand`, `red`, `green`, `amber`, `blue`, `violet` — de onze tons chacune, numérotés selon
-leur clarté OKLCH : `--phil-brand-40` est `oklch(0.40 …)`. Les neutres ajoutent `99`, le presque blanc de la page.
+leur clarté OKLCH : `--phil-brand-40` est `oklch(0.40 …)`. Les neutres ajoutent `15`, `#090B10`, la surface du
+schéma sombre, et `99`, le presque blanc de la page.
 
 | Numéro | 05 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 95 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -57,6 +58,9 @@ Puisque le numéro est la clarté, la différence de deux numéros donne le cont
 | 50 ou plus | 4,5:1 | Le texte de toute taille |
 | 40 ou plus | 3:1 | Le grand texte, les bordures, les icônes, les anneaux de focus |
 
+Sur la surface sombre, neutral 15, le texte, neutral 95, atteint 17:1 et le texte atténué, neutral 70, 7,3:1 : tous
+deux dépassent le 7:1 du critère de succès 1.4.6.
+
 Chaque chroma est propre à sa teinte, tenu dans la gamme sRGB à chaque clarté : un ton paraît le même sur chaque écran.
 
 ## Les rôles de couleur
@@ -65,7 +69,7 @@ Les composants lisent des rôles, jamais la palette. Chaque rôle est `light-dar
 
 | Rôle | Clair | Sombre |
 |---|---|---|
-| `--phil-color-surface` | neutral 99 | neutral 10 |
+| `--phil-color-surface` | neutral 99 | neutral 15 |
 | `--phil-color-surface-raised` | neutral 95 | neutral 20 |
 | `--phil-color-text` | neutral 10 | neutral 95 |
 | `--phil-color-text-muted` | neutral 40 | neutral 70 |

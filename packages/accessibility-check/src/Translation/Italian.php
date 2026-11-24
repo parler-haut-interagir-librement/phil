@@ -23,6 +23,7 @@ final class Italian
         'empty-heading.empty' => 'Questo titolo h{level} non ha testo.',
         'link-name.empty' => 'Il link a {href} non ha testo: i lettori di schermo annunciano solo il suo indirizzo.',
         'button-name.empty' => 'Questo pulsante non ha testo: di’ cosa fa.',
+        'tab-name.empty' => 'Questa scheda non ha testo: di’ cosa contiene il suo pannello.',
         'link-text.generic' => 'Il testo del link a {href}, «{text}», non dice dove porta: descrivi la sua destinazione.',
         'color-contrast.insufficient' => 'Il testo «{text}» ha un contrasto di {ratio}:1 tra {foreground} e {background}; gli serve {required}:1.',
         'color-contrast.unresolved' => 'Il colore {value} dipende dai fogli di stile della pagina: verifica il contrasto di questo testo in un browser.',

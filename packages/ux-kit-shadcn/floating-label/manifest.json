@@ -1,0 +1,7 @@
+{
+    "type": "component",
+    "name": "FloatingLabel",
+    "copy-files": {
+        "templates/components/": "%COMPONENTS_DIR%/"
+    }
+}

@@ -288,4 +288,93 @@ final class OwnRecipesTest extends KitTestCase
         self::assertStringContainsString('<input class="isDatePickerField" type="date" id="r-end" data-date-picker-target="end">', $html);
         self::assertStringContainsString('<input class="isDatePickerField" type="date" id="r" data-date-picker-target="input" data-action="date-picker#limit">', $html);
     }
+
+    public function testAThemeSwitcherHidesUntilItsControllerRunsWithTheSystemChecked(): void
+    {
+        self::assertSame(
+            '<fieldset hidden data-theme-switcher-key-value="theme" class="isThemeSwitcher isToggleGroup" data-controller="theme-switcher"><legend class="isVisuallyHidden">Theme</legend>'
+            .'<label class="isToggle isOutline"><input type="radio" class="isToggleInput" name="theme" value="light" data-theme-switcher-target="option" data-action="theme-switcher#choose">Light</label>'
+            .'<label class="isToggle isOutline"><input type="radio" class="isToggleInput" name="theme" value="dark" data-theme-switcher-target="option" data-action="theme-switcher#choose">Dark</label>'
+            .'<label class="isToggle isOutline"><input type="radio" class="isToggleInput" name="theme" value="system" checked data-theme-switcher-target="option" data-action="theme-switcher#choose">System</label></fieldset>',
+            $this->render('<twig:ThemeSwitcher />'),
+        );
+    }
+
+    public function testAThemeSwitcherInAnotherLanguage(): void
+    {
+        $html = $this->render('<twig:ThemeSwitcher label="Thème" lightLabel="Clair" darkLabel="Sombre" :systemLabel="system" name="scheme" storageKey="look" />', ['system' => '<Système>']);
+
+        self::assertStringContainsString('data-theme-switcher-key-value="look"', $html);
+        self::assertStringContainsString('<legend class="isVisuallyHidden">Thème</legend>', $html);
+        self::assertStringContainsString('name="scheme" value="dark" data-theme-switcher-target="option" data-action="theme-switcher#choose">Sombre</label>', $html);
+        self::assertStringContainsString('>&lt;Système&gt;</label>', $html);
+        self::assertSame(3, substr_count($html, 'name="scheme"'));
+    }
+
+    public function testTheScriptOfTheThemeNeverChangesSoThatAPolicyAllowsItByItsHash(): void
+    {
+        $code = 'try{var t=localStorage.getItem(document.currentScript.dataset.themeKey);if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}';
+
+        self::assertSame('<script data-theme-key="theme">'.$code.'</script>', $this->render('<twig:ThemeSwitcher:Script />'));
+        self::assertSame('<script data-theme-key="&quot;&gt;x" nonce="r4nd0m">'.$code.'</script>', $this->render('<twig:ThemeSwitcher:Script :storageKey="key" nonce="r4nd0m" />', ['key' => '">x']));
+        self::assertSame('H4rtu+mjeozEL6qbMxmp6ImhtKrOXaaLCG7dH9fc88E=', base64_encode(hash('sha256', $code, true)));
+        self::assertStringContainsString("'sha256-H4rtu+mjeozEL6qbMxmp6ImhtKrOXaaLCG7dH9fc88E='", (string) file_get_contents(__DIR__.'/../../doc/recipes.md'));
+    }
+
+    public function testAStickyHeaderStaysVisibleAndReachable(): void
+    {
+        self::assertSame(
+            '<header data-sticky-header-hide-on-scroll-value="false" data-sticky-header-threshold-value="8" class="isStickyHeader" data-controller="sticky-header"><a href="/">Home</a></header>',
+            $this->render('<twig:StickyHeader><a href="/">Home</a></twig:StickyHeader>'),
+        );
+    }
+
+    public function testAStickyHeaderThatSlidesAwayIsNeverRenderedHidden(): void
+    {
+        $html = $this->render('<twig:StickyHeader :hideOnScroll="true" :threshold="24"><a href="/">Home</a></twig:StickyHeader>');
+
+        self::assertStringContainsString('data-sticky-header-hide-on-scroll-value="true" data-sticky-header-threshold-value="24" class="isStickyHeader hasHideOnScroll"', $html);
+        self::assertStringNotContainsString('inert', $html);
+        self::assertStringNotContainsString('data-hidden', $html);
+    }
+
+    public function testATimeline(): void
+    {
+        self::assertSame(
+            '<ol class="isTimeline" aria-label="History"><li class="isTimelineItem"><time class="isTimelineDate" datetime="2026-03-01">2026-03-01</time><div class="isTimelineContent">First</div></li>'
+            .'<li class="isTimelineItem"><time class="isTimelineDate" datetime="2026-11-12">Autumn &lt;2026&gt;</time><div class="isTimelineContent"><p>Second</p></div></li></ol>',
+            $this->render('<twig:Timeline label="History"><twig:Timeline:Item datetime="2026-03-01">First</twig:Timeline:Item><twig:Timeline:Item datetime="2026-11-12" :dateLabel="season"><p>Second</p></twig:Timeline:Item></twig:Timeline>', ['season' => 'Autumn <2026>']),
+        );
+    }
+
+    public function testATimelineEntryAtAMomentInItsOwnFormat(): void
+    {
+        $html = $this->render('<twig:Timeline><twig:Timeline:Item :datetime="moment" format="d/m/Y H:i" :allDay="false">Launch</twig:Timeline:Item></twig:Timeline>', ['moment' => new DateTimeImmutable('2026-11-12 21:30:00+00:00')]);
+
+        self::assertSame('<ol class="isTimeline"><li class="isTimelineItem"><time class="isTimelineDate" datetime="2026-11-12T21:30:00+00:00">12/11/2026 21:30</time><div class="isTimelineContent">Launch</div></li></ol>', $html);
+    }
+
+    public function testAFloatingLabel(): void
+    {
+        self::assertSame(
+            '<div class="hasFloatingLabel"><input type="email" id="email" name="email" placeholder=" " autocomplete="email" required><label for="email">Email</label></div>',
+            $this->render('<twig:FloatingLabel label="Email" id="email" name="email" type="email" autocomplete="email" :required="true" />'),
+        );
+    }
+
+    public function testAFloatingLabelWithAValueDescribedAndDisabled(): void
+    {
+        self::assertSame(
+            '<div class="hasFloatingLabel"><input type="text" id="n" placeholder=" " aria-describedby="n-help" disabled value="&quot;Ana&quot;"><label for="n">&lt;Name&gt;</label></div>',
+            $this->render('<twig:FloatingLabel :label="name" id="n" :value="value" describedBy="n-help" :disabled="true" />', ['name' => '<Name>', 'value' => '"Ana"']),
+        );
+    }
+
+    public function testAFloatingLabelOverATextOfSeveralLines(): void
+    {
+        self::assertSame(
+            '<div class="hasFloatingLabel"><textarea id="m" name="m" placeholder=" ">&lt;b&gt;Hi</textarea><label for="m">Message</label></div>',
+            $this->render('<twig:FloatingLabel label="Message" id="m" name="m" type="textarea" :value="value" />', ['value' => '<b>Hi']),
+        );
+    }
 }

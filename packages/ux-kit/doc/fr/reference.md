@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=27326d0574e0d700e206e87404ce341d079661ab0a202dd274247284ce6e08c8 -->
+<!-- phil-dev source-sha256=92c23a64642af4f9f52637f6732b76a82e2581acc832e6c490bfdf0e17c87c6e -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -191,3 +191,13 @@
 | `chart/templates/components/` | Le composant `Chart` |
 | `chart-js/manifest.json`, `chart-js/README.md` | La recette `ChartJs` |
 | `chart-js/templates/components/` | Le composant `ChartJs` |
+| `theme-switcher/manifest.json`, `theme-switcher/README.md` | La recette `ThemeSwitcher` |
+| `theme-switcher/templates/components/` | Le composant `ThemeSwitcher` et son `Script` |
+| `theme-switcher/assets/controllers/` | Le contrôleur Stimulus de la recette |
+| `sticky-header/manifest.json`, `sticky-header/README.md` | La recette `StickyHeader` |
+| `sticky-header/templates/components/` | Le composant `StickyHeader` |
+| `sticky-header/assets/controllers/` | Le contrôleur Stimulus de la recette |
+| `timeline/manifest.json`, `timeline/README.md` | La recette `Timeline` |
+| `timeline/templates/components/` | Le composant `Timeline` et son `Item` |
+| `floating-label/manifest.json`, `floating-label/README.md` | La recette `FloatingLabel` |
+| `floating-label/templates/components/` | Le composant `FloatingLabel` |

@@ -23,6 +23,7 @@ final class English
         'empty-heading.empty' => 'This h{level} heading has no text.',
         'link-name.empty' => 'The link to {href} has no text: screen readers announce only its address.',
         'button-name.empty' => 'This button has no text: say what it does.',
+        'tab-name.empty' => 'This tab has no text: say what its panel holds.',
         'link-text.generic' => 'The text of the link to {href}, "{text}", does not say where it leads: describe its destination.',
         'color-contrast.insufficient' => 'The text "{text}" has a contrast of {ratio}:1 between {foreground} and {background}; it needs {required}:1.',
         'color-contrast.unresolved' => 'The colour {value} depends on the style sheets of the page: check the contrast of this text in a browser.',

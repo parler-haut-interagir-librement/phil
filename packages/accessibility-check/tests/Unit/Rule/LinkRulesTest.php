@@ -9,6 +9,7 @@ use Phil\AccessibilityCheck\Rule\ButtonName;
 use Phil\AccessibilityCheck\Rule\GenericLinkText;
 use Phil\AccessibilityCheck\Rule\LinkName;
 use Phil\AccessibilityCheck\Rule\LinkText;
+use Phil\AccessibilityCheck\Rule\TabName;
 use Phil\AccessibilityCheck\Severity;
 use Phil\AccessibilityCheck\SuccessCriterion;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -16,6 +17,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(LinkName::class)]
 #[CoversClass(ButtonName::class)]
 #[CoversClass(LinkText::class)]
+#[CoversClass(TabName::class)]
 #[CoversClass(GenericLinkText::class)]
 final class LinkRulesTest extends RuleTestCase
 {
@@ -24,6 +26,7 @@ final class LinkRulesTest extends RuleTestCase
         self::assertSame(['link-name', SuccessCriterion::LinkPurposeInContext, Severity::Error], [new LinkName()->id(), new LinkName()->criterion(), new LinkName()->severity()]);
         self::assertSame(['button-name', SuccessCriterion::NameRoleValue, Severity::Error], [new ButtonName()->id(), new ButtonName()->criterion(), new ButtonName()->severity()]);
         self::assertSame(['link-text', SuccessCriterion::LinkPurposeInContext, Severity::Warning], [new LinkText()->id(), new LinkText()->criterion(), new LinkText()->severity()]);
+        self::assertSame(['tab-name', SuccessCriterion::NameRoleValue, Severity::Error], [new TabName()->id(), new TabName()->criterion(), new TabName()->severity()]);
     }
 
     public function testALinkHasAName(): void
@@ -54,6 +57,19 @@ final class LinkRulesTest extends RuleTestCase
                 HTML),
         );
         self::assertSame(['button-name.empty @ blocks[0].data.html button'], self::ujo(new ButtonName(), [['id' => 'r', 'type' => 'raw', 'data' => ['html' => '<button></button>']]]));
+    }
+
+    public function testATabHasAName(): void
+    {
+        self::assertSame(
+            ['tab-name.empty @ div > button:nth-of-type(1)', 'tab-name.empty @ div > a', 'tab-name.empty @ ul > li:nth-of-type(2)'],
+            self::html(new TabName(), <<<'HTML'
+                <div role="tablist"><button role="tab"> </button><button role="TAB  tablist">Prices</button><button role="tab" aria-label="Map"></button><button role="tab"><img src="x.png" alt="Photos"></button><button role="tab" hidden></button><a role="tab" href="#p"></a><button role="tab" title="Help"></button><button>plain</button><button role="tabpanel"></button></div>
+                <ul><li role="tab">One</li><li role="tab"><svg aria-hidden="true"></svg></li><li role="tab" aria-hidden="true"></li><li role="presentation tab"></li></ul>
+                HTML),
+        );
+        self::assertSame(['tab-name.empty @ blocks[0].data.html button'], self::ujo(new TabName(), [['id' => 'r', 'type' => 'raw', 'data' => ['html' => '<button role="tab"></button>']]]));
+        self::assertSame([], self::ujo(new TabName(), [['id' => 'p', 'type' => 'paragraph', 'data' => ['text' => 'Tabs']]]));
     }
 
     public function testALinkTextSaysWhereItLeads(): void

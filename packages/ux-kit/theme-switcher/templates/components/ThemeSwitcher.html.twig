@@ -1,0 +1,25 @@
+{#-
+ # The choice of the colour scheme: light, dark or the system's, three radio buttons in a group that stays hidden until
+ # its controller runs. The choice is kept in the browser; `ThemeSwitcher:Script`, in the head, writes it on the root
+ # before the page is first painted.
+ #}
+{%- props
+    ## string What screen readers call the group.
+    label = 'Theme',
+    ## string The name of the light scheme.
+    lightLabel = 'Light',
+    ## string The name of the dark scheme.
+    darkLabel = 'Dark',
+    ## string The name of the scheme of the system.
+    systemLabel = 'System',
+    ## string The name of the radio buttons, unique in the page.
+    name = 'theme',
+    ## string The key of the choice in the storage of the browser, the same as that of the script.
+    storageKey = 'theme'
+-%}
+<fieldset hidden data-theme-switcher-key-value="{{ storageKey }}"{{ attributes.defaults({class: 'isThemeSwitcher isToggleGroup', 'data-controller': 'theme-switcher'}) }}>
+    <legend class="isVisuallyHidden">{{ label }}</legend>
+    {%- for theme, text in {light: lightLabel, dark: darkLabel, system: systemLabel} -%}
+    <label class="isToggle isOutline"><input type="radio" class="isToggleInput" name="{{ name }}" value="{{ theme }}"{{ theme is same as('system') ? ' checked' }} data-theme-switcher-target="option" data-action="theme-switcher#choose">{{ text }}</label>
+    {%- endfor -%}
+</fieldset>

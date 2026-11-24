@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Phil\UxCss\Tests\Unit\Stylesheet;
 
+use Phil\UxCss\Color\Oklch;
 use Phil\UxCss\Contrast\ContrastRule;
+use Phil\UxCss\Contrast\Pair;
 use Phil\UxCss\Contrast\Violation;
+use Phil\UxCss\Token\Scheme;
 use Phil\UxCss\Token\TokenSheet;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
@@ -34,11 +37,34 @@ final class ThemeTest extends TestCase
     {
         $tones = $this->sheet()->tones();
 
-        self::assertCount(78, $tones, 'seven hues of eleven tones, and the near-white of the neutrals');
+        self::assertCount(79, $tones, 'seven hues of eleven tones, and the dark surface and the near-white of the neutrals');
 
         foreach ($tones as $tone) {
             self::assertSame($tone->number, (int) round($tone->color->lightness * 100), $tone->name());
         }
+    }
+
+    public function testTheDarkSurfaceIsNeutral15AndItsTextsReachSevenToOne(): void
+    {
+        $sheet = $this->sheet();
+        $surface = $sheet->resolve('--phil-color-surface', Scheme::Dark);
+        $text = $sheet->resolve('--phil-color-text', Scheme::Dark);
+        $muted = $sheet->resolve('--phil-color-text-muted', Scheme::Dark);
+
+        self::assertSame('light-dark(var(--phil-neutral-99), var(--phil-neutral-15))', $sheet->value('--phil-color-surface'));
+        self::assertSame('oklch(0.15 0.012 265)', $sheet->value('--phil-neutral-15'), '#090B10');
+        self::assertInstanceOf(Oklch::class, $surface);
+        self::assertInstanceOf(Oklch::class, $text);
+        self::assertInstanceOf(Oklch::class, $muted);
+        self::assertEqualsWithDelta(17.0, $text->contrastWith($surface), 0.05);
+        self::assertEqualsWithDelta(7.36, $muted->contrastWith($surface), 0.05);
+
+        $rule = new ContrastRule([
+            new Pair('--phil-color-text', '--phil-color-surface', 7.0),
+            new Pair('--phil-color-text-muted', '--phil-color-surface', 7.0),
+        ]);
+
+        self::assertSame([], array_map(static fn (Violation $violation): string => (string) $violation, $rule->check($sheet)), 'success criterion 1.4.6 in both schemes');
     }
 
     public function testEachRoleHasTheWholeGridInBothSchemes(): void

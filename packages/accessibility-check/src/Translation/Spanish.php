@@ -23,6 +23,7 @@ final class Spanish
         'empty-heading.empty' => 'Este encabezado h{level} no tiene texto.',
         'link-name.empty' => 'El enlace a {href} no tiene texto: los lectores de pantalla solo anuncian su dirección.',
         'button-name.empty' => 'Este botón no tiene texto: diga lo que hace.',
+        'tab-name.empty' => 'Esta pestaña no tiene texto: diga lo que contiene su panel.',
         'link-text.generic' => 'El texto del enlace a {href}, «{text}», no dice adónde lleva: describa su destino.',
         'color-contrast.insufficient' => 'El texto «{text}» tiene un contraste de {ratio}:1 entre {foreground} y {background}; necesita {required}:1.',
         'color-contrast.unresolved' => 'El color {value} depende de las hojas de estilo de la página: compruebe el contraste de este texto en un navegador.',

@@ -70,6 +70,6 @@
         </{{ _body }}>
     </div>
     {%- if illustrations is not empty %}
-    <twig:Illustration class="relative min-h-[40vh] overflow-hidden md:min-h-0 [&_img]:absolute [&_img]:inset-0 [&_img]:size-full [&_img]:object-cover motion-safe:md:animate-in motion-safe:md:fade-in motion-safe:md:slide-in-from-end-8 motion-safe:md:duration-700" :candidates="illustrations" :alt="illustrationAlt" :seed="seed" :loading="illustrationLoading" />
+    <twig:Illustration class="relative min-h-[40svh] overflow-hidden md:min-h-0 [&_img]:absolute [&_img]:inset-0 [&_img]:size-full [&_img]:object-cover motion-safe:md:animate-in motion-safe:md:fade-in motion-safe:md:slide-in-from-end-8 motion-safe:md:duration-700" :candidates="illustrations" :alt="illustrationAlt" :seed="seed" :loading="illustrationLoading" />
     {%- endif %}
 </div>

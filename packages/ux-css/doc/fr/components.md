@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=73f36c83dcc043366b8d53de3643f91aed35096800028feb1a8c2009c784da1b -->
+<!-- phil-dev source-sha256=4ce5893b4e094b4f5bad86385b151be0e469559b05b2aa0ce82213ccc8e01e82 -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.

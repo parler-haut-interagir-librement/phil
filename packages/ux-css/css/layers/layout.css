@@ -57,10 +57,11 @@
     }
 }
 
-/* At least the height of the screen; dvh follows the browser bars on phones. */
+/* At least the height of the screen; svh, the height with the bars of a phone's browser shown, never moves while the
+   page scrolls. */
 .isFullHeight {
     min-block-size: 100vh;
-    min-block-size: 100dvh;
+    min-block-size: 100svh;
 }
 
 /* A column whose first and last children sit at its edges and whose `isCoverBody` takes the space left, its content
@@ -82,7 +83,7 @@
    takes 40 % of the screen's height. */
 .isBleed {
     position: relative;
-    min-block-size: var(--phil-bleed-min-size, 40vh);
+    min-block-size: var(--phil-bleed-min-size, 40svh);
     margin: 0;
     overflow: hidden;
 }

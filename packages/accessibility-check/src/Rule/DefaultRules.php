@@ -7,7 +7,7 @@ namespace Phil\AccessibilityCheck\Rule;
 use Phil\AccessibilityCheck\Contract\Rule;
 
 /**
- * The rules of the library, in the order they run: text alternatives, headings, names of links and buttons, link
+ * The rules of the library, in the order they run: text alternatives, headings, names of links, buttons and tabs, link
  * texts, contrast, tables, languages, frames, captions, identifiers and drawings.
  */
 final class DefaultRules
@@ -24,6 +24,7 @@ final class DefaultRules
             new EmptyHeading(),
             new LinkName(),
             new ButtonName(),
+            new TabName(),
             new LinkText(),
             new ColorContrast(),
             new TableHeaders(),

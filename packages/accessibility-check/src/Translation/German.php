@@ -23,6 +23,7 @@ final class German
         'empty-heading.empty' => 'Diese Überschrift h{level} hat keinen Text.',
         'link-name.empty' => 'Der Link zu {href} hat keinen Text: Screenreader kündigen nur seine Adresse an.',
         'button-name.empty' => 'Diese Schaltfläche hat keinen Text: Sagen Sie, was sie tut.',
+        'tab-name.empty' => 'Dieser Reiter hat keinen Text: Sagen Sie, was sein Bereich enthält.',
         'link-text.generic' => 'Der Text des Links zu {href}, „{text}“, sagt nicht, wohin er führt: Beschreiben Sie sein Ziel.',
         'color-contrast.insufficient' => 'Der Text „{text}“ hat einen Kontrast von {ratio}:1 zwischen {foreground} und {background}; er braucht {required}:1.',
         'color-contrast.unresolved' => 'Die Farbe {value} hängt von den Stylesheets der Seite ab: Prüfen Sie den Kontrast dieses Textes in einem Browser.',

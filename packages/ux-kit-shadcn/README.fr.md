@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e8d6ea333fc73204975e163f8c2a3abbc47dbd7c3c1d3fc02bc7bce1ff5bef8f -->
+<!-- phil-dev source-sha256=aafb8ba43f2e4752d4e55dfa0e0f4af4aaef21de992996c38b6e603c5f4261d5 -->
 # phil/ux-kit-shadcn
 
 **Des versions Tailwind, dans le style du kit Shadcn, des recettes supplémentaires de PHIL UX, pour `ux:install --kit`.**
@@ -54,6 +54,10 @@ le champ de date natif du kit PHIL UX n'est pas repris ici.
 | [Chart](chart/README.md) | composant | Un graphique dessiné par le serveur en SVG, en barres ou en lignes, ses séries dans les jetons de graphique du kit Shadcn, avec le tableau de ses valeurs. | Implémenté et testé |
 | [Carousel](carousel/README.md) | composant | Des diapositives en rangée sur l'accrochage de défilement natif du navigateur, les boutons du kit de chaque côté, une lecture automatique facultative avec son bouton de pause, toujours arrêtable en mouvement réduit ; aucune bibliothèque de carrousel | Implémenté et testé |
 | [ChartJs](chart-js/README.md) | composant | Un graphique de Symfony UX Chart.js dans une figure, avec sa légende et le tableau de ses valeurs. | Implémenté et testé |
+| [ThemeSwitcher](theme-switcher/README.md) | composant | Le choix du schéma de couleurs, clair, sombre ou celui du système, gardé dans le navigateur et écrit sur la page avant sa première peinture. | Implémenté et testé |
+| [StickyHeader](sticky-header/README.md) | composant | L'en-tête de la page, gardé en haut de l'écran, les ancres s'arrêtant sous lui ; il peut glisser hors de l'écran pendant que le lecteur défile vers le bas, inerte tant qu'il est caché. | Implémenté et testé |
+| [Timeline](timeline/README.md) | composant | Des entrées datées le long d'une ligne, chacune avec son marqueur, sa date et son contenu. | Implémenté et testé |
+| [FloatingLabel](floating-label/README.md) | composant | Un champ dont l'étiquette se tient dans le contrôle vide et passe au-dessus dès que le contrôle a une valeur ou le focus. | Implémenté et testé |
 
 ## Documentation
 
@@ -80,7 +84,7 @@ php bin/console ux:install coming-soon --kit=github.com/parler-haut-interagir-li
 Tailwind CSS 4 avec la feuille de style du kit Shadcn et tw-animate-css, comme le kit Shadcn les installe ; Symfony UX
 Twig Component 3.7 ou plus récent ; Symfony UX Toolkit 3.7.1 ou plus récent pour installer les recettes ; le
 StimulusBundle pour les recettes dotées d'un contrôleur (`AnimatedHeadline`, `Carousel`, `Celebration`, `Lightbox`,
-`ColorPicker`, `CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`) et l'aperçu flou d'`Image` ; `twig/extra-bundle`, `twig/html-extra`,
+`ColorPicker`, `CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader`) et l'aperçu flou d'`Image` ; `twig/extra-bundle`, `twig/html-extra`,
 `symfony/web-link` et `phil/ux-kit`, dont le bundle liste les hôtes dont une page peut montrer les images, pour
 `Image` ; les jetons `--chart-1` à `--chart-5` du kit Shadcn pour `Chart` ; Symfony UX Chart.js pour `ChartJs`.
 

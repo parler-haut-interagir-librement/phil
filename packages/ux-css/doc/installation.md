@@ -4,7 +4,7 @@
 
 | Requirement | Why |
 |---|---|
-| A browser of 2024 or later | Cascade layers, `light-dark()`, `oklch()`, `dvh`, `text-wrap` |
+| A browser of 2024 or later | Cascade layers, `light-dark()`, `oklch()`, `svh` and `dvh`, `text-wrap` |
 | PHP 8.5 or later, for the contrast rule only | Readonly classes, typed constants, `array_all()` |
 
 ## With AssetMapper

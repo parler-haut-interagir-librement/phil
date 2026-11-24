@@ -11,7 +11,7 @@ custom property of its own that a site sets on one element.
 | `isCenter` | A block centred in its container, no wider than a readable line | `--phil-center-measure`, `--phil-center-gutter` |
 | `isNarrow` | No wider than the narrow measure, 36ch | `--phil-center-measure` |
 | `isSplit` | Two columns from 48rem, stacked below, the first child first | `--phil-split-gap` (0) |
-| `isFullHeight` | At least the height of the screen, `100dvh` | |
+| `isFullHeight` | At least the height of the screen, `100svh`: its height with the bars of a phone's browser shown | |
 | `isCover` | A column with padding; its `isCoverBody` child takes the space left and centres its content | `--phil-cover-gap`, `--phil-cover-padding` |
 | `isBleed` | Media that fills its cell, the image covering the box; 40 % of the screen's height below 48rem | `--phil-bleed-min-size` |
 | `hasEntrance` | On an `isBleed`: enters with a slanted clip from 48rem, never under reduced motion | |

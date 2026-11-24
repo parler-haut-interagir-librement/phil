@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=d99366683dcdcf8a99f3c6397c17a0378f81dfc9e0ea64d4eb316159ea8bf01c -->
+<!-- phil-dev source-sha256=bbd5852d41a5b2f798a5c88751de0e940cf20946e4b3a710df7aff479a708612 -->
 # Installation
 
 ## Prérequis
 
 | Prérequis | Pourquoi |
 |---|---|
-| Un navigateur de 2024 ou plus récent | Les couches en cascade, `light-dark()`, `oklch()`, `dvh`, `text-wrap` |
+| Un navigateur de 2024 ou plus récent | Les couches en cascade, `light-dark()`, `oklch()`, `svh` et `dvh`, `text-wrap` |
 | PHP 8.5 ou plus récent, pour la règle de contraste seulement | Les classes en lecture seule, les constantes typées, `array_all()` |
 
 ## Avec AssetMapper

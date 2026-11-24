@@ -6,7 +6,32 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.6.0-alpha.
+The next version is 0.7.0-alpha.
+
+### Added
+
+- The recipe `ThemeSwitcher`: the choice of the colour scheme, light, dark or the system's, three `isToggle` radio
+  buttons in an `isThemeSwitcher` group named by its legend, hidden until the controller `theme-switcher` runs; the
+  choice kept in the `localStorage` of the browser under `storageKey`, written on the root as `data-theme`, taken away
+  for the system's, followed from another tab, announced by `theme-switcher:change`. `ThemeSwitcher:Script`, in the
+  head, writes the stored scheme before the first paint, so that the page never flashes in the other one; its text
+  never changes, allowed by its hash or by the nonce of the request.
+- The recipe `StickyHeader`: a `header` of class `isStickyHeader` at the top of the screen, the controller
+  `sticky-header` keeping `--phil-sticky-header-size` on the root at its height, which the scroll padding reads, so
+  that anchors and the focus stop below it. With `hideOnScroll`, it slides away while the reader scrolls down and comes
+  back when they scroll up; hidden, it is `inert` and marked `data-hidden`, its links out of reach. It never slides
+  away where motion is reduced nor while it holds the focus.
+- The recipe `Timeline`: an `ol` of class `isTimeline` and its `Timeline:Item` entries, each a `time` and its content,
+  the date by day or by moment, in the format given or as a label.
+- The recipe `FloatingLabel`: an input, or a text of several lines, whose `label` sits inside the empty control and
+  moves above it once the control holds a value or has the focus, without motion where motion is reduced.
+
+### Changed
+
+- The browser suite audits with axe-core 4.14.1, which no longer reports `target-size` where a target is spaced
+  enough.
+
+## 0.6.0-alpha
 
 ### Added
 

@@ -39,6 +39,8 @@ final class StylesheetTest extends TestCase
         'isTree', 'isTreeItem', 'isRating', 'isRatingStar', 'isNumberInput', 'isFileInput', 'isFileInputZone', 'isTag', 'isTagRemove',
         'isRelativeTime', 'isProgressRing', 'isSparkline', 'isBeforeAfter', 'isColorPicker', 'isDatePicker', 'isDatePickerDay',
         'hasRange', 'isDatePickerPart', 'isDatePickerMonths', 'isDatePickerCalendar',
+        'isThemeSwitcher', 'isStickyHeader', 'hasHideOnScroll', 'isTimeline', 'isTimelineItem', 'isTimelineDate',
+        'isTimelineContent', 'hasFloatingLabel',
     ];
 
     public function testTheEntryImportsEachFileIntoItsLayerInOrder(): void

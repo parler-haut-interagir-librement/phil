@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bce3845f24fe456ac9cd0057302eced6f929cbfec477433fd475dc2db1ed90ec -->
+<!-- phil-dev source-sha256=e37356dd26400d98d0776b9a588272fcd9d806cba6c84f4385481e23dcdbd9f8 -->
 # Installation
 
 ## Tailwind et le kit Shadcn
@@ -17,7 +17,7 @@ Shadcn, puis faites lire les composants installés par Tailwind :
 ```
 
 Les recettes dotées d'un contrôleur Stimulus (`AnimatedHeadline`, `Carousel`, `Celebration`, `Lightbox`, `ColorPicker`,
-`CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter` et l'aperçu flou d'`Image`) ont
+`CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader` et l'aperçu flou d'`Image`) ont
 besoin du StimulusBundle, qui charge les contrôleurs que `ux:install` copie dans `assets/controllers/`.
 
 ## Avec `ux:install`
@@ -74,4 +74,10 @@ Copiez les fichiers des recettes dont la page a besoin, depuis ce répertoire, e
 | BeforeAfter | `before-after/templates/components/BeforeAfter.html.twig` | `templates/components/BeforeAfter.html.twig` |
 | Carousel | `carousel/templates/components/` | `templates/components/` |
 | Carousel | `carousel/assets/controllers/carousel_controller.js` | `assets/controllers/carousel_controller.js` |
+| ThemeSwitcher | `theme-switcher/templates/components/` | `templates/components/` |
+| ThemeSwitcher | `theme-switcher/assets/controllers/theme_switcher_controller.js` | `assets/controllers/theme_switcher_controller.js` |
+| StickyHeader | `sticky-header/templates/components/StickyHeader.html.twig` | `templates/components/StickyHeader.html.twig` |
+| StickyHeader | `sticky-header/assets/controllers/sticky_header_controller.js` | `assets/controllers/sticky_header_controller.js` |
+| Timeline | `timeline/templates/components/` | `templates/components/` |
+| FloatingLabel | `floating-label/templates/components/FloatingLabel.html.twig` | `templates/components/FloatingLabel.html.twig` |
 | ComingSoon | `coming-soon/templates/components/ComingSoon.html.twig` | `templates/components/ComingSoon.html.twig` |

@@ -1579,3 +1579,86 @@ application's; the recipe depends on `symfony/ux-chartjs`, which `ux:install` ad
 | `chart` | required | The `Symfony\UX\Chartjs\Model\Chart` the application built |
 | `label` | required | What the chart shows, its caption |
 | `tableLabel` | `null` | The summary of a disclosure showing the table; without it, screen readers alone read it |
+
+## ThemeSwitcher
+
+`<twig:ThemeSwitcher>`: a `fieldset` of classes `isThemeSwitcher isToggleGroup`, hidden until its controller runs, its
+legend read by screen readers alone and three `isToggle` labels around their radio buttons, `light`, `dark` and
+`system`, the last checked. Controller `theme-switcher`: the action `choose`, the targets `option`, the event
+`theme-switcher:change`, whose `detail.theme` is the choice. The choice is kept in the `localStorage` of the browser
+under `storageKey` and written on the root as `data-theme`, which phil-ux reads; `system` removes both, and the page
+follows `prefers-color-scheme` again. A choice made in another tab follows. Where the storage is refused, the choice
+holds for the page alone.
+
+| Prop | Default | |
+|---|---|---|
+| `label` | `Theme` | What screen readers call the group |
+| `lightLabel` | `Light` | The name of the light scheme |
+| `darkLabel` | `Dark` | The name of the dark scheme |
+| `systemLabel` | `System` | The name of the scheme of the system |
+| `name` | `theme` | The name of the radio buttons, unique in the page |
+| `storageKey` | `theme` | The key of the choice in the storage of the browser, the same as that of the script |
+
+`<twig:ThemeSwitcher:Script>`, in the `head` before the stylesheets: a classic inline script, run before the first
+paint, that writes the stored scheme on the root, so that the page never flashes in the other one. Its text never
+changes: a Content Security Policy allows it by its hash, `'sha256-H4rtu+mjeozEL6qbMxmp6ImhtKrOXaaLCG7dH9fc88E='` in
+`script-src`, or by the nonce of the request.
+
+| Prop | Default | |
+|---|---|---|
+| `storageKey` | `theme` | The key of the choice in the storage of the browser, the same as that of the switcher |
+| `nonce` | `null` | The nonce of the Content Security Policy of the request |
+
+## StickyHeader
+
+`<twig:StickyHeader>`: a `header` of class `isStickyHeader`, kept at the top of the screen while the page scrolls, its
+block `content` holding the brand, the navigation and the actions. Controller `sticky-header`: it keeps
+`--phil-sticky-header-size` on the root at the height of the header, which the scroll padding of the root reads, so
+that a link to an anchor and the focus moved by the keyboard stop below the header (success criterion 2.4.11). With
+`hideOnScroll`, of class `hasHideOnScroll`, the header slides away while the reader scrolls down past it and comes
+back when they scroll up or reach the top. Hidden, it is `inert` and marked `data-hidden`: its links cannot be reached
+by the keyboard nor read by screen readers. It never slides away where motion is reduced, by the system or by
+`data-motion="reduce"` on an ancestor, nor while it holds the focus.
+
+| Prop | Default | |
+|---|---|---|
+| `hideOnScroll` | `false` | Whether it slides away while the reader scrolls down |
+| `threshold` | `8` | How far the page scrolls, in CSS pixels, before the header slides away or back |
+
+## Timeline
+
+`<twig:Timeline>`: an `ol` of class `isTimeline`, holding `<twig:Timeline:Item>`, an `li` of class `isTimelineItem`:
+its date, a `time` of class `isTimelineDate`, then its block `content` in a `div` of class `isTimelineContent`. The
+entries keep the order they are given in; the line and the markers are drawn by the style sheet.
+
+| Prop | Default | |
+|---|---|---|
+| `label` | `null` | What screen readers call the list of entries |
+
+`<twig:Timeline:Item>`:
+
+| Prop | Default | |
+|---|---|---|
+| `datetime` | required | The moment of the entry, a `DateTimeInterface` or a string the filter `date` reads |
+| `format` | `Y-m-d` | The date written, in the format of the filter `date` |
+| `dateLabel` | `null` | The date written instead, such as a season or a year |
+| `allDay` | `true` | Whether the `datetime` of the `time` is the day alone, `Y-m-d`, rather than the moment with its offset |
+
+## FloatingLabel
+
+`<twig:FloatingLabel>`: a `div` of class `hasFloatingLabel`, holding an `input`, or a `textarea` when `type` is
+`textarea`, then its `label`. The label sits inside the empty control and moves above it once the control holds a
+value or has the focus; it stays shown and is the control's own, never a placeholder. The control's placeholder is a
+single space, which tells the style sheet that it is empty. No controller.
+
+| Prop | Default | |
+|---|---|---|
+| `label` | required | The name of the field, shown inside it |
+| `id` | required | The identifier of the control, which the label points to |
+| `name` | `null` | The name of the control in the form |
+| `type` | `text` | The type of the input, or `textarea` for a text of several lines |
+| `value` | `null` | The value of the control |
+| `autocomplete` | `null` | The `autocomplete` of the control |
+| `describedBy` | `null` | The identifier of the element that describes the control, such as a help or an error |
+| `required` | `false` | Whether the field has to be filled |
+| `disabled` | `false` | Whether the field cannot be changed for now |

@@ -5,6 +5,6 @@
     "license": "MIT",
     "devDependencies": {
         "@hotwired/stimulus": "3.2.2",
-        "axe-core": "4.14.0"
+        "axe-core": "4.14.1"
     }
 }

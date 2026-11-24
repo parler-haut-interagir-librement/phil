@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=99f69891bdbdd814645f91fea790c71f96f3a46becdedb353c46b5f904ec27eb -->
+<!-- phil-dev source-sha256=c5ce54ddd83c46b84a65fbfaf17b5a900bfc641c2b004e53836e6a85ef73cdfd -->
 # Mise en page
 
 Les classes de mise en page disent ce qu'est l'élément. Elles ne portent aucune couleur et lisent leurs écarts dans des
@@ -12,7 +12,7 @@ jetons, chacun par une propriété personnalisée à elle qu'un site définit su
 | `isCenter` | Un bloc centré dans son conteneur, pas plus large qu'une ligne lisible | `--phil-center-measure`, `--phil-center-gutter` |
 | `isNarrow` | Pas plus large que la mesure étroite, 36ch | `--phil-center-measure` |
 | `isSplit` | Deux colonnes à partir de 48rem, empilées en dessous, le premier enfant d'abord | `--phil-split-gap` (0) |
-| `isFullHeight` | Au moins la hauteur de l'écran, `100dvh` | |
+| `isFullHeight` | Au moins la hauteur de l'écran, `100svh` : sa hauteur quand les barres du navigateur d'un téléphone sont affichées | |
 | `isCover` | Une colonne avec un remplissage ; son enfant `isCoverBody` prend l'espace qui reste et centre son contenu | `--phil-cover-gap`, `--phil-cover-padding` |
 | `isBleed` | Un média qui remplit sa cellule, l'image couvrant la boîte ; 40 % de la hauteur de l'écran sous 48rem | `--phil-bleed-min-size` |
 | `hasEntrance` | Sur un `isBleed` : entre par un découpage oblique à partir de 48rem, jamais sous le mouvement réduit | |

@@ -1,0 +1,20 @@
+{#-
+ # An entry of a timeline: its date, machine-readable in `time`, then its content.
+ #}
+{%- props
+    ## \DateTimeInterface|string The moment of the entry.
+    datetime,
+    ## string The date written, in the format of the filter `date`.
+    format = 'Y-m-d',
+    ## string|null The date written instead, such as a season or a year; the formatted moment when null.
+    dateLabel = null,
+    ## bool Whether only the day of the moment is machine-readable, rather than the moment and its offset.
+    allDay = true
+-%}
+<li data-slot="timeline-item"{{ attributes.defaults({class: 'relative grid gap-1 ps-6 before:absolute before:start-0 before:top-[0.4em] before:size-3 before:rounded-full before:border before:border-primary before:bg-primary not-last:after:absolute not-last:after:start-[calc(0.375rem-0.5px)] not-last:after:top-[calc(0.4em+0.75rem)] not-last:after:-bottom-6 not-last:after:border-s not-last:after:border-input forced-colors:before:border-[CanvasText] forced-colors:before:bg-[CanvasText]'}) }}>
+    <time class="text-sm font-medium text-muted-foreground" datetime="{{ datetime|date(allDay ? 'Y-m-d' : 'c') }}">{{ dateLabel ?? datetime|date(format) }}</time>
+    <div class="min-w-0 wrap-anywhere [&>:last-child]:mb-0">
+    {##- What happened then. -#}
+    {%- block content %}{% endblock -%}
+    </div>
+</li>
