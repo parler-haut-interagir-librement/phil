@@ -1,7 +1,7 @@
 {
     "require": {
         "php": ">=8.5",
-        "phpbench/phpbench": "^1.4"
+        "phpbench/phpbench": "^1.7"
     },
     "config": {
         "sort-packages": true

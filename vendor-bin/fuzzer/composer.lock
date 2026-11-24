@@ -48,7 +48,8 @@
                 "issues": "https://github.com/nikic/include-interceptor/issues",
                 "source": "https://github.com/nikic/include-interceptor/tree/v0.1.2"
             },
-            "time": "2021-11-27T21:03:08+00:00"
+            "time": "2021-11-27T21:03:08+00:00",
+            "published-time": "2021-11-27T22:46:54+00:00"
         },
         {
             "name": "nikic/php-fuzzer",
@@ -94,7 +95,8 @@
                 "issues": "https://github.com/nikic/PHP-Fuzzer/issues",
                 "source": "https://github.com/nikic/PHP-Fuzzer/tree/v0.0.11"
             },
-            "time": "2025-05-21T19:53:32+00:00"
+            "time": "2025-05-21T19:53:32+00:00",
+            "published-time": "2025-05-21T19:55:15+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -151,7 +153,8 @@
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
                 "source": "https://github.com/nikic/PHP-Parser/tree/v5.9.0"
             },
-            "time": "2026-09-13T18:51:52+00:00"
+            "time": "2026-09-13T18:51:52+00:00",
+            "published-time": "2026-09-13T18:53:16+00:00"
         },
         {
             "name": "ulrichsg/getopt-php",
@@ -202,7 +205,8 @@
                 "issues": "https://github.com/getopt-php/getopt-php/issues",
                 "source": "https://github.com/getopt-php/getopt-php/tree/v4.0.4"
             },
-            "time": "2025-02-11T14:42:04+00:00"
+            "time": "2025-02-11T14:42:04+00:00",
+            "published-time": "2025-02-15T09:30:41+00:00"
         }
     ],
     "packages-dev": [],
@@ -215,5 +219,5 @@
         "php": ">=8.5"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

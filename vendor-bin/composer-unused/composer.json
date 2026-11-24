@@ -1,7 +1,7 @@
 {
     "require": {
         "php": ">=8.5",
-        "icanhazstring/composer-unused": "^0.9.8"
+        "icanhazstring/composer-unused": "^0.9.9"
     },
     "config": {
         "sort-packages": true

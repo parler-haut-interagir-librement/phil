@@ -1,7 +1,7 @@
 {
     "require": {
         "php": ">=8.5",
-        "twigstan/twigstan": "^0.2.3",
+        "twigstan/twigstan": "^0.2.8",
         "vincentlanglet/twig-cs-fixer": "^4.1"
     },
     "config": {
