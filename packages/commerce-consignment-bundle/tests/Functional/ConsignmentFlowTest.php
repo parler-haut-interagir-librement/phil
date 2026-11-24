@@ -24,14 +24,18 @@ use Phil\CommerceConsignmentBundle\Domain\Consignor\StatementFrequency;
 use Phil\CommerceConsignmentBundle\Domain\Consignor\UnsoldPolicy;
 use Phil\CommerceConsignmentBundle\Domain\ValueObject\Owner;
 use Phil\CommerceConsignmentBundle\Domain\ValueObject\OwnerQuantity;
+use Phil\CommerceConsignmentBundle\Infrastructure\Logistics\LogisticsStockMovements;
+use Phil\CommerceConsignmentBundle\Infrastructure\Logistics\UnitsShippedListener;
 use Phil\CommerceConsignmentBundle\Infrastructure\Messenger\RecordShipmentHandler;
 use Phil\CommerceConsignmentBundle\PhilCommerceConsignmentBundle;
 use Phil\CommerceConsignmentBundle\Tests\Functional\App\TestKernel;
 use Phil\CommerceConsignmentBundle\Tests\Unit\Support\Fixtures;
 use Phil\CommerceLogisticsBundle\Application\Stock;
 use Phil\CommerceLogisticsBundle\Domain\Model\Location;
+use Phil\CommerceLogisticsBundle\Domain\Model\StockMovement;
 use Phil\CommerceLogisticsBundle\Domain\Repository\LocationRepository;
 use Phil\CommerceLogisticsBundle\Domain\Repository\StockRepository;
+use Phil\CommerceLogisticsBundle\Domain\Stock\MovementKind;
 use Phil\Money\Currency;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -41,10 +45,13 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Goods received bought and consigned, an order reserved and shipped by the logistics module, and its sale written to
- * the ledger by a message, through the container; everything read back from a fresh unit of work.
+ * the ledger when the logistics module announces the shipment, through the container; everything read back from a fresh
+ * unit of work.
  */
 #[CoversClass(PhilCommerceConsignmentBundle::class)]
 #[CoversClass(RecordShipmentHandler::class)]
+#[CoversClass(UnitsShippedListener::class)]
+#[CoversClass(LogisticsStockMovements::class)]
 #[CoversClass(UnsoldStock::class)]
 #[CoversClass(ConsignorStatements::class)]
 #[CoversClass(ConsignorPayouts::class)]
@@ -87,17 +94,21 @@ final class ConsignmentFlowTest extends KernelTestCase
         $stock = $this->service(Stock::class);
         $stock->reserve($order, Fixtures::at(10));
         $this->entityManager()->flush();
+        // The logistics module announces the shipment: its sales join the same flush.
         $stock->ship('2026-0001', Fixtures::at(11));
-        $this->entityManager()->flush();
-
-        $this->service(MessageBusInterface::class)->dispatch(new RecordShipment('2026-0001'));
-        $this->service(MessageBusInterface::class)->dispatch(new RecordShipment('2026-0002'));
         $this->entityManager()->flush();
         $this->entityManager()->clear();
 
         $consignment = $this->service(ConsignmentStock::class);
         self::assertSame([['', 4]], array_map(static fn (OwnerQuantity $split): array => [$split->owner->key(), $split->quantity], $consignment->split(Fixtures::BOOK)));
         self::assertSame(4, $this->service(StockRepository::class)->level(Fixtures::BOOK, Fixtures::SHELF)?->onHand());
+
+        // A message for the same order writes nothing twice; one for an order no longer there is skipped.
+        $this->service(MessageBusInterface::class)->dispatch(new RecordShipment('2026-0001'));
+        $this->service(MessageBusInterface::class)->dispatch(new RecordShipment('2026-0002'));
+        $this->entityManager()->flush();
+        $this->entityManager()->clear();
+        self::assertSame([['', 4]], array_map(static fn (OwnerQuantity $split): array => [$split->owner->key(), $split->quantity], $consignment->split(Fixtures::BOOK)));
 
         $order = $this->service(OrderRepository::class)->find('2026-0001');
         self::assertInstanceOf(Order::class, $order);
@@ -110,6 +121,28 @@ final class ConsignmentFlowTest extends KernelTestCase
         // The units sold last come back first: the shop's copy, which left after the author's five.
         self::assertSame([['', 1]], array_map(static fn (OwnerQuantity $split): array => [$split->owner->key(), $split->quantity], $consignment->split(Fixtures::BOOK, Fixtures::BACK)));
         self::assertSame(1, $this->service(StockRepository::class)->level(Fixtures::BOOK, Fixtures::BACK)?->onHand());
+        self::assertSame([MovementKind::Returned], array_map(static fn (StockMovement $movement): MovementKind => $movement->kind, $this->service(StockRepository::class)->journal(Fixtures::BOOK, Fixtures::BACK)));
+    }
+
+    public function testAPartialShipmentAndAnotherInTheSameUnitOfWorkSellEachUnitOnce(): void
+    {
+        $this->service(ConsignmentStock::class)->receive(Fixtures::mixedReceipt(), Fixtures::at(9));
+        $this->entityManager()->flush();
+        $order = Order::open('2026-0003', Currency::of('CAD'));
+        $order->add(Sellable::of(SellableReference::of('product', Fixtures::BOOK), 'Book', Fixtures::cad(2000), 'goods'), 7, Fixtures::cad(2000));
+        $order->place(Fixtures::at(10));
+        $this->service(OrderRepository::class)->add($order);
+        $stock = $this->service(Stock::class);
+        $stock->reserve($order, Fixtures::at(10));
+        $this->entityManager()->flush();
+
+        $stock->shipPart('2026-0003', Fixtures::BOOK, 2, Fixtures::at(11));
+        $stock->ship('2026-0003', Fixtures::at(12));
+        $this->entityManager()->flush();
+        $this->entityManager()->clear();
+
+        self::assertSame([['', 3]], array_map(static fn (OwnerQuantity $split): array => [$split->owner->key(), $split->quantity], $this->service(ConsignmentStock::class)->split(Fixtures::BOOK)));
+        self::assertSame(3, $this->service(StockRepository::class)->level(Fixtures::BOOK, Fixtures::SHELF)?->onHand());
     }
 
     public function testAConsignorIsPaidAndGetsTheUnsoldCopiesBack(): void

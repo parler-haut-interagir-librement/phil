@@ -18,7 +18,7 @@ The Flex recipe registers the bundle and writes `config/packages/phil_commerce_c
 issue order.
 
 The package needs PHP 8.5 or later and Symfony 8.2 or later, with `phil/commerce-bundle` 0.4 and
-`phil/commerce-logistics-bundle` 0.1.
+`phil/commerce-logistics-bundle` 0.1.1.
 
 ## The tables
 

@@ -31,8 +31,10 @@ use Phil\CommerceConsignmentBundle\Infrastructure\Doctrine\DoctrineLedgerReposit
 use Phil\CommerceConsignmentBundle\Infrastructure\Doctrine\DoctrineStatementNumbering;
 use Phil\CommerceConsignmentBundle\Infrastructure\Logistics\LogisticsShippedUnits;
 use Phil\CommerceConsignmentBundle\Infrastructure\Logistics\LogisticsStockMovements;
+use Phil\CommerceConsignmentBundle\Infrastructure\Logistics\UnitsShippedListener;
 use Phil\CommerceConsignmentBundle\Infrastructure\Messenger\RecordShipmentHandler;
 use Phil\CommerceConsignmentBundle\PhilCommerceConsignmentBundle;
+use Phil\CommerceLogisticsBundle\Domain\Event\UnitsShipped;
 use Phil\CommerceLogisticsBundle\PhilCommerceLogisticsBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -111,6 +113,16 @@ final class PhilCommerceConsignmentBundleTest extends TestCase
         }
 
         self::assertFalse($this->load([], doctrine: false)->hasDefinition(ConsignorStatements::class));
+    }
+
+    public function testTheSalesOfShippedUnitsAreWrittenOnTheLogisticsEventUnlessTurnedOff(): void
+    {
+        $definition = $this->load([])->getDefinition(UnitsShippedListener::class);
+
+        self::assertSame([['event' => UnitsShipped::class]], $definition->getTag('kernel.event_listener'));
+        self::assertTrue($definition->isAutowired());
+        self::assertFalse($this->load([['record_shipments' => false]])->hasDefinition(UnitsShippedListener::class));
+        self::assertFalse($this->load([], doctrine: false)->hasDefinition(UnitsShippedListener::class));
     }
 
     public function testTheStatementPrefixIsConfigured(): void

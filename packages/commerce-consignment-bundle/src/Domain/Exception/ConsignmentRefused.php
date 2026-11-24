@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\CommerceConsignmentBundle\Domain\Exception;
 
 use DomainException;
+use Phil\Money\Money;
 
 /**
  * An operation the ledger refuses before anything moves: more units than its owners hold, a return of units never sold.
@@ -39,6 +40,16 @@ final class ConsignmentRefused extends DomainException
     public static function purchaseOrderElsewhere(string $number, string $location, string $receivedAt): self
     {
         return new self(\sprintf('The purchase order %s is received at %s, not at %s.', $number, $location, $receivedAt));
+    }
+
+    public static function purchaseOrderOwner(string $number, string $sku, string $owner, string $received): self
+    {
+        return new self(\sprintf('The purchase order %s orders %s from the consignor %s; the receipt gives it to %s.', $number, $sku, $owner, $received));
+    }
+
+    public static function purchaseOrderCost(string $number, string $sku, Money $ordered, Money $received): self
+    {
+        return new self(\sprintf('The purchase order %s buys %s at %s %s a unit; the receipt says %s %s.', $number, $sku, $ordered->toDecimal(), $ordered->currency->code, $received->toDecimal(), $received->currency->code));
     }
 
     public static function notOrdered(string $orderNumber, string $sku, int $shipped, int $ordered): self

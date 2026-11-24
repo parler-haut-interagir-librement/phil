@@ -34,7 +34,8 @@ are listed when due, then **given back** to their consignor or **bought** by the
 | Issue order between owned and consigned units: owned first, consigned first, oldest first; per SKU | Implemented and tested |
 | Sales, returns to the layers they left, transfers between locations, counts of every owner or of one | Implemented and tested |
 | Margin of the shop's units and commission of consigned ones, through the `MarginCalculator` port | Implemented and tested |
-| Shipped orders of `phil/commerce-bundle` written to the ledger, once, after each shipment of the logistics module; `RecordShipment` for a worker | Implemented and tested |
+| Shipped orders of `phil/commerce-bundle` written to the ledger, once, when the logistics module announces each shipment; `RecordShipment` for a worker | Implemented and tested |
+| Customer returns, count differences and units given back moved by the logistics module's own movements; receipts checked against the owner and unit cost of each purchase order line | Implemented and tested |
 | Doctrine tables on SQLite, MySQL 8.4 and PostgreSQL 17, keys compared byte by byte, instants in UTC; a repository in memory | Implemented and tested |
 | Agreements with each consignor — term, unsold units, statement frequency —, versioned without rewriting the past | Implemented and tested |
 | Statements per consignor and period, read from the ledger, numbered and frozen; CSV and a replaceable Twig template | Implemented and tested |
@@ -55,7 +56,7 @@ are listed when due, then **given back** to their consignor or **bought** by the
 | [Statements](doc/statements.md) | Periods, what a statement holds, numbers, CSV and the template. |
 | [Payouts](doc/payouts.md) | What was paid, the same payout twice, reversals and the balance. |
 | [Unsold units](doc/unsold-units.md) | The units due, return slips and buy-outs. |
-| [With the logistics module](doc/logistics.md) | How the stock moves, how shipped orders reach the ledger, units given back, and what the logistics module does not expose. |
+| [With the logistics module](doc/logistics.md) | How the stock moves, receipts against purchase orders, and how shipped orders reach the ledger. |
 | [Scope](doc/scope.md) | What the bundle does, and what it leaves to later versions or to the application. |
 | [Extension points](doc/extension-points.md) | The services to replace and when they are stable. |
 | [Testing](doc/testing.md) | The bundle's tests, and the servers its integration tests read. |
@@ -105,7 +106,7 @@ $entityManager->flush();
 
 ## Requirements
 
-PHP 8.5 or later and Symfony 8.2 or later, with `phil/commerce-bundle` 0.4 and `phil/commerce-logistics-bundle` 0.1.
+PHP 8.5 or later and Symfony 8.2 or later, with `phil/commerce-bundle` 0.4 and `phil/commerce-logistics-bundle` 0.1.1.
 
 ## Contributing
 

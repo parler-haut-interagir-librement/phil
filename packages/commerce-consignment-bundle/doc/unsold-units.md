@@ -61,6 +61,5 @@ share, with no commission. It appears on the consignor's next [statement](statem
 
 ## With the logistics module
 
-The logistics module has no movement that takes units off the shelf by a quantity: `LogisticsStockMovements` gives
-units back through `Stock::count()`, the level set to what it had on hand less the units. See
-[With the logistics module](logistics.md#what-the-logistics-module-does-not-expose).
+`LogisticsStockMovements` takes the units given back off the shelf through `Stock::adjust()`, under the slip's
+reference, after checking the level has them on hand. See [With the logistics module](logistics.md#how-the-stock-moves).

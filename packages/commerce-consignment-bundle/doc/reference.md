@@ -76,6 +76,7 @@ Every public type of the package, with its role.
 | `Infrastructure\Memory\InMemoryStatementNumbering` | A series counted in memory, for tests. |
 | `Infrastructure\Logistics\LogisticsStockMovements` | The stock of `phil/commerce-logistics-bundle`. |
 | `Infrastructure\Logistics\LogisticsShippedUnits` | The shipped units, read from its reservations. |
+| `Infrastructure\Logistics\UnitsShippedListener` | Writes the sales of an order when the logistics module announces `UnitsShipped`. |
 | `Infrastructure\Messenger\RecordShipmentHandler` | Handles `RecordShipment`. |
 
 ## Template

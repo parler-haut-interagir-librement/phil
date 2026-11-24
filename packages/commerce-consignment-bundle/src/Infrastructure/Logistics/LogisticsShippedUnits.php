@@ -11,10 +11,7 @@ use Phil\CommerceLogisticsBundle\Domain\Repository\StockRepository;
 
 /**
  * What an order shipped, read from its reservations in `phil/commerce-logistics-bundle`: each reservation holds a SKU
- * at a location, and what it shipped is its quantity less what it still holds, or gave back.
- *
- * The logistics module dispatches no event when units ship: the application calls `ShippedOrders` after
- * `Stock::ship()` or `Stock::shipPart()`, or sends `RecordShipment` to a worker.
+ * at a location, and counts the units that left with the order, those that came back since included.
  */
 final readonly class LogisticsShippedUnits implements ShippedUnits
 {
@@ -29,7 +26,7 @@ final readonly class LogisticsShippedUnits implements ShippedUnits
         $shipped = [];
 
         foreach ($this->stock->reservationsOf($orderNumber) as $reservation) {
-            $quantity = $reservation->quantity - $reservation->remaining();
+            $quantity = $reservation->shipped();
 
             if ($quantity > 0) {
                 $key = $reservation->sku."\0".$reservation->location;

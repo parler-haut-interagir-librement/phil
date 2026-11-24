@@ -25,7 +25,9 @@ use Phil\CommerceConsignmentBundle\Infrastructure\Doctrine\DoctrineLedgerReposit
 use Phil\CommerceConsignmentBundle\Infrastructure\Doctrine\DoctrineStatementNumbering;
 use Phil\CommerceConsignmentBundle\Infrastructure\Logistics\LogisticsShippedUnits;
 use Phil\CommerceConsignmentBundle\Infrastructure\Logistics\LogisticsStockMovements;
+use Phil\CommerceConsignmentBundle\Infrastructure\Logistics\UnitsShippedListener;
 use Phil\CommerceConsignmentBundle\Infrastructure\Messenger\RecordShipmentHandler;
+use Phil\CommerceLogisticsBundle\Domain\Event\UnitsShipped;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -45,6 +47,7 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  *     issue_order_by_sku:
  *         BOOK-123: consigned_first
  *     statement_number_prefix: ST-       # the statements' series: ST-00000001, ST-00000002…
+ *     record_shipments: true             # sales written when the logistics module announces UnitsShipped
  * ```
  */
 final class PhilCommerceConsignmentBundle extends AbstractBundle
@@ -78,6 +81,10 @@ final class PhilCommerceConsignmentBundle extends AbstractBundle
                         ->ifTrue(static fn (mixed $prefix): bool => !\is_string($prefix) || 1 !== preg_match('/^[A-Za-z0-9.#\/-]{0,24}$/D', $prefix))
                         ->thenInvalid('A statement prefix has up to 24 letters, digits, dots, dashes, slashes or hashes; %s does not.')
                     ->end()
+                ->end()
+                ->booleanNode('record_shipments')
+                    ->info('Writes the sales of an order to the ledger when the logistics module announces UnitsShipped, in the transaction of the shipment; false to call ShippedOrders or dispatch RecordShipment instead.')
+                    ->defaultTrue()
                 ->end()
             ->end();
     }
@@ -138,6 +145,10 @@ final class PhilCommerceConsignmentBundle extends AbstractBundle
         $services->set(UnsoldStock::class)->autowire()->public();
         $services->set(StatementCsv::class)->public();
         $services->set(StatementView::class)->public();
+
+        if (true === $config['record_shipments']) {
+            $services->set(UnitsShippedListener::class)->autowire()->tag('kernel.event_listener', ['event' => UnitsShipped::class]);
+        }
 
         if (interface_exists(MessageBusInterface::class)) {
             $services->set(RecordShipmentHandler::class)->autowire()->tag('messenger.message_handler');

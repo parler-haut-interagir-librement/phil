@@ -41,14 +41,17 @@ The next version is 0.1.0-alpha.
   cost or the consignor's share, which change the owner of the units without moving them (`ReturnSlip`, `SlipLine`);
   the entry kinds `given_back`, `bought_out` and `bought_in`; `StockMovements::giveBack()`.
 - `ShippedOrders`, which writes to the ledger what an order of `phil/commerce-bundle` shipped, once, at the price of
-  its lines, through the `ShippedUnits` port; `RecordShipment` and its handler for a worker.
-- The adapters of `phil/commerce-logistics-bundle`: `LogisticsStockMovements` on `Stock` and `Purchasing`, units given
-  back through a count, and `LogisticsShippedUnits` on its reservations.
+  its lines, through the `ShippedUnits` port; `UnitsShippedListener`, which writes them when the logistics module
+  announces `UnitsShipped`, in the transaction of the shipment; `RecordShipment` and its handler for a worker.
+- The adapters of `phil/commerce-logistics-bundle` 0.1.1: `LogisticsStockMovements` on `Stock` and `Purchasing` —
+  count differences and units given back as adjustments, never below zero, returns of shipped orders as customer
+  returns, receipts refused when a line disagrees with the owner or the unit cost of its purchase order line —, and
+  `LogisticsShippedUnits` on its reservations.
 - `DoctrineLedgerRepository` on two tables, which reads what is not flushed yet, with a consignor's entries, units held
   and what they are owed; `DoctrineConsignorRepository` on the tables of agreements, statements and payouts, and
   `DoctrineStatementNumbering`; `BinaryKeysListener` for the keys on MySQL and MariaDB; `InMemoryLedgerRepository`,
   `InMemoryConsignorRepository` and `InMemoryStatementNumbering`.
 - `PhilCommerceConsignmentBundle` and its configuration `phil_commerce_consignment`: `issue_order`,
-  `issue_order_by_sku` and `statement_number_prefix`; the Doctrine mapping; the Flex recipe.
+  `issue_order_by_sku`, `statement_number_prefix` and `record_shipments`; the Doctrine mapping; the Flex recipe.
 - The documentation in `doc/`, one file per topic, indexed by the README; `CONTRIBUTING.md`, `SECURITY.md` and
   `CODE_OF_CONDUCT.md`.
