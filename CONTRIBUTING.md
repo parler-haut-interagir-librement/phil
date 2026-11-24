@@ -4,6 +4,54 @@ This is the monorepo of the open packages of [Parler Haut Interagir Librement](h
 (PHIL). Every `phil/*` package is developed here, and its own repository is a read-only copy split from
 `packages/<name>/`: **open issues and pull requests here**, not on a split repository, which each split overwrites.
 
+## Principles
+
+The twelve principles of the [README](README.md#principles) hold for every package. Each one is a rule a change
+follows:
+
+1. **Secure by default.** Defaults are the safe choice; a less safe behaviour needs an explicit, documented option.
+   Everything that comes from people, bots or third parties is validated and bounded in size, depth and time.
+   Queries are parameterised, output is escaped by its context, secrets and personal data never reach logs or
+   messages. Security-sensitive packages carry fuzzing and taint analysis in their CI.
+2. **Open, all of it.** Each package carries its own licence file. The code of a package is its own: third-party code
+   enters only as a declared Composer dependency, and other projects are studied for their ideas. Reference data from
+   open sources may be imported by a script, with its licence and attribution recorded next to it.
+3. **Symfony-native.** A package installs with `composer require` and, when it needs wiring, a Flex recipe. A bundle
+   has the standard shape: its configuration tree, services tagged the Symfony way, no hidden bootstrap. Its
+   configuration lives in `config/packages/`. The library uses an existing Symfony component rather than reinventing
+   it. Templates use what Twig and twig/extra already provide; front-end code goes through AssetMapper and Stimulus,
+   with no Node build step required.
+4. **Bilingual, every language.** English is the source of `README.md` and `doc/`; the French translation in
+   `README.fr.md` and `doc/fr/` is updated in the same change, and the tooling checks it. Every user-facing string is
+   translatable; formats, plurals, addresses and typography follow the locale, from CLDR and other open references.
+5. **Private by design.** No tracking and no third-party call without the site's explicit configuration. Analytics in
+   aggregates only, IP addresses anonymised. Personal fields are declared so that they can be exported and erased.
+   Queued messages carry identifiers, never personal data.
+6. **Fast, measured, worker-safe.** Each hot path has a benchmark, and a change that slows it needs a reason.
+   Complexity is bounded. No state survives a request, or it is reset through `kernel.reset`. Plain PHP is the
+   reference and works everywhere (PHP-FPM, CLI, FrankenPHP); an optional accelerator lives in its own package, only
+   after a benchmark proves the gain, with differential tests against the PHP version.
+7. **Accessible by default.** Markup uses the native element that carries the meaning; ARIA only fills what HTML
+   lacks. WCAG 2.2 AA is the floor: keyboard use, visible focus, focus moved and restored on dialogs, reduced motion,
+   contrast checked when the tokens are built. Motion informs; it never delays the person.
+8. **A real need.** A new package starts from a need that a site has today, described in its issue. It leaves
+   incubation when it solves that need completely, not when its roadmap is long.
+9. **Little to configure.** A bundle boots with an empty configuration and safe defaults. Each option is documented
+   with its default and its reason; an option nobody would change is removed. `debug:config` shows everything.
+10. **Works alone, better together.** Every package is installed and tested on its own, with no artificial
+    dependency. Packages follow the shared conventions (configuration keys, Twig names, UX recipes, extension points,
+    privacy declarations), so that each added package gains from the others. Groups are offered as `profile-*`
+    packages, never as a required core.
+11. **Predictable and extensible.** Extension points are tagged services and public interfaces, listed in
+    `doc/extension-points.md` and stable from 1.0. A package never names a particular site or service of
+    ours, not even in an example. Semantic versioning, a Keep a Changelog file, breaking changes only in a new version.
+12. **Proven quality.** Floor: PHP 8.5+ and Symfony 8.2+. Every requirement is constrained to its latest published
+    minor (`^X.Y`), in every `composer.json`; PHP stays at 8.5 until PHP 8.6.1 is out and the packages run on 8.6
+    without a problem. PHPStan at its maximum level with strict rules on every PHP of the matrix; PHP-CS-Fixer,
+    Rector, Deptrac and Arkitect; PHPUnit failing on any deprecation; Infection at 100 %, and a package does not leave
+    incubation below it. The next PHP and Symfony are tested from their first release candidate. The floor moves up
+    only in a new version of our packages.
+
 ## Reporting a bug
 
 - Check first that the bug is not already reported.
@@ -26,7 +74,8 @@ Open an issue before a large change, so that its design can be agreed first. The
 4. **Test it.** Every change comes with its tests. The domain layer is held to 100 % mutation coverage: a mutant
    that survives is a missing test, or code that nothing can reach.
 5. **Document it, in English.** Update the package's `doc/` and, when a topic is added, the documentation table of
-   its README. The French mirrors (`README.fr.md`, `doc/fr/`) may follow in a later pull request.
+   its README. The French mirrors (`README.fr.md`, `doc/fr/`) follow principle 4; when a contributor does not write
+   French, a maintainer completes them before the release.
 6. **Pass the checks.** From the root of the monorepo, after `composer install` and `composer hooks`, the quality
    checks run on every package — PHP-CS-Fixer, Rector, PHPStan at its maximum level, deptrac, Arkitect, PHPUnit and
    Infection — and `composer packages` installs each package on its own, checks its declared dependencies and runs
