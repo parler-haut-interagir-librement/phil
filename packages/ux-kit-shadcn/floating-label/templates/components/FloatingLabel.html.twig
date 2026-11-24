@@ -1,0 +1,33 @@
+{#-
+ # A field whose label sits inside the empty control and moves above it once the control holds a value or has the
+ # focus. The label is the control's own and stays shown; the placeholder of a single space tells the style sheet
+ # that the control is empty.
+ #}
+{%- props
+    ## string The name of the field, shown inside it.
+    label,
+    ## string The identifier of the control, which the label points to.
+    id,
+    ## string|null The name of the control in the form.
+    name = null,
+    ## string The type of the input, or `textarea` for a text of several lines.
+    type = 'text',
+    ## string|null The value of the control.
+    value = null,
+    ## string|null The `autocomplete` of the control.
+    autocomplete = null,
+    ## string|null The identifier of the element that describes the control, such as a help or an error.
+    describedBy = null,
+    ## bool Whether the field has to be filled.
+    required = false,
+    ## bool Whether the field cannot be changed for now.
+    disabled = false
+-%}
+<div data-slot="floating-label"{{ attributes.defaults({class: 'relative'}) }}>
+    {%- if type is same as('textarea') -%}
+    <textarea class="peer w-full min-w-0 rounded-md border border-input bg-transparent px-3 pt-5 pb-1 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-transparent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive md:text-sm dark:bg-input/30 min-h-24" id="{{ id }}"{% if name is not null %} name="{{ name }}"{% endif %} placeholder=" "{% if autocomplete is not null %} autocomplete="{{ autocomplete }}"{% endif %}{% if describedBy is not null %} aria-describedby="{{ describedBy }}"{% endif %}{{ required ? ' required' }}{{ disabled ? ' disabled' }}>{{ value }}</textarea>
+    {%- else -%}
+    <input type="{{ type }}" class="peer w-full min-w-0 rounded-md border border-input bg-transparent px-3 pt-5 pb-1 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-transparent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive md:text-sm dark:bg-input/30 h-12" id="{{ id }}"{% if name is not null %} name="{{ name }}"{% endif %} placeholder=" "{% if autocomplete is not null %} autocomplete="{{ autocomplete }}"{% endif %}{% if describedBy is not null %} aria-describedby="{{ describedBy }}"{% endif %}{{ required ? ' required' }}{{ disabled ? ' disabled' }}{% if value is not null %} value="{{ value }}"{% endif %}>
+    {%- endif -%}
+    <label for="{{ id }}" class="pointer-events-none absolute start-3 top-1 max-w-[calc(100%-1.5rem)] truncate text-xs text-muted-foreground transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-focus:top-1 peer-focus:text-xs motion-reduce:transition-none">{{ label }}</label>
+</div>

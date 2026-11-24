@@ -36,6 +36,7 @@ final class KitTest extends TestCase
         'copy-button' => ['component', 'CopyButton'],
         'figure' => ['component', 'Figure'],
         'file-input' => ['component', 'FileInput'],
+        'floating-label' => ['component', 'FloatingLabel'],
         'gallery' => ['component', 'Gallery'],
         'hero' => ['component', 'Hero'],
         'hotspots' => ['component', 'Hotspots'],
@@ -54,7 +55,10 @@ final class KitTest extends TestCase
         'signup-form' => ['block', 'SignupForm'],
         'sparkline' => ['component', 'Sparkline'],
         'stepper' => ['component', 'Stepper'],
+        'sticky-header' => ['component', 'StickyHeader'],
         'tag' => ['component', 'Tag'],
+        'theme-switcher' => ['component', 'ThemeSwitcher'],
+        'timeline' => ['component', 'Timeline'],
         'tree' => ['component', 'Tree'],
         'video' => ['component', 'Video'],
     ];

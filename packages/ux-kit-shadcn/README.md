@@ -52,6 +52,10 @@ kit is not repeated here.
 | [Chart](chart/README.md) | component | A chart drawn by the server in SVG, bars or lines, its series in the chart tokens of the Shadcn kit, with the table of its values. | Implemented and tested |
 | [Carousel](carousel/README.md) | component | Slides in a row on the native scroll snapping of the browser, the kit's buttons on each side, an optional automatic play with its pause button, still under reduced motion; no carousel library | Implemented and tested |
 | [ChartJs](chart-js/README.md) | component | A chart of Symfony UX Chart.js in a figure, with its caption and the table of its values. | Implemented and tested |
+| [ThemeSwitcher](theme-switcher/README.md) | component | The choice of the colour scheme, light, dark or the system's, kept in the browser and written on the page before it is first painted. | Implemented and tested |
+| [StickyHeader](sticky-header/README.md) | component | The header of the page, kept at the top of the screen, anchors stopping below it; it may slide away while the reader scrolls down, inert while hidden. | Implemented and tested |
+| [Timeline](timeline/README.md) | component | Dated entries down a line, each with its marker, its date and its content. | Implemented and tested |
+| [FloatingLabel](floating-label/README.md) | component | A field whose label sits inside the empty control and moves above it once the control holds a value or has the focus. | Implemented and tested |
 
 ## Documentation
 
@@ -78,7 +82,7 @@ php bin/console ux:install coming-soon --kit=github.com/parler-haut-interagir-li
 Tailwind CSS 4 with the Shadcn kit's stylesheet and tw-animate-css, as the Shadcn kit installs them; Symfony UX Twig
 Component 3.7 or later; Symfony UX Toolkit 3.7.1 or later to install the recipes; the StimulusBundle for the recipes
 with a controller (`AnimatedHeadline`, `Carousel`, `Celebration`, `Lightbox`, `ColorPicker`, `CopyButton`, `Tree`,
-`NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`) and the blurred preview of `Image`; `twig/extra-bundle`, `twig/html-extra`, `symfony/web-link`
+`NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader`) and the blurred preview of `Image`; `twig/extra-bundle`, `twig/html-extra`, `symfony/web-link`
 and `phil/ux-kit`, whose bundle lists the hosts whose images a page may show, for `Image`; the `--chart-1` to
 `--chart-5` tokens of the Shadcn kit for `Chart`; Symfony UX Chart.js for `ChartJs`.
 

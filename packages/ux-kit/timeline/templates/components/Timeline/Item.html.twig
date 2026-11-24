@@ -1,0 +1,20 @@
+{#-
+ # An entry of a timeline: its date, machine-readable in `time`, then its content.
+ #}
+{%- props
+    ## \DateTimeInterface|string The moment of the entry.
+    datetime,
+    ## string The date written, in the format of the filter `date`.
+    format = 'Y-m-d',
+    ## string|null The date written instead, such as a season or a year; the formatted moment when null.
+    dateLabel = null,
+    ## bool Whether only the day of the moment is machine-readable, rather than the moment and its offset.
+    allDay = true
+-%}
+<li{{ attributes.defaults({class: 'isTimelineItem'}) }}>
+    <time class="isTimelineDate" datetime="{{ datetime|date(allDay ? 'Y-m-d' : 'c') }}">{{ dateLabel ?? datetime|date(format) }}</time>
+    <div class="isTimelineContent">
+    {##- What happened then. -#}
+    {%- block content %}{% endblock -%}
+    </div>
+</li>

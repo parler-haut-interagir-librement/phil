@@ -1,0 +1,13 @@
+{#-
+ # The script of the head that writes the stored scheme on the root before the page is first painted, so that it
+ # never flashes in the other one. Its text never changes: a Content Security Policy allows it by its hash, or by the
+ # nonce of the request.
+ #}
+{%- props
+    ## string The key of the choice in the storage of the browser, the same as that of the switcher.
+    storageKey = 'theme',
+    ## string|null The nonce of the Content Security Policy of the request.
+    nonce = null
+-%}
+{%- set code = 'try{var t=localStorage.getItem(document.currentScript.dataset.themeKey);if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}' -%}
+<script data-theme-key="{{ storageKey }}"{{ attributes.defaults(nonce is not null ? {nonce: nonce} : {}) }}>{{ code|raw }}</script>

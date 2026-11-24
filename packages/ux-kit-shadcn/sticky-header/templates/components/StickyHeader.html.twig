@@ -1,0 +1,15 @@
+{#-
+ # The header of the page, kept at the top of the screen while the page scrolls; anchors and the focus stop below it.
+ # With `hideOnScroll`, it slides away while the reader scrolls down and comes back when they scroll up, never where
+ # motion is reduced; hidden, it is inert, so that its links cannot be reached.
+ #}
+{%- props
+    ## bool Whether it slides away while the reader scrolls down.
+    hideOnScroll = false,
+    ## int How far the page scrolls, in CSS pixels, before the header slides away or back.
+    threshold = 8
+-%}
+<header data-sticky-header-hide-on-scroll-value="{{ hideOnScroll ? 'true' : 'false' }}" data-sticky-header-threshold-value="{{ threshold }}" data-slot="sticky-header"{{ attributes.defaults({class: 'sticky top-0 z-10 flex flex-wrap items-center gap-3 border-b bg-background px-4 py-2 [:root:has(&)]:scroll-pt-[calc(var(--phil-sticky-header-size,3.25rem)+0.5rem)]' ~ (hideOnScroll ? ' transition-transform duration-300 data-hidden:-translate-y-full motion-reduce:transition-none' : ''), 'data-controller': 'sticky-header'}) }}>
+    {##- The brand, the navigation and the actions of the site. -#}
+    {%- block content %}{% endblock -%}
+</header>

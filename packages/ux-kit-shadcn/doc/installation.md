@@ -16,8 +16,8 @@ guide says, then make Tailwind read the installed components:
 ```
 
 The recipes with a Stimulus controller — `AnimatedHeadline`, `Carousel`, `Celebration`, `Lightbox`, `ColorPicker`,
-`CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter` and the blurred preview of
-`Image` — need the StimulusBundle, which loads the controllers `ux:install` copies into `assets/controllers/`.
+`CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader`
+and the blurred preview of `Image` — need the StimulusBundle, which loads the controllers `ux:install` copies into `assets/controllers/`.
 
 ## With `ux:install`
 
@@ -72,4 +72,10 @@ Copy the files of the recipes the page needs, from this directory, keeping their
 | BeforeAfter | `before-after/templates/components/BeforeAfter.html.twig` | `templates/components/BeforeAfter.html.twig` |
 | Carousel | `carousel/templates/components/` | `templates/components/` |
 | Carousel | `carousel/assets/controllers/carousel_controller.js` | `assets/controllers/carousel_controller.js` |
+| ThemeSwitcher | `theme-switcher/templates/components/` | `templates/components/` |
+| ThemeSwitcher | `theme-switcher/assets/controllers/theme_switcher_controller.js` | `assets/controllers/theme_switcher_controller.js` |
+| StickyHeader | `sticky-header/templates/components/StickyHeader.html.twig` | `templates/components/StickyHeader.html.twig` |
+| StickyHeader | `sticky-header/assets/controllers/sticky_header_controller.js` | `assets/controllers/sticky_header_controller.js` |
+| Timeline | `timeline/templates/components/` | `templates/components/` |
+| FloatingLabel | `floating-label/templates/components/FloatingLabel.html.twig` | `templates/components/FloatingLabel.html.twig` |
 | ComingSoon | `coming-soon/templates/components/ComingSoon.html.twig` | `templates/components/ComingSoon.html.twig` |

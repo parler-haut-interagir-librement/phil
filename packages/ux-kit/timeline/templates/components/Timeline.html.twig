@@ -1,0 +1,11 @@
+{#-
+ # A timeline: dated entries in the order they are given, down a line, each with its marker, its date and its content.
+ #}
+{%- props
+    ## string|null What screen readers call the list of entries.
+    label = null
+-%}
+<ol{{ attributes.defaults({class: 'isTimeline'}|merge(label is null ? {} : {'aria-label': label})) }}>
+{##- The entries, each a `Timeline:Item`. -#}
+{%- block content %}{% endblock -%}
+</ol>

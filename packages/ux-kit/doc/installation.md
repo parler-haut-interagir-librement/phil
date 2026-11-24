@@ -116,6 +116,12 @@ Copy the files of the recipes the page needs, from this directory, keeping their
 | Sparkline | `sparkline/templates/components/` | `templates/components/` |
 | BeforeAfter | `before-after/templates/components/` | `templates/components/` |
 | BeforeAfter | `before-after/assets/controllers/` | `assets/controllers/` |
+| ThemeSwitcher | `theme-switcher/templates/components/` | `templates/components/` |
+| ThemeSwitcher | `theme-switcher/assets/controllers/` | `assets/controllers/` |
+| StickyHeader | `sticky-header/templates/components/` | `templates/components/` |
+| StickyHeader | `sticky-header/assets/controllers/` | `assets/controllers/` |
+| Timeline | `timeline/templates/components/` | `templates/components/` |
+| FloatingLabel | `floating-label/templates/components/` | `templates/components/` |
 | Pagination | `pagination/templates/components/` | `templates/components/` |
 | Carousel | `carousel/templates/components/` | `templates/components/` |
 | Carousel | `carousel/assets/controllers/` | `assets/controllers/` |

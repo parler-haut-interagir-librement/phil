@@ -385,7 +385,7 @@ final class ShadcnKitTest extends KitTestCase
 
         self::assertStringStartsWith('<div data-slot="coming-soon" class="grid min-h-svh grid-cols-1 bg-background text-foreground md:grid-cols-2"><div class="flex flex-col gap-4 p-6 md:p-10"><header><span data-slot="logo"', $html);
         self::assertStringContainsString('<main class="grid flex-1 place-items-center"><div class="max-w-[36ch]"><hgroup class="mb-4"><p class="mb-1 text-sm font-medium text-muted-foreground">Coming soon</p><h1 data-slot="animated-headline"', $html);
-        self::assertStringContainsString('</hgroup><p class="mt-4 leading-7">One.</p><p>More.</p></div></main></div><figure data-slot="illustration" class="m-0 relative min-h-[40vh] ', $html);
+        self::assertStringContainsString('</hgroup><p class="mt-4 leading-7">One.</p><p>More.</p></div></main></div><figure data-slot="illustration" class="m-0 relative min-h-[40svh] ', $html);
         self::assertStringContainsString('<img class="h-auto w-full" src="/main.png" alt="" loading="lazy" decoding="async"></figure></div>', $html);
     }
 
@@ -537,5 +537,41 @@ final class ShadcnKitTest extends KitTestCase
 
         self::assertStringContainsString("rtl:[&::scroll-button(inline-start)]:content-['›'_/_attr(data-previous)] rtl:[&::scroll-button(inline-end)]:content-['‹'_/_attr(data-next)]", $html);
         self::assertStringContainsString('print:auto-cols-auto print:grid-flow-row print:grid-cols-[repeat(auto-fill,minmax(min(100%,12rem),1fr))] print:overflow-visible print:[scroll-marker-group:none] print:[&::scroll-button(*)]:content-none', $html);
+    }
+
+    public function testAThemeSwitcherInTailwindAndItsScript(): void
+    {
+        $html = $this->render('<twig:ThemeSwitcher />');
+
+        self::assertStringStartsWith('<fieldset hidden data-slot="theme-switcher" data-theme-switcher-key-value="theme" class="m-0 inline-flex min-w-0 flex-wrap gap-1 border-0 p-0" data-controller="theme-switcher"><legend class="sr-only">Theme</legend>', $html);
+        self::assertStringContainsString('<input type="radio" class="sr-only" name="theme" value="system" checked data-theme-switcher-target="option" data-action="theme-switcher#choose">System</label></fieldset>', $html);
+        self::assertSame(3, substr_count($html, 'has-checked:bg-accent'));
+        self::assertStringStartsWith('<script data-theme-key="theme" nonce="n">try{', $this->render('<twig:ThemeSwitcher:Script nonce="n" />'));
+    }
+
+    public function testAStickyHeaderInTailwind(): void
+    {
+        self::assertSame(
+            '<header data-sticky-header-hide-on-scroll-value="false" data-sticky-header-threshold-value="8" data-slot="sticky-header" class="sticky top-0 z-10 flex flex-wrap items-center gap-3 border-b bg-background px-4 py-2 [:root:has(&amp;)]:scroll-pt-[calc(var(--phil-sticky-header-size,3.25rem)+0.5rem)]" data-controller="sticky-header">Home</header>',
+            $this->render('<twig:StickyHeader>Home</twig:StickyHeader>'),
+        );
+        self::assertStringContainsString('data-hidden:-translate-y-full motion-reduce:transition-none', $this->render('<twig:StickyHeader :hideOnScroll="true">Home</twig:StickyHeader>'));
+    }
+
+    public function testATimelineInTailwind(): void
+    {
+        $html = $this->render('<twig:Timeline label="History"><twig:Timeline:Item datetime="2026-03-01">First</twig:Timeline:Item></twig:Timeline>');
+
+        self::assertStringStartsWith('<ol data-slot="timeline" class="m-0 grid list-none gap-6 ps-0" aria-label="History"><li data-slot="timeline-item" class="relative grid gap-1 ps-6 ', $html);
+        self::assertStringEndsWith('<time class="text-sm font-medium text-muted-foreground" datetime="2026-03-01">2026-03-01</time><div class="min-w-0 wrap-anywhere [&>:last-child]:mb-0">First</div></li></ol>', $html);
+    }
+
+    public function testAFloatingLabelInTailwind(): void
+    {
+        $html = $this->render('<twig:FloatingLabel label="Email" id="email" type="email" :required="true" />');
+
+        self::assertStringStartsWith('<div data-slot="floating-label" class="relative"><input type="email" class="peer ', $html);
+        self::assertStringContainsString(' h-12" id="email" placeholder=" " required><label for="email" class="pointer-events-none absolute start-3 top-1 ', $html);
+        self::assertStringContainsString(' min-h-24" id="m" placeholder=" "></textarea>', $this->render('<twig:FloatingLabel label="M" id="m" type="textarea" />'));
     }
 }

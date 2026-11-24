@@ -1,0 +1,33 @@
+{#-
+ # A field whose label sits inside the empty control and moves above it once the control holds a value or has the
+ # focus. The label is the control's own and stays shown; the placeholder of a single space tells the style sheet
+ # that the control is empty.
+ #}
+{%- props
+    ## string The name of the field, shown inside it.
+    label,
+    ## string The identifier of the control, which the label points to.
+    id,
+    ## string|null The name of the control in the form.
+    name = null,
+    ## string The type of the input, or `textarea` for a text of several lines.
+    type = 'text',
+    ## string|null The value of the control.
+    value = null,
+    ## string|null The `autocomplete` of the control.
+    autocomplete = null,
+    ## string|null The identifier of the element that describes the control, such as a help or an error.
+    describedBy = null,
+    ## bool Whether the field has to be filled.
+    required = false,
+    ## bool Whether the field cannot be changed for now.
+    disabled = false
+-%}
+<div{{ attributes.defaults({class: 'hasFloatingLabel'}) }}>
+    {%- if type is same as('textarea') -%}
+    <textarea id="{{ id }}"{% if name is not null %} name="{{ name }}"{% endif %} placeholder=" "{% if autocomplete is not null %} autocomplete="{{ autocomplete }}"{% endif %}{% if describedBy is not null %} aria-describedby="{{ describedBy }}"{% endif %}{{ required ? ' required' }}{{ disabled ? ' disabled' }}>{{ value }}</textarea>
+    {%- else -%}
+    <input type="{{ type }}" id="{{ id }}"{% if name is not null %} name="{{ name }}"{% endif %} placeholder=" "{% if autocomplete is not null %} autocomplete="{{ autocomplete }}"{% endif %}{% if describedBy is not null %} aria-describedby="{{ describedBy }}"{% endif %}{{ required ? ' required' }}{{ disabled ? ' disabled' }}{% if value is not null %} value="{{ value }}"{% endif %}>
+    {%- endif -%}
+    <label for="{{ id }}">{{ label }}</label>
+</div>

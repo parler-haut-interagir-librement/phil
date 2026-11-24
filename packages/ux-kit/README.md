@@ -91,6 +91,10 @@ either kit, and adds recipes of its own. Their Tailwind versions, under the same
 | [BeforeAfter](before-after/README.md) | component | Two pictures one above the other, the first cut where a slider says. | Implemented and tested |
 | [Chart](chart/README.md) | component | A chart drawn by the server in SVG, bars or lines, with the table of its values. | Implemented and tested |
 | [ChartJs](chart-js/README.md) | component | A chart of Symfony UX Chart.js in a figure, with its caption and the table of its values. | Implemented and tested |
+| [ThemeSwitcher](theme-switcher/README.md) | component | The choice of the colour scheme, light, dark or the system's, kept in the browser and written on the page before it is first painted. | Implemented and tested |
+| [StickyHeader](sticky-header/README.md) | component | The header of the page, kept at the top of the screen, anchors stopping below it; it may slide away while the reader scrolls down, inert while hidden. | Implemented and tested |
+| [Timeline](timeline/README.md) | component | Dated entries down a line, each with its marker, its date and its content. | Implemented and tested |
+| [FloatingLabel](floating-label/README.md) | component | A field whose label sits inside the empty control and moves above it once the control holds a value or has the focus. | Implemented and tested |
 
 ## Documentation
 

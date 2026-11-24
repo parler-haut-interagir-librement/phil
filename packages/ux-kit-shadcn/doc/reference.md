@@ -36,6 +36,12 @@
 | `before-after/templates/components/` | The `BeforeAfter` component |
 | `carousel/templates/components/` | The `Carousel` component and its `Content`, `Item`, `Previous` and `Next` |
 | `carousel/assets/controllers/` | The Stimulus controller `carousel`, the same file as in the PHIL UX kit |
+| `theme-switcher/templates/components/` | The `ThemeSwitcher` component and its `Script` |
+| `theme-switcher/assets/controllers/` | The Stimulus controller `theme-switcher`, the same file as in the PHIL UX kit |
+| `sticky-header/templates/components/` | The `StickyHeader` component |
+| `sticky-header/assets/controllers/` | The Stimulus controller `sticky-header`, the same file as in the PHIL UX kit |
+| `timeline/templates/components/` | The `Timeline` component and its `Item` |
+| `floating-label/templates/components/` | The `FloatingLabel` component |
 | `coming-soon/templates/components/ComingSoon.html.twig` | The `ComingSoon` component |
 | `login-form/templates/components/LoginForm.html.twig` | The `LoginForm` block |
 | `signup-form/templates/components/SignupForm.html.twig` | The `SignupForm` block |

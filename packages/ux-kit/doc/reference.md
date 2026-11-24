@@ -190,3 +190,13 @@
 | `chart/templates/components/` | The `Chart` component |
 | `chart-js/manifest.json`, `chart-js/README.md` | The `ChartJs` recipe |
 | `chart-js/templates/components/` | The `ChartJs` component |
+| `theme-switcher/manifest.json`, `theme-switcher/README.md` | The `ThemeSwitcher` recipe |
+| `theme-switcher/templates/components/` | The `ThemeSwitcher` component and its `Script` |
+| `theme-switcher/assets/controllers/` | The Stimulus controller of the recipe |
+| `sticky-header/manifest.json`, `sticky-header/README.md` | The `StickyHeader` recipe |
+| `sticky-header/templates/components/` | The `StickyHeader` component |
+| `sticky-header/assets/controllers/` | The Stimulus controller of the recipe |
+| `timeline/manifest.json`, `timeline/README.md` | The `Timeline` recipe |
+| `timeline/templates/components/` | The `Timeline` component and its `Item` |
+| `floating-label/manifest.json`, `floating-label/README.md` | The `FloatingLabel` recipe |
+| `floating-label/templates/components/` | The `FloatingLabel` component |
