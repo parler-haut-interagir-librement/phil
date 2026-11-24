@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\Persistence\Mapping\RuntimeReflectionService;
+use Phil\CommerceLogisticsBundle\Domain\Cost\VarianceReason;
 use Phil\CommerceLogisticsBundle\Domain\Delivery\DeliveryKind;
 use Phil\CommerceLogisticsBundle\Domain\Document\ShippingDocumentKind;
 use Phil\CommerceLogisticsBundle\Domain\Model\Convention;
@@ -83,7 +84,9 @@ final class MappingTest extends TestCase
             'reservedChange' => ['reserved_change', 'integer', null, false, null],
             'reference' => ['reference', 'string', 64, true, null],
             'movedAt' => ['moved_at', 'datetime_immutable', null, false, null],
+            'reason' => ['reason', 'string', 16, true, null],
         ]], $this->table(StockMovement::class));
+        self::assertSame(VarianceReason::class, $this->metadata(StockMovement::class)->fieldMappings['reason']->enumType);
         self::assertSame([['columns' => ['sku', 'location', 'moved_at']], ['columns' => ['reference']]], array_values($this->metadata(StockMovement::class)->table['indexes'] ?? []));
         self::assertSame(MovementKind::class, $this->metadata(StockMovement::class)->fieldMappings['kind']->enumType);
 

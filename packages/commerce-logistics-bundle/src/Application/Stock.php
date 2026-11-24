@@ -7,6 +7,7 @@ namespace Phil\CommerceLogisticsBundle\Application;
 use DateTimeImmutable;
 use Phil\CommerceBundle\Domain\Model\Order;
 use Phil\CommerceBundle\Domain\Order\OrderState;
+use Phil\CommerceLogisticsBundle\Domain\Cost\VarianceReason;
 use Phil\CommerceLogisticsBundle\Domain\Event\ShippedLine;
 use Phil\CommerceLogisticsBundle\Domain\Event\UnitsShipped;
 use Phil\CommerceLogisticsBundle\Domain\Exception\StockRefused;
@@ -15,11 +16,13 @@ use Phil\CommerceLogisticsBundle\Domain\Model\Reservation;
 use Phil\CommerceLogisticsBundle\Domain\Model\StockLevel;
 use Phil\CommerceLogisticsBundle\Domain\Model\StockMovement;
 use Phil\CommerceLogisticsBundle\Domain\Model\StockPolicy;
+use Phil\CommerceLogisticsBundle\Domain\Purchasing\PurchaseLine;
 use Phil\CommerceLogisticsBundle\Domain\Repository\LocationRepository;
 use Phil\CommerceLogisticsBundle\Domain\Repository\StockPolicyRepository;
 use Phil\CommerceLogisticsBundle\Domain\Repository\StockRepository;
 use Phil\CommerceLogisticsBundle\Domain\Stock\MovementKind;
 use Phil\CommerceLogisticsBundle\Domain\Stock\ReservationState;
+use Phil\Money\Money;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -29,7 +32,8 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  * never reserved. A SKU whose `StockPolicy` allows backorders sells without stock: its shortfall is reserved at its
  * first open location and leaves once goods are received. With `ConventionStock`, the convention items of an order
  * placed online while a convention is near go to print instead. Units that leave are announced by `UnitsShipped`,
- * when an event dispatcher is given. Nothing is committed here.
+ * when an event dispatcher is given. With `Costing`, each movement moves the value of the stock with it, and a
+ * customer return comes back at the cost it left at. Nothing is committed here.
  */
 final readonly class Stock
 {
@@ -39,6 +43,7 @@ final readonly class Stock
         private ?StockPolicyRepository $policies = null,
         private ?ConventionStock $conventions = null,
         private ?EventDispatcherInterface $dispatcher = null,
+        private ?Costing $costing = null,
     ) {
     }
 
@@ -68,21 +73,30 @@ final readonly class Stock
         return array_sum(array_map(static fn (StockLevel $level): int => $level->backordered(), $this->stock->levelsOf($sku)));
     }
 
-    public function receive(string $sku, string $location, int $quantity, DateTimeImmutable $at, ?string $reference = null): void
+    /**
+     * Adds units on hand. With costing, the unit cost values the shop's units, and an owner — the caller's own
+     * identifier — keeps units left on consignment out of the shop's value; both are bound as on a purchase order line.
+     */
+    public function receive(string $sku, string $location, int $quantity, DateTimeImmutable $at, ?string $reference = null, ?Money $unitCost = null, ?string $owner = null): void
     {
         $level = $this->levelAt($sku, $location);
         $level->receive($quantity);
+        PurchaseLine::of($quantity, $unitCost, $owner);
 
         $this->stock->record(StockMovement::of($level, MovementKind::Received, $quantity, 0, $reference, $at));
+        $this->costing?->receive($sku, $location, $quantity, $unitCost, $owner, $reference, $at);
     }
 
     /**
-     * Sets what a count found on hand; the journal keeps the difference.
+     * Sets what a count found on hand; the journal keeps the difference, and the reason of a difference when given.
      */
-    public function count(string $sku, string $location, int $counted, DateTimeImmutable $at, ?string $reference = null): void
+    public function count(string $sku, string $location, int $counted, DateTimeImmutable $at, ?string $reference = null, ?VarianceReason $reason = null): void
     {
         $level = $this->levelAt($sku, $location);
-        $this->stock->record(StockMovement::of($level, MovementKind::Counted, $level->count($counted), 0, $reference, $at));
+        $before = $level->onHand();
+        $difference = $level->count($counted);
+        $this->stock->record(StockMovement::of($level, MovementKind::Counted, $difference, 0, $reference, $at, $reason));
+        $this->costing?->vary($sku, $location, $difference, $before, $reason, $reference, $at);
     }
 
     /**
@@ -93,14 +107,16 @@ final readonly class Stock
      */
     public function adjust(string $sku, string $location, int $difference, DateTimeImmutable $at, ?string $reference = null): void
     {
-        if (0 === $difference) {
-            throw StockRefused::quantity($difference);
-        }
+        $this->adjustLevel($sku, $location, $difference, null, $at, $reference);
+    }
 
-        $level = $this->levelAt($sku, $location);
-        $level->adjust($difference);
-
-        $this->stock->record(StockMovement::of($level, MovementKind::Adjusted, $difference, 0, $reference, $at));
+    /**
+     * Adjusts as `adjust()` does, for a reason the journals keep beside the difference: broken, stolen, counted wrong.
+     * With costing, the cost journal keeps the value of the units at cost too, which a shrink report reads.
+     */
+    public function adjustFor(string $sku, string $location, int $difference, VarianceReason $reason, DateTimeImmutable $at, ?string $reference = null): void
+    {
+        $this->adjustLevel($sku, $location, $difference, $reason, $at, $reference);
     }
 
     /**
@@ -137,6 +153,7 @@ final readonly class Stock
 
         $level->receive($quantity);
         $this->stock->record(StockMovement::of($level, MovementKind::Returned, $quantity, 0, $orderNumber, $at));
+        $this->costing?->returnFromSale($orderNumber, $sku, $location, $quantity, $at);
     }
 
     public function transfer(string $sku, string $from, string $to, int $quantity, DateTimeImmutable $at, ?string $reference = null): void
@@ -147,10 +164,12 @@ final readonly class Stock
 
         $source = $this->levelAt($sku, $from);
         $target = $this->levelAt($sku, $to);
+        $before = $source->onHand();
         $source->remove($quantity);
         $target->receive($quantity);
         $this->stock->record(StockMovement::of($source, MovementKind::TransferredOut, -$quantity, 0, $reference, $at));
         $this->stock->record(StockMovement::of($target, MovementKind::TransferredIn, $quantity, 0, $reference, $at));
+        $this->costing?->transfer($sku, $from, $to, $quantity, $before, $reference, $at);
     }
 
     /**
@@ -227,8 +246,10 @@ final readonly class Stock
 
         foreach ($held as [$reservation, $level]) {
             $shipped = $reservation->remaining();
+            $before = $level->onHand();
             $reservation->ship($level);
             $this->stock->record(StockMovement::of($level, MovementKind::Shipped, -$shipped, -$shipped, $orderNumber, $at));
+            $this->costing?->issue($level->sku, $level->location, $shipped, $before, $orderNumber, $at);
             $lines[] = [$level, $shipped];
         }
 
@@ -278,8 +299,10 @@ final readonly class Stock
         $lines = [];
 
         foreach ($parts as [$reservation, $level, $part]) {
+            $before = $level->onHand();
             $reservation->shipPart($level, $part);
             $this->stock->record(StockMovement::of($level, MovementKind::Shipped, -$part, -$part, $orderNumber, $at));
+            $this->costing?->issue($level->sku, $level->location, $part, $before, $orderNumber, $at);
             $lines[] = [$level, $part];
         }
 
@@ -456,6 +479,20 @@ final readonly class Stock
         }
 
         return $allowed;
+    }
+
+    private function adjustLevel(string $sku, string $location, int $difference, ?VarianceReason $reason, DateTimeImmutable $at, ?string $reference): void
+    {
+        if (0 === $difference) {
+            throw StockRefused::quantity($difference);
+        }
+
+        $level = $this->levelAt($sku, $location);
+        $before = $level->onHand();
+        $level->adjust($difference);
+
+        $this->stock->record(StockMovement::of($level, MovementKind::Adjusted, $difference, 0, $reference, $at, $reason));
+        $this->costing?->vary($sku, $location, $difference, $before, $reason, $reference, $at);
     }
 
     private function policyOf(string $sku): StockPolicy

@@ -6,11 +6,13 @@ namespace Phil\CommerceLogisticsBundle\Domain\Model;
 
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use Phil\CommerceLogisticsBundle\Domain\Cost\VarianceReason;
 use Phil\CommerceLogisticsBundle\Domain\Stock\MovementKind;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * One line of the stock journal: what moved, where, why, when, and what it was for. Never changed, never deleted:
+ * One line of the stock journal: what moved, where, why, when, and what it was for; for a count or an adjustment, the
+ * reason of the difference when one was given. Never changed, never deleted:
  * the journal tells how every stock level came to be.
  */
 #[ORM\Entity]
@@ -37,14 +39,16 @@ final class StockMovement
         public ?string $reference,
         #[ORM\Column(name: 'moved_at')]
         public DateTimeImmutable $movedAt,
+        #[ORM\Column(name: 'reason', length: 16, nullable: true, enumType: VarianceReason::class)]
+        public ?VarianceReason $reason = null,
     ) {
     }
 
     /**
      * @param string|null $reference what the movement was for: an order number, a delivery note, a count sheet
      */
-    public static function of(StockLevel $level, MovementKind $kind, int $onHandChange, int $reservedChange, ?string $reference, DateTimeImmutable $at): self
+    public static function of(StockLevel $level, MovementKind $kind, int $onHandChange, int $reservedChange, ?string $reference, DateTimeImmutable $at, ?VarianceReason $reason = null): self
     {
-        return new self(Uuid::v7()->toRfc4122(), $level->sku, $level->location, $kind, $onHandChange, $reservedChange, $reference, $at);
+        return new self(Uuid::v7()->toRfc4122(), $level->sku, $level->location, $kind, $onHandChange, $reservedChange, $reference, $at, $reason);
     }
 }

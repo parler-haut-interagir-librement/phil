@@ -6,9 +6,13 @@ namespace Phil\CommerceLogisticsBundle\Tests\Unit\Support;
 
 use DateTimeImmutable;
 use Override;
+use Phil\CommerceLogisticsBundle\Domain\Contract\CostRepository;
+use Phil\CommerceLogisticsBundle\Domain\Cost\CostEntryKind;
 use Phil\CommerceLogisticsBundle\Domain\Document\ShippingDocumentKind;
 use Phil\CommerceLogisticsBundle\Domain\Model\Convention;
 use Phil\CommerceLogisticsBundle\Domain\Model\ConventionQuantity;
+use Phil\CommerceLogisticsBundle\Domain\Model\CostEntry;
+use Phil\CommerceLogisticsBundle\Domain\Model\CostLayer;
 use Phil\CommerceLogisticsBundle\Domain\Model\DeliveryMethod;
 use Phil\CommerceLogisticsBundle\Domain\Model\Location;
 use Phil\CommerceLogisticsBundle\Domain\Model\PrintJob;
@@ -37,7 +41,7 @@ use Phil\CommerceLogisticsBundle\Domain\Repository\StockPolicyRepository;
 use Phil\CommerceLogisticsBundle\Domain\Repository\StockRepository;
 use Phil\CommerceLogisticsBundle\Domain\Serial\SerialState;
 
-final class InMemoryLogistics implements LocationRepository, StockRepository, StockPolicyRepository, DeliveryMethodRepository, ShipmentRepository, ShippingCostRepository, ConventionRepository, PurchaseOrderRepository, SerialNumberRepository, ShippingDocumentRepository, ShippingWaveRepository
+final class InMemoryLogistics implements CostRepository, LocationRepository, StockRepository, StockPolicyRepository, DeliveryMethodRepository, ShipmentRepository, ShippingCostRepository, ConventionRepository, PurchaseOrderRepository, SerialNumberRepository, ShippingDocumentRepository, ShippingWaveRepository
 {
     /** @var array<string, Location> */
     private array $locations = [];
@@ -413,5 +417,109 @@ final class InMemoryLogistics implements LocationRepository, StockRepository, St
         sort($orders);
 
         return $orders;
+    }
+
+    /** @var array<string, CostLayer> */
+    public array $layers = [];
+
+    /** @var list<CostEntry> */
+    public array $entries = [];
+
+    #[Override]
+    public function layersOf(string $sku, string $location): array
+    {
+        $layers = array_values(array_filter($this->layers, static fn (CostLayer $layer): bool => $layer->sku === $sku && $layer->location === $location));
+        usort($layers, static fn (CostLayer $left, CostLayer $right): int => [$left->receivedAt, $left->id] <=> [$right->receivedAt, $right->id]);
+
+        return $layers;
+    }
+
+    #[Override]
+    public function shopLayersOf(string $sku): array
+    {
+        return array_values(array_filter($this->layers, static fn (CostLayer $layer): bool => $layer->sku === $sku && $layer->isShops()));
+    }
+
+    #[Override]
+    public function addLayer(CostLayer $layer): void
+    {
+        $this->layers[$layer->id] = $layer;
+    }
+
+    #[Override]
+    public function removeLayer(CostLayer $layer): void
+    {
+        unset($this->layers[$layer->id]);
+    }
+
+    #[Override]
+    public function addEntry(CostEntry $entry): void
+    {
+        $this->entries[] = $entry;
+    }
+
+    #[Override]
+    public function salesEntriesOf(string $reference, string $sku): array
+    {
+        return array_values(array_filter($this->entries, static fn (CostEntry $entry): bool => $entry->reference === $reference && $entry->sku === $sku && \in_array($entry->kind, [CostEntryKind::Issued, CostEntryKind::Returned], true)));
+    }
+
+    #[Override]
+    public function latestCostedReceipt(string $sku): ?CostEntry
+    {
+        $receipts = array_values(array_filter($this->entries, static fn (CostEntry $entry): bool => $entry->sku === $sku && CostEntryKind::Received === $entry->kind && null === $entry->owner && $entry->costedUnits() > 0));
+
+        return $receipts[\count($receipts) - 1] ?? null;
+    }
+
+    #[Override]
+    public function valuation(DateTimeImmutable $at): array
+    {
+        $rows = [];
+
+        foreach ($this->entries as $entry) {
+            if (null !== $entry->owner || $entry->movedAt > $at) {
+                continue;
+            }
+
+            $key = $entry->sku."\0".$entry->location."\0".$entry->value()->currency->code;
+            $row = $rows[$key] ?? ['sku' => $entry->sku, 'location' => $entry->location, 'currency' => $entry->value()->currency->code, 'units' => 0, 'value' => 0];
+            $rows[$key] = ['units' => $row['units'] + $entry->costedUnits(), 'value' => $row['value'] + $entry->value()->minorUnits] + $row;
+        }
+
+        ksort($rows);
+
+        return array_values(array_filter($rows, static fn (array $row): bool => 0 !== $row['units'] || 0 !== $row['value']));
+    }
+
+    #[Override]
+    public function salesCost(DateTimeImmutable $from, DateTimeImmutable $until): array
+    {
+        $rows = [];
+
+        foreach ($this->entries as $entry) {
+            if (null !== $entry->owner || null === $entry->reference || !\in_array($entry->kind, [CostEntryKind::Issued, CostEntryKind::Returned], true) || $entry->movedAt < $from || $entry->movedAt >= $until) {
+                continue;
+            }
+
+            $key = $entry->reference."\0".$entry->sku."\0".$entry->value()->currency->code;
+            $row = $rows[$key] ?? ['reference' => $entry->reference, 'sku' => $entry->sku, 'currency' => $entry->value()->currency->code, 'units' => 0, 'uncosted' => 0, 'value' => 0];
+            $rows[$key] = ['units' => $row['units'] + $entry->units, 'uncosted' => $row['uncosted'] + $entry->uncosted, 'value' => $row['value'] + $entry->value()->minorUnits] + $row;
+        }
+
+        ksort($rows);
+
+        return array_values($rows);
+    }
+
+    #[Override]
+    public function entries(DateTimeImmutable $from, DateTimeImmutable $until, array $kinds, ?string $after, int $limit): array
+    {
+        $entries = array_values(array_filter(
+            $this->entries,
+            static fn (CostEntry $entry): bool => $entry->movedAt >= $from && $entry->movedAt < $until && ([] === $kinds || \in_array($entry->kind, $kinds, true)) && (null === $after || $entry->id > $after),
+        ));
+
+        return \array_slice($entries, 0, $limit);
     }
 }

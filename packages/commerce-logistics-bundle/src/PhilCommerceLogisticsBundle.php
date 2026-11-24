@@ -7,9 +7,13 @@ namespace Phil\CommerceLogisticsBundle;
 use LogicException;
 use Override;
 use Phil\CommerceBundle\Application\TaxOrderProcessor;
+use Phil\CommerceLogisticsBundle\Application\Contract\InventoryValuation;
+use Phil\CommerceLogisticsBundle\Application\Contract\StockOwnership;
 use Phil\CommerceLogisticsBundle\Application\ConventionStock;
+use Phil\CommerceLogisticsBundle\Application\Costing;
 use Phil\CommerceLogisticsBundle\Application\DeferredStock;
 use Phil\CommerceLogisticsBundle\Application\DeliveryOptions;
+use Phil\CommerceLogisticsBundle\Application\InventoryValue;
 use Phil\CommerceLogisticsBundle\Application\LogisticsDocumentTypes;
 use Phil\CommerceLogisticsBundle\Application\Port\CarrierGateway;
 use Phil\CommerceLogisticsBundle\Application\Port\PrintOnDemand;
@@ -20,10 +24,13 @@ use Phil\CommerceLogisticsBundle\Application\ShippingDocuments;
 use Phil\CommerceLogisticsBundle\Application\ShippingLabels;
 use Phil\CommerceLogisticsBundle\Application\ShippingProcessor;
 use Phil\CommerceLogisticsBundle\Application\ShippingWaves;
+use Phil\CommerceLogisticsBundle\Application\ShopUnitsFirst;
 use Phil\CommerceLogisticsBundle\Application\Stock;
+use Phil\CommerceLogisticsBundle\Domain\Cost\CostingMethod;
 use Phil\CommerceLogisticsBundle\Infrastructure\CanadaPost\CanadaPostCarrier;
 use Phil\CommerceLogisticsBundle\Infrastructure\CanadaPost\CanadaPostCredentials;
 use Phil\CommerceLogisticsBundle\Infrastructure\Doctrine\DoctrineLogisticsRepository;
+use Phil\Money\Currency;
 use ReflectionClass;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -40,7 +47,9 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_it
  * pickup — whose cost the core's `OrderProcessor` adds to the order; and the carriers' rates and labels, with what
  * each shipment really cost beside what the buyer paid, Canada Post's adapter wired when it is configured. Backorders
  * per SKU, the stock of convention items and print on demand, purchase orders, serial numbers, delivery notes and
- * picking slips in the core's register, shipping waves, and the stock of the core's deferred sales.
+ * picking slips in the core's register, shipping waves, and the stock of the core's deferred sales. With costing
+ * enabled, the value of the stock at cost — weighted average or first in, first out —, landed costs, variances by
+ * reason, and customer returns at the cost they left at.
  *
  * The module plugs into `phil/commerce-bundle`, and refuses to load without it. With DoctrineBundle, all of it is
  * mapped and stored.
@@ -86,6 +95,22 @@ final class PhilCommerceLogisticsBundle extends AbstractBundle
                             ->scalarPrototype()->end()
                             ->defaultValue([])
                         ->end()
+                    ->end()
+                ->end()
+                ->arrayNode('costing')
+                    ->info('The value of the stock at cost, kept with each movement; units left on consignment are never part of it.')
+                    ->canBeEnabled()
+                    ->children()
+                        ->enumNode('method')
+                            ->info('How the shop\'s units leave: at the average of their pool, or the oldest layer first.')
+                            ->values(array_map(static fn (CostingMethod $method): string => $method->value, CostingMethod::cases()))
+                            ->defaultValue(CostingMethod::WeightedAverage->value)
+                        ->end()
+                        ->scalarNode('currency')->info('The ISO 4217 code of the currency the stock is valued in: every unit cost and landed cost is given in it.')->defaultNull()->end()
+                    ->end()
+                    ->validate()
+                        ->ifTrue(static fn (array $costing): bool => true === $costing['enabled'] && (!\is_string($costing['currency']) || 1 !== preg_match('/^[A-Z]{3}$/D', $costing['currency'])))
+                        ->thenInvalid('Costing needs the ISO 4217 code of its currency, three capital letters.')
                     ->end()
                 ->end()
                 ->arrayNode('carriers')
@@ -171,10 +196,17 @@ final class PhilCommerceLogisticsBundle extends AbstractBundle
             ->arg('$onlineChannels', $conventions['online_channels'])
             ->arg('$printers', tagged_iterator(self::PRINT_ON_DEMAND_TAG))
             ->public();
+        // The value of the stock, read by reports and the catalogue; empty while costing is disabled.
+        $services->set(InventoryValue::class)->autowire();
+        $services->alias(InventoryValuation::class, InventoryValue::class)->public();
+        $this->loadCosting($config, $container);
         // Shipped units are announced on the application's event dispatcher, when it has one.
-        $services->set(Stock::class)->autowire()->arg('$dispatcher', service('event_dispatcher')->nullOnInvalid())->public();
+        $services->set(Stock::class)->autowire()
+            ->arg('$dispatcher', service('event_dispatcher')->nullOnInvalid())
+            ->arg('$costing', service(Costing::class)->nullOnInvalid())
+            ->public();
         $services->set(Shipments::class)->autowire()->public();
-        $services->set(Purchasing::class)->autowire()->public();
+        $services->set(Purchasing::class)->autowire()->arg('$costing', service(Costing::class)->nullOnInvalid())->public();
         $services->set(SerialNumbers::class)->autowire()->public();
         $services->set(ShippingWaves::class)->autowire()->public();
         $services->set(ShippingDocuments::class)->autowire()->public();
@@ -190,6 +222,32 @@ final class PhilCommerceLogisticsBundle extends AbstractBundle
                 $services->alias($port, $adapter)->public();
             }
         }
+    }
+
+    /**
+     * The costing, when it is enabled: its method, its currency, and whose units leave a level that consigned units
+     * share — the shop's first, unless the application points the alias of `StockOwnership` at its own service.
+     *
+     * @param array<array-key, mixed> $config
+     */
+    private function loadCosting(array $config, ContainerConfigurator $container): void
+    {
+        /** @var array{enabled: bool, method: string, currency: ?string} $costing */
+        $costing = $config['costing'];
+
+        if (!$costing['enabled']) {
+            return;
+        }
+
+        $services = $container->services();
+        $services->set(ShopUnitsFirst::class);
+        $services->alias(StockOwnership::class, ShopUnitsFirst::class);
+        $services->set(Costing::class)->args([
+            service(DoctrineLogisticsRepository::class),
+            CostingMethod::from($costing['method']),
+            inline_service(Currency::class)->factory([Currency::class, 'of'])->args([$costing['currency']]),
+            service(StockOwnership::class),
+        ]);
     }
 
     /**
