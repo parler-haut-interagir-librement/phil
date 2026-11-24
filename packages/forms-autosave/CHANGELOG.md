@@ -4,6 +4,16 @@ All notable changes to `phil/forms-autosave` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`symfony/service-contracts` 3.8, `symfony/translation-contracts` 3.8),
+  and of each development requirement (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `doctrine/doctrine-bundle` 3.4,
+  `twig/twig` 3.31, …).
+
 ## 0.3.0-alpha - 2026-11-20
 
 The key of a draft kept on the server compares byte by byte on MySQL and MariaDB. See

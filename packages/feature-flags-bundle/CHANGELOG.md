@@ -8,6 +8,13 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `twig/twig` 3.31,
+  `phil/circuit-breaker-bundle` 0.2), and of each development requirement (`doctrine/doctrine-bundle` 3.4). The states
+  of the flags are read through the type provider of the connection, as DBAL 4.6 asks, instead of the static
+  `Type::getType()`.
+
 ### Fixed
 
 - `phil/circuit-breaker-bundle` 0.2 is accepted beside 0.1: the package did not install beside the version published on

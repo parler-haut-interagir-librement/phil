@@ -27,6 +27,12 @@ The next version is 0.1.1-alpha.
   identifier; `PurchaseOrder::line()`, which a receipt reads back; the purchase order's `line_terms` column, null when
   no line gives them. A database of 0.1.0-alpha gains the two columns and nothing else changes.
 
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `symfony/event-dispatcher-contracts` 3.8,
+  `symfony/http-client-contracts` 3.8, `symfony/polyfill-php86` 1.43, …), and of each development requirement
+  (`doctrine/dbal` 4.6, `doctrine/doctrine-bundle` 3.4, `doctrine/persistence` 4.2).
+
 ### Fixed
 
 - It requires `phil/commerce-bundle` 0.4, the version published on 2026-11-20, beside which its requirement of 0.2 or

@@ -63,6 +63,10 @@ and takes `Equivalences` as its second argument.
 - The development requirements accept `phil/notifications-bundle` 0.3, `phil/privacy-bundle` 0.3 and `phil/safe-http`
   0.2, the minor versions of their main branches and no earlier one, so that the package installs on its own beside those
   packages.
+- Requires the latest minor of each dependency (`doctrine/dbal` 4.6, `phil/elearning-packages` 0.2), and of each
+  development requirement (`doctrine/orm` 3.8, `doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31,
+  `symfony/ux-twig-component` 3.8, …). The dates of a row are read through the type provider of the connection, as
+  DBAL 4.6 asks, instead of the static `Type::getType()`.
 
 ### Fixed
 

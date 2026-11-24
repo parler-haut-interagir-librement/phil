@@ -4,6 +4,15 @@ All notable changes to `phil/references-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6), and of each development
+  requirement (`doctrine/doctrine-bundle` 3.4, `doctrine/persistence` 4.2).
+
 ## 0.2.0-alpha - 2026-11-18
 
 Kinds, identifiers and fields of the usage table compare byte by byte on MySQL and

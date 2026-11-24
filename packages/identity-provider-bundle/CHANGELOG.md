@@ -88,6 +88,10 @@ See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
   apply it.
 - Every instant column of the bundle's tables is mapped as `datetime_utc_immutable`, and every instant a query passes
   is typed so: the SQL type is the same, and `doctrine:migrations:diff` writes no change.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `twig/twig` 3.31,
+  `phil/passwords` 0.2, …), and of each development requirement (`doctrine/doctrine-bundle` 3.4,
+  `symfony/ux-twig-component` 3.8, `symfony/dom-crawler` 8.2, `symfony/http-client-contracts` 3.8, …). The lockout
+  delay is computed in integers.
 
 ### Fixed
 

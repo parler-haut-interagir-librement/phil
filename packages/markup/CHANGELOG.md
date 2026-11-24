@@ -4,6 +4,16 @@ All notable changes to `phil/markup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.2-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6).
+
 ## 0.3.1-alpha - 2026-11-20
 
 A Markdown source holding more than 100,000 lines, read before, is refused by

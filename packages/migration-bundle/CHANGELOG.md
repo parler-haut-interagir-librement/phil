@@ -4,6 +4,17 @@ All notable changes to `phil/migration-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`doctrine/dbal` 4.6,
+  `doctrine/doctrine-bundle` 3.4).
+
 ## 0.1.2-alpha - 2026-11-18
 
 A note that several migrations of a run bring is announced once on each channel.

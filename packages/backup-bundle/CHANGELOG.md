@@ -8,11 +8,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.2-alpha.
 
-Tests only.
-
 ### Changed
 
 - The tests check that a stopped process has ended with `kill -0`, without `ps`, which some containers do not install.
+- Requires the latest minor of each dependency (`doctrine/dbal` 4.6, `symfony/event-dispatcher-contracts` 3.8).
 
 ## 0.1.1-alpha - 2026-11-14
 

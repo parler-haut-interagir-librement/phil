@@ -4,6 +4,18 @@ All notable changes to `phil/content-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `twig/twig` 3.31,
+  `phil/markup` 0.3, …), and of each development requirement (`doctrine/doctrine-bundle` 3.4,
+  `easycorp/easyadmin-bundle` 5.10). The identifiers of the roots are converted through the type provider of the
+  connection, as DBAL 4.6 asks, instead of the static `Type::getType()`. The unique constraint the listener looks for
+  is read as the index shape of `doctrine/orm` 3.8.
+
 ## 0.3.0-alpha - 2026-11-18
 
 The keys of the routes, single roots, working copies and rows compare byte by byte on

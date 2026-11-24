@@ -4,6 +4,17 @@ All notable changes to `phil/ux-kit-shadcn` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`twig/twig` 3.31,
+  `symfony/ux-twig-component` 3.8, `symfony/ux-toolkit` 3.8, `twig/extra-bundle` 3.31, …).
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

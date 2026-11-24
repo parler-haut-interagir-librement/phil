@@ -34,6 +34,9 @@ and the `config` preferences with a digest for everyone need a way to record it.
   digest a text part.
 - With the `config` preferences and `defaults.digest` other than `never`, the container refuses to build unless
   `digest.unsubscriber` names a service or `digest.unsubscribe` is false.
+- Requires the latest minor of each dependency (`doctrine/dbal` 4.6, `symfony/service-contracts` 3.8,
+  `symfony/translation-contracts` 3.8), and of each development requirement (`doctrine/orm` 3.8,
+  `doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, `symfony/ux-twig-component` 3.8, …).
 
 ### Security
 

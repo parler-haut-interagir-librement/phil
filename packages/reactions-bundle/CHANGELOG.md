@@ -8,12 +8,14 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Development only.
-
 ### Changed
 
 - The development requirements accept `phil/privacy-bundle` 0.3 and `phil/settings-bundle` 0.2, the minor versions of
   their main branches and no earlier one, so that the package installs on its own beside those bundles.
+- Requires the latest minor of each dependency (`symfony/ux-live-component` 3.8.1, `doctrine/orm` 3.8, `doctrine/dbal`
+  4.6, `twig/twig` 3.31, …), and of each development requirement (`doctrine/doctrine-bundle` 3.4,
+  `symfony/dom-crawler` 8.2, `symfony/stimulus-bundle` 3.8, `twig/extra-bundle` 3.31): `symfony/ux-live-component`
+  3.8.1 fixes CVE-2026-133774 and CVE-2026-133778.
 
 ## 0.1.0-alpha - 2026-11-20
 

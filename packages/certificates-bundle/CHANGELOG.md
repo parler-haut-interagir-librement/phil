@@ -12,6 +12,9 @@ The next version is 0.3.0-alpha: instants are written and read in UTC, whatever 
 
 - The PDF prints its dates in PHP's default time zone, as the register's pages do, rather than in the time zone of the
   instant it was given.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `twig/twig` 3.31,
+  `doctrine/persistence` 4.2, …), and of each development requirement (`doctrine/doctrine-bundle` 3.4,
+  `symfony/http-client-contracts` 3.8).
 
 ### Security
 

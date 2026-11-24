@@ -4,6 +4,15 @@ All notable changes to `phil/markup-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.4-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`symfony/translation-contracts` 3.8), and of each development
+  requirement (`twig/twig` 3.31).
+
 ## 0.1.3-alpha - 2026-11-18
 
 Three optional keys, on `phil/markup` 0.3.

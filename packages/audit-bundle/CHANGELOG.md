@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.1.1-alpha: documentation and tests only.
+The next version is 0.1.1-alpha: documentation and development only.
 
 ### Added
 
@@ -14,6 +14,11 @@ The next version is 0.1.1-alpha: documentation and tests only.
 - Tests of a clock in another time zone, through storage and verification, and of the end of daylight saving time;
   of facts holding a carriage return, a NUL byte, a terminal escape or another control character, refused when written
   and not intact when stored.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
+  `symfony/http-client-contracts` 3.8).
 
 ## 0.1.0-alpha - 2026-11-14
 

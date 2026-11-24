@@ -4,6 +4,15 @@ All notable changes to `phil/automations` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`symfony/http-client-contracts` 3.8, `symfony/service-contracts` 3.8),
+  and of each development requirement (`doctrine/dbal` 4.6).
+
 ## 0.1.1-alpha - 2026-11-14
 
 ### Added

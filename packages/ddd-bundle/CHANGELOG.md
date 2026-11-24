@@ -4,6 +4,16 @@ All notable changes to `phil/ddd-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`doctrine/dbal` 4.6).
+
 ## 0.1.1-alpha - 2026-11-17
 
 Documentation only.

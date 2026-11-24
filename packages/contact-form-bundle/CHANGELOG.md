@@ -12,6 +12,7 @@ The next version is 0.1.2-alpha.
 
 - `ContactMailer` takes a Mailer `TransportInterface`, the service `mailer.transports`, instead of `MailerInterface`.
 - `symfony/messenger` is in `require-dev`, for the test that routes `SendEmailMessage` to an asynchronous transport.
+- Requires the latest minor of each dependency (`twig/twig` 3.31, `phil/spam-protection-bundle` 0.3).
 
 ### Fixed
 

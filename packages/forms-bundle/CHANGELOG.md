@@ -14,6 +14,9 @@ The next version is 0.2.1-alpha.
   one, so that the package installs on its own beside that bundle.
 - `EmailNotifier` takes a Mailer `TransportInterface`, the service `mailer.transports`, instead of `MailerInterface`.
 - `symfony/messenger` is in `require-dev`, for the test that routes `SendEmailMessage` to an asynchronous transport.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `twig/twig` 3.31,
+  `phil/spam-protection-bundle` 0.3), and of each development requirement (`doctrine/doctrine-bundle` 3.4,
+  `doctrine/persistence` 4.2, `symfony/http-client-contracts` 3.8, `symfony/stimulus-bundle` 3.8, …).
 
 ### Fixed
 

@@ -4,6 +4,16 @@ All notable changes to `phil/tenancy-database-bundle` will be documented in this
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `doctrine/persistence` 4.2,
+  `phil/tenancy-bundle` 0.2, …), and of each development requirement (`doctrine/doctrine-bundle` 3.4,
+  `doctrine/collections` 3.1).
+
 ## 0.1.2-alpha - 2026-11-20
 
 ### Changed

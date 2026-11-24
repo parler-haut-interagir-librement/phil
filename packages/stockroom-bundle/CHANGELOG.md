@@ -4,6 +4,15 @@ All notable changes to `phil/stockroom-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/dbal` 4.6), and of each development requirement
+  (`doctrine/orm` 3.8, `doctrine/doctrine-bundle` 3.4).
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

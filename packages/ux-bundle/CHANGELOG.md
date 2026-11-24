@@ -8,6 +8,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
+### Changed
+
+- Requires the latest minor of each dependency (`twig/twig` 3.31).
+
 ### Fixed
 
 - `phil/ux-css` 0.6 is accepted beside 0.5: the package would not install beside the version published on 2026-11-21.

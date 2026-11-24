@@ -21,6 +21,9 @@ The next version is 0.1.1-alpha.
 
 - The development requirements accept `phil/privacy-bundle` 0.3, the minor version of its main branch and no earlier
   one, so that the package installs on its own beside that bundle.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/collections` 3.1,
+  `symfony/http-client-contracts` 3.8, `symfony/translation-contracts` 3.8), and of each development requirement
+  (`doctrine/dbal` 4.6, `doctrine/doctrine-bundle` 3.4).
 
 ### Security
 

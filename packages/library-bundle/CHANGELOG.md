@@ -8,12 +8,13 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Development only.
-
 ### Changed
 
 - The development requirements accept `phil/privacy-bundle` 0.3, the minor version of its main branch and no earlier
   one, so that the package installs on its own beside that bundle.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `twig/twig` 3.31,
+  `symfony/ux-twig-component` 3.8, …), and of each development requirement (`doctrine/doctrine-bundle` 3.4,
+  `easycorp/easyadmin-bundle` 5.10, `doctrine/persistence` 4.2).
 
 ## 0.1.0-alpha - 2026-11-20
 

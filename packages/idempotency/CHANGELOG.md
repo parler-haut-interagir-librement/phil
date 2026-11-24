@@ -4,6 +4,16 @@ All notable changes to `phil/idempotency` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`doctrine/dbal` 4.6).
+
 ## 0.3.0-alpha - 2026-11-17
 
 The Messenger middleware compares the content of a message, and refuses a key reused

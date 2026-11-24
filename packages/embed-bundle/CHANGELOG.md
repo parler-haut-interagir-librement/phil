@@ -8,12 +8,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Development only.
-
 ### Changed
 
 - The development requirements accept `phil/browser-security-bundle` 0.2, the minor version of its main branch and no
   earlier one, so that the package installs on its own beside that bundle.
+- Requires the latest minor of each dependency (`twig/twig` 3.31).
 
 ## 0.1.0-alpha - 2026-11-13
 

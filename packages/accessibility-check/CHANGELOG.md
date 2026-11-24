@@ -4,6 +4,15 @@ All notable changes to `phil/accessibility-check` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`symfony/translation-contracts` 3.8), and of each development
+  requirement (`symfony/event-dispatcher-contracts` 3.8).
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

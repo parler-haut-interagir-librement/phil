@@ -4,6 +4,17 @@ All notable changes to `phil/api-contract-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.2-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
+  `doctrine/doctrine-bundle` 3.4, `symfony/http-client-contracts` 3.8).
+
 ## 0.3.1-alpha - 2026-11-18
 
 Anonymous callers can be accepted per endpoint, and the keys of Messenger messages can

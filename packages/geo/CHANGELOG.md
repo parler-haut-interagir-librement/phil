@@ -8,12 +8,14 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Tests only.
+Development only.
 
 ### Changed
 
 - The test of a database that cannot be read leaves out the file without permissions when the tests run as a user who
   reads it anyway, such as root in a container.
+- The development requirements ask for the latest minor of each dependency (`symfony/cache-contracts` 3.8,
+  `symfony/http-client-contracts` 3.8).
 
 ## 0.1.0-alpha - 2026-11-11
 

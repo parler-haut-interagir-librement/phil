@@ -8,14 +8,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Development only.
-
 ### Changed
 
 - The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
 - The development requirements accept `phil/settings-bundle` 0.2, the minor version of its main branch and no earlier
   one, so that the package installs on its own beside that bundle.
+- Requires the latest minor of each dependency (`symfony/ux-live-component` 3.8.1, `twig/twig` 3.31,
+  `symfony/ux-twig-component` 3.8, `symfony/translation-contracts` 3.8), and of each development requirement
+  (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `symfony/dom-crawler` 8.2, `symfony/stimulus-bundle` 3.8):
+  `symfony/ux-live-component` 3.8.1 fixes CVE-2026-133774 and CVE-2026-133778. The window of a page given to the
+  paginator starts at zero or later and holds one row or more.
 
 ## 0.1.0-alpha - 2026-11-14
 

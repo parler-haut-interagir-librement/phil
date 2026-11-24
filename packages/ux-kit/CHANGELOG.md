@@ -23,6 +23,8 @@ The next version is 0.6.0-alpha.
 
 - The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
+- Requires the latest minor of each dependency (`twig/twig` 3.31), and of each development requirement
+  (`symfony/ux-twig-component` 3.8, `liip/imagine-bundle` 2.19, `twig/extra-bundle` 3.31, `twig/html-extra` 3.31).
 
 ## 0.5.0-alpha - 2026-11-12
 

@@ -129,6 +129,9 @@ columns more and a table of corrections; `phil:privacy:incident` prints the para
 - [The register of incidents](doc/incidents.md) and [The legal framework](doc/legal-framework.md) cite sections 3.5 to
   3.8 of the *Act respecting the protection of personal information in the private sector* (chapter P-39.1) and
   sections 6 to 8 of the regulation, with the SQL of the tables for MySQL 8.4, PostgreSQL 17 and SQLite.
+- Requires the latest minor of each dependency (`twig/twig` 3.31, `monolog/monolog` 3.13,
+  `symfony/event-dispatcher-contracts` 3.8), and of each development requirement (`doctrine/orm` 3.8, `doctrine/dbal`
+  4.6, `doctrine/persistence` 4.2, `symfony/dom-crawler` 8.2, …).
 
 ## 0.2.0-alpha - 2026-11-20
 

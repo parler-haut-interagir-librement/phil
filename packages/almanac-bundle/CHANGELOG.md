@@ -4,6 +4,17 @@ All notable changes to `phil/almanac-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
+  `doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, …).
+
 ## 0.2.0-alpha - 2026-11-20
 
 The key of a stored date compares byte by byte on MySQL and MariaDB. See

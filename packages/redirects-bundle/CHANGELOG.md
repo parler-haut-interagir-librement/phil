@@ -4,6 +4,17 @@ All notable changes to `phil/redirects-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6), and of each development
+  requirement (`doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, `easycorp/easyadmin-bundle` 5.10,
+  `symfony/service-contracts` 3.8, …). The dates and booleans of a row are read by the DBAL types themselves instead
+  of the static `Type::getType()`, which DBAL 4.6 deprecates.
+
 ## 0.1.1-alpha - 2026-11-11
 
 ### Security

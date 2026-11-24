@@ -8,6 +8,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.3.1-alpha.
 
+### Changed
+
+- Requires the latest minor of each dependency (`symfony/translation-contracts` 3.8), and of each development
+  requirement (`doctrine/orm` 3.8, `doctrine/dbal` 4.6).
+
 ### Security
 
 - `CacheUsedTokens` no longer puts the nonce in clear in the key of its lock or of its cache item: both use the SHA-256

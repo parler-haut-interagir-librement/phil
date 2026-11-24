@@ -4,6 +4,14 @@ All notable changes to `phil/slug` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`symfony/translation-contracts` 3.8).
+
 ## 0.1.1-alpha - 2026-11-17
 
 Documentation only.

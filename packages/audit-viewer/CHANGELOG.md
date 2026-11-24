@@ -4,6 +4,16 @@ All notable changes to `phil/audit-viewer` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`twig/twig` 3.31, `easycorp/easyadmin-bundle` 5.10), and of each
+  development requirement (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `doctrine/doctrine-bundle` 3.4,
+  `symfony/ux-twig-component` 3.8, …).
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

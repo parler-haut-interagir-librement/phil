@@ -6,13 +6,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.2.1-alpha: documentation and tests only.
+The next version is 0.2.1-alpha: documentation and development only.
 
 ### Added
 
 - The [ASVS 5.0 mapping](doc/asvs.md).
 - Tests of a password of 200 characters, and of passwords hashed and checked exactly as typed: surrounding spaces,
   capitals, composed and decomposed accents, invalid UTF-8.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`symfony/http-client-contracts` 3.8).
 
 ## 0.2.0-alpha - 2026-11-15
 
