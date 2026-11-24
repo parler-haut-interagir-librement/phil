@@ -24,7 +24,8 @@ Returns for the core of commerce.
 
 ## Its own ports
 
-- `Restocking`: puts units back on the shelf.
+- `Restocking`: puts units back on the shelf; `LogisticsRestocking` on `phil/commerce-logistics-bundle`, when
+  `logistics_restocking` is enabled.
 - `StoreCreditGranter`: grants store credit; `StoredValueStoreCredit` on `phil/commerce-stored-value-bundle`.
 - `SetParts`: the parts of a set; `CatalogSetParts` on `phil/commerce-catalog-bundle`.
 - `SpecialDiscounts`: which discounts are specials; `PromotionSpecials` on `phil/commerce-promotions-bundle`.

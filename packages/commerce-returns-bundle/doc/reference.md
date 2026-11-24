@@ -31,6 +31,7 @@ Every public type of the module.
 | `Infrastructure\Catalog\CatalogSetParts` | `final readonly class` | Sets through `phil/commerce-catalog-bundle` |
 | `Infrastructure\Promotions\PromotionSpecials` | `final readonly class` | Specials through `phil/commerce-promotions-bundle` |
 | `Infrastructure\Logistics\LogisticsShipmentDates` | `final readonly class` | Shipment dates through `phil/commerce-logistics-bundle` |
+| `Infrastructure\Logistics\LogisticsRestocking` | `final readonly class`, `Restocking` | Resellable units back in the stock of `phil/commerce-logistics-bundle`, at the cost they left at |
 | `Infrastructure\PagedMedia\PagedMediaReturnSlips` | `final readonly class` | Slips drawn with `phil/paged-media` |
 
 See [scope.md](scope.md) for what is not started.

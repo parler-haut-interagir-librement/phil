@@ -67,6 +67,9 @@ phil_commerce_returns:
     delivery_refund: shops_fault  # never, shops_fault or whole_order
     expiry_days: ~                # how long an authorized return waits for its goods; ~ for ever
     rate_limiter: ~               # a symfony/rate-limiter factory bounding each customer's requests
+    logistics_restocking:
+        enabled: false            # resellable units back in the stock of phil/commerce-logistics-bundle
+        location: ~               # the location every return goes to; ~ for the one each SKU left from
     slips:
         prefix: 'RS-'
         digits: 8
@@ -91,5 +94,6 @@ Expiry runs from a scheduled task — a Symfony Scheduler message or a cron comm
 
 ## Restocking
 
-Implement `Restocking` to put resellable units back on the shelf — a stock movement of
-`phil/commerce-logistics-bundle`, for instance; autoconfiguration tags the service.
+With `phil/commerce-logistics-bundle` 0.1.1 or later registered, enable `logistics_restocking` to put resellable units
+back in its stock; otherwise, implement `Restocking` to put them back on the application's own shelf —
+autoconfiguration tags the service. See [Returns](returns.md#restocking).

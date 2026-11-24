@@ -24,6 +24,10 @@ received, in the transaction that records it.
 |---|---|
 | `restock(SellableReference $line, int $quantity, string $return, DateTimeImmutable $at): void` | Puts the units back — a stock movement of `phil/commerce-logistics-bundle`, or the application's own; `$line` is the order line's reference, and what goes back on the shelf is its `unconfigured()` sellable |
 
+`Infrastructure\Logistics\LogisticsRestocking` is the module's own, on `phil/commerce-logistics-bundle`, registered and
+tagged when `logistics_restocking` is enabled; an application that restocks otherwise leaves it off, so that no unit
+comes back twice.
+
 ### `StoreCreditGranter`
 
 `Phil\CommerceReturnsBundle\Application\Port\StoreCreditGranter` — gives a customer store credit for a return.
@@ -81,6 +85,8 @@ under the same contract.
 | `delivery_refund` | `never`, `shops_fault` (the default) or `whole_order`: when the delivery charge comes back |
 | `expiry_days` | How many days an authorized return waits for its goods before `expire()` expires it; `null`, the default, for ever |
 | `rate_limiter` | The service of a `symfony/rate-limiter` factory that bounds the returns each customer asks for; `null`, the default, for none |
+| `logistics_restocking.enabled` | Puts resellable units back in the stock of `phil/commerce-logistics-bundle`, which must be registered; off by default |
+| `logistics_restocking.location` | The code of the location every return goes to, 1 to 64 characters; `null`, the default, for the one each SKU left from |
 | `slips.prefix`, `slips.digits` | The prefix and the digits of the slips' numbers; `RS-` and 8 by default |
 
 A rate limit counts in the store its factory names: behind a load balancer, a store shared by every server, so that a

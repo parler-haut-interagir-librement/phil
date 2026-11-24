@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Phil\CommerceBundle\PhilCommerceBundle;
 use Phil\CommerceCatalogBundle\PhilCommerceCatalogBundle;
+use Phil\CommerceLogisticsBundle\PhilCommerceLogisticsBundle;
 use Phil\CommercePromotionsBundle\PhilCommercePromotionsBundle;
 use Phil\CommerceReturnsBundle\PhilCommerceReturnsBundle;
 use Phil\CommerceStoredValueBundle\PhilCommerceStoredValueBundle;
@@ -17,5 +18,6 @@ return [
     PhilCommerceStoredValueBundle::class => ['all' => true],
     PhilCommerceCatalogBundle::class => ['all' => true],
     PhilCommercePromotionsBundle::class => ['all' => true],
+    PhilCommerceLogisticsBundle::class => ['all' => true],
     PhilCommerceReturnsBundle::class => ['all' => true],
 ];

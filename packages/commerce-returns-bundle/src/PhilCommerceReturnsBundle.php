@@ -22,6 +22,7 @@ use Phil\CommerceReturnsBundle\Domain\Rma\DeliveryRefund;
 use Phil\CommerceReturnsBundle\Domain\ValueObject\ReturnPolicy;
 use Phil\CommerceReturnsBundle\Infrastructure\Catalog\CatalogSetParts;
 use Phil\CommerceReturnsBundle\Infrastructure\Doctrine\DoctrineReturnRepository;
+use Phil\CommerceReturnsBundle\Infrastructure\Logistics\LogisticsRestocking;
 use Phil\CommerceReturnsBundle\Infrastructure\Logistics\LogisticsShipmentDates;
 use Phil\CommerceReturnsBundle\Infrastructure\PagedMedia\PagedMediaReturnSlips;
 use Phil\CommerceReturnsBundle\Infrastructure\Promotions\PromotionSpecials;
@@ -46,7 +47,8 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_it
  * the core's orders and payments, Doctrine's all: they are registered with DoctrineBundle only. Each optional
  * module plugs an adapter in when the application registers it: store credit on `phil/commerce-stored-value-bundle`,
  * sets on `phil/commerce-catalog-bundle`, specials on `phil/commerce-promotions-bundle`, shipment dates on
- * `phil/commerce-logistics-bundle`; slips are drawn with `phil/paged-media` when it is installed.
+ * `phil/commerce-logistics-bundle`, whose stock also takes the resellable units back when `logistics_restocking` is
+ * enabled; slips are drawn with `phil/paged-media` when it is installed.
  *
  * ```yaml
  * phil_commerce_returns:
@@ -56,6 +58,7 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_it
  *     delivery_refund: shops_fault
  *     expiry_days: 30
  *     rate_limiter: limiter.returns
+ *     logistics_restocking: { location: returns }
  *     slips: { prefix: 'RS-', digits: 8 }
  * ```
  */
@@ -115,6 +118,20 @@ final class PhilCommerceReturnsBundle extends AbstractBundle
                     ->info('The service of a rate limiter factory of symfony/rate-limiter that bounds the returns each customer asks for; null for none.')
                     ->defaultNull()
                 ->end()
+                ->arrayNode('logistics_restocking')
+                    ->info('Puts the resellable units of a received return back in the stock of phil/commerce-logistics-bundle, at the cost they left at when its costing is on.')
+                    ->canBeEnabled()
+                    ->children()
+                        ->scalarNode('location')
+                            ->info('The code of the location every return goes to, a returns area; null for the one each SKU left from.')
+                            ->defaultNull()
+                            ->validate()
+                                ->ifTrue(static fn (mixed $location): bool => !\is_string($location) || 1 !== preg_match('/^\S(?:.{0,62}\S)?$/Du', $location))
+                                ->thenInvalid('The location of the returns is the code of a location: 1 to 64 characters, neither starting nor ending with a space.')
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
                 ->arrayNode('slips')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -160,7 +177,7 @@ final class PhilCommerceReturnsBundle extends AbstractBundle
             return;
         }
 
-        /** @var array{window_days: int, window_from: string, restocking_fee: int, delivery_refund: string, expiry_days: ?int, rate_limiter: ?string, slips: array{prefix: string, digits: int}} $config */
+        /** @var array{window_days: int, window_from: string, restocking_fee: int, delivery_refund: string, expiry_days: ?int, rate_limiter: ?string, logistics_restocking: array{enabled: bool, location: ?string}, slips: array{prefix: string, digits: int}} $config */
         $services = $container->services();
         $services->set(ReturnsGateway::class)->tag('phil_commerce.payment_gateway');
         $services->set(ReturnDocumentTypes::class)->args([$config['slips']['prefix'], $config['slips']['digits']])->autoconfigure();
@@ -196,6 +213,17 @@ final class PhilCommerceReturnsBundle extends AbstractBundle
                 $services->alias($port, $adapter);
                 $returns->arg($argument, service($port));
             }
+        }
+
+        // The resellable units back in the logistics module's stock, when the application asks for it.
+        if ($config['logistics_restocking']['enabled']) {
+            if (!$this->hasBundle($builder, 'PhilCommerceLogisticsBundle')) {
+                throw new LogicException('phil_commerce_returns.logistics_restocking puts units back in the stock of phil/commerce-logistics-bundle: register PhilCommerceLogisticsBundle too.');
+            }
+
+            $services->set(LogisticsRestocking::class)->autowire()
+                ->arg('$location', $config['logistics_restocking']['location'])
+                ->tag('phil_commerce_returns.restocking');
         }
 
         // The ports by reflection: the bundle class wires adapters, and names no class of the domain.
