@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=85c00fa797ca5394697d9bb4b987ce49bed9f5551b54fdad7054d8f4b0cffef0 -->
+<!-- phil-dev source-sha256=ee86f219c1fe24cf6d552697224c119f9d6e04bb09b69f5ac0e32ae00a5de914 -->
 # Tests
 
 Les tests sont des tests PHPUnit, lancés depuis la racine du monodépôt avec `composer test`, ou seuls :
@@ -19,7 +19,9 @@ vendor/bin/phpunit --no-configuration tests
   portée par un autre navigateur, se déconnecte vers le fournisseur d'identité et en est déconnecté.
   Dans son environnement `doctrine`, qui ajoute une connexion Doctrine DBAL sur SQLite, une assertion rejouée est
   refusée par la table de `DbalReplayGuard` ; dans `test`, par la réserve de cache ; dans `prod`, sa réserve de cache sur
-  le système de fichiers empêche la construction du conteneur.
+  le système de fichiers empêche la construction du conteneur. Ces trois tests donnent à leurs noyaux un dossier à eux
+  sous le dossier temporaire absolu, supprimé après chaque test : le fichier SQLite, la réserve de cache et les
+  métadonnées ne dépendent ni du dossier courant, ni d'un autre test qui s'exécute en même temps.
 
 Les réponses et les messages de déconnexion des tests sont écrits par `tests/Fixtures/Saml.php` et signés par le
 signataire de la bibliothèque avec les clés d'essai de `tests/Fixtures/keys` : les clés des tests de phil/saml-sp, faites

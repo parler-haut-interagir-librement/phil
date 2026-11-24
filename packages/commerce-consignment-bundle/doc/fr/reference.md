@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7222e884920b9c34cc5c3a1e5061a6b9f3157a7712b2bc0feb37c3ac85f9e934 -->
+<!-- phil-dev source-sha256=2b4ec9ffc6f61634be0831bd17e9816c8ab78a2430e46fe9f9db5c55c9607adf -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.
@@ -77,6 +77,7 @@ Chaque type public du paquet, avec son rôle.
 | `Infrastructure\Memory\InMemoryStatementNumbering` | Une série comptée en mémoire, pour les tests. |
 | `Infrastructure\Logistics\LogisticsStockMovements` | Le stock de `phil/commerce-logistics-bundle`. |
 | `Infrastructure\Logistics\LogisticsShippedUnits` | Les unités expédiées, lues dans ses réservations. |
+| `Infrastructure\Logistics\UnitsShippedListener` | Écrit les ventes d'une commande quand le module de logistique annonce `UnitsShipped`. |
 | `Infrastructure\Messenger\RecordShipmentHandler` | Traite `RecordShipment`. |
 
 ## Gabarit

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=89407a1ce753f1536e44fdbfeeb8218efe402ff85e80e070c084069801d584c0 -->
+<!-- phil-dev source-sha256=795bf410ad6346f2140f7cd4bc5755b9bba8c340ae58a7fba5f87ab5fde5e53b -->
 # Points d'extension
 
 La bibliothèque est du PHP simple : elle ne déclare ni service ni port, et ses classes sont finales. Elle calcule ;

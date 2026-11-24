@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=635a920edf0fb6fd1a9d8616753ffaf269492ff2ede3ede53a5bb38e735b7d47 -->
+<!-- phil-dev source-sha256=58887b6c0b3b3cde4158c626a567bc13e431c0d8ac0f0d71ce6c4fa24b6187e8 -->
 # Unités invendues
 
 Les unités d'un consignataire qui ne se sont pas vendues sont soit rendues au consignataire, soit achetées par la
@@ -65,6 +65,5 @@ nouveau coût.
 
 ## Avec le module de logistique
 
-Le module de logistique n'a aucun mouvement qui retire des unités de la tablette selon une quantité :
-`LogisticsStockMovements` rend des unités par `Stock::count()`, le niveau fixé à ce qu'il avait en main moins les
-unités. Voir [Avec le module de logistique](logistics.md#ce-que-le-module-de-logistique-nexpose-pas).
+`LogisticsStockMovements` retire de la tablette les unités rendues par `Stock::adjust()`, sous la référence du
+bordereau, après avoir vérifié que le niveau les a en main. Voir [Avec le module de logistique](logistics.md#comment-le-stock-bouge).

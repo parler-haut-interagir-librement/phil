@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c6ccd00567677f78490be33857b8c20506048c490e14942a66d6eabd1f6debf2 -->
+<!-- phil-dev source-sha256=611b56df1677bc085624f4b4017253e873b5deaff113b7cf755f26d05bb122c6 -->
 # Référence
 
 Chaque type de la bibliothèque, avec son rôle.

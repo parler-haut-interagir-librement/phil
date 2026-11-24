@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f059783d731791ae580b93ba3e9cad98962c6b028336586182939e9587485965 -->
+<!-- phil-dev source-sha256=4801e9bcad83b40b159921633bb7ea23dc5947a6576e6a997367dca5c06d109f -->
 # phil/commerce-consignment-bundle
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/parler-haut-interagir-librement/commerce-consignment-bundle/badge)](https://scorecard.dev/viewer/?uri=github.com/parler-haut-interagir-librement/commerce-consignment-bundle)
@@ -38,7 +38,8 @@ consignataire ou **achetées** par la boutique au coût convenu.
 | Ordre de sortie entre unités à soi et consignées : les siennes d'abord, les consignées d'abord, les plus anciennes d'abord ; par SKU | Implémenté et testé |
 | Ventes, retours vers les couches d'origine, transferts entre emplacements, inventaires de tous les propriétaires ou d'un seul | Implémenté et testé |
 | Marge des unités de la boutique et commission des unités consignées, par le port `MarginCalculator` | Implémenté et testé |
-| Commandes expédiées de `phil/commerce-bundle` écrites au grand livre, une seule fois, après chaque expédition du module de logistique ; `RecordShipment` pour un worker | Implémenté et testé |
+| Commandes expédiées de `phil/commerce-bundle` écrites au grand livre, une seule fois, quand le module de logistique annonce chaque expédition ; `RecordShipment` pour un worker | Implémenté et testé |
+| Retours de clients, écarts d'inventaire et unités rendues déplacés par les mouvements propres au module de logistique ; réceptions vérifiées contre le propriétaire et le coût unitaire de chaque ligne de bon de commande | Implémenté et testé |
 | Tables Doctrine sur SQLite, MySQL 8.4 et PostgreSQL 17, clés comparées octet par octet, instants en UTC ; un dépôt en mémoire | Implémenté et testé |
 | Ententes avec chaque consignataire — durée, unités invendues, fréquence des relevés —, versionnées sans réécrire le passé | Implémenté et testé |
 | Relevés par consignataire et par période, lus dans le grand livre, numérotés et figés ; CSV et gabarit Twig remplaçable | Implémenté et testé |
@@ -59,7 +60,7 @@ consignataire ou **achetées** par la boutique au coût convenu.
 | [Relevés](doc/fr/statements.md) | Les périodes, le contenu d'un relevé, les numéros, le CSV et le gabarit. |
 | [Versements](doc/fr/payouts.md) | Ce qui a été payé, le même versement deux fois, les contrepassations et le solde. |
 | [Unités invendues](doc/fr/unsold-units.md) | Les unités à l'échéance, les bordereaux de retour et les rachats. |
-| [Avec le module de logistique](doc/fr/logistics.md) | Comment le stock bouge, comment les commandes expédiées arrivent au grand livre, les unités rendues, et ce que le module de logistique n'expose pas. |
+| [Avec le module de logistique](doc/fr/logistics.md) | Comment le stock bouge, les réceptions contre des bons de commande, et comment les commandes expédiées arrivent au grand livre. |
 | [Portée](doc/fr/scope.md) | Ce que le bundle fait, et ce qu'il laisse aux versions futures ou à l'application. |
 | [Points d'extension](doc/fr/extension-points.md) | Les services à remplacer, et quand c'est stable. |
 | [Tests](doc/fr/testing.md) | Les tests du bundle, et les serveurs que lisent ses tests d'intégration. |
@@ -110,7 +111,7 @@ $entityManager->flush();
 ## Prérequis
 
 PHP 8.5 ou une version plus récente et Symfony 8.2 ou une version plus récente, avec `phil/commerce-bundle` 0.4 et
-`phil/commerce-logistics-bundle` 0.1.
+`phil/commerce-logistics-bundle` 0.1.1.
 
 ## Contribuer
 

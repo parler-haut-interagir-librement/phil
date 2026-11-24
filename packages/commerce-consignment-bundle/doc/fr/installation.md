@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b1cb49313a41feb18726a150f1b44d2898dd082ad406936451e7fa80909bff9f -->
+<!-- phil-dev source-sha256=eba59cba3445c074640e8981278cdee9860cca66a07b9225a25902922cd1025b -->
 # Installation
 
 ```sh
@@ -20,7 +20,7 @@ La recette Flex enregistre le bundle et écrit `config/packages/phil_commerce_co
 par défaut.
 
 Le paquet exige PHP 8.5 ou une version plus récente et Symfony 8.2 ou une version plus récente, avec
-`phil/commerce-bundle` 0.4 et `phil/commerce-logistics-bundle` 0.1.
+`phil/commerce-bundle` 0.4 et `phil/commerce-logistics-bundle` 0.1.1.
 
 ## Les tables
 
