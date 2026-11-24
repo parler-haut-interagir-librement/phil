@@ -42,7 +42,8 @@ system's own, nothing downloaded —, `--phil-focus-width` and `--phil-focus-off
 ## The palette
 
 Seven hues — `neutral`, `brand`, `red`, `green`, `amber`, `blue`, `violet` — of eleven tones each, numbered by their
-OKLCH lightness: `--phil-brand-40` is `oklch(0.40 …)`. The neutrals add `99`, the near-white of the page.
+OKLCH lightness: `--phil-brand-40` is `oklch(0.40 …)`. The neutrals add `15`, `#090B10`, the surface of the dark
+scheme, and `99`, the near-white of the page.
 
 | Number | 05 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 95 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -55,6 +56,9 @@ Because the number is the lightness, the difference of two numbers gives the con
 | 50 or more | 4.5:1 | Text of any size |
 | 40 or more | 3:1 | Large text, borders, icons, focus rings |
 
+On the dark surface, neutral 15, the text, neutral 95, reaches 17:1 and the muted text, neutral 70, 7.3:1: both clear
+the 7:1 of success criterion 1.4.6.
+
 Each chroma is the hue's own, held within the sRGB gamut at every lightness, so a tone looks the same on every screen.
 
 ## The colour roles
@@ -63,7 +67,7 @@ Components read roles, never the palette. Each role is `light-dark(<light tone>,
 
 | Role | Light | Dark |
 |---|---|---|
-| `--phil-color-surface` | neutral 99 | neutral 10 |
+| `--phil-color-surface` | neutral 99 | neutral 15 |
 | `--phil-color-surface-raised` | neutral 95 | neutral 20 |
 | `--phil-color-text` | neutral 10 | neutral 95 |
 | `--phil-color-text-muted` | neutral 40 | neutral 70 |

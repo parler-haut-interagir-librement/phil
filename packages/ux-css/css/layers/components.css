@@ -1901,7 +1901,7 @@ input:is(.isSwitch, [role="switch"]):checked::before {
 }
 
 .isSelectViewport {
-    max-block-size: min(20rem, calc(100dvh - var(--phil-space-4xl)));
+    max-block-size: min(20rem, calc(100svh - var(--phil-space-4xl)));
     overflow-y: auto;
 }
 
@@ -3968,6 +3968,162 @@ a.isItem:hover {
 .isLoginFormForgot {
     justify-self: end;
     font-size: var(--phil-text-sm);
+}
+
+/*
+ * The choice of the colour scheme: three toggles, light, dark and the system's, in a group that hides until its
+ * controller runs. The controller writes `data-theme` on the root, which colors.css reads.
+ */
+.isThemeSwitcher {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+/*
+ * A header that stays at the top of the screen while the page scrolls. Anchors and the focus stop below it, by the
+ * scroll padding of the root, which its controller keeps at its height. With `hasHideOnScroll` it slides away while
+ * the reader scrolls down and comes back when they scroll up, never where motion is reduced; hidden, it is inert.
+ */
+:root:has(.isStickyHeader) {
+    scroll-padding-block-start: calc(var(--phil-sticky-header-size, var(--phil-control-lg)) + var(--phil-space-sm));
+}
+
+.isStickyHeader {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: var(--phil-z-overlay);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--phil-space-sm);
+    align-items: center;
+    padding: var(--phil-space-xs) var(--phil-space-md);
+    background-color: var(--phil-color-surface);
+    border-block-end: var(--phil-border-sm) solid var(--phil-color-border);
+}
+
+.isStickyHeader.hasHideOnScroll {
+    transition: translate var(--phil-duration-md) var(--phil-ease-out);
+}
+
+.isStickyHeader.hasHideOnScroll[data-hidden] {
+    translate: 0 -100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .isStickyHeader.hasHideOnScroll {
+        transition: none;
+    }
+}
+
+/*
+ * A timeline: dated entries down a line, each with its marker, its date and its content. The line and the markers are
+ * drawn by the list itself, hidden from screen readers; under forced colours they take the colour of the text.
+ */
+.isTimeline {
+    --phil-timeline-marker: var(--phil-space-sm);
+
+    display: grid;
+    gap: var(--phil-space-lg);
+    margin-block: 0 var(--phil-space-md);
+    padding-inline-start: 0;
+    list-style: none;
+}
+
+.isTimelineItem {
+    position: relative;
+    display: grid;
+    gap: var(--phil-space-2xs);
+    padding-inline-start: calc(var(--phil-timeline-marker) + var(--phil-space-md));
+}
+
+.isTimelineItem::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 0.4em;
+    inset-inline-start: 0;
+    inline-size: var(--phil-timeline-marker);
+    block-size: var(--phil-timeline-marker);
+    background-color: var(--phil-color-brand-fill-loud);
+    border: var(--phil-border-sm) solid var(--phil-color-brand-border-loud);
+    border-radius: var(--phil-radius-full);
+}
+
+.isTimelineItem:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    inset-block: calc(0.4em + var(--phil-timeline-marker)) calc(-1 * var(--phil-space-lg));
+    inset-inline-start: calc(var(--phil-timeline-marker) / 2 - var(--phil-border-sm) / 2);
+    border-inline-start: var(--phil-border-sm) solid var(--phil-color-neutral-border-loud);
+}
+
+.isTimelineDate {
+    font-size: var(--phil-text-sm);
+    font-weight: var(--phil-weight-medium);
+    color: var(--phil-color-text-muted);
+}
+
+.isTimelineContent {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+}
+
+.isTimelineContent > :last-child {
+    margin-block-end: 0;
+}
+
+@media (forced-colors: active) {
+    .isTimelineItem::before {
+        background-color: CanvasText;
+        border-color: CanvasText;
+    }
+}
+
+/*
+ * A field whose label sits inside it, over an empty control, and moves above its value once the control holds one or
+ * has the focus. The label stays shown and is the field's own `label`; the placeholder of a single space marks the
+ * control as empty. Without `:placeholder-shown`, the label stays above.
+ */
+.hasFloatingLabel {
+    position: relative;
+    display: block;
+}
+
+.hasFloatingLabel > :is(input, textarea) {
+    min-block-size: var(--phil-control-lg);
+    padding-block: calc(var(--phil-space-sm) + var(--phil-text-xs)) var(--phil-space-2xs);
+}
+
+.hasFloatingLabel > :is(input, textarea)::placeholder {
+    color: transparent;
+}
+
+.hasFloatingLabel > label {
+    position: absolute;
+    inset-block-start: var(--phil-space-3xs);
+    inset-inline-start: calc(var(--phil-control-padding, var(--phil-space-sm)) + var(--phil-border-sm));
+    max-inline-size: calc(100% - 2 * var(--phil-control-padding, var(--phil-space-sm)));
+    overflow: hidden;
+    font-size: var(--phil-text-xs);
+    color: var(--phil-color-text-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+    transition:
+        inset-block-start var(--phil-duration-sm) var(--phil-ease-out),
+        font-size var(--phil-duration-sm) var(--phil-ease-out);
+}
+
+.hasFloatingLabel > :is(input, textarea):placeholder-shown:not(:focus) + label {
+    inset-block-start: calc((var(--phil-control-lg) - 1lh) / 2);
+    font-size: var(--phil-text-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hasFloatingLabel > label {
+        transition: none;
+    }
 }
 
 /*
