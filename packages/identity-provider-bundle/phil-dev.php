@@ -16,6 +16,10 @@ return [
     'docs' => ['public' => true, 'translations' => 'blocking', 'words' => ['AAGUID', 'CBOR', 'COSE', 'JWKS', 'PKCE', 'TOTP', 'WebAuthn', 'userinfo']],
     'infection' => [
         'mutators' => [
+            // `base << exponent` and `base * (1 << exponent)` are the same integer: dividing by one before the shift keeps it.
+            'Multiplication' => [
+                'ignoreSourceCodeByRegex' => ['\\$seconds = min\\(\\$this->base \\* \\(1 << \\$exponent\\), \\$this->max\\);'],
+            ],
             // A numeric string and its integer are one array key, and the index read from `bindec()` is an integer: the
             // cast changes nothing a caller can see.
             'CastString' => [

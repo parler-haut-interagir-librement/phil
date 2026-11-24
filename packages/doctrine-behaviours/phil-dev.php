@@ -68,6 +68,12 @@ return [
                     '.*isset\\(\\$ids\\[\\(int\\) \\$entity->id\\(\\)\\]\\).*',
                 ],
             ],
+            // The ids a write returns are the keys of what it rewrote: `isset()` and `count()` read the keys, never the value.
+            'TrueValue' => [
+                'ignoreSourceCodeByRegex' => [
+                    '.*\\$ids\\[\\$id\\] = true;.*',
+                ],
+            ],
             'LogicalAnd' => [
                 'ignoreSourceCodeByRegex' => [
                     '.*\\\\assert\\(.*',
@@ -93,6 +99,8 @@ return [
             'UnwrapArrayValues' => [
                 'ignoreSourceCodeByRegex' => [
                     '.*return array_values\\(\\$stores\\);.*',
+                    // `plainKeys()` only feeds `array_flip()` and a comparison with `[]`: the keys of the fields it keeps are never read.
+                    '.*return array_values\\(array_filter\\(\\$fields, static fn \\(string \\$field\\): bool => .*',
                 ],
             ],
             'Concat' => [
