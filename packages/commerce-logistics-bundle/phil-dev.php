@@ -62,6 +62,30 @@ return [
             'NotIdentical' => [
                 'ignoreSourceCodeByRegex' => ['if \\(\\(DeliveryKind::Pickup === \\$kind\\) !== \\(null !== \\$pickupLocation\\)\\) \\{'],
             ],
+            // After `PurchaseOrder::receive()` accepted the SKU the order lists it, so `line()` is never null: the nullsafe
+            // operators only tell PHPStan so.
+            'NullSafePropertyCall' => [
+                'ignoreSourceCodeByRegex' => ['.*\\$line\\??->(unitCost|owner).*'],
+            ],
+            // The quantities of a convention are keyed by convention then SKU: every server reads them in that key's
+            // order, so the explicit ORDER BY, which the contract names, changes nothing a test could see.
+            'ArrayItemRemoval' => [
+                'ignoreSourceCodeByRegex' => ['.*findBy\\(\\[.convention. => \\$convention\\], \\[.sku. => .ASC.\\]\\).*'],
+            ],
+            // The newest receipt is picked in PHP among the rows, sorted: the limit only spares the server the others.
+            'IncrementInteger' => [
+                'ignoreSourceCodeByRegex' => ['.*->setMaxResults\\(1\\).*'],
+            ],
+            // SQLite returns the sums as integers; MySQL and PostgreSQL return them as strings, which the server suites
+            // read: the casts are no difference a SQLite test could see.
+            'CastInt' => [
+                'ignoreSourceCodeByRegex' => ['.*\\$row\\[.(units|uncosted|value).\\].*'],
+            ],
+            // The rows of the sums already hold the keys the result names, and the kinds of a filter are bound as their
+            // enumeration: on SQLite the unwrapped call returns what the wrapped one does.
+            'UnwrapArrayMap' => [
+                'ignoreSourceCodeByRegex' => ['.*(return \\$rows;|array_map\\(static fn \\(array \\$row\\): array|setParameter\\(.kinds., (array_map\\(static fn \\(CostEntryKind|\\$kinds\\))).*'],
+            ],
             'FalseValue' => [
                 'ignoreSourceCodeByRegex' => [
                     'if \\(true !== \\(\\$canadaPost\\[.enabled.\\] \\?\\? false\\)\\) \\{',

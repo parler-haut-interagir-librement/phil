@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9eea271b0098d53069f3944def8314435885bc0dea376e113400147a40acae3f -->
+<!-- phil-dev source-sha256=80d839299e3bd9da62bfc12b6424d33f52f7c0bbf3bf067448e10eef5d54dbb5 -->
 # Portée
 
 Le catalogue du noyau du commerce : les produits et leurs attributs, les familles et les variantes, les produits
@@ -13,7 +13,8 @@ sont le module `phil/commerce-promotions-bundle`.
 | Flux de produits | Le catalogue publié comme fichiers de flux RSS ou TSV par `phil/product-feeds`, par une commande ou un message qu'envoie un calendrier, et servi par une route avec des en-têtes de cache | Implémenté et testé ([product-feeds.md](product-feeds.md)) ; pousser vers l'API d'une place de marché est une étape ultérieure |
 | Grilles de prix | Les prix par groupe de clients, canal — un site, un point de vente —, période et palier de quantité, classées par leurs listes `after`, comme `UnitPriceResolver` du noyau ; une migration depuis les grilles classées par numéro | Implémenté et testé ([price-books.md](price-books.md)) |
 | Variantes | Des familles qui nomment leurs axes, et des variantes qui donnent une valeur à chaque axe et prennent les attributs, la catégorie de taxe, les canaux et les numéros de série de leur famille | Implémenté et testé ([variants-and-composites.md](variants-and-composites.md)) |
-| Produits composés | Un produit fait d'autres produits, vendu comme une seule ligne et taxé en bloc | Implémenté et testé ([variants-and-composites.md](variants-and-composites.md)) |
+| Produits composés | Un produit fait d'autres produits, vendu comme une seule ligne et taxé en bloc ; son coût, la somme de celui de ses parties, lu par `ProductCosts` | Implémenté et testé ([variants-and-composites.md](variants-and-composites.md)) |
+| Prix de détail suggéré | Le prix courant que suggère un fabricant ou un distributeur, gardé à côté du prix de base et ne fixant jamais le prix d'une ligne | Implémenté et testé ([products.md](products.md)) |
 | Noms | Les noms des produits traduits, lus le long d'une chaîne de repli | Implémenté et testé ([names-and-classification.md](names-and-classification.md)) |
 | Taxonomie | Les catégories et les étiquettes, par `phil/taxonomy-bundle` | Implémenté et testé ([names-and-classification.md](names-and-classification.md)) |
 | Règles de prix | Payez ce que vous voulez, du prix de base jusqu'à un maximum — celui du produit ou celui par défaut du site —, avec un prix suggéré, par l'option de montant du noyau ; des copies communautaires financées par les commandes payées et réclamées une par personne | Implémenté et testé ([price-rules.md](price-rules.md)) |

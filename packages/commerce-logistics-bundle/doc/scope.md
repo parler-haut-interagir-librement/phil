@@ -2,7 +2,7 @@
 
 Logistics for the core of commerce: stock per SKU and location, its journal, receiving, counts, transfers and the
 reservations of placed orders, with backorders per SKU; the stock of convention items and print on demand; purchase
-orders and serial numbers; shipments in one parcel or several, their delivery notes and picking slips, and shipping
+orders and serial numbers; the value of the stock at cost; shipments in one parcel or several, their delivery notes and picking slips, and shipping
 waves; delivery methods per zone; carriers' rates and labels with the cost of each shipment.
 
 | Part | Content | State |
@@ -14,10 +14,15 @@ waves; delivery methods per zone; carriers' rates and labels with the cost of ea
 | Carriers | Rates and labels through `CarrierGateway`, Canada Post's adapter, the cost of each shipment beside the delivery charged | Implemented and tested ([carriers.md](carriers.md)) |
 | Shipments | An order shipped in one parcel or several, from its reservations, with carrier and tracking; delivery notes and picking slips; shipping waves | Implemented and tested ([shipments.md](shipments.md)) |
 | Serial numbers | The serial number of each unit, kept with its stock | Implemented and tested ([purchasing.md](purchasing.md)) |
+| Costing | The shop's stock at cost by weighted average or first in, first out, landed costs, variances by reason, returns at the cost they left at, consigned units kept out; read through `InventoryValuation` | Implemented and tested ([costing.md](costing.md)) |
 
 ## Outside the module
 
 - Supplier returns, replenishment and forecasts.
+- Reports of margins, of the cost of goods sold or of shrink: the module gives what they read, through
+  `InventoryValuation`, and draws none.
+- What a consignor is owed: the module keeps an owner's units out of the shop's value, and says whose units leave
+  through `StockOwnership`.
 - Setting the delivery price from a carrier's rate, and taxing a delivery charge.
 - Generating the SKUs and designs of printed items: the module reads the SKUs of the order's lines.
 

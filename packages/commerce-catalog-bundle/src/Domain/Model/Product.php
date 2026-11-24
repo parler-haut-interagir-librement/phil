@@ -41,6 +41,9 @@ use Phil\Money\Money;
  *
  * A physical product may be tracked by **serial numbers**, which the stock of the logistics module holds.
  *
+ * Its **suggested retail price** is the one its maker or distributor suggests — the list price a sign compares the
+ * shop's price with —: kept beside the base price, it never prices a line.
+ *
  * Its **offer** says what the channels that sell it offer of it: listed, reached by its direct link only, or hidden;
  * orderable or not — announced, sold out for good —; its price shown or not. A channel outside its selection, or a
  * withdrawn product, hides it.
@@ -122,6 +125,10 @@ final class Product implements Translatable
     /** The price of a community copy, in minor units; none when the product offers none. */
     #[ORM\Column(name: 'community_copy_price', type: 'bigint', nullable: true)]
     private ?int $communityCopyPrice = null;
+
+    /** The retail price its maker or distributor suggests, in minor units; none when no one suggests one. */
+    #[ORM\Column(name: 'suggested_retail_price', type: 'bigint', nullable: true)]
+    private ?int $suggestedRetailPrice = null;
 
     private function __construct(
         #[ORM\Id]
@@ -531,6 +538,28 @@ final class Product implements Translatable
     public function communityCopyPrice(): ?Money
     {
         return null === $this->communityCopyPrice ? null : Money::of($this->communityCopyPrice, $this->price->currency);
+    }
+
+    /**
+     * Keeps the retail price its maker or distributor suggests, more than zero and in the product's currency; `null`
+     * forgets it. It never prices a line: the base price and the price books do.
+     */
+    public function suggestRetailPrice(?Money $price): void
+    {
+        if ($price instanceof Money && !$price->currency->equals($this->price->currency)) {
+            throw CatalogRefused::currency(\sprintf('The product %s', $this->sku), $this->currencyCode, $price->currency->code);
+        }
+
+        if ($price instanceof Money && !$price->isPositive()) {
+            throw InvalidValue::because(\sprintf('The suggested retail price of %s is more than zero.', $this->sku));
+        }
+
+        $this->suggestedRetailPrice = $price?->minorUnits;
+    }
+
+    public function suggestedRetailPrice(): ?Money
+    {
+        return null === $this->suggestedRetailPrice ? null : Money::of($this->suggestedRetailPrice, $this->price->currency);
     }
 
     public function withdraw(): void

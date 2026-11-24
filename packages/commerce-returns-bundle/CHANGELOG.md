@@ -8,6 +8,13 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
+### Added
+
+- `LogisticsRestocking`, the `Restocking` of `phil/commerce-logistics-bundle` 0.1.1 or later, enabled by the
+  configuration `logistics_restocking` — off by default — and its `location`, null for where each SKU left from: the
+  resellable units of a product line go back in its stock under the return's order, at the cost they left at when its
+  costing is on. The package conflicts with the logistics module below 0.1.1.
+
 ### Fixed
 
 - It requires `phil/commerce-bundle` 0.4, the version published on 2026-11-20, beside which its requirement of 0.2 or

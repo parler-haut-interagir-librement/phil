@@ -30,6 +30,11 @@ $products->add($dice); // ProductRepository; the application commits its unit of
 | `composeOf()`, `components()`, `isComposite()` | A composite product and its parts |
 | `trackSerialNumbers(bool)`, `tracksSerialNumbers()` | Each unit sold carries a serial number; physical products only; a variant takes its family's |
 | `payWhatYouWant()`, `fixPrice()`, `offerCommunityCopies()` | The price rules — see [Price rules](price-rules.md) |
+| `suggestRetailPrice(?Money)`, `suggestedRetailPrice()` | The retail price its maker or distributor suggests, more than zero, in the product's currency; `null` forgets it. It never prices a line |
+
+**The suggested retail price** is the list price a sign or a product page compares the shop's own price with; it
+is kept beside the base price and read back, and neither the core nor the price books price a line with it. A variant
+has its own, never its family's.
 
 **Serial numbers** are kept with the stock of the logistics module, which registers each unit's number; the
 catalogue says which products carry one, so that the application asks for it at a sale or a reception.
@@ -124,6 +129,11 @@ With DoctrineBundle, a product is one row of `phil_commerce_catalog_product`.
 | `pay_what_you_want` | `BOOLEAN` | Whether the buyer chooses the price |
 | `suggested_price`, `maximum_price` | `BIGINT`, nullable | The price shown first and the highest one, in minor units; without a maximum, the configuration's `pay_what_you_want.default_maximum` bounds the price |
 | `community_copy_price` | `BIGINT`, nullable | The price of a community copy, in minor units |
+| `suggested_retail_price` | `BIGINT`, nullable | The suggested retail price, in minor units, in the product's currency |
+
+A table created for 0.1.0-alpha gains the column `suggested_retail_price`, null for the existing rows, and nothing
+else changes: generate the migration with Doctrine's `doctrine:migrations:diff`, or read it first with
+`doctrine:schema:update --dump-sql`.
 
 A product's name in other locales is one row of `phil_commerce_catalog_product_translation` per locale: see
 [Names and classification](names-and-classification.md).

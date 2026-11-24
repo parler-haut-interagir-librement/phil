@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0f9c52eabe321d85e3d1e7160e2abf62e30eb7ffb5e3ed9404aa3220d7203755 -->
+<!-- phil-dev source-sha256=e374bd1828f932d5b95174d4eac8ea4265f2e886b45d5ac1d2a51212a235e002 -->
 <!-- phil-dev source-sha256=0 -->
 # Achats et numéros de série
 
@@ -17,7 +17,7 @@ $purchasing->close('PO-2026-014');                                      // the r
 | Méthode de `Purchasing` | Effet |
 |---|---|
 | `order(number, supplier, location, lines, at, expectedOn)` | Ouvre un bon de commande de 1 à 500 *SKU*, chacune d'une unité ou plus, à un emplacement connu |
-| `receive(number, lines, at)` | Reçoit des unités contre un bon ouvert, jamais plus d'un *SKU* qu'il n'en reste attendu |
+| `receive(number, lines, at, landedCost)` | Reçoit des unités contre un bon ouvert, jamais plus d'un *SKU* qu'il n'en reste attendu ; avec le calcul des coûts, répartit le coût d'approche sur ses lignes |
 | `close(number)` | N'attend plus rien d'un bon ouvert |
 | `onOrder(sku)` | Les unités d'un *SKU* commandées et pas encore reçues, sur les bons ouverts |
 
@@ -46,11 +46,13 @@ $order->line('BOOK-17');   // PurchaseLine: 5 units, 12.50 CAD each, no owner
 ```
 
 - **Le coût unitaire** est un `Money`, de zéro ou plus, dans la devise que facture le fournisseur ; le module le stocke
-  et le rend, et n'évalue pas le stock : ni coût moyen, ni premier entré, premier sorti.
+  et le rend. Avec le calcul des coûts activé, les unités reçues entrent à ce coût, qui doit alors être dans la devise
+  configurée, et un coût d'approche passé à `receive()` est réparti sur les lignes — voyez [Coûts](costing.md).
 - **Le propriétaire** est l'identifiant de l'appelant — un consignateur, un fournisseur, un service —, de 1 à 64
   caractères sans caractère de contrôle, gardé tel qu'il est donné ; le module ne sait rien des propriétaires. Un bon de
   commande a une ligne par *SKU*, donc un propriétaire par *SKU* : les unités d'un même *SKU* qui appartiennent à deux
-  parties vont sur deux bons de commande.
+  parties vont sur deux bons de commande. Avec le calcul des coûts, les unités d'un propriétaire n'entrent jamais dans la
+  valeur de la boutique, quel que soit leur coût unitaire.
 - **Les deux sont facultatifs**, ligne par ligne ; `PurchaseOrder::line()` donne les unités commandées, le coût unitaire
   et le propriétaire d'un *SKU*, ou null pour un *SKU* que le bon ne liste pas. `receive()` rend le bon, où un registre
   lit ce que les unités arrivées ont coûté et à qui elles appartiennent.

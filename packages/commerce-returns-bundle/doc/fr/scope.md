@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3de4a0532130fd504e8b724fd7af5c1a9b4b9a07653f735146feebf6048739cc -->
+<!-- phil-dev source-sha256=d8ac664cbf7b18f040d3d24605a255379c00db83b1974cb7b39c92619cdf9d77 -->
 # Portée
 
 Les retours pour le noyau du commerce.
@@ -25,7 +25,8 @@ Les retours pour le noyau du commerce.
 
 ## Ses propres ports
 
-- `Restocking` : remet des unités sur la tablette.
+- `Restocking` : remet des unités sur la tablette ; `LogisticsRestocking` sur `phil/commerce-logistics-bundle`, quand
+  `logistics_restocking` est activé.
 - `StoreCreditGranter` : accorde un crédit en magasin ; `StoredValueStoreCredit` sur `phil/commerce-stored-value-bundle`.
 - `SetParts` : les parties d'un ensemble ; `CatalogSetParts` sur `phil/commerce-catalog-bundle`.
 - `SpecialDiscounts` : quels rabais sont des promotions spéciales ; `PromotionSpecials` sur

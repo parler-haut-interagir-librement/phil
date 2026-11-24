@@ -12,13 +12,13 @@ use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * An application as small as the module needs: FrameworkBundle, DoctrineBundle on an in-memory SQLite database,
- * the core of commerce and the module — or the module without the core, when a test asks for it.
+ * the core of commerce and the module — or the module without the core, or with costing, when a test asks for it.
  */
 final class TestKernel extends Kernel
 {
     use MicroKernelTrait;
 
-    public function __construct(string $environment, bool $debug, private readonly bool $withCore = true)
+    public function __construct(string $environment, bool $debug, private readonly bool $withCore = true, private readonly bool $costed = false)
     {
         parent::__construct($environment, $debug);
     }
@@ -40,13 +40,18 @@ final class TestKernel extends Kernel
     #[Override]
     public function getCacheDir(): string
     {
-        return sys_get_temp_dir().'/phil-commerce-logistics-bundle-test/'.($this->withCore ? 'core' : 'alone').'/cache';
+        return sys_get_temp_dir().'/phil-commerce-logistics-bundle-test/'.$this->variant().'/cache';
     }
 
     #[Override]
     public function getLogDir(): string
     {
-        return sys_get_temp_dir().'/phil-commerce-logistics-bundle-test/'.($this->withCore ? 'core' : 'alone').'/log';
+        return sys_get_temp_dir().'/phil-commerce-logistics-bundle-test/'.$this->variant().'/log';
+    }
+
+    private function variant(): string
+    {
+        return ($this->withCore ? 'core' : 'alone').($this->costed ? '-costed' : '');
     }
 
     private function configureContainer(ContainerConfigurator $container): void
@@ -64,6 +69,10 @@ final class TestKernel extends Kernel
 
         if ($this->withCore) {
             $container->extension('doctrine', ['dbal' => ['url' => 'sqlite:///:memory:'], 'orm' => []]);
+        }
+
+        if ($this->costed) {
+            $container->extension('phil_commerce_logistics', ['costing' => ['method' => 'fifo', 'currency' => 'CAD']]);
         }
     }
 }

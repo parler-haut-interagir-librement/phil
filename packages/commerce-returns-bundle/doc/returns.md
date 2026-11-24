@@ -112,6 +112,27 @@ On reception, every `Restocking` service is asked to put back the units received
 stock itself. It is given the reference of the order line, read back by `SellableReference::fromValue()`: the
 fingerprint of a configured line stays on it, and what goes back on the shelf is its `unconfigured()` sellable.
 
+With `phil/commerce-logistics-bundle`, `logistics_restocking` puts them back in its stock through
+`LogisticsRestocking`:
+
+```yaml
+phil_commerce_returns:
+    logistics_restocking:
+        location: returns   # or ~ for where each SKU left from
+```
+
+- **A product line only.** The units of the line's product go back through `Stock::returnFromCustomer()`, under the
+  return's order; another sellable, or a SKU the stock never reserved for the order — one it does not track —, puts
+  nothing back.
+- **Where they go**: the configured location — a returns area — or, without one, where the order's units of that SKU
+  left from that have not all come back, the first such reservation first.
+- **At the cost they left at.** With the logistics module's costing enabled, the units come back at their share of what
+  the order's issues of the SKU cost, never at the day's cost, under either method — see the logistics module's
+  documentation of costing.
+- The stock refuses units beyond what left and did not come back yet; the refusal fails the reception, which records
+  nothing.
+- Enabling it without `PhilCommerceLogisticsBundle` registered fails the container build.
+
 ## Settling
 
 | Resolution | What happens |

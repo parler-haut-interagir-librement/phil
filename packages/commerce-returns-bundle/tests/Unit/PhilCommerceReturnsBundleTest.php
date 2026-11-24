@@ -26,6 +26,7 @@ use Phil\CommerceReturnsBundle\Domain\Rma\DeliveryRefund;
 use Phil\CommerceReturnsBundle\Domain\ValueObject\ReturnPolicy;
 use Phil\CommerceReturnsBundle\Infrastructure\Catalog\CatalogSetParts;
 use Phil\CommerceReturnsBundle\Infrastructure\Doctrine\DoctrineReturnRepository;
+use Phil\CommerceReturnsBundle\Infrastructure\Logistics\LogisticsRestocking;
 use Phil\CommerceReturnsBundle\Infrastructure\Logistics\LogisticsShipmentDates;
 use Phil\CommerceReturnsBundle\Infrastructure\PagedMedia\PagedMediaReturnSlips;
 use Phil\CommerceReturnsBundle\Infrastructure\Promotions\PromotionSpecials;
@@ -155,6 +156,57 @@ final class PhilCommerceReturnsBundleTest extends TestCase
             self::assertSame($adapter, (string) $container->getAlias($port));
             self::assertSame($port, $this->referenced($returns->getArgument($argument)));
         }
+    }
+
+    public function testTheLogisticsRestockingIsOffByDefault(): void
+    {
+        self::assertFalse($this->load([], ['DoctrineBundle' => DoctrineBundle::class, 'PhilCommerceLogisticsBundle' => PhilCommerceLogisticsBundle::class])->hasDefinition(LogisticsRestocking::class));
+        self::assertFalse($this->load(['logistics_restocking' => ['enabled' => false, 'location' => 'returns']])->hasDefinition(LogisticsRestocking::class));
+    }
+
+    public function testTheLogisticsRestockingPutsUnitsBackWhereTheyLeftOrInOnePlace(): void
+    {
+        $bundles = ['DoctrineBundle' => DoctrineBundle::class, 'PhilCommerceLogisticsBundle' => PhilCommerceLogisticsBundle::class];
+        $restocking = $this->load(['logistics_restocking' => true], $bundles)->getDefinition(LogisticsRestocking::class);
+
+        self::assertTrue($restocking->isAutowired());
+        self::assertSame([[]], $restocking->getTag('phil_commerce_returns.restocking'));
+        self::assertNull($restocking->getArgument('$location'));
+        self::assertSame('returns', $this->load(['logistics_restocking' => ['location' => 'returns']], $bundles)->getDefinition(LogisticsRestocking::class)->getArgument('$location'));
+        self::assertSame(str_repeat('a', 64), $this->load(['logistics_restocking' => ['location' => str_repeat('a', 64)]], $bundles)->getDefinition(LogisticsRestocking::class)->getArgument('$location'));
+        // Sixty-four characters of two bytes each: the pattern counts characters, not bytes.
+        self::assertSame(str_repeat('é', 64), $this->load(['logistics_restocking' => ['location' => str_repeat('é', 64)]], $bundles)->getDefinition(LogisticsRestocking::class)->getArgument('$location'));
+        self::assertSame('a', $this->load(['logistics_restocking' => ['location' => 'a']], $bundles)->getDefinition(LogisticsRestocking::class)->getArgument('$location'));
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function badLocations(): iterable
+    {
+        yield 'empty' => [''];
+        yield 'a space first' => [' returns'];
+        yield 'a space last' => ['returns '];
+        yield 'too long' => [str_repeat('a', 65)];
+        yield 'a line' => ["returns\n"];
+        yield 'a number' => [12];
+    }
+
+    #[DataProvider('badLocations')]
+    public function testTheLocationOfTheReturnsIsTheCodeOfALocation(mixed $location): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('The location of the returns is the code of a location: 1 to 64 characters, neither starting nor ending with a space.');
+
+        $this->load(['logistics_restocking' => ['location' => $location]], ['DoctrineBundle' => DoctrineBundle::class, 'PhilCommerceLogisticsBundle' => PhilCommerceLogisticsBundle::class]);
+    }
+
+    public function testTheLogisticsRestockingNeedsTheLogistics(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIsOrContains('phil_commerce_returns.logistics_restocking puts units back in the stock of phil/commerce-logistics-bundle: register PhilCommerceLogisticsBundle too.');
+
+        $this->load(['logistics_restocking' => true]);
     }
 
     public function testWithoutARendererNoSlipIsPrinted(): void

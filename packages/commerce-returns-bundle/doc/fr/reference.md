@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=09ca15f93b07a6bc7941f5bc3185d29f246b3433d6e131f429532ae7af30c575 -->
+<!-- phil-dev source-sha256=071c7ae3338633bc20333b423e2cbd58213c7bafc01457bdc69ab2d4be664fb5 -->
 # Référence
 
 Chaque type public du module.
@@ -32,6 +32,7 @@ Chaque type public du module.
 | `Infrastructure\Catalog\CatalogSetParts` | `final readonly class` | Les ensembles par `phil/commerce-catalog-bundle` |
 | `Infrastructure\Promotions\PromotionSpecials` | `final readonly class` | Les promotions spéciales par `phil/commerce-promotions-bundle` |
 | `Infrastructure\Logistics\LogisticsShipmentDates` | `final readonly class` | Les dates d'expédition par `phil/commerce-logistics-bundle` |
+| `Infrastructure\Logistics\LogisticsRestocking` | `final readonly class`, `Restocking` | Les unités revendables remises dans le stock de `phil/commerce-logistics-bundle`, au coût auquel elles sont parties |
 | `Infrastructure\PagedMedia\PagedMediaReturnSlips` | `final readonly class` | Les bordereaux produits avec `phil/paged-media` |
 
 Voir [scope.md](scope.md) pour ce qui n'est pas commencé.

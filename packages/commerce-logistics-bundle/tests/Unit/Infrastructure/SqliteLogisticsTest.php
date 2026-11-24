@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Phil\CommerceLogisticsBundle\Tests\Integration;
+namespace Phil\CommerceLogisticsBundle\Tests\Unit\Infrastructure;
 
 use Override;
 use Phil\CommerceLogisticsBundle\Infrastructure\Doctrine\DoctrineLogisticsRepository;
+use Phil\CommerceLogisticsBundle\Tests\Integration\ServerTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
- * The same tests on SQLite, in a file that several connections share: the one `PHIL_TEST_SQLITE_PATH` names, or one of
- * the temporary directory.
+ * The tests of the servers on SQLite, in the unit suite, which needs no server: in a file that several connections
+ * share, the one `PHIL_TEST_SQLITE_PATH` names, or one of the temporary directory.
  */
 #[CoversClass(DoctrineLogisticsRepository::class)]
 final class SqliteLogisticsTest extends ServerTestCase

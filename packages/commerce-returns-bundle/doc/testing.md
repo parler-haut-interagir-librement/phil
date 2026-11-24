@@ -10,15 +10,17 @@
 | `ReturnCreditNotes`, `ReturnCreditNote` | Partial lines with their tax, fees, specials, delivery, missing units; one note per return; lines credited whole by the core, before and under the lock; returns not received, orders without a receipt |
 | `ReturnSlips`, `ReturnDocumentTypes`, `PagedMediaReturnSlips` | A slip numbered once in its series, its lines and label; only an authorized return; a PDF in the locale asked, on more pages for many lines, in English without a translator |
 | `CatalogSetParts`, `PromotionSpecials`, `LogisticsShipmentDates` | Composite products as sets, bundle prices as specials, the last shipment of an order |
+| `LogisticsRestocking` | Units back where they left from, reservation by reservation, or at the configured location, a configured line's product; another sellable, an untracked SKU and units beyond what left putting nothing back; an unknown return refused |
 | `ReturnsGateway` | The method `exchange`, its refunds |
 | `StoredValueStoreCredit` | Credit through the stored-value module |
 | Mapping | Every column of the tables |
-| `PhilCommerceReturnsBundle` | The configuration and its bounds, the policy, the services with DoctrineBundle, store credit, sets, specials and shipment dates with their modules, slips with or without a renderer, nothing without Doctrine, the mapping, the refusal without the core |
+| `PhilCommerceReturnsBundle` | The configuration and its bounds, the policy, the services with DoctrineBundle, store credit, sets, specials and shipment dates with their modules, the logistics restocking off by default, its location bounded and its refusal without the logistics, slips with or without a renderer, nothing without Doctrine, the mapping, the refusal without the core |
 
 A functional suite boots a kernel with FrameworkBundle, DoctrineBundle on an in-memory SQLite database, the core, the
-stored-value, catalogue and promotions modules and this one: `ReturnFlowTest` takes a return through to store credit,
+stored-value, catalogue, promotions and logistics modules — the last with its costing, first in, first out — and this one: `ReturnFlowTest` takes a return through to store credit,
 refuses a part of a catalogue's set, takes a promotion's special back, gives the delivery back, numbers a slip and a
-credit note in their series and reads them back, expires a return found in SQL, and tells each step to a listener. Installed on its own,
+credit note in their series and reads them back, expires a return found in SQL, tells each step to a listener, and puts the resellable units of a return back in the
+logistics module's stock at the cost they left at, not at the day's. Installed on its own,
 where FrameworkBundle is a development requirement, the suite is skipped.
 
 From the root of the monorepo:

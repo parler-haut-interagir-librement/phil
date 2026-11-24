@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace Phil\CommerceLogisticsBundle\Infrastructure\Doctrine;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use Phil\CommerceLogisticsBundle\Domain\Contract\CostRepository;
+use Phil\CommerceLogisticsBundle\Domain\Cost\CostEntryKind;
 use Phil\CommerceLogisticsBundle\Domain\Document\ShippingDocumentKind;
 use Phil\CommerceLogisticsBundle\Domain\Model\Convention;
 use Phil\CommerceLogisticsBundle\Domain\Model\ConventionQuantity;
+use Phil\CommerceLogisticsBundle\Domain\Model\CostEntry;
+use Phil\CommerceLogisticsBundle\Domain\Model\CostLayer;
 use Phil\CommerceLogisticsBundle\Domain\Model\DeliveryMethod;
 use Phil\CommerceLogisticsBundle\Domain\Model\Location;
 use Phil\CommerceLogisticsBundle\Domain\Model\PrintJob;
@@ -42,9 +47,13 @@ use SortDirection;
 /**
  * The logistics repositories on the Doctrine ORM: locations, stock levels keyed by SKU and location, the stock
  * journal, reservations, stock policies, delivery methods, shipments and their costs, conventions and print jobs,
- * purchase orders, serial numbers, shipping documents and waves, each in a table of its own.
+ * purchase orders, serial numbers, shipping documents and waves, cost layers and the cost journal, each in a table of
+ * its own.
+ *
+ * Cost layers and entries given to it and not flushed yet are found as if they were stored, and a layer removed and not
+ * flushed yet is no longer found: the costing reads, within one unit of work, what it wrote earlier in it.
  */
-final readonly class DoctrineLogisticsRepository implements LocationRepository, StockRepository, StockPolicyRepository, DeliveryMethodRepository, ShipmentRepository, ShippingCostRepository, ConventionRepository, PurchaseOrderRepository, SerialNumberRepository, ShippingDocumentRepository, ShippingWaveRepository
+final readonly class DoctrineLogisticsRepository implements CostRepository, LocationRepository, StockRepository, StockPolicyRepository, DeliveryMethodRepository, ShipmentRepository, ShippingCostRepository, ConventionRepository, PurchaseOrderRepository, SerialNumberRepository, ShippingDocumentRepository, ShippingWaveRepository
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -84,10 +93,6 @@ final readonly class DoctrineLogisticsRepository implements LocationRepository, 
     #[Override]
     public function levelsOfSkus(array $skus): array
     {
-        if ([] === $skus) {
-            return [];
-        }
-
         return $this->entityManager->getRepository(StockLevel::class)->findBy(['sku' => $skus]);
     }
 
@@ -210,8 +215,8 @@ final readonly class DoctrineLogisticsRepository implements LocationRepository, 
             ->andWhere('c.endsOn >= :from')
             ->orderBy('c.startsOn', SortDirection::Ascending)
             ->addOrderBy('c.code', SortDirection::Ascending)
-            ->setParameter('until', $until->setTime(0, 0), 'date_immutable')
-            ->setParameter('from', $from->setTime(0, 0), 'date_immutable')
+            ->setParameter('until', $until, 'date_immutable')
+            ->setParameter('from', $from, 'date_immutable')
             ->getQuery()
             ->getResult();
     }
@@ -237,10 +242,6 @@ final readonly class DoctrineLogisticsRepository implements LocationRepository, 
     #[Override]
     public function conventionSkus(array $skus): array
     {
-        if ([] === $skus) {
-            return [];
-        }
-
         /** @var list<array{sku: string}> $rows */
         $rows = $this->entityManager->createQueryBuilder()
             ->select('DISTINCT q.sku')
@@ -363,5 +364,189 @@ final readonly class DoctrineLogisticsRepository implements LocationRepository, 
             static fn (WaveAssignment $assignment): string => $assignment->orderNumber,
             $this->entityManager->getRepository(WaveAssignment::class)->findBy(['wave' => $code], ['orderNumber' => 'ASC']),
         );
+    }
+
+    #[Override]
+    public function layersOf(string $sku, string $location): array
+    {
+        $layers = $this->withPending(
+            CostLayer::class,
+            $this->entityManager->getRepository(CostLayer::class)->findBy(['sku' => $sku, 'location' => $location]),
+            static fn (CostLayer $layer): bool => $layer->sku === $sku && $layer->location === $location,
+        );
+        usort($layers, static fn (CostLayer $left, CostLayer $right): int => [$left->receivedAt, $left->id] <=> [$right->receivedAt, $right->id]);
+
+        return $layers;
+    }
+
+    #[Override]
+    public function shopLayersOf(string $sku): array
+    {
+        return $this->withPending(
+            CostLayer::class,
+            $this->entityManager->getRepository(CostLayer::class)->findBy(['sku' => $sku, 'owner' => null]),
+            static fn (CostLayer $layer): bool => $layer->sku === $sku && $layer->isShops(),
+        );
+    }
+
+    #[Override]
+    public function addLayer(CostLayer $layer): void
+    {
+        $this->entityManager->persist($layer);
+    }
+
+    #[Override]
+    public function removeLayer(CostLayer $layer): void
+    {
+        $this->entityManager->remove($layer);
+    }
+
+    #[Override]
+    public function addEntry(CostEntry $entry): void
+    {
+        $this->entityManager->persist($entry);
+    }
+
+    #[Override]
+    public function salesEntriesOf(string $reference, string $sku): array
+    {
+        $kinds = [CostEntryKind::Issued, CostEntryKind::Returned];
+        $entries = $this->withPending(
+            CostEntry::class,
+            $this->entityManager->getRepository(CostEntry::class)->findBy(['reference' => $reference, 'sku' => $sku, 'kind' => $kinds]),
+            static fn (CostEntry $entry): bool => $entry->reference === $reference && $entry->sku === $sku && \in_array($entry->kind, $kinds, true),
+        );
+        usort($entries, static fn (CostEntry $left, CostEntry $right): int => $left->id <=> $right->id);
+
+        return $entries;
+    }
+
+    #[Override]
+    public function latestCostedReceipt(string $sku): ?CostEntry
+    {
+        /** @var list<CostEntry> $stored */
+        $stored = $this->entityManager->createQueryBuilder()
+            ->select('e')
+            ->from(CostEntry::class, 'e')
+            ->where('e.sku = :sku')
+            ->andWhere('e.kind = :kind')
+            ->andWhere('e.owner IS NULL')
+            ->andWhere('e.units > e.uncosted')
+            ->orderBy('e.id', SortDirection::Descending)
+            ->setParameter('sku', $sku)
+            ->setParameter('kind', CostEntryKind::Received)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult();
+        $entries = $this->withPending(
+            CostEntry::class,
+            $stored,
+            static fn (CostEntry $entry): bool => $entry->sku === $sku && CostEntryKind::Received === $entry->kind && null === $entry->owner && $entry->costedUnits() > 0,
+        );
+        usort($entries, static fn (CostEntry $left, CostEntry $right): int => $right->id <=> $left->id);
+
+        return $entries[0] ?? null;
+    }
+
+    #[Override]
+    public function valuation(DateTimeImmutable $at): array
+    {
+        /** @var list<array{sku: string, location: string, currency: string, units: int|string, value: int|string}> $rows */
+        $rows = $this->entityManager->createQueryBuilder()
+            ->select('e.sku', 'e.location', 'e.currency', 'SUM(e.units - e.uncosted) AS units', 'SUM(e.value) AS value')
+            ->from(CostEntry::class, 'e')
+            ->where('e.owner IS NULL')
+            ->andWhere('e.movedAt <= :at')
+            ->groupBy('e.sku', 'e.location', 'e.currency')
+            ->orderBy('e.sku', SortDirection::Ascending)
+            ->addOrderBy('e.location', SortDirection::Ascending)
+            ->addOrderBy('e.currency', SortDirection::Ascending)
+            ->setParameter('at', $at->setTimezone(new DateTimeZone('UTC')), 'datetime_immutable')
+            ->getQuery()
+            ->getArrayResult();
+        $valued = [];
+
+        foreach ($rows as $row) {
+            if (0 !== (int) $row['units'] || 0 !== (int) $row['value']) {
+                $valued[] = ['sku' => $row['sku'], 'location' => $row['location'], 'currency' => $row['currency'], 'units' => (int) $row['units'], 'value' => (int) $row['value']];
+            }
+        }
+
+        return $valued;
+    }
+
+    #[Override]
+    public function salesCost(DateTimeImmutable $from, DateTimeImmutable $until): array
+    {
+        /** @var list<array{reference: string, sku: string, currency: string, units: int|string, uncosted: int|string, value: int|string}> $rows */
+        $rows = $this->entityManager->createQueryBuilder()
+            ->select('e.reference', 'e.sku', 'e.currency', 'SUM(e.units) AS units', 'SUM(e.uncosted) AS uncosted', 'SUM(e.value) AS value')
+            ->from(CostEntry::class, 'e')
+            ->where('e.owner IS NULL')
+            ->andWhere('e.reference IS NOT NULL')
+            ->andWhere('e.kind IN (:kinds)')
+            ->andWhere('e.movedAt >= :from')
+            ->andWhere('e.movedAt < :until')
+            ->groupBy('e.reference', 'e.sku', 'e.currency')
+            ->orderBy('e.reference', SortDirection::Ascending)
+            ->addOrderBy('e.sku', SortDirection::Ascending)
+            ->addOrderBy('e.currency', SortDirection::Ascending)
+            ->setParameter('kinds', [CostEntryKind::Issued->value, CostEntryKind::Returned->value])
+            ->setParameter('from', $from->setTimezone(new DateTimeZone('UTC')), 'datetime_immutable')
+            ->setParameter('until', $until->setTimezone(new DateTimeZone('UTC')), 'datetime_immutable')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $row): array => ['reference' => $row['reference'], 'sku' => $row['sku'], 'currency' => $row['currency'], 'units' => (int) $row['units'], 'uncosted' => (int) $row['uncosted'], 'value' => (int) $row['value']], $rows);
+    }
+
+    #[Override]
+    public function entries(DateTimeImmutable $from, DateTimeImmutable $until, array $kinds, ?string $after, int $limit): array
+    {
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('e')
+            ->from(CostEntry::class, 'e')
+            ->where('e.movedAt >= :from')
+            ->andWhere('e.movedAt < :until')
+            ->orderBy('e.id', SortDirection::Ascending)
+            ->setParameter('from', $from->setTimezone(new DateTimeZone('UTC')), 'datetime_immutable')
+            ->setParameter('until', $until->setTimezone(new DateTimeZone('UTC')), 'datetime_immutable')
+            ->setMaxResults($limit);
+
+        if ([] !== $kinds) {
+            $query->andWhere('e.kind IN (:kinds)')->setParameter('kinds', array_map(static fn (CostEntryKind $kind): string => $kind->value, $kinds));
+        }
+
+        if (null !== $after) {
+            $query->andWhere('e.id > :after')->setParameter('after', $after);
+        }
+
+        /** @var list<CostEntry> */
+        return $query->getQuery()->getResult();
+    }
+
+    /**
+     * What a query found, less what the unit of work will delete, plus what it will insert that matches.
+     *
+     * @template T of object
+     *
+     * @param class-string<T>   $class
+     * @param list<T>           $stored
+     * @param callable(T): bool $matches
+     *
+     * @return list<T>
+     */
+    private function withPending(string $class, array $stored, callable $matches): array
+    {
+        $unitOfWork = $this->entityManager->getUnitOfWork();
+        $found = array_values(array_filter($stored, static fn (object $entity): bool => !$unitOfWork->isScheduledForDelete($entity)));
+
+        foreach ($unitOfWork->getScheduledEntityInsertions() as $entity) {
+            if ($entity instanceof $class && $matches($entity)) {
+                $found[] = $entity;
+            }
+        }
+
+        return $found;
     }
 }

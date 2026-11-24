@@ -65,7 +65,8 @@ final class TestKernel extends Kernel
 
         if ($this->withCore) {
             $container->extension('doctrine', ['dbal' => ['url' => 'sqlite:///:memory:'], 'orm' => []]);
-            $container->extension('phil_commerce_returns', ['expiry_days' => 14]);
+            $container->extension('phil_commerce_returns', ['expiry_days' => 14, 'logistics_restocking' => true]);
+            $container->extension('phil_commerce_logistics', ['costing' => ['method' => 'fifo', 'currency' => 'CAD']]);
             $container->services()->set(ToldReturns::class)->public()->tag('kernel.event_listener', ['event' => ReturnStateChanged::class]);
         }
     }

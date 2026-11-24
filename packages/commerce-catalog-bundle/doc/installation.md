@@ -6,7 +6,7 @@
 |---|---|---|
 | PHP | 8.5 or later | The floor the module declares and is tested on |
 | `ext-mbstring` | any | The length of names and attribute values, in characters |
-| `phil/commerce-bundle` | ^0.2@dev or ^0.3@dev | The core the module plugs into: `SellableResolver`, `UnitPriceResolver`, `SellableAvailability`, `OrderPurchased` |
+| `phil/commerce-bundle` | ^0.4@dev | The core the module plugs into: `SellableResolver`, `UnitPriceResolver`, `SellableAvailability`, `OrderPurchased` |
 | `phil/ddd-bundle` | ^0.1@dev | `InvalidValue` and `DomainError` |
 | `phil/doctrine-behaviours` | ^0.2@dev | The translations of product names |
 | `phil/locale-dimensions` | ^0.1@dev | The locales served and their fallback chains |
@@ -24,6 +24,8 @@
 them by a message, `symfony/console` gives their command, and `symfony/http-foundation` the controller of the route
 that serves their files ([Product feeds](product-feeds.md#serving)).
 `phil/commerce-promotions-bundle` is the module of promotions on these products.
+`phil/commerce-logistics-bundle` 0.1.1 or later is suggested: with it registered, the cost of a product — a
+composite's the sum of its parts' — is read from its costing ([Variants and composites](variants-and-composites.md#the-cost-of-a-composite)).
 
 ## Installing
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fde866990590c5dc4aff9627779c7f5b76b143167508a0434311cb0917cdb2ae -->
+<!-- phil-dev source-sha256=9051014ec9385760736958a532357ebeca8de47f276659629005c599a9f9c60c -->
 # Points d'extension
 
 Ce que le module branche dans `phil/commerce-bundle`, et ce qu'une application implémente, configure ou utilise. Les
@@ -24,6 +24,10 @@ chacun s'exécute à la réception d'un retour, dans la transaction qui l'enregi
 | Méthode | Contrat |
 |---|---|
 | `restock(SellableReference $line, int $quantity, string $return, DateTimeImmutable $at): void` | Remet les unités en place — un mouvement de stock de `phil/commerce-logistics-bundle`, ou celui de l'application ; `$line` est la référence de la ligne de commande, et ce qui retourne sur la tablette est son vendable `unconfigured()` |
+
+`Infrastructure\Logistics\LogisticsRestocking` est celui du module, sur `phil/commerce-logistics-bundle`, enregistré et
+étiqueté quand `logistics_restocking` est activé ; une application qui remet en stock autrement le laisse désactivé, pour
+qu'aucune unité ne revienne deux fois.
 
 ### `StoreCreditGranter`
 
@@ -82,6 +86,8 @@ propre moteur de rendu pour produire son propre bordereau.
 | `delivery_refund` | `never`, `shops_fault` (la valeur par défaut) ou `whole_order` : quand les frais de livraison sont rendus |
 | `expiry_days` | Combien de jours un retour autorisé attend sa marchandise avant que `expire()` le fasse expirer ; `null`, la valeur par défaut, pour toujours |
 | `rate_limiter` | Le service d'une fabrique de `symfony/rate-limiter` qui borne les retours que chaque client demande ; `null`, la valeur par défaut, pour aucune |
+| `logistics_restocking.enabled` | Remet les unités revendables dans le stock de `phil/commerce-logistics-bundle`, qui doit être enregistré ; désactivé par défaut |
+| `logistics_restocking.location` | Le code de l'emplacement où va chaque retour, de 1 à 64 caractères ; `null`, la valeur par défaut, pour celui d'où chaque *SKU* est parti |
 | `slips.prefix`, `slips.digits` | Le préfixe et les chiffres des numéros de bordereau ; `RS-` et 8 par défaut |
 
 Une limite de débit compte dans le stockage que nomme sa fabrique : derrière un répartiteur de charge, un stockage

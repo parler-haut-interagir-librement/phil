@@ -21,6 +21,14 @@ use Phil\CommerceCatalogBundle\Domain\Model\Product;
 use Phil\CommerceCatalogBundle\Domain\Product\ProductKind;
 use Phil\CommerceCatalogBundle\Domain\Repository\ProductRepository;
 use Phil\CommerceCatalogBundle\Domain\ValueObject\ProductComponent;
+use Phil\CommerceLogisticsBundle\Application\Contract\InventoryValuation;
+use Phil\CommerceLogisticsBundle\Application\Stock;
+use Phil\CommerceLogisticsBundle\Domain\Contract\CostRepository;
+use Phil\CommerceLogisticsBundle\Domain\Model\CostLayer;
+use Phil\CommerceLogisticsBundle\Domain\Model\Location;
+use Phil\CommerceLogisticsBundle\Domain\Repository\LocationRepository;
+use Phil\CommerceLogisticsBundle\Domain\Repository\StockRepository;
+use Phil\CommerceLogisticsBundle\Domain\ValueObject\SaleCost;
 use Phil\CommercePromotionsBundle\Domain\Contract\PromotionRepository;
 use Phil\CommercePromotionsBundle\Domain\Model\Promotion;
 use Phil\CommercePromotionsBundle\Domain\ValueObject\BundleGroup;
@@ -106,6 +114,62 @@ final class ReturnFlowTest extends KernelTestCase
         $entityManager->clear();
 
         self::assertSame([$earlier->id, $return->id], array_map(static fn (ReturnRequest $stored): string => $stored->id, $this->service(ReturnRepository::class, ReturnRepository::class)->returnsOf('A-1')), 'The returns of one order, earliest asked first.');
+    }
+
+    /**
+     * The resellable units of a received return go back where they left, at the cost they left at: the logistics
+     * module's costing, first in, first out, never values them at the day's cost.
+     */
+    public function testResellableUnitsGoBackOnTheShelfAtTheCostTheyLeftAt(): void
+    {
+        $entityManager = $this->service('doctrine.orm.entity_manager', EntityManagerInterface::class);
+        new SchemaTool($entityManager)->createSchema($entityManager->getMetadataFactory()->getAllMetadata());
+        $cad = Currency::of('CAD');
+        $at = new DateTimeImmutable('2026-11-21 10:00:00');
+        $this->service(LocationRepository::class, LocationRepository::class)->addLocation(Location::of('warehouse', 'Warehouse'));
+        $entityManager->flush();
+        $stock = $this->service(Stock::class, Stock::class);
+        $stock->receive('DICE', 'warehouse', 2, $at, 'PO-1', Money::of(1_000, $cad));
+        $stock->receive('DICE', 'warehouse', 2, $at->modify('+1 hour'), 'PO-2', Money::of(1_400, $cad));
+
+        $entityManager->flush();
+
+        $order = Order::open('D-1', $cad);
+        $order->add(Sellable::of(SellableReference::of('product', 'DICE'), 'Dice', Money::of(2_500, $cad), 'standard'), 3, Money::of(2_500, $cad));
+        $order->add(Sellable::of(SellableReference::of('product', 'TEA'), 'Tea', Money::of(500, $cad), 'standard'), 1, Money::of(500, $cad));
+        $order->place($at);
+        $this->service(OrderRepository::class, OrderRepository::class)->add($order);
+        $stock->reserve($order, $at);
+        $entityManager->flush();
+        $stock->ship('D-1', $at->modify('+1 day'));
+        // A receipt after the sale moves the day's cost; the return does not follow it.
+        $stock->receive('DICE', 'warehouse', 1, $at->modify('+2 days'), 'PO-3', Money::of(2_000, $cad));
+
+        $entityManager->flush();
+        $entityManager->clear();
+
+        $returns = $this->service(Returns::class, Returns::class);
+        $return = $returns->request($order, [['line' => 'product:DICE', 'quantity' => 1, 'reason' => ReturnReason::ChangedMind], ['line' => 'product:TEA', 'quantity' => 1, 'reason' => ReturnReason::ChangedMind]], $at->modify('+3 days'));
+        $returns->authorize($return->id, $at->modify('+3 days'));
+        $entityManager->flush();
+        $returns->receive($return->id, ['product:DICE' => ItemCondition::Resellable, 'product:TEA' => ItemCondition::Resellable], $at->modify('+4 days'));
+        $entityManager->flush();
+        $entityManager->clear();
+
+        // Three dice left at 10.00, 10.00 and 14.00: the one back comes in at a third of 34.00.
+        self::assertSame(
+            [['received', 1_400], ['received', 2_000], ['returned', 1_133]],
+            array_map(static fn (CostLayer $layer): array => ['D-1' === $layer->reference ? 'returned' : 'received', $layer->value()->minorUnits], $this->service(CostRepository::class, CostRepository::class)->layersOf('DICE', 'warehouse')),
+        );
+        self::assertSame([3, 1, 3], [
+            $this->service(StockRepository::class, StockRepository::class)->reservationsOf('D-1')[0]->shipped(),
+            $this->service(StockRepository::class, StockRepository::class)->reservationsOf('D-1')[0]->returned(),
+            $this->service(StockRepository::class, StockRepository::class)->level('DICE', 'warehouse')?->onHand(),
+        ]);
+        self::assertSame(
+            [['D-1', 'DICE', 2, 2_267]],
+            array_map(static fn (SaleCost $cost): array => [$cost->reference, $cost->sku, $cost->units, $cost->cost->minorUnits], $this->service(InventoryValuation::class, InventoryValuation::class)->costOfSales($at, $at->modify('+5 days'))),
+        );
     }
 
     /**

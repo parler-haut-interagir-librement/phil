@@ -20,9 +20,10 @@ $stock->available('DICE-D20');                                        // 117
 
 | Method of `Stock` | Effect |
 |---|---|
-| `receive(sku, location, quantity, at, reference)` | Adds units on hand |
-| `count(sku, location, counted, at, reference)` | Sets what a count found; the journal keeps the difference |
+| `receive(sku, location, quantity, at, reference, unitCost, owner)` | Adds units on hand; with costing, at their unit cost, or as an owner's units — see [Costing](costing.md) |
+| `count(sku, location, counted, at, reference, reason)` | Sets what a count found; the journal keeps the difference, and its reason when given |
 | `adjust(sku, location, difference, at, reference)` | Changes what is on hand by a difference, never below zero; the journal keeps it as `adjusted` |
+| `adjustFor(sku, location, difference, reason, at, reference)` | Adjusts as `adjust()` does, for a `VarianceReason` the journal keeps beside the difference |
 | `transfer(sku, from, to, quantity, at, reference)` | Moves available units from one location to another |
 | `available(sku)` | On hand less reserved, over the open locations |
 | `reserve(order, at)` | Sets aside the tracked lines of a placed order, once |
@@ -73,7 +74,9 @@ $stock->adjust('DICE-D20', 'warehouse', 1, $clock->now(), 'COUNT-12');    // one
 - **Two adjustments of one level at once both count.** Each request reads the level, adds its difference and flushes;
   the level's version column refuses the second flush with Doctrine's `OptimisticLockException`. The caller retries
   that unit of work in a new entity manager: the difference applies again, to the level as the first one left it.
-- The reference goes to the journal: a count sheet, a damage report. The journal has no typed reason beyond it.
+- The reference goes to the journal: a count sheet, a damage report. `adjustFor()` adds a typed reason — damaged,
+  theft, lost, expired, a count error, a supplier error, internal use, donated —, kept in the movement's `reason`; with
+  costing, the cost journal keeps the value of the units at cost beside it. See [Costing](costing.md#variances).
 
 ## Customer returns
 
@@ -93,8 +96,10 @@ $stock->returnFromCustomer($order->number, 'DICE-D20', 'returns', 2, $clock->now
 - `Reservation::shipped()`, `returned()` and `returnable()` give, per reservation, what left, what came back and what
   may still come back. Whether a returned unit can be sold again is the application's to decide; it moves it with
   `transfer()` or `adjust()`.
-- With `phil/commerce-returns-bundle`, a `Restocking` of the application's own calls `returnFromCustomer()` when a
-  return is received.
+- **With costing, the units come back at the cost they left at**, never at the day's cost — see
+  [Costing](costing.md#customer-returns).
+- With `phil/commerce-returns-bundle`, its logistics restocking, or a `Restocking` of the application's own, calls
+  `returnFromCustomer()` when a return is received.
 
 ## Selling without stock
 
@@ -131,13 +136,15 @@ With DoctrineBundle:
 |---|---|
 | `phil_commerce_logistics_location` | `code` (primary key), `name`, `priority`, `active` |
 | `phil_commerce_logistics_stock_level` | `sku` and `location` (primary key), `on_hand`, `reserved`, `version` |
-| `phil_commerce_logistics_stock_movement` | `id` (UUID v7), `sku`, `location`, `kind`, `on_hand_change`, `reserved_change`, `reference`, `moved_at`; indexed by SKU, location and moment, and by reference |
+| `phil_commerce_logistics_stock_movement` | `id` (UUID v7), `sku`, `location`, `kind`, `on_hand_change`, `reserved_change`, `reference`, `moved_at`, `reason` (null without one); indexed by SKU, location and moment, and by reference |
 | `phil_commerce_logistics_reservation` | `id` (UUID v7), `order_number` (indexed), `sku`, `location`, `quantity`, `shipped`, `returned` (0 by default), `state` |
 | `phil_commerce_logistics_stock_policy` | `sku` (primary key), `backorders` |
 
 A stock level's version column refuses two movements made over the same copy.
 
-A database created for 0.1.0-alpha gains one column per table that changed, and nothing else changes: `returned` in
-`phil_commerce_logistics_reservation`, an integer that is 0 for the existing rows, and `line_terms` in
-`phil_commerce_logistics_purchase_order` — see [Purchasing](purchasing.md). Generate the migration with Doctrine's
+A database created for 0.1.0-alpha gains one column per table that changed and the two tables of costing, and nothing
+else changes: `returned` in `phil_commerce_logistics_reservation`, an integer that is 0 for the existing rows,
+`line_terms` in `phil_commerce_logistics_purchase_order` — see [Purchasing](purchasing.md) —, `reason` in
+`phil_commerce_logistics_stock_movement`, null for the existing rows, and `phil_commerce_logistics_cost_layer` and
+`phil_commerce_logistics_cost_entry` — see [Costing](costing.md#storage). Generate the migration with Doctrine's
 `doctrine:migrations:diff`, or `doctrine:schema:update --dump-sql` to read it first.

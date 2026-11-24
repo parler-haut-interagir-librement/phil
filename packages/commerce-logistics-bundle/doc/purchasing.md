@@ -15,7 +15,7 @@ $purchasing->close('PO-2026-014');                                      // the r
 | Method of `Purchasing` | Effect |
 |---|---|
 | `order(number, supplier, location, lines, at, expectedOn)` | Opens a purchase order of 1 to 500 SKUs, each one unit or more, at a known location |
-| `receive(number, lines, at)` | Receives units against an open order, never more of a SKU than are still expected |
+| `receive(number, lines, at, landedCost)` | Receives units against an open order, never more of a SKU than are still expected; with costing, shares the landed cost over its lines |
 | `close(number)` | Expects nothing more of an open order |
 | `onOrder(sku)` | The units of a SKU ordered and not received yet, over the open orders |
 
@@ -42,10 +42,12 @@ $order->line('BOOK-17');   // PurchaseLine: 5 units, 12.50 CAD each, no owner
 ```
 
 - **The unit cost** is a `Money`, zero or more, in the currency the supplier invoices; the module stores it and gives it
-  back, and does not value the stock: neither an average cost nor first in, first out.
+  back. With costing enabled, the units received come in at that cost, which must then be in the configured currency,
+  and a landed cost passed to `receive()` is shared over the lines — see [Costing](costing.md).
 - **The owner** is the caller's own identifier — a consignor, a supplier, a department —, 1 to 64 characters without a
   control character, kept as it is given; the module knows nothing of owners. A purchase order has one line per SKU,
-  so one owner per SKU: units of one SKU owned by two parties go on two purchase orders.
+  so one owner per SKU: units of one SKU owned by two parties go on two purchase orders. With costing, an owner's units
+  never enter the shop's value, whatever their unit cost.
 - **Both are optional**, line by line; `PurchaseOrder::line()` gives the units ordered, the unit cost and the owner of a
   SKU, or null for a SKU the order does not list. `receive()` gives back the order, from which a ledger reads what the
   units that came cost and whom they belong to.
