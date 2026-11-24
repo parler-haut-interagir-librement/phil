@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8735c743deae17338a3f621f8cb7ab16cc6752ee5c285655194e03d050dcba56 -->
+<!-- phil-dev source-sha256=cf1e343cf0de431eb634f673dcd5f03dcf2242402bfe2fce6d80fa30ed04a50c -->
 # Acceptation
 
 ## Ce qu'un membre doit accepter
@@ -60,7 +60,7 @@ use Phil\TermsBundle\Infrastructure\Form\SignupAcceptances;
 
 if ($form->isSubmitted() && $form->isValid()) {
     $member = $members->register($form->getData());
-    $signupAcceptances->record($form, $member->id, $request->getClientIp());
+    $signupAcceptances->record($form, $member->id, $request->getClientIp(), $request->getLocale());
 }
 ```
 
@@ -69,9 +69,46 @@ if ($form->isSubmitted() && $form->isValid()) {
 ```php
 use Phil\TermsBundle\Domain\AcceptanceChannel;
 
-$terms->accept($memberId, 'terms', 3, AcceptanceChannel::Api, $request->getClientIp());
+$terms->accept($memberId, 'terms', 3, AcceptanceChannel::Api, $request->getClientIp(), $request->getLocale());
 ```
 
 Une acceptation porte sur la version en vigueur ou sur une version plus récente déjà publiée ; une version remplacée
 par une plus récente est refusée avec la raison `superseded_version`. `Terms` répartit `TermsAccepted` — des
 identifiants seulement — sur le répartiteur d'événements.
+
+## Prouver le texte accepté
+
+Chaque acceptation garde deux choses à côté du numéro de version :
+
+| Champ | Colonne | Quoi |
+|---|---|---|
+| `locale` | `locale` | La locale dont le texte a été montré au membre : la locale donnée à `accept()` quand la version a son texte, sinon `default_locale`, sinon la première locale de la version |
+| `textSha256` | `text_sha256` | Le SHA-256, en 64 chiffres hexadécimaux minuscules, du HTML que `PolicyTexts::toHtml()` produit à partir de ce texte |
+
+La page d'acceptation donne à `accept()` la locale de la requête, dont elle a montré le texte ; le formulaire
+d'inscription et un appel depuis le code la donnent de la même façon. Sans locale, c'est le texte de `default_locale`
+qui est consigné. Une version n'est jamais modifiée une fois publiée, de sorte que le numéro de version nomme déjà les
+textes ; la locale dit lequel a été lu, et le SHA-256 dit quel HTML le site en a produit.
+
+Pour prouver ce qu'un membre a accepté :
+
+1. Lisez les acceptations du membre — `AcceptanceRepository::ofMember()`, ou l'exportation de `phil/privacy-bundle`.
+2. Trouvez la version — `VersionCatalog::find($acceptance->policy, $acceptance->version)` — et son texte dans
+   `$acceptance->locale` : c'est le texte accepté.
+3. Vérifiez la preuve avec `Terms::textMatches($acceptance)` : `true` quand le HTML de ce texte produit aujourd'hui le
+   SHA-256 gardé, `false` quand ce n'est pas le cas ou que la version a disparu, `null` pour une acceptation consignée
+   sans preuve.
+
+```php
+$acceptance = $acceptances->ofMember($memberId)[0];
+
+if (true === $terms->textMatches($acceptance)) {
+    $text = $catalog->find($acceptance->policy, $acceptance->version)?->text($acceptance->locale, $acceptance->locale);
+}
+```
+
+`false` sur une version toujours dans le stockage signifie que le rendu a changé — un nouveau `phil/ujo` qui produit
+autrement un document UJO (Universal JSON Output), ou un autre service `PolicyTexts` —, non que le texte a changé : le
+texte de la version est gardé tel qu'il a été publié. Gardez le HTML des rendus passés hors du site quand un litige peut
+en avoir besoin, ou produisez le texte avec la version du moteur de rendu qui servait le jour de l'acceptation, dont le
+SHA-256 correspond alors.

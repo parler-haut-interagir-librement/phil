@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5e373e7e7d50111572ef60e6b3af6b11e3c61cf99323f7310f229ae53eb06101 -->
+<!-- phil-dev source-sha256=6627eb3335deea4d9faf7c186b27fc0ba3e76dcb2cd522923fab15b93fa32755 -->
 # Commandes
 
 ## `phil:backup:create`
@@ -87,16 +87,61 @@ Une sauvegarde SQLite est restaurée dans un fichier temporaire et passe `PRAGMA
 serveur est restaurée dans `verify.database` ; sans cette base, la commande le signale et teste le reste. Un échec se
 termine avec `1`. Voir les tests de restauration de phil/backup (`doc/restore-tests.md` de ce paquet).
 
+## `phil:backup:monitor`
+
+```bash
+bin/console phil:backup:monitor
+bin/console phil:backup:monitor --max-age=50
+```
+
+| Option | Effet |
+|---|---|
+| `--max-age=HOURS` | Le nombre d'heures au plus que peut avoir la dernière sauvegarde, un nombre entier, 1 ou plus ; par défaut `monitor.max_age_hours`, 26 |
+
+Elle dit si le jeu le plus récent sans étiquette — celui que prendrait `phil:backup:restore` — a été fait il y a moins
+d'heures que cela, d'après l'heure de son nom :
+
+```
+The most recent backup, shop-20261107-031500, was taken 7 h 42 min ago: less than 26 hour(s).
+```
+
+Elle se termine avec `0` quand la sauvegarde est récente, `1` quand elle est plus ancienne ou qu'il n'y en a aucune, et
+`2` pour un âge maximal qui n'est pas un nombre entier d'heures. Avec une clé, un jeu en clair n'est jamais compté. Elle
+ne fait que lister le répertoire : elle ne prend aucun verrou et n'ouvre aucun jeu, de sorte qu'elle peut s'exécuter
+aussi souvent que la surveillance le veut, même pendant une sauvegarde. Savoir si le jeu se restaure est la question de
+`phil:backup:verify`.
+
+## Le verrou
+
+`phil:backup:create`, `phil:backup:restore` et `phil:backup:verify` tiennent un verrou exclusif par répertoire de
+sauvegarde, par Symfony Lock, du début de leur travail à sa fin : la sauvegarde et la rotation qui la suit ; la copie
+faite avant une restauration, la restauration et la suppression des copies plus anciennes ; le test de restauration.
+Une rotation ne supprime donc jamais un jeu qu'une autre commande écrit ou teste, et deux planifications qui se
+chevauchent ne s'exécutent jamais ensemble. Aucune n'attend le verrou : une commande qui le trouve pris échoue
+aussitôt, ne change rien et se termine avec `1` :
+
+```
+Another backup, rotation, restore or restore test of /srv/shop/var/backup is running: try again once it ends.
+```
+
+La restauration prend le verrou une fois que la [protection des restaurations](restore-protection.md) l'a laissée
+passer, de sorte qu'une question qui attend le nom de la base de données ne bloque jamais une sauvegarde. Par défaut,
+le verrou vit dans un magasin flock du répertoire temporaire du système, qui sert les commandes d'une seule machine et
+est libéré à la fin d'un processus, quelle que soit sa fin. Plusieurs machines qui écrivent dans le même répertoire
+partagent un magasin par `lock.factory` ; voir [Configuration](configuration.md).
+
 ## Planification
 
 Le bundle ne planifie rien. Avec Symfony Scheduler, ou avec cron :
 
 ```
 15 3 * * *  cd /srv/shop && bin/console phil:backup:create --quiet && bin/console phil:backup:verify --quiet
+*/30 * * * *  cd /srv/shop && bin/console phil:backup:monitor --quiet
 ```
 
 Copiez le répertoire hors de la machine après chaque sauvegarde — les jeux sont chiffrés, la clé reste sur place — et
-déclenchez une alerte sur un code de sortie non nul.
+déclenchez une alerte sur un code de sortie non nul, de la sauvegarde et de `phil:backup:monitor`, qui attrape aussi une
+sauvegarde qui n'a jamais démarré.
 
 ## Une copie de la production pour travailler
 
@@ -108,3 +153,23 @@ bin/console phil:backup:restore /tmp/shop-20261107-031500.dump.enc --confirm --d
 
 Le contenu local est sauvegardé d'abord, comme partout. Une copie qui contient des données de personnes est anonymisée
 avant d'être partagée ; `phil/privacy-bundle` s'en charge, et sa documentation donne la séquence complète.
+
+### Combien de temps garder une copie étiquetée `anonymized`
+
+Une copie anonymisée ainsi, puis sauvegardée avec `--label=anonymized`, **contient encore des renseignements
+personnels** : ses clés primaires, les colonnes qu'aucune règle ne réécrit et son texte libre la relient à la
+production. Selon la loi québécoise sur la protection des renseignements personnels dans le secteur privé, elle est au
+mieux dépersonnalisée, non anonymisée, et d'autres lois la voient de la même façon. Elle demande une période de
+conservation qui lui est propre, comme tout renseignement personnel, et sa fuite est un incident de confidentialité.
+
+La rotation ne supprime jamais un jeu étiqueté : une telle copie reste jusqu'à ce qu'on la supprime. Fixez sa période de
+deux façons :
+
+- **par nombre**, après chaque nouvelle copie : `Backups::keepLatest('anonymized', 1)` supprime toutes les copies sauf
+  la dernière ;
+- **par âge**, selon un calendrier : supprimez les copies plus anciennes que la période, comme le montre le guide de
+  rotation de phil/backup (`doc/rotation.md` de ce paquet, *Labelled sets and their retention*), ou avec une règle de
+  conservation de `phil/privacy-bundle` qui l'appelle.
+
+Notez la période à côté des autres périodes de conservation de l'application, et supprimez la base de données de
+travail restaurée une fois le travail terminé : c'est la même information, hors du répertoire de sauvegarde.
