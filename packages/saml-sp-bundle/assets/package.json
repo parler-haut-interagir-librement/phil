@@ -1,0 +1,24 @@
+{
+    "name": "@phil/saml-sp-bundle",
+    "description": "The auto-submit controller of phil/saml-sp-bundle: the form that carries a SAML message to the identity provider posts itself",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/auto_submit_controller.js",
+    "symfony": {
+        "controllers": {
+            "auto-submit": {
+                "main": "src/auto_submit_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

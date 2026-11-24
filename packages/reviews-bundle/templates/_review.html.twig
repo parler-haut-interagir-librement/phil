@@ -1,0 +1,70 @@
+{#
+ # One published review: its author or "a former member" once anonymised, the mark of a verified purchase or
+ # attendance, the overall score and those of its criteria in stars read as text, its title and text, its superlatives,
+ # the mention of a compensation whenever there was one, the votes of helpfulness and their forms, the response of the
+ # merchant or the organiser, and the form to respond for those who may.
+ #
+ # review, type, me, votes, may_respond, token: what ReviewsController gives page.html.twig.
+ #}
+{%- set content = review.content -%}
+{%- set vote = votes[review.id.value] ?? null -%}
+<article class="phil-reviews__review" id="review-{{ review.id.value }}" aria-labelledby="review-{{ review.id.value }}-title">
+    <header>
+        <h3 id="review-{{ review.id.value }}-title">{{ content.title ?? 'review.untitled'|trans({'%author%': phil_reviews_name(review.author) ?? 'review.former_member'|trans({}, 'phil_reviews')}, 'phil_reviews') }}</h3>
+        <p class="phil-reviews__byline">
+            {{ phil_reviews_name(review.author) ?? 'review.former_member'|trans({}, 'phil_reviews') }}
+            · <time datetime="{{ review.writtenAt|date('c') }}">{{ review.writtenAt|date('Y-m-d') }}</time>
+            {%- if review.editedAt is not null %} · {{ 'review.edited'|trans({}, 'phil_reviews') }}{% endif %}
+            {%- if review.verification is not null %}
+            · {% component (phil_reviews_kit('Badge')) with {variant: 'outline'} %}{% block content %}{{ ('review.verified.' ~ review.verification.value)|trans({}, 'phil_reviews') }}{% endblock %}{% endcomponent %}
+            {%- endif %}
+        </p>
+    </header>
+    <p class="phil-reviews__score">{{ component(phil_reviews_kit('Rating'), {label: 'review.overall'|trans({}, 'phil_reviews'), value: content.overall, max: type.scale, starLabel: 'stars.read'|trans({}, 'phil_reviews')}) }}</p>
+    {%- if content.criteria is not empty %}
+    <dl class="phil-reviews__criteria">
+        {%- for code, score in content.criteria %}
+        <dt>{{ ('criteria.' ~ code)|trans({}, 'phil_reviews') }}</dt>
+        <dd>{{ component(phil_reviews_kit('Rating'), {label: ('criteria.' ~ code)|trans({}, 'phil_reviews'), value: score, max: type.scale, starLabel: 'stars.read'|trans({}, 'phil_reviews')}) }}</dd>
+        {%- endfor %}
+    </dl>
+    {%- endif %}
+    {%- if review.compensation.received %}
+    <p class="phil-reviews__compensation" role="note">
+        {{- 'review.compensated'|trans({}, 'phil_reviews') }}{% if review.compensation.note is not null %} {{ 'review.compensated_with'|trans({'%what%': review.compensation.note}, 'phil_reviews') }}{% endif -%}
+    </p>
+    {%- endif %}
+    {%- if content.body is not null %}
+    <div class="phil-reviews__body">{{ content.body|e|nl2br }}</div>
+    {%- endif %}
+    {%- if content.superlatives is not empty %}
+    <ul class="phil-reviews__superlatives" aria-label="{{ 'review.superlatives'|trans({}, 'phil_reviews') }}">
+        {%- for label in content.superlatives %}
+        <li>{% component (phil_reviews_kit('Badge')) with {variant: 'secondary'} %}{% block content %}{{ ('superlatives.' ~ label)|trans({}, 'phil_reviews') }}{% endblock %}{% endcomponent %}</li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+    <form method="post" action="{{ path('phil_reviews_vote', {review: review.id.value}) }}" class="phil-reviews__helpful" data-controller="phil--reviews-bundle--helpful" data-phil--reviews-bundle--helpful-label-value="{{ 'review.helpful_counts'|trans({'%helpful%': '{helpful}', '%unhelpful%': '{unhelpful}'}, 'phil_reviews') }}">
+        <p data-phil--reviews-bundle--helpful-target="counts" aria-live="polite">{{ 'review.helpful_counts'|trans({'%helpful%': review.helpful, '%unhelpful%': review.unhelpful}, 'phil_reviews') }}</p>
+        {%- if me is not null and not review.isBy(me) %}
+        <input type="hidden" name="_token" value="{{ token }}">
+        {% component (phil_reviews_kit('Button')) with {type: 'submit', name: 'vote', value: vote is same as(true) ? 'retract' : 'helpful', variant: 'outline', size: 'sm', 'aria-pressed': vote is same as(true) ? 'true' : 'false', 'data-action': 'phil--reviews-bundle--helpful#vote', 'data-phil--reviews-bundle--helpful-target': 'helpful'} %}{% block content %}{{ 'review.helpful'|trans({}, 'phil_reviews') }}{% endblock %}{% endcomponent %}
+        {% component (phil_reviews_kit('Button')) with {type: 'submit', name: 'vote', value: vote is same as(false) ? 'retract' : 'unhelpful', variant: 'outline', size: 'sm', 'aria-pressed': vote is same as(false) ? 'true' : 'false', 'data-action': 'phil--reviews-bundle--helpful#vote', 'data-phil--reviews-bundle--helpful-target': 'unhelpful'} %}{% block content %}{{ 'review.unhelpful'|trans({}, 'phil_reviews') }}{% endblock %}{% endcomponent %}
+        {%- endif %}
+    </form>
+    {%- if review.response is not null %}
+    <section class="phil-reviews__response" aria-label="{{ 'review.response'|trans({}, 'phil_reviews') }}">
+        <h4>{{ 'review.response'|trans({}, 'phil_reviews') }}</h4>
+        <p><time datetime="{{ review.response.at|date('c') }}">{{ review.response.at|date('Y-m-d') }}</time></p>
+        <div>{{ review.response.text|e|nl2br }}</div>
+    </section>
+    {%- endif %}
+    {%- if may_respond %}
+    <form method="post" action="{{ path('phil_reviews_respond', {review: review.id.value}) }}" class="phil-reviews__respond">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <label for="response-{{ review.id.value }}">{{ 'review.respond'|trans({}, 'phil_reviews') }}</label>
+        {% component (phil_reviews_kit('Textarea')) with {id: 'response-' ~ review.id.value, name: 'response', rows: 3, maxlength: 5000} %}{% block content %}{{ review.response.text ?? '' }}{% endblock %}{% endcomponent %}
+        {% component (phil_reviews_kit('Button')) with {type: 'submit', variant: 'secondary', size: 'sm'} %}{% block content %}{{ 'review.respond_send'|trans({}, 'phil_reviews') }}{% endblock %}{% endcomponent %}
+    </form>
+    {%- endif %}
+</article>

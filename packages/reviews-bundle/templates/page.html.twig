@@ -1,0 +1,85 @@
+{#
+ # The reviews of a subject: the summary of its ratings, the published reviews in the order chosen — every order lists
+ # them all —, the member's form or the state of their review, and the published rules of withdrawal.
+ #
+ # What ReviewsController::page() gives: subject, subject_title, subject_url, type, summary, superlatives, reviews,
+ # order, orders, page, pages, me, mine, refusal, may_respond, votes, criteria, token, spam, values, error, layout.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'page.title'|trans({'%subject%': subject_title}, 'phil_reviews') }}{% endblock %}
+
+{% block main %}
+<h1>{{ 'page.title'|trans({'%subject%': subject_title}, 'phil_reviews') }}</h1>
+{%- if subject_url is not null %}
+<p><a href="{{ subject_url }}">{{ 'page.back'|trans({'%subject%': subject_title}, 'phil_reviews') }}</a></p>
+{%- endif %}
+{%- if error is not null %}
+<p id="phil-reviews-error" class="phil-reviews__error" role="alert">{{ error|trans({}, 'phil_reviews') }}</p>
+{%- endif %}
+{{ include('@PhilReviews/_summary.html.twig') }}
+<section class="phil-reviews__list" aria-labelledby="phil-reviews-list-title">
+    <h2 id="phil-reviews-list-title">{{ 'page.reviews'|trans({'%count%': summary.count}, 'phil_reviews') }}</h2>
+    {%- if reviews is not empty %}
+    <nav aria-label="{{ 'page.order'|trans({}, 'phil_reviews') }}">
+        <ul class="phil-reviews__orders">
+            {%- for choice in orders %}
+            <li><a href="{{ path('phil_reviews_page', {type: subject.type, id: subject.id, order: choice.value}) }}"{% if choice == order %} aria-current="true"{% endif %}>{{ ('order.' ~ choice.value)|trans({}, 'phil_reviews') }}</a></li>
+            {%- endfor %}
+        </ul>
+    </nav>
+    {%- endif %}
+    {%- for review in reviews %}
+    {{ include('@PhilReviews/_review.html.twig') }}
+    {%- endfor %}
+    {%- if pages > 1 %}
+    <nav aria-label="{{ 'page.pages'|trans({}, 'phil_reviews') }}" class="phil-reviews__pages">
+        {%- if page > 1 %}<a href="{{ path('phil_reviews_page', {type: subject.type, id: subject.id, order: order.value, page: page - 1}) }}" rel="prev">{{ 'page.previous'|trans({}, 'phil_reviews') }}</a>{% endif %}
+        <span>{{ 'page.position'|trans({'%page%': page, '%pages%': pages}, 'phil_reviews') }}</span>
+        {%- if page < pages %}<a href="{{ path('phil_reviews_page', {type: subject.type, id: subject.id, order: order.value, page: page + 1}) }}" rel="next">{{ 'page.next'|trans({}, 'phil_reviews') }}</a>{% endif %}
+    </nav>
+    {%- endif %}
+</section>
+<section class="phil-reviews__yours" aria-labelledby="phil-reviews-yours-title">
+    <h2 id="phil-reviews-yours-title">{{ 'page.yours'|trans({}, 'phil_reviews') }}</h2>
+    {%- if me is null %}
+    <p>{{ 'page.sign_in'|trans({}, 'phil_reviews') }}</p>
+    {%- elseif mine is not null and not mine.published %}
+    {%- if mine.held %}
+    <p role="status">{{ 'page.held'|trans({}, 'phil_reviews') }}</p>
+    {%- else %}
+    <p role="status">{{ 'page.withdrawn'|trans({'%criterion%': ('criterion.' ~ mine.removalCriterion)|trans({}, 'phil_reviews')}, 'phil_reviews') }}</p>
+    {%- if mine.contest is null %}
+    <form method="post" action="{{ path('phil_reviews_contest', {review: mine.id.value}) }}" class="phil-reviews__contest">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <label for="phil-reviews-evidence">{{ 'page.contest'|trans({}, 'phil_reviews') }}</label>
+        {% component (phil_reviews_kit('Textarea')) with {id: 'phil-reviews-evidence', name: 'evidence', rows: 4, maxlength: 5000, required: true} %}{% block content %}{% endblock %}{% endcomponent %}
+        {% component (phil_reviews_kit('Button')) with {type: 'submit', variant: 'secondary'} %}{% block content %}{{ 'page.contest_send'|trans({}, 'phil_reviews') }}{% endblock %}{% endcomponent %}
+    </form>
+    {%- elseif mine.contest.open %}
+    <p>{{ 'page.contest_open'|trans({}, 'phil_reviews') }}</p>
+    {%- else %}
+    <p>{{ ('page.contest_' ~ mine.contest.outcome.value)|trans({}, 'phil_reviews') }}</p>
+    {%- endif %}
+    {%- endif %}
+    {%- elseif refusal is not null and (mine is null or refusal is same as('suspended')) %}
+    <p>{{ ('page.refusal.' ~ refusal)|trans({'%days%': type.window}, 'phil_reviews') }}</p>
+    {%- else %}
+    {{ include('@PhilReviews/_form.html.twig') }}
+    {%- endif %}
+</section>
+<details class="phil-reviews__rules">
+    <summary>{{ 'rules.title'|trans({}, 'phil_reviews') }}</summary>
+    <p>{{ 'rules.intro'|trans({}, 'phil_reviews') }}</p>
+    <dl>
+        {%- for code in criteria %}
+        <dt>{{ ('criterion.' ~ code)|trans({}, 'phil_reviews') }}</dt>
+        <dd>{{ ('criterion.' ~ code ~ '.help')|trans({}, 'phil_reviews') }}</dd>
+        {%- endfor %}
+    </dl>
+    <p>{{ 'rules.contest'|trans({}, 'phil_reviews') }}</p>
+    {%- if type.participantsOnly %}
+    <p>{{ 'rules.participants'|trans({'%days%': type.window ?? 0}, 'phil_reviews') }}</p>
+    {%- endif %}
+</details>
+{% endblock %}

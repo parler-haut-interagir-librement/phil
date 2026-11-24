@@ -1,0 +1,3 @@
+phil_saml_sp:
+    resource: '@PhilSamlSpBundle/config/routes.php'
+    prefix: /saml

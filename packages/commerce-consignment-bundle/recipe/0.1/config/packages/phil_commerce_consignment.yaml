@@ -1,0 +1,9 @@
+# Stock the shop owns and stock left on consignment, side by side on one SKU. Which units leave first when both are on
+# hand: owned_first, consigned_first or oldest_first, for every SKU or for some. See the configuration guide of
+# phil/commerce-consignment-bundle.
+phil_commerce_consignment:
+    issue_order: oldest_first
+    # issue_order_by_sku:
+    #     BOOK-123: consigned_first
+    # The statements' numbers: this prefix, then eight digits.
+    # statement_number_prefix: ST-

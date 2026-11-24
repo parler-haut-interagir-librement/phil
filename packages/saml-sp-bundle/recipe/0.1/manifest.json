@@ -1,0 +1,12 @@
+{
+    "bundles": {
+        "Phil\\SamlSpBundle\\PhilSamlSpBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "SAML_SP_CERTIFICATE": "%kernel.project_dir%/config/saml/sp.crt",
+        "SAML_SP_PRIVATE_KEY": "%kernel.project_dir%/config/saml/sp.key"
+    }
+}

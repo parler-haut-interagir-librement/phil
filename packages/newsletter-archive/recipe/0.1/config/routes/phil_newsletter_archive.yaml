@@ -1,0 +1,3 @@
+phil_newsletter_archive:
+    resource: '@PhilNewsletterArchiveBundle/config/routes.php'
+    prefix: /newsletter/archive

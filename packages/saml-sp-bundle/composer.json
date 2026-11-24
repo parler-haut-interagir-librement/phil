@@ -1,0 +1,84 @@
+{
+    "name": "phil/saml-sp-bundle",
+    "description": "Let people sign in with their organisation's account in Symfony: SAML 2.0 sign-on, one identity provider per organisation, accounts created on first login.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "saml",
+        "saml2",
+        "sso",
+        "single-sign-on",
+        "entra-id",
+        "okta",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*",
+        "phil/safe-http": "^0.2.1@dev",
+        "phil/saml-sp": "^0.1@dev",
+        "phil/url": "^0.1.4@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-http": "^8.2",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "ext-dom": "*",
+        "ext-zlib": "*",
+        "doctrine/dbal": "^4.5",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To remember the accepted assertions in a table of a Doctrine DBAL connection, atomic on any number of servers",
+        "symfony/console": "For phil:saml:check, which checks the metadata of the identity providers and the expiry of the certificates"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SamlSpBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SamlSpBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": true
+            }
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

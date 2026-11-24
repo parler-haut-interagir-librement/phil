@@ -1,0 +1,53 @@
+{
+    "name": "phil/mail-auth-check",
+    "description": "Know before you send whether receivers will trust your mail: SPF with its ten-lookup limit, DKIM and DMARC checked against a sender profile.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "spf",
+        "dkim",
+        "dmarc",
+        "email",
+        "deliverability",
+        "dns"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-filter": "*",
+        "ext-sodium": "*"
+    },
+    "require-dev": {
+        "ext-intl": "*",
+        "ext-openssl": "*",
+        "phpunit/phpunit": "^13.4"
+    },
+    "suggest": {
+        "ext-intl": "To check internationalised domain names, converted to their ASCII form."
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\MailAuthCheck\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\MailAuthCheck\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

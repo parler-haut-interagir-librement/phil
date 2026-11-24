@@ -1,0 +1,72 @@
+{
+    "name": "phil/saml-sp",
+    "description": "Let people sign in with their organisation's account: a SAML 2.0 service provider for PHP that verifies signed assertions and maps them to users.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "saml",
+        "saml2",
+        "sso",
+        "single-sign-on",
+        "service-provider",
+        "entra-id",
+        "okta"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-openssl": "*",
+        "ext-sodium": "*",
+        "ext-zlib": "*",
+        "phil/safe-http": "^0.2.1@dev",
+        "phil/url": "^0.1.4@dev",
+        "psr/cache": "^3.0",
+        "psr/clock": "^1.0",
+        "symfony/cache-contracts": "^3.6",
+        "symfony/service-contracts": "^3.6"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.5",
+        "phpunit/phpunit": "^13.4",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/http-client": "^8.2"
+    },
+    "suggest": {
+        "doctrine/dbal": "To remember the accepted assertions in a database table with DbalReplayGuard, atomic on any number of servers"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SamlSp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SamlSp\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": true
+            }
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}
