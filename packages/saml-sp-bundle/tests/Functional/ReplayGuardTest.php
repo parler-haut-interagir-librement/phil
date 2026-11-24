@@ -25,20 +25,53 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 #[CoversClass(ReplayGuardPass::class)]
 final class ReplayGuardTest extends WebTestCase
 {
+    /**
+     * The directory of this test's kernels and SQLite file, absolute and its own: neither the current directory nor
+     * another test that shares the temporary directory reaches it.
+     */
+    private static string $directory = '';
+
+    #[Override]
+    protected function setUp(): void
+    {
+        $temporary = realpath(sys_get_temp_dir());
+        self::assertIsString($temporary);
+        self::$directory = $temporary.'/phil-saml-sp-bundle-replay-'.bin2hex(random_bytes(8));
+        self::assertTrue(mkdir(self::$directory, 0o700, true));
+    }
+
+    #[Override]
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        self::remove(self::$directory);
+    }
+
     #[Override]
     protected static function getKernelClass(): string
     {
         return TestKernel::class;
     }
 
+    /**
+     * @param array<array-key, mixed> $options
+     */
+    #[Override]
+    protected static function createKernel(array $options = []): TestKernel
+    {
+        $environment = $options['environment'] ?? 'test';
+        $debug = $options['debug'] ?? true;
+        self::assertIsString($environment);
+        self::assertIsBool($debug);
+
+        return new TestKernel($environment, $debug, self::$directory);
+    }
+
     public function testWithDoctrineAReplayedAssertionIsRefusedByTheTable(): void
     {
-        $kernel = new TestKernel(TestKernel::DOCTRINE, true);
-        if (is_file($kernel->database())) {
-            unlink($kernel->database());
-        } elseif (!is_dir(\dirname($kernel->database()))) {
-            mkdir(\dirname($kernel->database()), 0o777, true);
-        }
+        $kernel = new TestKernel(TestKernel::DOCTRINE, true, self::$directory);
+        self::assertStringStartsWith(self::$directory.'/', $kernel->database());
+        self::assertFileDoesNotExist($kernel->database());
 
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $kernel->database()]);
         $guard = new DbalReplayGuard($connection, new NativeClock());
@@ -74,12 +107,28 @@ final class ReplayGuardTest extends WebTestCase
 
     public function testAPoolOnTheFileSystemIsRefusedInProduction(): void
     {
-        $kernel = new TestKernel('prod', false);
+        $kernel = new TestKernel('prod', false, self::$directory);
 
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessageIsOrContains('phil_saml_sp.cache_pool: the pool "cache.app" keeps the accepted assertions on each server');
 
         $kernel->boot();
+    }
+
+    private static function remove(string $path): void
+    {
+        if (is_dir($path) && !is_link($path)) {
+            $entries = scandir($path);
+            self::assertIsArray($entries);
+
+            foreach (array_diff($entries, ['.', '..']) as $entry) {
+                self::remove($path.'/'.$entry);
+            }
+
+            rmdir($path);
+        } elseif (is_file($path) || is_link($path)) {
+            unlink($path);
+        }
     }
 
     private function refusals(KernelBrowser $client): Refusals

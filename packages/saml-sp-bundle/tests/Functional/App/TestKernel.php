@@ -27,6 +27,15 @@ final class TestKernel extends Kernel
 {
     use MicroKernelTrait;
 
+    /**
+     * @param string|null $directory The directory of the cache, the logs, the metadata file and the SQLite file, absolute;
+     *                               one shared by the kernels of this copy of the bundle when null
+     */
+    public function __construct(string $environment, bool $debug, private readonly ?string $directory = null)
+    {
+        parent::__construct($environment, $debug);
+    }
+
     /** The environment with a Doctrine DBAL connection `default`, on SQLite. */
     public const string DOCTRINE = 'doctrine';
 
@@ -50,7 +59,7 @@ final class TestKernel extends Kernel
 
     public function root(): string
     {
-        return sys_get_temp_dir().'/phil-saml-sp-bundle-test/'.hash('xxh128', __DIR__);
+        return $this->directory ?? sys_get_temp_dir().'/phil-saml-sp-bundle-test/'.hash('xxh128', __DIR__);
     }
 
     /**

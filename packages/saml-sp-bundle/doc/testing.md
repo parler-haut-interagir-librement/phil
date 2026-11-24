@@ -16,7 +16,9 @@ vendor/bin/phpunit --no-configuration tests
   to the dashboard, is refused a response replayed or carried by another browser, signs out towards the identity
   provider and is signed out by it. In its `doctrine` environment, which adds a Doctrine DBAL connection on SQLite, a
   replayed assertion is refused by the table of `DbalReplayGuard`; in `test`, by the cache pool; in `prod`, its cache
-  pool on the filesystem stops the container from building.
+  pool on the filesystem stops the container from building. These three tests give their kernels a directory of their
+  own under the absolute temporary directory, removed after each test: the SQLite file, the cache and the metadata do
+  not depend on the current directory, nor on another test running at the same time.
 
 The responses and logout messages of the tests are written by `tests/Fixtures/Saml.php` and signed by the library's
 signer with the test keys of `tests/Fixtures/keys`: the keys of the tests of phil/saml-sp, made for these tests only and
