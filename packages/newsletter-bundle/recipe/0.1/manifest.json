@@ -6,6 +6,7 @@
         "config/": "%CONFIG_DIR%/"
     },
     "env": {
-        "NEWSLETTER_SECRET": "change-me-to-a-random-secret-of-32-bytes-or-more"
+        "#1": "At least 32 random bytes, hex-encoded, in .env.local or the secrets vault: php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'",
+        "NEWSLETTER_SECRET": ""
     }
 }

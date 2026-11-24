@@ -34,6 +34,7 @@
 | `Infrastructure\Console\SyncCommand`, `WebhookUrlCommand` | The commands. |
 | `Infrastructure\Messenger\SyncRoom`, `SyncRoomHandler` | The message of a room to sync. |
 | `Infrastructure\DependencyInjection\VirtualClassroomServices` | The services, from the configuration. |
+| `Infrastructure\DependencyInjection\ServerSecret` | The secret shared with a server, refused when it is a placeholder. |
 | `PhilVirtualClassroomBundle` | The bundle and its configuration tree. |
 
 ## Routes

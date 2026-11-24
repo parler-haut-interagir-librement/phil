@@ -42,6 +42,7 @@ use Phil\NewsletterBundle\Application\Handler\SendCampaignHandler;
 use Phil\NewsletterBundle\Application\Handler\SendConfirmationHandler;
 use Phil\NewsletterBundle\Application\Handler\SendDeliveryHandler;
 use Phil\NewsletterBundle\Application\ListRecipients;
+use Phil\NewsletterBundle\Application\NewsletterKey;
 use Phil\NewsletterBundle\Application\NewsletterUrls;
 use Phil\NewsletterBundle\Application\Sending\MessageComposer;
 use Phil\NewsletterBundle\Application\Sending\SenderProfile;
@@ -157,11 +158,10 @@ final class NewsletterServices
 
         $services->set('phil_newsletter.verp', Verp::class)->args([self::string($verp['local_part']), self::string($verp['domain']), self::string($verp['separator'])]);
         $verpService = true === $verp['enabled'] ? service('phil_newsletter.verp') : null;
-        $verpKey = hash_hmac('sha256', 'verp', $secret);
 
         $services->set(SandboxedTemplates::class)->tag('kernel.reset', ['method' => 'reset']);
         $services->set(ContentRenderer::class)->args([service(Markup::class), service('twig'), service(SandboxedTemplates::class)]);
-        $services->set(MessageComposer::class)->args([$verpService, $verpKey]);
+        $services->set(MessageComposer::class)->args([$verpService, self::derivedKey($secret, 'verp')]);
         $limiter = self::subscriptionLimiter($services, self::array(self::array($config['subscription'])['rate_limit']), self::string($config['rate_limiter_storage']), $secret);
         $services->set(Subscriptions::class)->args([
             service(MailingListRepository::class), service(SubscriberRepository::class), service(SuppressionRepository::class), service(DeliveryRepository::class),
@@ -184,7 +184,7 @@ final class NewsletterServices
         ]);
         $services->set(BounceHandler::class)->args([
             inline_service(BounceParser::class)->arg('$verp', $verpService), service(SubscriberRepository::class), service(DeliveryRepository::class),
-            service(SuppressionRepository::class), service(Subscriptions::class), service(CurrentSite::class), $clock, $verpService, $verpKey, self::integer($bounces['soft_threshold']),
+            service(SuppressionRepository::class), service(Subscriptions::class), service(CurrentSite::class), $clock, $verpService, self::derivedKey($secret, 'verp'), self::integer($bounces['soft_threshold']),
             service(SendRuns::class),
         ]);
 
@@ -207,6 +207,15 @@ final class NewsletterServices
         self::integrations($services, $builder, $config, $clock);
     }
 
+    /**
+     * The key of one use, derived when the service that needs it is built: the secret is often an environment variable,
+     * whose value the container knows only then.
+     */
+    private static function derivedKey(string $secret, string $use): InlineServiceConfigurator
+    {
+        return inline_service('string')->factory(NewsletterKey::derive(...))->args([$secret, $use]);
+    }
+
     private static function repositories(ServicesConfigurator $services, mixed $connection, mixed $clock, string $secret): void
     {
         $services->set(MailingListRepository::class, DbalMailingListRepository::class)->args([$connection]);
@@ -216,7 +225,7 @@ final class NewsletterServices
         $services->set(TemplateRepository::class, DbalTemplateRepository::class)->args([$connection]);
         $services->set(EngagementRepository::class, DbalEngagementRepository::class)->args([$connection]);
         $services->set(SendRunRepository::class, DbalSendRunRepository::class)->args([$connection]);
-        $services->set(SuppressionRepository::class, DbalSuppressionRepository::class)->args([$connection, $clock, hash_hmac('sha256', 'suppression', $secret)]);
+        $services->set(SuppressionRepository::class, DbalSuppressionRepository::class)->args([$connection, $clock, self::derivedKey($secret, 'suppression')]);
     }
 
     /**

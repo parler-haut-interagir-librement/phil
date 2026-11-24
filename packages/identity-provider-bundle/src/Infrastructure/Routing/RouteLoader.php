@@ -100,7 +100,7 @@ final class RouteLoader extends Loader
 
         if ($this->modules->has(Modules::LOGIN_LINK)) {
             $add('phil_identity_provider_login_link', '/login/link', [LoginLinkController::class, 'request'], ['GET', 'POST']);
-            $add(LoginLinkController::CHECK, '/login/link/check', $authenticator, ['GET']);
+            $add(LoginLinkController::CHECK, '/login/link/check', [LoginLinkController::class, 'confirm'], ['GET', 'POST']);
         }
 
         if ($this->modules->has(Modules::SMS)) {

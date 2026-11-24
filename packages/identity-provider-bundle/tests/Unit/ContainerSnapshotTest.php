@@ -88,7 +88,7 @@ final class ContainerSnapshotTest extends TestCase
             'totp' => ['issuer' => 'Example', 'window' => 2],
             'lockout' => ['threshold' => 3, 'base' => 30, 'max' => 120],
             'links' => ['verify_lifetime' => 600, 'reset_lifetime' => 300],
-            'sessions' => ['touch_interval' => 10],
+            'sessions' => ['touch_interval' => 10, 'idle_timeout' => 1800, 'max_age' => 0],
             'step_up' => ['attribute' => 'IS_AUTHENTICATED_RECENTLY', 'lifetime' => 120],
             'kit_subdirectory' => 'kit',
             'layout' => 'base.html.twig',

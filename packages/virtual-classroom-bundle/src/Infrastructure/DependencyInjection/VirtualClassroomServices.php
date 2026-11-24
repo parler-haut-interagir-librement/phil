@@ -159,6 +159,14 @@ final readonly class VirtualClassroomServices
     }
 
     /**
+     * The secret of a server, checked by `ServerSecret` when the service is built, an environment variable included.
+     */
+    private static function secret(?string $secret): ?Definition
+    {
+        return null === $secret ? null : new Definition('string')->setFactory([ServerSecret::class, 'check'])->setArguments([$secret]);
+    }
+
+    /**
      * @param Provider $provider
      * @param Config   $config
      */
@@ -171,7 +179,7 @@ final readonly class VirtualClassroomServices
             'bigbluebutton' => new Definition(BigBlueButton::class)->setArguments([
                 new Reference($config['http_client']),
                 $url,
-                $provider['secret'],
+                self::secret($provider['secret']),
                 $clock,
                 new Definition(ChecksumAlgorithm::class)->setFactory([ChecksumAlgorithm::class, 'from'])->setArguments([$provider['checksum']]),
                 new Definition(HttpBudget::class)->setArguments([$provider['timeout'], $provider['max_duration'], $provider['max_response_bytes']]),
@@ -190,7 +198,7 @@ final readonly class VirtualClassroomServices
             default => new Definition(Jitsi::class)->setFactory([Jitsi::class, 'selfHosted'])->setArguments([
                 $url,
                 $provider['app_id'],
-                $provider['secret'],
+                self::secret($provider['secret']),
                 $clock,
                 $provider['token_ttl'],
                 $provider['webhook_secret'],

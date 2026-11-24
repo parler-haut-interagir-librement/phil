@@ -45,6 +45,7 @@ Every class of the bundle, with its role.
 | `Phil\NewsletterBundle\Application\Message\SendCampaign` | `final readonly class` | Asks a worker to queue the messages of a campaign |
 | `Phil\NewsletterBundle\Application\Message\SendConfirmation` | `final readonly class` | Asks a worker to send the confirmation of a double opt-in |
 | `Phil\NewsletterBundle\Application\Message\SendDelivery` | `final readonly class` | Asks a worker to send one queued message |
+| `Phil\NewsletterBundle\Application\NewsletterKey` | `final class` | The key of the newsletter, checked, and the keys derived from it at run time for the VERP tags and the suppression hashes |
 | `Phil\NewsletterBundle\Application\NewsletterUrls` | `final readonly class` | The absolute addresses of the newsletter's pages, written into messages a worker sends without a request |
 | `Phil\NewsletterBundle\Application\SendRuns` | `final readonly class` | The send runs of campaigns: one per attempt at sending, its counts as its messages go out, and its circuit breaker |
 | `Phil\NewsletterBundle\Application\Sending\MessageComposer` | `final readonly class` | Builds the email of one delivery |

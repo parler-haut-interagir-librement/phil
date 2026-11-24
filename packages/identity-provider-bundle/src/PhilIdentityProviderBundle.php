@@ -14,6 +14,7 @@ use Phil\IdentityProviderBundle\Domain\Oidc\SubjectType;
 use Phil\IdentityProviderBundle\Domain\WebAuthn\AttestationPolicy;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\IdentityProviderServices;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
+use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\LoginLinkPostOnlyPass;
 use Phil\IdentityProviderBundle\Infrastructure\Routing\RouterLinkOrigin;
 use Phil\RateLimit\RateLimitGuard;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -197,6 +198,16 @@ final class PhilIdentityProviderBundle extends AbstractBundle
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->integerNode('touch_interval')->info('The fewest seconds between two writes of when a session was last seen.')->defaultValue(300)->min(0)->end()
+                    ->integerNode('idle_timeout')->info('The seconds without a request after which a session is closed, longer than touch_interval; 0 for no bound.')->defaultValue(7200)->min(0)->end()
+                    ->integerNode('max_age')->info('The seconds after it opened past which a session is closed, whatever its activity, at least 60; 0 for no bound.')->defaultValue(43200)->min(0)->end()
+                ->end()
+                ->validate()
+                    ->ifTrue(static fn (array $sessions): bool => 0 !== $sessions['idle_timeout'] && $sessions['idle_timeout'] <= max(59, $sessions['touch_interval']))
+                    ->thenInvalid('sessions.idle_timeout is 0, or at least 60 seconds and longer than sessions.touch_interval.')
+                ->end()
+                ->validate()
+                    ->ifTrue(static fn (array $sessions): bool => 0 !== $sessions['max_age'] && $sessions['max_age'] < 60)
+                    ->thenInvalid('sessions.max_age is 0, or at least 60 seconds.')
                 ->end()
             ->end()
             ->arrayNode('external')
@@ -328,6 +339,7 @@ final class PhilIdentityProviderBundle extends AbstractBundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new KitSubdirectoryPass());
+        $container->addCompilerPass(new LoginLinkPostOnlyPass());
         $container->addCompilerPass(new RateLimitGuard());
     }
 
@@ -376,7 +388,7 @@ final class PhilIdentityProviderBundle extends AbstractBundle
         }
 
         unset($config['enabled']);
-        /** @phpstan-var array{secret: string, site_name: string, modules: array<string, bool>, store: string, entity_manager: string, clock: string, layout: string, kit_subdirectory: ?string, accounts: array{id_generator: string, strip_subaddress: bool, canonicalizer: ?string}, registration: array{enabled: bool, rate_limit: array{enabled: bool, per_ip: array{limit: positive-int, interval: string}, per_address: array{limit: positive-int, interval: string}, resend_delay: string}}, public_origin: ?string, require_verified_email: bool, login_route: ?string, default_target: string, open_routes: list<string>, mailer: array{from: ?string}, password: array{min_score: int<0, 4>, breach_check: bool, http_client: string}, lockout: array{enabled: bool, threshold: positive-int, base: positive-int, max: positive-int}, login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool}, links: array{verify_lifetime: positive-int, reset_lifetime: positive-int, mode: string}, passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool, attestation: array{conveyance: string, trusted_roots: list<string>, require_trusted: bool, allowed_aaguids: list<string>, denied_aaguids: list<string>, backup: string}}, totp: array{issuer: ?string, window: int<0, 10>}, sms: array{sender: ?string, from: string, message: string, lifetime: positive-int, attempts: positive-int}, step_up: array{attribute: string, lifetime: positive-int}, sessions: array{touch_interval: non-negative-int}, external: array{link_verified_email: bool, register: bool}, oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, signing_keys: array{source: string, automatic_rotation: bool, files: list<array{path: string, kid: ?string}>, sealed: bool, service: ?string}, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}, subject: array{type: string, salt: ?string}, backchannel_logout: array{enabled: bool, bus: string, http_client: string, timeout: positive-int}}, secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string}, audit: string} $config */
+        /** @phpstan-var array{secret: string, site_name: string, modules: array<string, bool>, store: string, entity_manager: string, clock: string, layout: string, kit_subdirectory: ?string, accounts: array{id_generator: string, strip_subaddress: bool, canonicalizer: ?string}, registration: array{enabled: bool, rate_limit: array{enabled: bool, per_ip: array{limit: positive-int, interval: string}, per_address: array{limit: positive-int, interval: string}, resend_delay: string}}, public_origin: ?string, require_verified_email: bool, login_route: ?string, default_target: string, open_routes: list<string>, mailer: array{from: ?string}, password: array{min_score: int<0, 4>, breach_check: bool, http_client: string}, lockout: array{enabled: bool, threshold: positive-int, base: positive-int, max: positive-int}, login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool}, links: array{verify_lifetime: positive-int, reset_lifetime: positive-int, mode: string}, passkeys: array{rp_id: ?string, rp_name: ?string, origins: list<string>, require_user_verification: bool, attestation: array{conveyance: string, trusted_roots: list<string>, require_trusted: bool, allowed_aaguids: list<string>, denied_aaguids: list<string>, backup: string}}, totp: array{issuer: ?string, window: int<0, 10>}, sms: array{sender: ?string, from: string, message: string, lifetime: positive-int, attempts: positive-int}, step_up: array{attribute: string, lifetime: positive-int}, sessions: array{touch_interval: non-negative-int, idle_timeout: non-negative-int, max_age: non-negative-int}, external: array{link_verified_email: bool, register: bool}, oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, signing_keys: array{source: string, automatic_rotation: bool, files: list<array{path: string, kid: ?string}>, sealed: bool, service: ?string}, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}, subject: array{type: string, salt: ?string}, backchannel_logout: array{enabled: bool, bus: string, http_client: string, timeout: positive-int}}, secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string}, audit: string} $config */
         IdentityProviderServices::register($builder, $config);
     }
 

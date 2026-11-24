@@ -184,7 +184,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *     totp: array{issuer: ?string, window: int<0, 10>},
  *     sms: array{sender: ?string, from: string, message: string, lifetime: positive-int, attempts: positive-int},
  *     step_up: array{attribute: string, lifetime: positive-int},
- *     sessions: array{touch_interval: non-negative-int},
+ *     sessions: array{touch_interval: non-negative-int, idle_timeout: non-negative-int, max_age: non-negative-int},
  *     external: array{link_verified_email: bool, register: bool},
  *     oidc: array{issuer: ?string, algorithm: string, code_lifetime: positive-int, access_token_lifetime: positive-int, id_token_lifetime: positive-int, refresh_token_lifetime: positive-int, key_activation_delay: non-negative-int, retired_key_retention: non-negative-int, allow_localhost: bool, lock_factory: string, signing_keys: array{source: string, automatic_rotation: bool, files: list<array{path: string, kid: ?string}>, sealed: bool, service: ?string}, extra_scopes: list<string>, client_authentication: array{methods: non-empty-list<string>, clock_skew: int<0, 300>, assertion_max_lifetime: int<1, 3600>}, refresh_token_bound_to_session: bool, session_max_age: ?positive-int, id_token: array{acr: ?string, idp: ?string, session_start: bool}, subject: array{type: string, salt: ?string}, backchannel_logout: array{enabled: bool, bus: string, http_client: string, timeout: positive-int}},
  *     secrets: array{kms_key: ?string, allow_plaintext_secrets: bool, encrypter: string, decrypter: string},
@@ -574,6 +574,8 @@ final class IdentityProviderServices
                     $config['sessions']['touch_interval'],
                     new Reference(Transactions::class),
                     new Reference(LogoutNotifier::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    0 === $config['sessions']['idle_timeout'] ? null : $config['sessions']['idle_timeout'],
+                    0 === $config['sessions']['max_age'] ? null : $config['sessions']['max_age'],
                 ])
                 ->setPublic(true);
             $container->register(SessionListener::class, SessionListener::class)

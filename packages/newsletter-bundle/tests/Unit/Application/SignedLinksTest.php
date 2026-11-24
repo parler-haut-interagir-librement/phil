@@ -106,6 +106,13 @@ final class SignedLinksTest extends TestCase
         new SignedLinks(str_repeat('k', 15), $this->clock);
     }
 
+    public function testThePlaceholderOfTheRecipeIsRefused(): void
+    {
+        $this->expectExceptionObject(LinkRefused::because('The key of the newsletter links is a placeholder: give it random bytes of its own.'));
+
+        new SignedLinks('change-me-to-a-random-secret-of-32-bytes-or-more', $this->clock);
+    }
+
     private static function forged(string $payload): string
     {
         $encode = static fn (string $bytes): string => sodium_bin2base64($bytes, \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);

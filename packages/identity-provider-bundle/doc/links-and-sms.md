@@ -14,7 +14,16 @@ login_link:
     signature_properties: [userIdentifier, passwordChangedAt]
     lifetime: 600
     max_uses: 1
+    check_post_only: true
 ```
+
+The link is consumed by POST only. Following it shows a page with one button, "Sign in", whose form submits the
+parameters of the link to the same route, without script; the authenticator checks them there and signs the person
+in. A mail scanner or a link preview that follows the link only reads that page, and the single use stays for the
+person. The bundle sets `check_post_only: true` on every `login_link` authenticator that checks
+`phil_identity_provider_login_link_check`, whatever the firewall says (`LoginLinkPostOnlyPass`). The page carries
+over the parameters of the link only — names of letters, digits, `_`, `.` and `-`, at most 16 —, sends no referrer
+(`Referrer-Policy: no-referrer`), and is kept out of caches and search engines.
 
 The link is generated on `public_origin`, never on the host the request named: see
 [Where the links point](accounts.md#where-the-links-point).

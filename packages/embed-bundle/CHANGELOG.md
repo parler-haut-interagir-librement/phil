@@ -8,12 +8,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Development only.
-
 ### Changed
 
 - The development requirements accept `phil/browser-security-bundle` 0.2, the minor version of its main branch and no
   earlier one, so that the package installs on its own beside that bundle.
+
+### Security
+
+- The Flex recipe wrote into `.env` an example value of `EMBED_KEY` long enough to pass the rule of 32 bytes: a site
+  that kept it signed its embed tokens with a secret known to everyone. The recipe writes the variable empty, with a
+  comment on how to fill it, and `SigningKey::of()` refuses a secret that begins with `change-me` or `changeme`, as it
+  refuses one shorter than 32 bytes.
 
 ## 0.1.0-alpha - 2026-11-13
 

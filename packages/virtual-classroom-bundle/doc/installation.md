@@ -9,6 +9,11 @@ BigBlueButton server read from `BBB_URL` and `BBB_SECRET`, and `config/routes/ph
 imports the routes under `/virtual-classroom`. In development, `allow_localhost` is on; in tests, the rooms are kept in
 memory.
 
+`BBB_SECRET` is written empty: give it the secret the server shares — `bbb-conf --secret` prints it — out of the
+repository, in `.env.local`, a Symfony secret or the environment of the server. The service of a server refuses a
+secret shorter than 16 bytes — an empty one among them — and one that begins with `change-me` or `changeme`, the
+placeholders examples use (`ServerSecret`), when it is first built.
+
 Without Flex, enable the bundle and import its routes:
 
 ```php

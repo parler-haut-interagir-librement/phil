@@ -13,6 +13,32 @@ last seen and closed.
   from another device ends the PHP session there and then, and the request goes on signed out.
 - Signing out closes the row.
 
+## When a session ends on its own
+
+A session closes after `sessions.idle_timeout` seconds without a request — 7200, two hours, by default —, and
+`sessions.max_age` seconds after it opened, however active — 43200, twelve hours, by default:
+
+```yaml
+phil_identity_provider:
+    sessions:
+        idle_timeout: 7200   # 0 for no bound
+        max_age: 43200       # 0 for no bound
+```
+
+`Sessions::touch()` checks both bounds before it records the request, and `Sessions::openFor()` before it lists the
+sessions of an account. A session past either bound is closed as from another device: its tokens are revoked, the
+row closed, the event `identity.session.closed` written with the reason, `idle_timeout` or `max_age`, and the PHP
+session that holds it ends at its request, which goes on signed out. Signing in again opens a new session.
+
+The last request is written at most once every `sessions.touch_interval` seconds, so an idle session may close up
+to that many seconds before `sessions.idle_timeout`; the idle timeout is longer than the interval, and the bundle
+refuses a configuration where it is not. The PHP session itself lives by the settings of the framework
+(`framework.session.gc_maxlifetime`, `cookie_lifetime`); the bounds of the bundle hold whatever those are.
+
+A refresh token of the OpenID Connect provider issued in a session is refused once that session is closed; a session
+past a bound and never touched again is closed when the account lists its sessions, and `oidc.session_max_age` bounds
+those tokens on its own (see [OpenID Connect provider](oidc-provider.md)).
+
 A request without a previous session reads no token: the lazy firewall stays lazy, and the cache of a public page
 stays public.
 

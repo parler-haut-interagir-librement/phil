@@ -56,7 +56,7 @@ write the code comes before the bundle is used in production, against this page 
 | Two accounts for one mailbox | The canonical form of the sign-in address is unique; with `accounts.strip_subaddress`, `ana+x@` and `ana@` are one mailbox. |
 | An authenticator of a make the site refuses | With an attestation conveyance, a `packed` statement is verified up to the trusted roots; the policy refuses makes, attestations below `trusted`, or synced passkeys. Without `require_trusted`, an AAGUID is what the authenticator claims. |
 | A link or a code read from a message queue | The links of verification, reset and sign-in and the codes sent by text message are handed to the mail and SMS transports in the request, never to Messenger: no queue, failure transport or backup holds them. The emails turn off the provider's tracking of opens and clicks. See [Why account emails and SMS never go through Messenger](links-and-sms.md#why-account-emails-and-sms-never-go-through-messenger). |
-| A link opened by a mail scanner | `/verify-email` only shows a page that asks to confirm; the address is verified by the form it posts, with a CSRF token. |
+| A link opened by a mail scanner | `/verify-email` only shows a page that asks to confirm; the address is verified by the form it posts, with a CSRF token. A sign-in link is consumed by POST only: the bundle sets `check_post_only` on its authenticator, and following the link shows a page whose button submits it, so a scanner that follows it neither burns its single use nor receives the session. |
 
 ## Session attacks
 
@@ -64,6 +64,7 @@ write the code comes before the bundle is used in production, against this page 
 |---|---|
 | Session fixation | Symfony Security migrates the session at sign-in. |
 | A stolen device | Sessions closed from another device take effect at the next request; tokens issued in them are revoked, then the session closed, in one transaction. |
+| A stolen session cookie used later | A session closes after `sessions.idle_timeout` seconds without a request (two hours by default) and `sessions.max_age` seconds after it opened (twelve hours by default), with its tokens. |
 | A stolen session after a password change | A new or reset password closes the other sessions and their tokens; `AccountUser::isEqualTo()` compares the password hash, so a session signed in before the change ends at its next request. |
 | A session opened long ago used for a sensitive action | `PHIL_STEP_UP` asks for a recent proof of the strongest method. |
 | A remembered session answering `max_age` | A session that holds no proof, such as one restored by `remember_me`, signs in again when a client asks for `max_age`. |

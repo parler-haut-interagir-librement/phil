@@ -22,8 +22,6 @@ final class RecipeTest extends TestCase
 {
     private const string RECIPE = __DIR__.'/../../recipe/0.1';
 
-    private const string SECRET = 'change-me-to-a-random-secret-of-32-bytes-or-more';
-
     public function testTheRecipeRegistersTheBundleAndCopiesItsFiles(): void
     {
         $manifest = json_decode((string) file_get_contents(self::RECIPE.'/manifest.json'), true, flags: \JSON_THROW_ON_ERROR);
@@ -31,9 +29,11 @@ final class RecipeTest extends TestCase
         self::assertSame([
             'bundles' => [PhilNewsletterBundle::class => ['all']],
             'copy-from-recipe' => ['config/' => '%CONFIG_DIR%/'],
-            'env' => ['NEWSLETTER_SECRET' => self::SECRET],
-        ], $manifest);
-        self::assertGreaterThanOrEqual(32, \strlen(self::SECRET));
+            'env' => [
+                '#1' => "At least 32 random bytes, hex-encoded, in .env.local or the secrets vault: php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'",
+                'NEWSLETTER_SECRET' => '',
+            ],
+        ], $manifest, 'The recipe writes no secret anyone could read in it.');
         self::assertSame(
             ['phil_newsletter' => ['resource' => '@PhilNewsletterBundle/config/routes.php', 'prefix' => '/newsletter']],
             Yaml::parseFile(self::RECIPE.'/config/routes/phil_newsletter.yaml'),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Application;
 
+use DateTimeImmutable;
 use Phil\IdentityProviderBundle\Application\Contract\AccountMailer;
 use Phil\IdentityProviderBundle\Application\Contract\LogoutNotifier;
 use Phil\IdentityProviderBundle\Application\Contract\Transactions;
@@ -11,6 +12,7 @@ use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
 use Phil\IdentityProviderBundle\Domain\Encoding\Base64Url;
+use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
 use Phil\IdentityProviderBundle\Domain\Model\Account\Account;
 use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
 use Psr\Clock\ClockInterface;
@@ -21,6 +23,11 @@ use Psr\Clock\ClockInterface;
  * tokens are revoked, then the session closed, in one transaction. A failure undoes both, or, without a transaction,
  * leaves the session open, so that closing it again finishes the work. Once closed, the clients the tokens were issued
  * to are told, each once, through the `LogoutNotifier`.
+ *
+ * A session also ends on its own: idle for `idleTimeout` seconds since it was last seen, or `maxAge` seconds after it
+ * opened, whatever its activity. It is closed, as from another device, the first time it is touched or listed past
+ * either bound; null leaves that bound out. Since the last sighting is written at most once every `touchInterval`
+ * seconds, an idle session may close up to that many seconds early.
  *
  * A sign-in from a device the account never used, when it has signed in before, is risky: the session is marked, the
  * event is written, and the account is warned by email.
@@ -36,7 +43,12 @@ final readonly class Sessions
         private int $touchInterval = 300,
         private ?Transactions $transactions = null,
         private ?LogoutNotifier $logout = null,
+        private ?int $idleTimeout = 7200,
+        private ?int $maxAge = 43200,
     ) {
+        if (null !== $idleTimeout && $idleTimeout < 1 || null !== $maxAge && $maxAge < 1) {
+            throw InvalidValue::because('The idle timeout and the maximum age of a session are null or at least one second.');
+        }
     }
 
     /**
@@ -58,7 +70,8 @@ final readonly class Sessions
     }
 
     /**
-     * The open session of the identifier, seen now; null when it was closed or never existed.
+     * The open session of the identifier, seen now; null when it was closed, never existed, or has just been closed for
+     * being idle too long or too old.
      */
     public function touch(string $id, ?string $accountId = null): ?AccountSession
     {
@@ -69,6 +82,13 @@ final readonly class Sessions
         }
 
         $now = $this->clock->now();
+        $expired = $this->expiry($session, $now);
+
+        if (null !== $expired) {
+            $this->closeSession($session, $expired);
+
+            return null;
+        }
 
         if ($session->lastSeenAt()->getTimestamp() + $this->touchInterval <= $now->getTimestamp()) {
             $session->see($now);
@@ -92,11 +112,26 @@ final readonly class Sessions
     }
 
     /**
+     * The open sessions of the account; those idle too long or too old are closed on the way and left out.
+     *
      * @return list<AccountSession>
      */
     public function openFor(Account $account): array
     {
-        return $this->sessions->openFor($account->id());
+        $now = $this->clock->now();
+        $open = [];
+
+        foreach ($this->sessions->openFor($account->id()) as $session) {
+            $expired = $this->expiry($session, $now);
+
+            if (null === $expired) {
+                $open[] = $session;
+            } else {
+                $this->closeSession($session, $expired);
+            }
+        }
+
+        return $open;
     }
 
     public function close(Account $account, string $id): bool
@@ -131,7 +166,23 @@ final readonly class Sessions
         return $closed;
     }
 
-    private function closeSession(AccountSession $session): void
+    /**
+     * Why the session must end now — `max_age` or `idle_timeout` —, or null while it may go on.
+     */
+    private function expiry(AccountSession $session, DateTimeImmutable $now): ?string
+    {
+        if (null !== $this->maxAge && $session->createdAt()->getTimestamp() + $this->maxAge <= $now->getTimestamp()) {
+            return 'max_age';
+        }
+
+        if (null !== $this->idleTimeout && $session->lastSeenAt()->getTimestamp() + $this->idleTimeout <= $now->getTimestamp()) {
+            return 'idle_timeout';
+        }
+
+        return null;
+    }
+
+    private function closeSession(AccountSession $session, ?string $reason = null): void
     {
         $now = $this->clock->now();
         $clients = [];
@@ -152,7 +203,7 @@ final readonly class Sessions
             $close();
         }
 
-        $this->journal->record(IdentityEventType::SessionClosed, $session->accountId(), ['session' => $session->id()]);
+        $this->journal->record(IdentityEventType::SessionClosed, $session->accountId(), null === $reason ? ['session' => $session->id()] : ['session' => $session->id(), 'reason' => $reason]);
 
         if ([] !== $clients) {
             $this->logout?->sessionEnded($session->id(), $session->accountId(), array_values(array_unique($clients)));

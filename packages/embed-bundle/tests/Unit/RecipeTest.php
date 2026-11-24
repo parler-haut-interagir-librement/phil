@@ -10,7 +10,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * The Flex recipe: it registers the bundle, names a key read from the environment and imports the script's route.
+ * The Flex recipe: it registers the bundle, names a key read from the environment, left empty, and imports the script's
+ * route.
  */
 #[CoversNothing]
 final class RecipeTest extends TestCase
@@ -24,9 +25,11 @@ final class RecipeTest extends TestCase
         self::assertSame([
             'bundles' => [PhilEmbedBundle::class => ['all']],
             'copy-from-recipe' => ['config/' => '%CONFIG_DIR%/'],
-            'env' => ['EMBED_KEY' => 'change-me-to-a-random-secret-of-32-bytes-or-more'],
-        ], $manifest);
-        self::assertGreaterThanOrEqual(32, \strlen('change-me-to-a-random-secret-of-32-bytes-or-more'));
+            'env' => [
+                '#1' => "At least 32 random bytes, hex-encoded, in .env.local or the secrets vault: php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'",
+                'EMBED_KEY' => '',
+            ],
+        ], $manifest, 'The recipe writes no secret anyone could read in it.');
         self::assertSame(['phil_embed' => ['keys' => [['id' => '1', 'secret' => '%env(EMBED_KEY)%']], 'embeds' => []]], Yaml::parseFile(self::RECIPE.'/config/packages/phil_embed.yaml'));
         self::assertSame(['phil_embed' => ['resource' => '@PhilEmbedBundle/config/routes.php', 'prefix' => '/_embed']], Yaml::parseFile(self::RECIPE.'/config/routes/phil_embed.yaml'));
     }

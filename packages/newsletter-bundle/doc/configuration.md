@@ -53,7 +53,7 @@ phil_newsletter:
 | Option | Default | What it does |
 |---|---|---|
 | `enabled` | `true` | Registers the bundle's services; `false` registers none. |
-| `secret` | `%kernel.secret%` | The key of the signed links, the VERP tags and the suppression hashes: at least 16 bytes. A new key breaks the links of every message sent. |
+| `secret` | `%kernel.secret%` | The key of the signed links, the VERP tags and the suppression hashes: at least 16 bytes, never a placeholder that begins with `change-me` or `changeme`. The keys of the VERP tags and of the suppression hashes are derived from its value at run time, an environment variable included. A new key breaks the links of every message sent. |
 | `connection` | `doctrine.dbal.default_connection` | The DBAL connection of the tables. |
 | `check_mail_domain` | `true` | Whether the worker that sends the confirmation of a double opt-in asks the DNS first that the address's domain receives mail, and refuses the subscription when it does not; the request never waits on the DNS. |
 | `site` | `default` | The site of a standalone application. |
