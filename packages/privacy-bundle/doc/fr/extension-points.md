@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1b4ed2165efd6b35a6a02e1b897b80abf050faf18b6c0d7428deeed9edd85ea8 -->
+<!-- phil-dev source-sha256=ef03d2e83cb51004b88dcf6c7de9b79cd51651027a2f6f53beb53832b401c876 -->
 # Points d'extension
 
 Toute interface du bundle est un contrat, sous `Phil\PrivacyBundle\Application\Contract`, ou sous
@@ -306,8 +306,17 @@ Un registre qui garde ses corrections implémente aussi `IncidentHistory`, et `p
 |---|---|
 | `revisions(string $id)` | Ce que contenait la ligne avant chaque correction, comme `IncidentRevision` (le champ, sa valeur précédente, le moment), la plus ancienne en premier. |
 
+Un registre qui garde le journal de chaque incident implémente aussi `IncidentJournal` ; `IncidentJournalRecorder` et
+`phil:privacy:incident-journal` l'écrivent, et `phil:privacy:incidents` l'affiche :
+
+| Méthode | Contrat |
+|---|---|
+| `append(JournalEntry $entry)` | Ajoute l'entrée après la dernière de son incident et la retourne numérotée (`numbered()`), à partir de 1 ; deux entrées ajoutées en même temps ne partagent jamais un numéro. |
+| `journal(string $incidentId)` | Les entrées de l'incident, la plus ancienne en premier ; une liste vide pour un incident qui n'en a aucune. |
+
 Un registre qui purge aussi, comme `RetentionPurger` sur son propre stockage, ne retire jamais une ligne connue depuis
-moins de `Incident::MINIMUM_RETENTION`, quelle que soit la date limite qu'on lui donne. Voir
+moins de `Incident::MINIMUM_RETENTION`, quelle que soit la date limite qu'on lui donne, et retire avec elle les
+corrections et le journal d'une ligne. Voir
 [incidents.md](incidents.md#le-garder).
 
 ## `NoticeOrganisationSource`

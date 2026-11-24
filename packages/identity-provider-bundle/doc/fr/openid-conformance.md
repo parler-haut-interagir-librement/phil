@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=455e3ea7f9c0be024c3f26563450349c14331fda2056239610bae103bc733cb0 -->
+<!-- phil-dev source-sha256=70fdc8644dfcae6665749f79978d16967a4d6986541071b8021597fb39a70f4f -->
 # Conformité OpenID
 
 L'OpenID Foundation publie une suite de conformité qui joue un client contre un fournisseur et vérifie chaque
@@ -35,7 +35,9 @@ Docker, `git` et `curl` sont nécessaires, et le port 8443 de l'hôte doit être
    `https://op.phil.test` —, le monodépôt monté en lecture seule ;
 3. exécute `bin/setup.php` dans le fournisseur : des tables neuves sur SQLite, une première clé de signature, un compte
    d'essai et deux clients confidentiels enregistrés avec `--pkce-optional`, puisque le profil Basic joue des clients
-   sans PKCE, tous avec des secrets générés pour cette exécution ; il écrit la configuration des plans, avec les étapes
+   sans PKCE, tous avec des secrets générés pour cette exécution — l'application règle
+   `oidc.require_nonce_without_pkce: false`, puisque `oidcc-ensure-request-without-nonce-succeeds-for-code-flow` joue un
+   tel client sans `nonce` ; il écrit la configuration des plans, avec les étapes
    que le navigateur de la suite suit sur les pages de connexion, de réauthentification, de consentement et de
    déconnexion ;
 4. joue les trois plans et exporte le journal de chacun dans `var/conformance/results`, un zip par plan.

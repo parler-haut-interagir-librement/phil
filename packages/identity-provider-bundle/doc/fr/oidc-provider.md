@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7b5ae3db797385145dff2b11f8dc1c54f334f56d218c1a27e782c3c2ccabac03 -->
+<!-- phil-dev source-sha256=219aa6c7bf6462266984fd731b9dd5a51c77891efb6cd6d31181684133f1ca94 -->
 # Fournisseur OpenID Connect
 
 Le module `oidc` fait du site un fournisseur OpenID Connect pour ses clients : d'autres sites et applications
@@ -65,8 +65,11 @@ jetons seulement pour lui-même enregistre des ressources et aucune adresse de r
 
 Chaque client envoie un défi PKCE, sauf un client confidentiel enregistré avec `--pkce-optional` : le profil Basic
 d'OpenID Connect permet à un client confidentiel de se passer de PKCE, et il s'appuie alors sur son secret et sur le
-`nonce` que son jeton d'identité rapporte. Un défi envoyé malgré tout est vérifié de la même façon, et un client public
-ne peut jamais s'en passer.
+`nonce` que son jeton d'identité rapporte. Un tel client envoie un `nonce` avec chaque demande qui ne porte aucun défi,
+sans quoi la demande lui revient avec `invalid_request` (RFC 9700, section 2.1.1) : sans l'un ni l'autre, rien ne lierait
+le code à la session qui l'a demandé ; `oidc.require_nonce_without_pkce: false` lève cette règle, pour une suite de
+tests seulement. Un défi envoyé malgré tout est vérifié de la même façon, le `nonce` devenant alors facultatif, et un
+client public ne peut jamais s'en passer.
 
 ## Authentification des clients
 
@@ -89,6 +92,7 @@ phil_identity_provider:
             methods: [private_key_jwt, none]
             clock_skew: 60
             assertion_max_lifetime: 300
+            legacy_assertion_audiences: false
 ```
 
 Une assertion de client (RFC 7523, OpenID Connect Core, section 9) est un JSON Web Token signé avec l'une des clés du
@@ -96,9 +100,12 @@ client, celle que nomme son `kid`, avec l'algorithme propre à cette clé, et lu
 Web](#signatures-json-web) :
 
 - `iss` et `sub` sont l'identifiant du client ; `client_id`, quand il est envoyé, doit être le même ;
-- `aud` nomme l'émetteur, ou le point de terminaison des jetons à l'origine de l'émetteur —
-  `https://id.example.com/oidc/token` pour l'émetteur `https://id.example.com` —, jamais une adresse construite à partir
-  de la requête ;
+- `aud` est l'émetteur, sous forme de chaîne — `https://id.example.com` —, jamais une adresse construite à partir de la
+  requête (draft-ietf-oauth-rfc7523bis) : une assertion faite pour le point de terminaison des jetons ne peut pas être
+  rejouée à un autre point de terminaison du fournisseur, ni une assertion faite pour un autre serveur ici. Un client
+  écrit pour la RFC 7523, qui nomme le point de terminaison des jetons — `https://id.example.com/oidc/token` — ou met ses
+  audiences dans un tableau, n'est accepté qu'avec `legacy_assertion_audiences: true`, désactivé par défaut, jusqu'à sa
+  mise à jour ;
 - `exp` est obligatoire, échu d'au plus `clock_skew`, et pas plus loin devant que `assertion_max_lifetime` ; `iat` et
   `nbf`, quand ils sont présents, sont devant d'au plus `clock_skew` ;
 - `jti` est obligatoire, d'au plus 256 octets, et utilisé une seule fois : le fournisseur enregistre le SHA-256 du client
@@ -120,7 +127,8 @@ gardez la clé suivante seule.
    personne, jamais redirigé, de sorte que le fournisseur ne peut envoyer personne n'importe où ;
 2. un paramètre donné deux fois, un objet de requête (`request_not_supported`, `request_uri_not_supported`), un type de
    réponse autre que `code`, un mode de réponse autre que `query`, l'absence de la portée `openid`, un défi PKCE autre
-   que `S256`, de forme invalide, ou manquant quand le client en exige un, un `prompt` autre que `none`, `login` et
+   que `S256`, de forme invalide, ou manquant quand le client en exige un, aucun `nonce` dans une demande sans défi PKCE
+   (RFC 9700, section 2.1.1), un `prompt` autre que `none`, `login` et
    `consent` — le fournisseur n'affiche aucun sélecteur de compte, donc `select_account` est refusé plutôt qu'ignoré —,
    `prompt=none` avec une autre valeur, un `max_age` de forme invalide reviennent au client avec l'erreur, l'état et
    l'émetteur (RFC 9207) ;

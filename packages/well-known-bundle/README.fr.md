@@ -1,14 +1,14 @@
-<!-- phil-dev source-sha256=5d91883f9dc99dbbe842c65f818a06776305ddfce2841bd8377cb3d330c73e69 -->
+<!-- phil-dev source-sha256=e15002d800704eff34d936c7f3b0886d352220040bc4bc2f60e1e4bb2ad44ffe -->
 # phil/well-known-bundle
 
 **Les adresses `/.well-known/` d'un site Symfony, chacune activée dans sa configuration.**
 
 phil/well-known-bundle sert les documents que d'autres logiciels cherchent à des adresses fixes d'un domaine
-(RFC 8615) : comment signaler une vulnérabilité (`security.txt`), où changer un mot de passe, ce que le site dit d'un
-compte (WebFinger), quel logiciel il fait tourner (NodeInfo), le document DID d'un identifiant `did:web` et les
-attestations qui lient le domaine à ses DID, le DID vers lequel se résout un identifiant AT Protocol, et les liens
-d'applications des applications iOS et Android. Des documents fixes de la configuration et des documents d'autres
-bundles s'y ajoutent, chacun à sa propre route exacte.
+(RFC 8615) : comment signaler une vulnérabilité (`security.txt`), où changer un mot de passe, que le site respecte le
+Global Privacy Control (`gpc.json`), ce que le site dit d'un compte (WebFinger), quel logiciel il fait tourner
+(NodeInfo), le document DID d'un identifiant `did:web` et les attestations qui lient le domaine à ses DID, le DID vers
+lequel se résout un identifiant AT Protocol, et les liens d'applications des applications iOS et Android. Des documents
+fixes de la configuration et des documents d'autres bundles s'y ajoutent, chacun à sa propre route exacte.
 
 Utilisez-le dans un site Symfony qui veut ces adresses justes sans écrire un contrôleur pour chacune : les types de
 média, l'en-tête CORS des documents lus par d'autres sites, des en-têtes de cache et un `ETag`,
@@ -26,6 +26,7 @@ n'importe quel bundle ajoute un document en implémentant `WellKnownDocument` av
 |---|---|
 | `security.txt` (RFC 9116), vérifié à la construction du conteneur, signé par un port | Implémenté et testé |
 | `change-password` | Implémenté et testé |
+| `gpc.json`, tant que phil/privacy-bundle est enregistré | Implémenté et testé |
 | WebFinger (RFC 7033) : ressources `acct:` et `https:`, `rel`, résolveurs | Implémenté, testé et soumis au fuzzing |
 | NodeInfo 2.1 et son document de découverte, avec un port fournisseur | Implémenté et testé |
 | `did.json`, `did-configuration.json`, `atproto-did` | Implémenté et testé |

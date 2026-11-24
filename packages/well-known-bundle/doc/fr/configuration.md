@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=84dadb05b9bccee5187d861420c8b9e1c9aaa7324b2d7a5c5abfe461756bc031 -->
+<!-- phil-dev source-sha256=f335062d5d133ac83a5edc17b880a82453e6d0b64acfbafd5c8c41a820ae898e -->
 # Configuration
 
 Un exemple, avec chaque document activé ; les valeurs par défaut sont dans les tableaux ci-dessous.
@@ -20,6 +20,8 @@ phil_well_known:
     change_password:
         route: account_password
         parameters: { tab: security }
+    gpc:
+        last_update: '2026-11-21'
     webfinger:
         resources:
             'acct:contact@example.com':
@@ -92,6 +94,17 @@ expiré ; le reconstruire échoue.
 | `url` | `null` | Ou une URL : `https://`, ou un chemin qui commence par `/` mais pas par `//` |
 
 L'une de `route` et `url` est obligatoire.
+
+## gpc
+
+| Option | Valeur par défaut | Rôle |
+|---|---|---|
+| `enabled` | `true` | `false` ne sert aucun `gpc.json` |
+| `last_update` | `null` | La date à laquelle l'énoncé a changé pour la dernière fois, une date complète (full-date) de la RFC 3339 comme `2026-11-21` ; une date suivie d'une heure, ou un jour que le calendrier n'a pas, est refusée |
+
+Contrairement aux autres sections, `gpc` est activée par défaut, et sert son document dès que deux conditions sont
+réunies : `last_update` est donné, et le noyau enregistre phil/privacy-bundle, qui respecte le signal. Sans ce bundle,
+aucune route n'est ajoutée. Voir [Documents](documents.md#gpcjson).
 
 ## webfinger
 

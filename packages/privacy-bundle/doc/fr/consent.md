@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b9c3713add1f8cbbb3884148d7676d0a1fd4b766bb520a2c49636574a9ae647b -->
+<!-- phil-dev source-sha256=14f83112bddf8628874c8f0e00f182c3f65f2d8edd3ae2c91749f18817be1a92 -->
 # Consentement aux témoins
 
 Déclarez les catégories qu'utilise un site, et lisez le consentement là où il compte.
@@ -49,7 +49,11 @@ avec `privacy_embed()` ([third-party-frames.md](third-party-frames.md)).
   depuis le pied de page.
 - **Le Global Privacy Control est respecté.** Un navigateur qui envoie `Sec-GPC: 1` voit refuser chaque catégorie
   facultative, quoi que dise un témoin, et son utilisateur n'est pas sollicité. La page le dit, et ses cases sont
-  désactivées.
+  désactivées. Chaque occurrence de l'en-tête est lue, coupée sur ses virgules et débarrassée de ses espaces :
+  `Sec-GPC: 0, 1`, ou un second `Sec-GPC: 1` après un `Sec-GPC: 0`, est le signal ; une valeur vide n'en est pas un.
+  `ConsentContext::sendsGlobalPrivacyControl()` donne la réponse pour n'importe quelle requête. Avec
+  phil/well-known-bundle, le site l'énonce aussi à `/.well-known/gpc.json`, dès que `phil_well_known.gpc.last_update`
+  est réglé.
 - **Un choix vaut pour une version du texte.** Changez `consent.version` et chaque choix antérieur cesse de compter :
   tout le monde est sollicité de nouveau.
 

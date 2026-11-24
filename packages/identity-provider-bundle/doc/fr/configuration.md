@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7610882a6a0dceca76939253ead224a1c93b11084f6577ae48fc643f72af036c -->
+<!-- phil-dev source-sha256=87cfc050bde828ab2045458d5c92b4f6d3fc19b2305a02eacba586067ddc9d13 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_identity_provider`. Chaque option a une valeur par défaut, sauf les
@@ -146,6 +146,8 @@ phil_identity_provider:
 | `oidc.client_authentication.methods` | les quatre | Les méthodes par lesquelles les clients peuvent s'authentifier : `client_secret_basic`, `client_secret_post`, `private_key_jwt`, `none`. Voir [Authentification des clients](oidc-provider.md#authentification-des-clients). |
 | `oidc.client_authentication.clock_skew` | `60` | Secondes dont une heure d'une assertion de client peut être décalée, de 0 à 300. |
 | `oidc.client_authentication.assertion_max_lifetime` | `300` | Le plus loin devant, en secondes, que peut être l'expiration d'une assertion de client, de 1 à 3600 ; son `jti` est gardé aussi longtemps. |
+| `oidc.client_authentication.legacy_assertion_audiences` | `false` | Si une assertion de client peut aussi nommer le point de terminaison des jetons à l'origine de l'émetteur, et ses audiences dans un tableau ; désactivé, son `aud` est l'émetteur, sous forme de chaîne (draft-ietf-oauth-rfc7523bis). |
+| `oidc.require_nonce_without_pkce` | `true` | Si une demande d'autorisation sans défi PKCE, d'un client enregistré avec `--pkce-optional`, doit porter un `nonce` (RFC 9700, section 2.1.1) ; `false` seulement pour une suite de tests qui joue un tel client sans `nonce`. |
 | `oidc.refresh_token_bound_to_session` | `true` | Si un jeton d'actualisation émis dans une session est refusé une fois la session fermée ou plus vieille que `oidc.session_max_age`, sa famille révoquée. |
 | `oidc.session_max_age` | `null` | Secondes après l'ouverture d'une session au-delà desquelles ses jetons d'actualisation ne sont plus émis ni acceptés ; null pour aucune borne que la fin de la session. |
 | `oidc.id_token.acr` | `null` | L'`acr` de chaque jeton d'identité ; null pour aucun. |
