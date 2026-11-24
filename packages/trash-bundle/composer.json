@@ -21,8 +21,8 @@
     "require": {
         "php": ">=8.5",
         "ext-mbstring": "*",
-        "doctrine/dbal": "^4.5",
-        "doctrine/orm": "^3.7",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
         "phil/resource": "^0.1@dev",
         "psr/clock": "^1.0",
         "psr/event-dispatcher": "^1.0",
@@ -31,8 +31,8 @@
         "symfony/uid": "^8.2"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/persistence": "^4.1",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/persistence": "^4.2",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "symfony/clock": "^8.2",

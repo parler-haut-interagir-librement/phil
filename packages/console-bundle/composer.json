@@ -28,10 +28,10 @@
         "symfony/console": "^8.2",
         "symfony/dependency-injection": "^8.2",
         "symfony/event-dispatcher": "^8.2",
-        "symfony/service-contracts": "^3.6"
+        "symfony/service-contracts": "^3.8"
     },
     "require-dev": {
-        "monolog/monolog": "^3.0",
+        "monolog/monolog": "^3.13",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "roave/security-advisories": "dev-latest",

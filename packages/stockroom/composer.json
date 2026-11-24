@@ -23,7 +23,7 @@
         "php": ">=8.5",
         "ext-mbstring": "*",
         "psr/clock": "^1.0",
-        "symfony/service-contracts": "^3.6",
+        "symfony/service-contracts": "^3.8",
         "symfony/uid": "^8.2"
     },
     "require-dev": {

@@ -29,8 +29,8 @@
         "php": ">=8.5",
         "ext-mbstring": "*",
         "ext-sodium": "*",
-        "doctrine/dbal": "^4.5",
-        "phil/elearning-packages": "^0.1@dev || ^0.2@dev",
+        "doctrine/dbal": "^4.6",
+        "phil/elearning-packages": "^0.2@dev",
         "phil/recurrence": "^0.1@dev",
         "phil/url": "^0.1@dev",
         "psr/clock": "^1.0",
@@ -46,8 +46,8 @@
     "require-dev": {
         "ext-pdo": "*",
         "ext-zip": "*",
-        "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/orm": "^3.7",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/orm": "^3.8",
         "phil/audit-bundle": "^0.1@dev",
         "phil/certificates-bundle": "^0.2@dev",
         "phil/notifications-bundle": "^0.3@dev",
@@ -62,7 +62,7 @@
         "symfony/css-selector": "^8.2",
         "symfony/dom-crawler": "^8.2",
         "symfony/event-dispatcher": "^8.2",
-        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/event-dispatcher-contracts": "^3.8",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-client": "^8.2",
         "symfony/messenger": "^8.2",
@@ -72,8 +72,8 @@
         "symfony/translation": "^8.2",
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-twig-component": "^3.7",
-        "twig/twig": "^3.21"
+        "symfony/ux-twig-component": "^3.8",
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "doctrine/orm": "For the tables added to the schema the ORM generates",

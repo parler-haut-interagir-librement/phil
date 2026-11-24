@@ -28,17 +28,17 @@
         "ext-openssl": "*",
         "ext-sodium": "*",
         "doctrine/collections": "^3.1",
-        "doctrine/dbal": "^4.5",
-        "doctrine/orm": "^3.7",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
         "psr/clock": "^1.0",
         "psr/log": "^3.0",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
         "symfony/key-management": "^8.2",
-        "symfony/polyfill-php86": "^1.37"
+        "symfony/polyfill-php86": "^1.43"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/doctrine-bundle": "^3.4",
         "phil/privacy-bundle": "^0.3@dev",
         "phpunit/phpunit": "^13.4",
         "symfony/clock": "^8.2",

@@ -41,9 +41,9 @@
         "symfony/http-kernel": "^8.2",
         "symfony/translation": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-twig-component": "^3.7",
+        "symfony/ux-twig-component": "^3.8",
         "symfony/yaml": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "conflict": {
         "phil/media-bundle": "<0.1.1"

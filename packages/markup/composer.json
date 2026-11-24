@@ -36,8 +36,8 @@
         "symfony/yaml": "^8.2"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.5",
-        "doctrine/orm": "^3.7",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
         "phpunit/phpunit": "^13.4"
     },
     "conflict": {

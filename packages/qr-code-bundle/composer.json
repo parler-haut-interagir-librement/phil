@@ -29,7 +29,7 @@
         "symfony/http-foundation": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "require-dev": {
         "ext-gd": "*",
@@ -40,7 +40,7 @@
         "symfony/browser-kit": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-twig-component": "^3.7"
+        "symfony/ux-twig-component": "^3.8"
     },
     "suggest": {
         "phil/paged-media": "For PdfQrCodes, the QR codes drawn in a PDF document",

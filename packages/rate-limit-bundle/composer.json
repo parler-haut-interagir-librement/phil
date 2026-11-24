@@ -49,13 +49,13 @@
         "symfony/framework-bundle": "^8.2",
         "symfony/lock": "^8.2",
         "symfony/options-resolver": "^8.2",
-        "symfony/polyfill-intl-normalizer": "^1.33",
-        "symfony/polyfill-mbstring": "^1.33",
+        "symfony/polyfill-intl-normalizer": "^1.43",
+        "symfony/polyfill-mbstring": "^1.43",
         "symfony/security-core": "^8.2",
         "symfony/translation": "^8.2",
-        "symfony/translation-contracts": "^3.6",
+        "symfony/translation-contracts": "^3.8",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "ext-intl": "For the normalization of the identifiers of the user keys at native speed; symfony/string uses its polyfill without it",

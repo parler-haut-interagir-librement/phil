@@ -22,8 +22,8 @@
         "php": ">=8.5",
         "ext-intl": "*",
         "ext-mbstring": "*",
-        "doctrine/dbal": "^4.5",
-        "doctrine/orm": "^3.7",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
         "phil/resource": "^0.1@dev",
         "phil/slug": "^0.1@dev",
         "symfony/config": "^8.2",
@@ -33,15 +33,15 @@
         "symfony/uid": "^8.2"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/persistence": "^4.1",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/persistence": "^4.2",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/translation": "^8.2",
-        "symfony/translation-contracts": "^3.6"
+        "symfony/translation-contracts": "^3.8"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

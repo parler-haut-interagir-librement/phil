@@ -23,7 +23,7 @@
         "php": ">=8.5",
         "ext-filter": "*",
         "ext-mbstring": "*",
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "psr/clock": "^1.0",
         "psr/event-dispatcher": "^1.0",
         "symfony/config": "^8.2",
@@ -33,15 +33,15 @@
         "symfony/routing": "^8.2",
         "symfony/security-core": "^8.2",
         "symfony/security-csrf": "^8.2",
-        "symfony/service-contracts": "^3.6",
-        "symfony/translation-contracts": "^3.6",
-        "symfony/ux-twig-component": "^3.7",
-        "twig/twig": "^3.21"
+        "symfony/service-contracts": "^3.8",
+        "symfony/translation-contracts": "^3.8",
+        "symfony/ux-twig-component": "^3.8",
+        "twig/twig": "^3.31"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/orm": "^3.7",
-        "easycorp/easyadmin-bundle": "^5.8",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/orm": "^3.8",
+        "easycorp/easyadmin-bundle": "^5.10",
         "phil/ip-anonymizer": "^0.1@dev",
         "phil/legal-notices": "^0.1@dev",
         "phil/legal-notices-bundle": "^0.1@dev",
@@ -65,9 +65,9 @@
         "symfony/translation": "^8.2",
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-toolkit": "^3.7.1",
+        "symfony/ux-toolkit": "^3.8",
         "symfony/yaml": "^8.2",
-        "twig/html-extra": "^3.24"
+        "twig/html-extra": "^3.31"
     },
     "suggest": {
         "doctrine/orm": "To add the two tables to the schema the ORM generates, for doctrine:migrations:diff",

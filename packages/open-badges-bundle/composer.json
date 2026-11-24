@@ -20,17 +20,17 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "phil/open-badges": "^0.2@dev || ^0.3@dev || ^0.4@dev",
-        "phil/safe-http": "^0.1@dev || ^0.2@dev",
+        "phil/open-badges": "^0.4@dev",
+        "phil/safe-http": "^0.2@dev",
         "phil/url": "^0.1@dev",
         "psr/clock": "^1.0",
-        "symfony/cache-contracts": "^3.6",
+        "symfony/cache-contracts": "^3.8",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
         "symfony/http-foundation": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "require-dev": {
         "ext-openssl": "*",

@@ -31,14 +31,14 @@
         "symfony/cache": "^8.2",
         "symfony/expression-language": "^8.2",
         "symfony/http-client": "^8.2",
-        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-client-contracts": "^3.8",
         "symfony/http-foundation": "^8.2",
         "symfony/messenger": "^8.2",
         "symfony/scheduler": "^8.2",
-        "symfony/service-contracts": "^3.6"
+        "symfony/service-contracts": "^3.8"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "phpunit/phpunit": "^13.4",
         "symfony/clock": "^8.2"
     },

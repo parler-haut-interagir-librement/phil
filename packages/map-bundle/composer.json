@@ -29,18 +29,18 @@
         "phil/geo": "^0.1@dev",
         "phil/url": "^0.1@dev",
         "psr/log": "^3.0",
-        "symfony/cache-contracts": "^3.6",
+        "symfony/cache-contracts": "^3.8",
         "symfony/config": "^8.2",
         "symfony/console": "^8.2",
         "symfony/dependency-injection": "^8.2",
         "symfony/filesystem": "^8.2",
-        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-client-contracts": "^3.8",
         "symfony/http-foundation": "^8.2",
         "symfony/routing": "^8.2",
-        "symfony/translation-contracts": "^3.6",
-        "symfony/ux-leaflet-map": "^3.7",
-        "symfony/ux-map": "^3.7",
-        "twig/twig": "^3.21"
+        "symfony/translation-contracts": "^3.8",
+        "symfony/ux-leaflet-map": "^3.8",
+        "symfony/ux-map": "^3.8",
+        "twig/twig": "^3.31"
     },
     "require-dev": {
         "ext-gd": "*",
@@ -59,10 +59,10 @@
         "symfony/http-client": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/panther": "^2.4",
-        "symfony/stimulus-bundle": "^3.7",
+        "symfony/stimulus-bundle": "^3.8",
         "symfony/translation": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-twig-component": "^3.7",
+        "symfony/ux-twig-component": "^3.8",
         "symfony/yaml": "^8.2"
     },
     "suggest": {

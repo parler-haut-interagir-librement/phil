@@ -40,7 +40,7 @@
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
         "symfony/validator": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "phil/ujo-bundle": "For the code blocks of UJO documents coloured on the server",

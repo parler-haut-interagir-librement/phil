@@ -34,9 +34,9 @@
     },
     "require-dev": {
         "ext-intl": "*",
-        "doctrine/dbal": "^4.5",
-        "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/orm": "^3.7",
+        "doctrine/dbal": "^4.6",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/orm": "^3.8",
         "phil/instant-messenger": "^0.1@dev",
         "phil/structured-data": "^0.1@dev",
         "phil/url": "^0.1@dev",
@@ -50,7 +50,7 @@
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
         "symfony/validator": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "doctrine/dbal": "For the phil_contact column type",

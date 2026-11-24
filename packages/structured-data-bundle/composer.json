@@ -30,7 +30,7 @@
         "symfony/console": "^8.2",
         "symfony/dependency-injection": "^8.2",
         "symfony/http-foundation": "^8.2",
-        "symfony/service-contracts": "^3.6"
+        "symfony/service-contracts": "^3.8"
     },
     "require-dev": {
         "ext-intl": "*",
@@ -44,11 +44,11 @@
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-client": "^8.2",
-        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-client-contracts": "^3.8",
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "phil/browser-security-bundle": "For the script nonce of its content security policy, when the site wants one on the script element",

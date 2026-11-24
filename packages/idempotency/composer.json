@@ -27,7 +27,7 @@
         "symfony/uid": "^8.2"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "phpunit/phpunit": "^13.4",
         "psr/cache": "^3.0",
         "symfony/cache": "^8.2",

@@ -21,13 +21,13 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "phil/backup": "^0.1@dev",
         "psr/log": "^3.0",
         "symfony/config": "^8.2",
         "symfony/console": "^8.2",
         "symfony/dependency-injection": "^8.2",
-        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/event-dispatcher-contracts": "^3.8",
         "symfony/process": "^8.2"
     },
     "require-dev": {

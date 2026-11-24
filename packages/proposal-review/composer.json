@@ -24,10 +24,10 @@
         "php": ">=8.5",
         "psr/clock": "^1.0",
         "psr/event-dispatcher": "^1.0",
-        "symfony/polyfill-php86": "^1.37"
+        "symfony/polyfill-php86": "^1.43"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "phpunit/phpunit": "^13.4",
         "symfony/clock": "^8.2"
     },

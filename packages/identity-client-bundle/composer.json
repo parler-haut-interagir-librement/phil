@@ -42,11 +42,11 @@
         "web-token/jwt-library": "^4.2"
     },
     "require-dev": {
-        "phpbench/phpbench": "^1.4",
+        "phpbench/phpbench": "^1.7",
         "phpunit/phpunit": "^13.4",
         "psr/container": "^2.0",
         "symfony/browser-kit": "^8.2",
-        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-client-contracts": "^3.8",
         "symfony/routing": "^8.2"
     },
     "minimum-stability": "dev",

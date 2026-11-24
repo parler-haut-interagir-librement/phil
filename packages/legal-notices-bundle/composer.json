@@ -32,10 +32,10 @@
         "symfony/http-foundation": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2",
-        "symfony/translation-contracts": "^3.6",
-        "symfony/ux-twig-component": "^3.7",
-        "twig/intl-extra": "^3.30",
-        "twig/twig": "^3.21"
+        "symfony/translation-contracts": "^3.8",
+        "symfony/ux-twig-component": "^3.8",
+        "twig/intl-extra": "^3.31",
+        "twig/twig": "^3.31"
     },
     "require-dev": {
         "phil/markup": "^0.3@dev",
@@ -54,10 +54,10 @@
         "symfony/translation": "^8.2",
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-toolkit": "^3.7.1",
+        "symfony/ux-toolkit": "^3.8",
         "symfony/yaml": "^8.2",
-        "twig/extra-bundle": "^3.24",
-        "twig/html-extra": "^3.24"
+        "twig/extra-bundle": "^3.31",
+        "twig/html-extra": "^3.31"
     },
     "suggest": {
         "phil/markup": "For bodies written in Markdown, UJO (Universal JSON Output), HTML and the other formats it reads",

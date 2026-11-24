@@ -25,7 +25,7 @@
         "psr/event-dispatcher": "^1.0"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "phpunit/phpunit": "^13.4",
         "symfony/clock": "^8.2",
         "symfony/event-dispatcher": "^8.2"

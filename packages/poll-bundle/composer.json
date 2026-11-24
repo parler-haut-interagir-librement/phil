@@ -25,22 +25,22 @@
         "php": ">=8.5",
         "ext-mbstring": "*",
         "ext-sodium": "*",
-        "doctrine/dbal": "^4.5",
-        "doctrine/orm": "^3.7",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
         "phil/poll": "^0.1.1@dev",
         "phil/resource": "^0.1@dev",
         "psr/clock": "^1.0",
         "psr/event-dispatcher": "^1.0",
-        "symfony/cache-contracts": "^3.6",
+        "symfony/cache-contracts": "^3.8",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
-        "symfony/service-contracts": "^3.6",
+        "symfony/service-contracts": "^3.8",
         "symfony/uid": "^8.2",
-        "symfony/ux-twig-component": "^3.7"
+        "symfony/ux-twig-component": "^3.8"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
-        "phil/ux-kit": ">=0.1.0-alpha <1.0",
+        "doctrine/doctrine-bundle": "^3.4",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
         "php-webdriver/webdriver": "^1.16",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
@@ -54,9 +54,9 @@
         "symfony/panther": "^2.4",
         "symfony/translation": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-toolkit": "^3.7.1",
-        "twig/html-extra": "^3.24",
-        "twig/twig": "^3.21"
+        "symfony/ux-toolkit": "^3.8",
+        "twig/html-extra": "^3.31",
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "doctrine/doctrine-bundle": "To keep the polls and their ballots in the application's database",

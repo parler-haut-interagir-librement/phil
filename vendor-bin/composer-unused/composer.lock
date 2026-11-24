@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4e929b238b70f9355676b9066d329ffb",
+    "content-hash": "e1da9db2adcc4de5fe0f0e95da1da50b",
     "packages": [
         {
             "name": "composer-unused/contracts",

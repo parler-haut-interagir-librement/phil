@@ -28,13 +28,13 @@
         "ext-mbstring": "*",
         "ext-uri": "*",
         "symfony/translation": "^8.2",
-        "symfony/translation-contracts": "^3.6"
+        "symfony/translation-contracts": "^3.8"
     },
     "require-dev": {
         "phil/ujo": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
         "symfony/console": "^8.2",
-        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/event-dispatcher-contracts": "^3.8",
         "symfony/validator": "^8.2",
         "symfony/workflow": "^8.2"
     },

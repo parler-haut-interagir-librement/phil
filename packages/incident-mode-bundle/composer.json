@@ -23,7 +23,7 @@
         "php": ">=8.5",
         "ext-intl": "*",
         "ext-mbstring": "*",
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "phil/incident-mode": "^0.2@dev",
         "psr/clock": "^1.0",
         "symfony/config": "^8.2",
@@ -34,14 +34,14 @@
         "symfony/security-core": "^8.2",
         "symfony/security-csrf": "^8.2",
         "symfony/translation": "^8.2",
-        "symfony/translation-contracts": "^3.6",
-        "symfony/ux-twig-component": "^3.7",
-        "twig/intl-extra": "^3.30",
-        "twig/twig": "^3.21"
+        "symfony/translation-contracts": "^3.8",
+        "symfony/ux-twig-component": "^3.8",
+        "twig/intl-extra": "^3.31",
+        "twig/twig": "^3.31"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/orm": "^3.7",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/orm": "^3.8",
         "phil/audit-bundle": "^0.1@dev",
         "phil/privacy-bundle": "^0.3@dev",
         "phil/ux-kit": ">=0.5.0-alpha <1.0",
@@ -59,8 +59,8 @@
         "symfony/options-resolver": "^8.2",
         "symfony/scheduler": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-toolkit": "^3.7.1",
-        "twig/html-extra": "^3.24"
+        "symfony/ux-toolkit": "^3.8",
+        "twig/html-extra": "^3.31"
     },
     "suggest": {
         "doctrine/orm": "To add the table of the incidents to the schema the ORM generates, so that doctrine:migrations:diff writes its migration",

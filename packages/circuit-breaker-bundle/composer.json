@@ -33,7 +33,7 @@
         "psr/cache": "^3.0",
         "symfony/cache": "^8.2",
         "symfony/http-client": "^8.2",
-        "symfony/http-client-contracts": "^3.6"
+        "symfony/http-client-contracts": "^3.8"
     },
     "suggest": {
         "psr/cache": "To keep the circuit states in a cache pool",

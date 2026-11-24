@@ -23,8 +23,8 @@
     "require": {
         "php": ">=8.5",
         "ext-mbstring": "*",
-        "doctrine/dbal": "^4.5",
-        "doctrine/orm": "^3.7",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
         "phil/qr-code": "^0.1.1@dev",
         "phil/rate-limit": "^0.1.1@dev",
         "phil/redirects-bundle": "^0.1.1@dev",
@@ -35,11 +35,11 @@
         "symfony/dependency-injection": "^8.2",
         "symfony/http-foundation": "^8.2",
         "symfony/http-kernel": "^8.2",
-        "symfony/polyfill-php86": "^1.37",
+        "symfony/polyfill-php86": "^1.43",
         "symfony/rate-limiter": "^8.2"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/doctrine-bundle": "^3.4",
         "phil/analytics-bundle": "^0.2@dev",
         "phil/safe-http": "^0.2@dev",
         "phpunit/phpunit": "^13.4",
@@ -60,9 +60,9 @@
         "symfony/security-core": "^8.2",
         "symfony/security-csrf": "^8.2",
         "symfony/translation": "^8.2",
-        "symfony/translation-contracts": "^3.6",
+        "symfony/translation-contracts": "^3.8",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "phil/analytics-bundle": "To count each visit as a server event of the analytics",

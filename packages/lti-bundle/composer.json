@@ -23,7 +23,7 @@
         "php": ">=8.5",
         "ext-mbstring": "*",
         "ext-sodium": "*",
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "phil/lti": "^0.2@dev",
         "phil/safe-http": "^0.2.1@dev",
         "phil/url": "^0.1.4@dev",
@@ -35,15 +35,15 @@
         "symfony/routing": "^8.2",
         "symfony/security-core": "^8.2",
         "symfony/security-http": "^8.2",
-        "symfony/service-contracts": "^3.6",
-        "twig/twig": "^3.21"
+        "symfony/service-contracts": "^3.8",
+        "twig/twig": "^3.31"
     },
     "require-dev": {
         "ext-dom": "*",
         "ext-openssl": "*",
         "ext-pdo": "*",
-        "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/orm": "^3.7",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/orm": "^3.8",
         "phil/ux-kit": ">=0.5.0-alpha <1.0",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
@@ -53,7 +53,7 @@
         "symfony/clock": "^8.2",
         "symfony/console": "^8.2",
         "symfony/css-selector": "^8.2",
-        "symfony/dom-crawler": "^8.1",
+        "symfony/dom-crawler": "^8.2",
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-client": "^8.2",
@@ -63,7 +63,7 @@
         "symfony/security-bundle": "^8.2",
         "symfony/translation": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-twig-component": "^3.7",
+        "symfony/ux-twig-component": "^3.8",
         "web-token/jwt-library": "^4.2"
     },
     "suggest": {

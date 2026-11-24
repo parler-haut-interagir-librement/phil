@@ -37,13 +37,13 @@
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
         "symfony/http-client": "^8.2",
-        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-client-contracts": "^3.8",
         "symfony/http-foundation": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2",
         "symfony/security-core": "^8.2",
         "symfony/security-http": "^8.2",
-        "symfony/service-contracts": "^3.6",
+        "symfony/service-contracts": "^3.8",
         "web-token/jwt-library": "^4.2"
     },
     "require-dev": {
