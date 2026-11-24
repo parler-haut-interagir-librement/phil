@@ -75,6 +75,7 @@ return [
     'error.effective_at' => 'The moment it takes effect is not a date and a time.',
     'error.renewal' => 'An acceptance is renewed after 1 to 3650 days.',
     'error.network' => 'This network cannot be kept.',
+    'error.text_sha256' => 'This is not the SHA-256 of a text.',
     'error.licence' => '"%licence%" is not an SPDX licence identifier.',
     'error.licence_required' => 'Name the licence of the contributions.',
     'error.licence_not_expected' => 'This policy does not name a licence.',

@@ -19,7 +19,8 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 /**
  * The page the gate sends a member to: the text of each version to accept, each with its own checkbox, never ticked
  * in advance. The form is taken only when every box is ticked for the version shown — a version published meanwhile
- * is shown again rather than taken as accepted —, then the member goes back where they were going.
+ * is shown again rather than taken as accepted —, then the member goes back where they were going. Each acceptance
+ * keeps the locale of the request, whose text the page showed.
  */
 final readonly class AcceptanceController
 {
@@ -60,7 +61,7 @@ final readonly class AcceptanceController
         }
 
         foreach ($pending as $version) {
-            $this->terms->accept($member, $version->policy, $version->number, AcceptanceChannel::Form, $request->getClientIp());
+            $this->terms->accept($member, $version->policy, $version->number, AcceptanceChannel::Form, $request->getClientIp(), $request->getLocale());
         }
 
         return new RedirectResponse($target, Response::HTTP_SEE_OTHER);

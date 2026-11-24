@@ -55,7 +55,7 @@ use Phil\TermsBundle\Infrastructure\Form\SignupAcceptances;
 
 if ($form->isSubmitted() && $form->isValid()) {
     $member = $members->register($form->getData());
-    $signupAcceptances->record($form, $member->id, $request->getClientIp());
+    $signupAcceptances->record($form, $member->id, $request->getClientIp(), $request->getLocale());
 }
 ```
 
@@ -64,9 +64,45 @@ if ($form->isSubmitted() && $form->isValid()) {
 ```php
 use Phil\TermsBundle\Domain\AcceptanceChannel;
 
-$terms->accept($memberId, 'terms', 3, AcceptanceChannel::Api, $request->getClientIp());
+$terms->accept($memberId, 'terms', 3, AcceptanceChannel::Api, $request->getClientIp(), $request->getLocale());
 ```
 
 An acceptance is of the version in force or of a later one already published; a version a later one replaced is
 refused with the reason `superseded_version`. `Terms` dispatches `TermsAccepted` — identifiers only — on the event
 dispatcher.
+
+## Proving the text accepted
+
+Each acceptance keeps two things beside the version number:
+
+| Field | Column | What |
+|---|---|---|
+| `locale` | `locale` | The locale whose text the member was shown: the locale given to `accept()` when the version has its text, else `default_locale`, else the first locale of the version |
+| `textSha256` | `text_sha256` | The SHA-256, as 64 lowercase hexadecimal digits, of the HTML `PolicyTexts::toHtml()` renders from that text |
+
+The acceptance page gives `accept()` the locale of the request, whose text it showed; the signup form and a call from
+code give it the same way. Without a locale, the text of `default_locale` is the one recorded. A version is never
+changed once published, so the version number already names the texts; the locale says which of them was read, and
+the SHA-256 says which HTML the site rendered from it.
+
+To prove what a member accepted:
+
+1. Read the member's acceptances — `AcceptanceRepository::ofMember()`, or the export of `phil/privacy-bundle`.
+2. Find the version — `VersionCatalog::find($acceptance->policy, $acceptance->version)` — and its text in
+   `$acceptance->locale`: that is the text accepted.
+3. Check the proof with `Terms::textMatches($acceptance)`: `true` when the HTML of that text renders, today, to the
+   SHA-256 kept, `false` when it does not or the version is gone, `null` for an acceptance recorded without a proof.
+
+```php
+$acceptance = $acceptances->ofMember($memberId)[0];
+
+if (true === $terms->textMatches($acceptance)) {
+    $text = $catalog->find($acceptance->policy, $acceptance->version)?->text($acceptance->locale, $acceptance->locale);
+}
+```
+
+`false` on a version still in the store means the rendering changed — a new `phil/ujo` that renders a UJO (Universal
+JSON Output) document differently, or another `PolicyTexts` service —, not that the text did: the text of the version
+is kept as it was published. Keep the HTML of the past renderings outside the site when a dispute may need them, or
+render the text with the version of the renderer that was in use on the day of the acceptance, whose SHA-256 then
+matches.

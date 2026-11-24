@@ -69,6 +69,20 @@ final class PagesTest extends TestCase
         self::assertSame([['42', 'terms', 1, AcceptanceChannel::Form], ['42', 'privacy', 2, AcceptanceChannel::Form]], array_map(static fn (Acceptance $acceptance): array => [$acceptance->member, $acceptance->policy, $acceptance->version, $acceptance->channel], $kit->acceptances->acceptances));
     }
 
+    public function testEachAcceptanceKeepsTheLocaleOfThePage(): void
+    {
+        $kit = new Kit();
+        $kit->terms->publish('terms', ['en' => 'Terms', 'fr' => 'Conditions']);
+        $kit->terms->publish('privacy', ['en' => 'Privacy']);
+
+        $request = $kit->post('/accept', ['accept' => ['terms' => '1', 'privacy' => '1']]);
+        $request->setLocale('fr');
+
+        $this->acceptance($kit)->accept($request);
+
+        self::assertSame([['fr', hash('sha256', '<p>Conditions</p>')], ['en', hash('sha256', '<p>Privacy</p>')]], array_map(static fn (Acceptance $acceptance): array => [$acceptance->locale, $acceptance->textSha256], $kit->acceptances->acceptances));
+    }
+
     /**
      * @return iterable<string, array{array<string, mixed>}>
      */

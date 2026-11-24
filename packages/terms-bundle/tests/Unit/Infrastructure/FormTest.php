@@ -7,6 +7,7 @@ namespace Phil\TermsBundle\Tests\Unit\Infrastructure;
 use DateTimeImmutable;
 use Phil\TermsBundle\Domain\AcceptanceChannel;
 use Phil\TermsBundle\Domain\Exception\InvalidTerms;
+use Phil\TermsBundle\Domain\ValueObject\Acceptance;
 use Phil\TermsBundle\Infrastructure\Form\SignupAcceptances;
 use Phil\TermsBundle\Infrastructure\Form\TermsAcceptanceTypeExtension;
 use Phil\TermsBundle\Tests\Unit\Fixture\Kit;
@@ -196,6 +197,21 @@ final class FormTest extends TestCase
         self::assertSame(['42', 'terms', 2, AcceptanceChannel::Signup], [$acceptances[0]->member, $acceptances[0]->policy, $acceptances[0]->version, $acceptances[0]->channel]);
         self::assertSame(['conduct', 1], [$acceptances[1]->policy, $acceptances[1]->version]);
         self::assertSame($acceptances, $kit->acceptances->acceptances);
+        self::assertSame(['en', 'en'], [$acceptances[0]->locale, $acceptances[1]->locale]);
+    }
+
+    public function testTheAcceptancesOfAFormKeepItsLocale(): void
+    {
+        $kit = new Kit();
+        $kit->terms->publish('terms', ['en' => 'Terms', 'fr' => 'Conditions']);
+        $kit->terms->publish('privacy', ['en' => 'Privacy', 'fr' => 'Vie privée']);
+
+        $form = $this->form($kit, ['terms']);
+        $form->submit(['name' => 'Ada', 'phil_terms_accept_terms' => '1', 'phil_terms_version_terms' => '1']);
+
+        $acceptances = new SignupAcceptances($kit->terms)->record($form, '42', null, 'fr');
+
+        self::assertSame([['fr', hash('sha256', '<p>Conditions</p>')]], array_map(static fn (Acceptance $acceptance): array => [$acceptance->locale, $acceptance->textSha256], $acceptances));
     }
 
     public function testOnlyAValidFormCarriesAcceptances(): void

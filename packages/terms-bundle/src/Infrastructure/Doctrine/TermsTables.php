@@ -23,7 +23,8 @@ use Phil\TermsBundle\Domain\ValueObject\Acceptance;
  * - `phil_terms_version`: the versions of the policies, one row each, the texts of the locales as a JSON object and
  *   the licence of the contributions, when the version names one;
  * - `phil_terms_acceptance`: the acceptances, one row each, only ever added, found by member, policy and version —
- *   the question the gate asks on every request.
+ *   the question the gate asks on every request —, with the locale of the text shown and the SHA-256 of its HTML,
+ *   nullable for the rows recorded before those columns.
  *
  * **Members and policies compare byte by byte.** The gate asks whether a member accepted a policy's version: given the
  * platform, MySQL and MariaDB store the member and the policy in `utf8mb4` with the `utf8mb4_bin` collation, so that an
@@ -76,6 +77,8 @@ final class TermsTables
                 ->addColumn(self::moment('accepted_at'))
                 ->addColumn(self::string('channel', 16))
                 ->addColumn(Column::editor()->setUnquotedName('network')->setTypeName(Types::STRING)->setLength(Acceptance::MAX_NETWORK_LENGTH)->setNotNull(false)->create())
+                ->addColumn(Column::editor()->setUnquotedName('locale')->setTypeName(Types::STRING)->setLength(Identifiers::MAX_LOCALE_LENGTH)->setNotNull(false)->create())
+                ->addColumn(Column::editor()->setUnquotedName('text_sha256')->setTypeName(Types::STRING)->setLength(Acceptance::SHA256_LENGTH)->setFixed(true)->setNotNull(false)->create())
                 ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('id')->create())
                 ->addIndex(Index::editor()->setUnquotedName('idx_phil_terms_acceptance_member')->setUnquotedColumnNames('member', 'policy', 'version')->create())
                 ->create());

@@ -87,6 +87,20 @@ migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:
 makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
 stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
 
+#### Upgrading from 0.2
+
+`phil_terms_acceptance` has two more columns, `locale` and `text_sha256`, the proof of the text each acceptance was
+shown ([Acceptance](acceptance.md#proving-the-text-accepted)). `doctrine:migrations:diff` writes the migration; on
+MySQL it reads:
+
+```sql
+ALTER TABLE phil_terms_acceptance ADD locale VARCHAR(35) DEFAULT NULL, ADD text_sha256 CHAR(64) DEFAULT NULL;
+```
+
+Both columns are nullable: the acceptances recorded before the migration keep `NULL` in them and read back without a
+proof, and every acceptance recorded after it has both. Nothing is filled in afterwards: a text accepted in the past
+cannot be told from the version alone, since the locale the member read was not kept.
+
 ## Install the recipe
 
 The Flex recipe of the bundle registers it, writes `config/packages/phil_terms.yaml` with the policies `terms` and
