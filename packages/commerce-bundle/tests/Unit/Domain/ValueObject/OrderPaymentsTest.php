@@ -137,6 +137,51 @@ final class OrderPaymentsTest extends TestCase
         self::assertSame(PaymentEvent::Refunded, $refund->event);
         self::assertSame(5, $refund->amount?->minorUnits);
         self::assertNull(PaymentNotification::of(str_repeat('a', 255), str_repeat('b', 255), PaymentEvent::Captured)->amount);
+        self::assertFalse($refund->isIgnored());
+        self::assertNull($refund->ignoredType);
+    }
+
+    public function testAnIgnoredNotificationNamesNoPayment(): void
+    {
+        $ignored = PaymentNotification::ignored('evt_1', 'customer.created');
+
+        self::assertSame('evt_1', $ignored->id);
+        self::assertNull($ignored->externalReference);
+        self::assertSame(PaymentEvent::Ignored, $ignored->event);
+        self::assertNull($ignored->amount);
+        self::assertSame('customer.created', $ignored->ignoredType);
+        self::assertTrue($ignored->isIgnored());
+        self::assertSame(str_repeat('t', 255), PaymentNotification::ignored(str_repeat('a', 255), str_repeat('t', 255))->ignoredType);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function invalidIgnoredNotifications(): iterable
+    {
+        yield 'empty id' => ['', 'customer.created'];
+        yield 'id too long' => [str_repeat('a', 256), 'customer.created'];
+        yield 'id with a trailing newline' => ["evt\n", 'customer.created'];
+        yield 'empty type' => ['evt', ''];
+        yield 'type too long' => ['evt', str_repeat('t', 256)];
+        yield 'type with a space' => ['evt', 'customer created'];
+    }
+
+    #[DataProvider('invalidIgnoredNotifications')]
+    public function testAnInvalidIgnoredNotificationIsRefused(string $id, string $type): void
+    {
+        $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessageIsOrContains('A notification id and an event type are 1 to 255 visible ASCII characters.');
+
+        PaymentNotification::ignored($id, $type);
+    }
+
+    public function testAnIgnoredEventIsNotMadeByOf(): void
+    {
+        $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessageIsOrContains('An ignored notification names no payment: it is made by ignored().');
+
+        PaymentNotification::of('evt', 'pi', PaymentEvent::Ignored);
     }
 
     /**

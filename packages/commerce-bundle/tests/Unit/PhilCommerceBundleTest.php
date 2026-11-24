@@ -379,7 +379,7 @@ final class PhilCommerceBundleTest extends TestCase
         $controller = $container->getDefinition(PaymentWebhookController::class);
         self::assertTrue($controller->isPublic());
         self::assertTrue($controller->hasTag('controller.service_arguments'));
-        self::assertSame([Payments::class, 'doctrine.orm.entity_manager'], array_map(static fn (mixed $argument): string => $argument instanceof Reference ? (string) $argument : '', $controller->getArguments()));
+        self::assertSame([Payments::class, 'doctrine.orm.entity_manager', 'logger'], array_map(static fn (mixed $argument): string => $argument instanceof Reference ? (string) $argument : '', $controller->getArguments()));
 
         $prepended = new ContainerBuilder();
         $prepended->setParameter('kernel.bundles', ['DoctrineBundle' => DoctrineBundle::class]);

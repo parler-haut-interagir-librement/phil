@@ -105,7 +105,7 @@ are the types of `phil/tax` ([taxes.md](taxes.md)).
 | `Channels` | `final readonly class` | The channel of a request, the orders a channel opens | Implemented and tested |
 | `Port\SellableAvailability` | port | What a channel offers of something: listed, by direct link only or hidden; orderable or not; priced or not | The catalogue implements it |
 | `Payments` | `final readonly class` | Starts payments, applies notifications, asks refunds, sums an order | Implemented and tested |
-| `NotificationOutcome` | string-backed enum | Applied, already applied, refused, unknown payment | Implemented and tested |
+| `NotificationOutcome` | string-backed enum | Applied, already applied, refused, unknown payment, ignored | Implemented and tested |
 | `Port\PaymentGateway` | port | One payment processor | The application implements it |
 | `Receipts` | `final readonly class` | Issues receipts and credit notes | Implemented and tested |
 | `Quotes` | `final readonly class` | Issues, accepts and declines quotes | Implemented and tested |

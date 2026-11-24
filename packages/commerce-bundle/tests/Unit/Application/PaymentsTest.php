@@ -10,6 +10,7 @@ use Phil\CommerceBundle\Application\Payments;
 use Phil\CommerceBundle\Domain\Exception\InvalidNotification;
 use Phil\CommerceBundle\Domain\Exception\PaymentRefused;
 use Phil\CommerceBundle\Domain\Model\Order;
+use Phil\CommerceBundle\Domain\Model\Payment;
 use Phil\CommerceBundle\Domain\Payment\OrderPaymentState;
 use Phil\CommerceBundle\Domain\Payment\PaymentState;
 use Phil\CommerceBundle\Domain\ValueObject\Sellable;
@@ -193,10 +194,10 @@ final class PaymentsTest extends TestCase
         $order = $this->order();
         [$payment] = $this->payments->start($order, 'card', new DateTimeImmutable());
 
-        self::assertSame([NotificationOutcome::Applied, $payment], $this->payments->notify('card', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]));
+        self::assertSame([NotificationOutcome::Applied, $payment], $this->outcome('card', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]));
         self::assertSame(PaymentState::Completed, $payment->state());
-        self::assertSame([NotificationOutcome::AlreadyApplied, $payment], $this->payments->notify('card', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]));
-        self::assertSame([NotificationOutcome::Refused, $payment], $this->payments->notify('card', 'evt_2|ref-1|authorized', ['x-signature' => ['ok']]));
+        self::assertSame([NotificationOutcome::AlreadyApplied, $payment], $this->outcome('card', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]));
+        self::assertSame([NotificationOutcome::Refused, $payment], $this->outcome('card', 'evt_2|ref-1|authorized', ['x-signature' => ['ok']]));
         self::assertSame(PaymentState::Completed, $payment->state());
         self::assertSame(OrderPaymentState::Paid, $this->payments->summary($order)->state());
     }
@@ -205,8 +206,36 @@ final class PaymentsTest extends TestCase
     {
         $this->payments->start($this->order(), 'card', new DateTimeImmutable());
 
-        self::assertSame([NotificationOutcome::UnknownPayment, null], $this->payments->notify('card', 'evt_1|ref-9|captured', ['x-signature' => ['ok']]));
-        self::assertSame([NotificationOutcome::UnknownPayment, null], $this->payments->notify('interac', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]));
+        self::assertSame([NotificationOutcome::UnknownPayment, null], $this->outcome('card', 'evt_1|ref-9|captured', ['x-signature' => ['ok']]));
+        self::assertSame([NotificationOutcome::UnknownPayment, null], $this->outcome('interac', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]));
+    }
+
+    /**
+     * A verified event the store does not act on looks no payment up and changes nothing; the notification is handed
+     * back, so that the webhook logs its type.
+     */
+    public function testAnIgnoredNotificationChangesNothing(): void
+    {
+        $order = $this->order();
+        [$payment] = $this->payments->start($order, 'card', new DateTimeImmutable());
+
+        [$outcome, $notified, $notification] = $this->payments->notify('card', 'evt_9|ignored|customer.created', ['x-signature' => ['ok']]);
+
+        self::assertSame(NotificationOutcome::Ignored, $outcome);
+        self::assertNull($notified);
+        self::assertSame('evt_9', $notification->id);
+        self::assertSame('customer.created', $notification->ignoredType);
+        self::assertFalse($payment->hasApplied('evt_9'));
+        self::assertSame(PaymentState::Processing, $payment->state());
+    }
+
+    public function testTheNotificationReadIsHandedBack(): void
+    {
+        $this->payments->start($this->order(), 'card', new DateTimeImmutable());
+
+        [, , $notification] = $this->payments->notify('card', 'evt_1|ref-1|captured', ['x-signature' => ['ok']]);
+
+        self::assertSame(['evt_1', 'ref-1'], [$notification->id, $notification->externalReference]);
     }
 
     public function testANotificationTheGatewayCannotTrustIsRefused(): void
@@ -300,6 +329,18 @@ final class PaymentsTest extends TestCase
         }
 
         self::assertSame([], $this->card->refunds);
+    }
+
+    /**
+     * @param array<string, list<string>> $headers
+     *
+     * @return array{NotificationOutcome, ?Payment}
+     */
+    private function outcome(string $method, string $payload, array $headers): array
+    {
+        [$outcome, $payment] = $this->payments->notify($method, $payload, $headers);
+
+        return [$outcome, $payment];
     }
 
     private function order(): Order

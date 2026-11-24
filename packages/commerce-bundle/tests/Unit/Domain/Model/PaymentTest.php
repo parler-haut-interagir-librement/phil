@@ -191,6 +191,25 @@ final class PaymentTest extends TestCase
         self::assertTrue($payment->apply(PaymentNotification::of('evt_x', 'pi_1', PaymentEvent::Captured)));
     }
 
+    /**
+     * An ignored notification names no payment: handed to one anyway, it is refused and leaves no trace.
+     */
+    public function testAnIgnoredNotificationNeverApplies(): void
+    {
+        $payment = $this->payment();
+        $payment->apply(PaymentNotification::of('evt_1', 'pi_1', PaymentEvent::Captured));
+
+        try {
+            $payment->apply(PaymentNotification::ignored('evt_2', 'customer.created'));
+            self::fail('An ignored notification was applied.');
+        } catch (PaymentRefused $paymentRefused) {
+            self::assertStringContainsString('ignored', $paymentRefused->getMessage());
+        }
+
+        self::assertFalse($payment->hasApplied('evt_2'));
+        self::assertSame(PaymentState::Completed, $payment->state());
+    }
+
     public function testANotificationAppliesOnce(): void
     {
         $payment = $this->payment();

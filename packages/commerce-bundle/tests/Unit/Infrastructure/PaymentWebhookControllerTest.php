@@ -19,6 +19,7 @@ use Phil\Money\Money;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 #[CoversClass(PaymentWebhookController::class)]
@@ -63,6 +64,34 @@ final class PaymentWebhookControllerTest extends TestCase
     }
 
     /**
+     * A verified event the store does not act on is acknowledged without a commit, and logged by its id and type.
+     */
+    public function testAnIgnoredNotificationIsAcknowledgedAndLogged(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('info')->with(
+            'Payment notification {id} of type {type} ignored: the store does not act on it.',
+            ['id' => 'evt_9', 'type' => 'customer.created', 'method' => 'card'],
+        );
+        [$controller, $payments, $order] = $this->controller(0, logger: $logger);
+        $request = Request::create('/webhooks/card', 'POST', server: ['HTTP_X_SIGNATURE' => 'ok'], content: 'evt_9|ignored|customer.created');
+
+        $response = $controller($request, 'card');
+
+        self::assertSame(204, $response->getStatusCode());
+        self::assertSame('', $response->getContent());
+        self::assertSame(PaymentState::Processing, $payments->forOrder($order->number)[0]->state());
+    }
+
+    public function testAnIgnoredNotificationNeedsNoLogger(): void
+    {
+        [$controller] = $this->controller(0);
+        $request = Request::create('/webhooks/card', 'POST', server: ['HTTP_X_SIGNATURE' => 'ok'], content: 'evt_9|ignored|customer.created');
+
+        self::assertSame(204, $controller($request, 'card')->getStatusCode());
+    }
+
+    /**
      * The gateway receives every header as a list of strings, under its lowercase name.
      */
     public function testTheGatewayReceivesTheHeadersAsListsOfStrings(): void
@@ -82,7 +111,7 @@ final class PaymentWebhookControllerTest extends TestCase
     /**
      * @return array{PaymentWebhookController, InMemoryPayments, Order}
      */
-    private function controller(int $flushes, FakeGateway $gateway = new FakeGateway('card')): array
+    private function controller(int $flushes, FakeGateway $gateway = new FakeGateway('card'), ?LoggerInterface $logger = null): array
     {
         $repository = new InMemoryPayments();
         $payments = new Payments([$gateway], $repository);
@@ -96,6 +125,6 @@ final class PaymentWebhookControllerTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->exactly($flushes))->method('flush');
 
-        return [new PaymentWebhookController($payments, $entityManager), $repository, $order];
+        return [new PaymentWebhookController($payments, $entityManager, $logger), $repository, $order];
     }
 }
