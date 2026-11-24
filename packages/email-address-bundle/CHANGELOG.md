@@ -15,8 +15,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - `EmailPolicy` and `EmailPolicies`: the policy of the bundle, of the current site (`CurrentSite`) and of a list, laid
   over each other; `UnknownEmailList` for a list the configuration does not hold.
 - The constraint `AcceptedEmailAddress`, checked through `DeliverableEmailAddress` with the policy in force.
-- `EmailAddresses`: the normalized form, the comparison of two addresses, the keyed fingerprint `AddressFingerprint`,
-  and the role addresses, warned about and accepted.
+- `EmailAddresses`: the normalized form, the comparison of two addresses, the keyed fingerprint `AddressFingerprint`
+  under a key derived from `fingerprint_key` by HKDF-SHA256 for that usage alone (`FINGERPRINT_USAGE`), so that no
+  other usage of the same secret gives the same hash for an address, and the role addresses, warned about and
+  accepted.
 - `EmailAddressType`: the constraint, the Stimulus controller, and the suggestion or the role warning as the field's
   help once the form is submitted.
 - The route `phil_email_address_domains` and `EmailDomainsController`: the known domains, the top-level slips and the

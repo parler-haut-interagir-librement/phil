@@ -4,6 +4,19 @@ All notable changes to `phil/phone` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Added
+
+- `InvalidPhoneNumber::$input`, the input cut to 100 characters, and `InvalidPhoneNumber::SHOWN_LENGTH`.
+
+### Security
+
+- The messages of `InvalidPhoneNumber` held the text typed, most often the real number: a message that reached a log
+  kept personal data there. They name the reason only; a region with no plan is still named.
+
 ## 0.1.1-alpha - 2026-11-17
 
 Documentation only.

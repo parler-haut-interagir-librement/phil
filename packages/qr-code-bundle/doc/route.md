@@ -8,7 +8,8 @@ With `route.enabled` and `config/routes.php` imported, codes are served as image
 ```
 
 `qr_code_url(content, format = 'svg', logo = '', absolute = false)` writes `/qr-code.svg` or `/qr-code.png` with the
-payload and the logo in the query, signed with the application's secret (`_qr_signature`). The route draws only what
+payload and the logo in the query, signed under a key derived from the application's secret by HKDF-SHA256 under
+`phil_qr_code.image_url` (`_qr_signature`), which the `uri_signer` of FrameworkBundle does not share. The route draws only what
 the application signed: any other address, or a code that cannot be drawn, is not found — the route cannot be used
 to draw codes for someone else.
 

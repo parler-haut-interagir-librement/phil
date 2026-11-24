@@ -16,6 +16,13 @@ The next version is 0.3.1-alpha.
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
   2026-11-24.
 
+### Security
+
+- The names of the drafts and of their owners were the HMAC under the secret itself, `%kernel.secret%` by default,
+  the same hash other bundles kept for the same user. `DraftKeys` derives its key by HKDF-SHA256 under
+  `phil_forms_autosave.draft_key` (`DraftKeys::USAGE`). A draft saved before the update is no longer found: it is
+  saved again at the next change.
+
 ## 0.3.0-alpha - 2026-11-20
 
 The key of a draft kept on the server compares byte by byte on MySQL and MariaDB. See

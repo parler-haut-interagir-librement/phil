@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phil\PrivacyBundle\Tests\Unit\Domain\Redaction;
 
+use DateTimeImmutable;
 use LogicException;
+use Phil\PrivacyBundle\Domain\AccountDeletion\DeletionPlace;
 use Phil\PrivacyBundle\Domain\Redaction\CommandLineRedactor;
 use Phil\PrivacyBundle\Domain\Redaction\ContextRedactor;
 use Phil\PrivacyBundle\Domain\Redaction\Denylist;
@@ -48,11 +50,19 @@ final class ContextRedactorTest extends TestCase
         self::assertSame([0 => '/a?[redacted]'], $this->redactor()->redactContext([0 => '/a?x=1']));
     }
 
-    public function testObjectsAreLeftAsTheyAre(): void
+    public function testAnObjectIsReplacedByItsClassNameAtAnyDepth(): void
     {
         $object = new stdClass();
+        $object->email = 'ada@example.com';
+        $dto = new class {
+            public string $phone = '+15145550123';
+        };
 
-        self::assertSame(['subject' => $object], $this->redactor()->redactContext(['subject' => $object]));
+        $redacted = $this->redactor()->redactContext(['subject' => $object, 'nested' => ['deeper' => [$dto]], 'when' => new DateTimeImmutable('2026-11-24'), 'kind' => DeletionPlace::Erased, 'count' => 3, 'none' => null]);
+
+        self::assertSame(['subject' => 'stdClass', 'nested' => ['deeper' => [$dto::class]], 'when' => 'DateTimeImmutable', 'kind' => DeletionPlace::class.'::Erased', 'count' => 3, 'none' => null], $redacted);
+        self::assertStringNotContainsString('ada@example.com', (string) json_encode($redacted));
+        self::assertStringNotContainsString('5550123', (string) json_encode($redacted));
     }
 
     /**

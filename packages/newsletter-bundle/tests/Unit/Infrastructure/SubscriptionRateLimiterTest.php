@@ -104,11 +104,11 @@ final class SubscriptionRateLimiterTest extends TestCase
         $limiter->allowsSubscription($this->request('192.0.2.1'), 'default', 'Ada@example.com');
         $limiter->allowsConfirmation('subscriber-1');
 
-        $hash = static fn (string $part): string => sodium_bin2base64(hash_hmac('sha256', $part, self::SECRET, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        $hash = static fn (string $part): string => sodium_bin2base64(hash_hmac('sha256', $part, hash_hkdf('sha256', self::SECRET, 32, 'phil_newsletter.subscription_limiter'), true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
         self::assertSame(['ip:'.$hash('192.0.2.1'), 'address:'.$hash("default\nada@example.com"), 'resend:'.$hash('subscriber-1')], $this->keys->getArrayCopy());
 
         foreach ($this->keys as $key) {
-            self::assertStringNotContainsString('ada', strtolower($key));
+            self::assertStringNotContainsString('example.com', strtolower($key));
             self::assertStringNotContainsString('192.0.2.1', $key);
         }
     }

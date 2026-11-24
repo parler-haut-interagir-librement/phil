@@ -74,6 +74,33 @@ final class RedactingProcessorTest extends TestCase
         self::assertSame(['command' => 'app:import -p[redacted]'], $processed->context);
     }
 
+    public function testTheCategoriesOfPersonalDataAreDeniedKeysAndAMarkerNeverReachesTheRecord(): void
+    {
+        $processor = RedactingProcessor::fromConfiguration([], [], [], RedactingProcessor::PERSONAL_DATA_CATEGORIES);
+        $marker = 'marker-7f3a@example.com';
+        $record = new LogRecord(
+            new DateTimeImmutable('2026-10-31T00:00:00Z'),
+            'app',
+            Level::Warning,
+            'Sign-in refused.',
+            ['email' => $marker, 'personName' => 'Ada', 'Phone' => '+15145550123', 'IP' => '192.0.2.7', 'request' => ['nickname' => 'ada'], 'account' => 'a-1', 'emailCount' => 2],
+            ['contact' => ['email' => $marker]],
+        );
+
+        $processed = $processor($record);
+
+        self::assertSame(['email' => '[redacted]', 'personName' => '[redacted]', 'Phone' => '[redacted]', 'IP' => '[redacted]', 'request' => ['nickname' => '[redacted]'], 'account' => 'a-1', 'emailCount' => 2], $processed->context);
+        self::assertSame(['contact' => '[redacted]'], $processed->extra);
+        self::assertStringNotContainsString($marker, (string) json_encode([$processed->context, $processed->extra]));
+    }
+
+    public function testAMalformedCategoryIsRefused(): void
+    {
+        $this->expectException(InvalidPrivacyValue::class);
+
+        RedactingProcessor::fromConfiguration([], [], [], ['E-mail']);
+    }
+
     public function testAMalformedPrefixIsRefused(): void
     {
         $this->expectException(InvalidPrivacyValue::class);

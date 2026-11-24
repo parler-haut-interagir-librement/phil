@@ -99,36 +99,64 @@ final class PhoneNumberTest extends TestCase
      */
     public static function notNumbers(): iterable
     {
-        yield 'letters' => ['1-800-FLOWERS', 'US', '"1-800-FLOWERS" is not a phone number.'];
-        yield 'a plus inside' => ['514+5550123', 'CA', '"514+5550123" is not a phone number.'];
-        yield 'empty' => ['', 'CA', '"" is not a phone number.'];
-        yield 'one digit' => ['5', 'CA', '"5" is not a phone number.'];
-        yield 'too long' => ['+1 '.str_repeat('5', 18), null, '"+1 555555555555555555" is not a phone number.'];
-        yield 'too long to read' => [str_repeat('5 ', 26), 'CA', '"'.str_repeat('5 ', 26).'" is not a phone number.'];
-        yield 'an extension too long' => ['+1 514 555 0123 x12345678', null, '"+1 514 555 0123 x12345678" is not a phone number.'];
-        yield 'a newline' => ["+1 514 555 0123\nx", null, '"+1 514 555 0123'."\n".'x" is not a phone number.'];
-        yield 'no country code' => ['514 555 0123', null, '"514 555 0123" is written without its country code, and no region is given.'];
-        yield 'an unknown country code' => ['+999 123456', null, '"+999 123456" starts with no known country code.'];
-        yield 'a country code starting with zero' => ['+0 123456', null, '"+0 123456" starts with no known country code.'];
-        yield 'an unknown region' => ['514 555 0123', 'QQ', '"QQ" is no region with a numbering plan.'];
-        yield 'a region that is no code' => ['514 555 0123', '../CA', '"../CA" is no region with a numbering plan.'];
-        yield 'a region of three letters' => ['514 555 0123', 'CAN', '"CAN" is no region with a numbering plan.'];
+        $notANumber = 'The text is not a phone number.';
+
+        yield 'letters' => ['1-800-FLOWERS', 'US', $notANumber];
+        yield 'a plus inside' => ['514+5550123', 'CA', $notANumber];
+        yield 'empty' => ['', 'CA', $notANumber];
+        yield 'one digit' => ['5', 'CA', $notANumber];
+        yield 'too long' => ['+1 '.str_repeat('5', 18), null, $notANumber];
+        yield 'too long to read' => [str_repeat('5 ', 26), 'CA', $notANumber];
+        yield 'an extension too long' => ['+1 514 555 0123 x12345678', null, $notANumber];
+        yield 'a newline' => ["+1 514 555 0123\nx", null, $notANumber];
+        yield 'no country code' => ['514 555 0123', null, 'The number is written without its country code, and no region is given.'];
+        yield 'an unknown country code' => ['+999 123456', null, 'The number starts with no known country code.'];
+        yield 'a country code starting with zero' => ['+0 123456', null, 'The number starts with no known country code.'];
     }
 
     #[DataProvider('notNumbers')]
-    public function testWhatIsNoNumberIsRefused(string $input, ?string $region, string $message): void
+    public function testWhatIsNoNumberIsRefusedWithoutTheInputInTheMessage(string $input, ?string $region, string $message): void
     {
-        $this->expectException(InvalidPhoneNumber::class);
-        $this->expectExceptionMessageIsOrContains($message);
-
-        PhoneNumber::parse($input, $region);
+        try {
+            PhoneNumber::parse($input, $region);
+            self::fail('The input is no phone number.');
+        } catch (InvalidPhoneNumber $e) {
+            self::assertSame($message, $e->getMessage());
+            self::assertSame($input, $e->input);
+        }
     }
 
-    public function testALongInputIsCutInTheMessage(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unknownRegions(): iterable
     {
-        $this->expectExceptionMessageIsOrContains('"'.str_repeat('a', 100).'" is not a phone number.');
+        yield 'an unknown region' => ['QQ'];
+        yield 'a region that is no code' => ['../CA'];
+        yield 'a region of three letters' => ['CAN'];
+    }
 
-        PhoneNumber::parse(str_repeat('a', 150));
+    #[DataProvider('unknownRegions')]
+    public function testAnUnknownRegionIsNamed(string $region): void
+    {
+        try {
+            PhoneNumber::parse('514 555 0123', $region);
+            self::fail('The region has no numbering plan.');
+        } catch (InvalidPhoneNumber $e) {
+            self::assertSame('"'.$region.'" is no region with a numbering plan.', $e->getMessage());
+            self::assertSame($region, $e->input);
+        }
+    }
+
+    public function testALongInputIsCutInWhatIsKept(): void
+    {
+        try {
+            PhoneNumber::parse(str_repeat('a', 150));
+            self::fail('Letters are no phone number.');
+        } catch (InvalidPhoneNumber $e) {
+            self::assertSame(str_repeat('a', 100), $e->input);
+            self::assertSame(100, InvalidPhoneNumber::SHOWN_LENGTH);
+        }
     }
 
     public function testAnInputUpToItsLimitIsRead(): void
@@ -162,9 +190,13 @@ final class PhoneNumberTest extends TestCase
 
     public function testALongInputIsCutInCharacters(): void
     {
-        $this->expectExceptionMessageIsOrContains('"'.str_repeat('é', 100).'" is not a phone number.');
-
-        PhoneNumber::parse(str_repeat('é', 150));
+        try {
+            PhoneNumber::parse(str_repeat('é', 150));
+            self::fail('Letters are no phone number.');
+        } catch (InvalidPhoneNumber $e) {
+            self::assertSame(str_repeat('é', 100), $e->input);
+            self::assertStringNotContainsString('é', $e->getMessage());
+        }
     }
 
     /**

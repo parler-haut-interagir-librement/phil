@@ -96,7 +96,7 @@ final class BrowserErrorReceiverTest extends TestCase
 
     public function testTheClientIsThrottledByADigest(): void
     {
-        $throttle = new ListedThrottle([hash_hmac('sha256', '192.0.2.9', 'secret'), hash_hmac('sha256', '', 'secret')]);
+        $throttle = new ListedThrottle([hash_hmac('sha256', '192.0.2.9', hash_hkdf('sha256', 'secret', 32, 'phil_error_tracking.browser_throttle')), hash_hmac('sha256', '', hash_hkdf('sha256', 'secret', 32, 'phil_error_tracking.browser_throttle'))]);
         $receiver = $this->receiver(throttle: $throttle);
 
         self::assertSame(Receipt::TooManyRequests, $receiver->receive('application/json', self::BODY, 'https://example.com', 'https://example.com', null, '192.0.2.9', null));

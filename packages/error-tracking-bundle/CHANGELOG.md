@@ -21,6 +21,12 @@ The next version is 0.1.1-alpha.
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
   2026-11-24.
 
+### Security
+
+- The throttle of the browser errors counted each client by the HMAC of its address under the secret itself,
+  `%kernel.secret%` by default, the same hash other bundles kept for the same address. `BrowserErrorReceiver` derives
+  its key by HKDF-SHA256 under `phil_error_tracking.browser_throttle` (`BrowserErrorReceiver::USAGE`).
+
 ## 0.1.0-alpha - 2026-11-20
 
 ### Added

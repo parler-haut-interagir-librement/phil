@@ -76,7 +76,16 @@ Open an issue before a large change, so that its design can be agreed first. The
 5. **Document it, in English.** Update the package's `doc/` and, when a topic is added, the documentation table of
    its README. The French mirrors (`README.fr.md`, `doc/fr/`) follow principle 4; when a contributor does not write
    French, a maintainer completes them before the release.
-6. **Pass the checks.** From the root of the monorepo, after `composer install` and `composer hooks`, the quality
+6. **Keep it secure by default.** Three rules hold in every package:
+   - a value object of personal data — an address, a phone number, a name — never copies the input into the message
+     of an exception, which may reach a log: the message names the reason, and the input, when a caller needs it,
+     stays in a property;
+   - a bundle that calls a third-party service accepts the identifier of its HTTP client as an option, and sets
+     default timeouts on every call (`timeout` and `max_duration`), which its configuration can change;
+   - a key that signs or hashes is derived for its usage from the secret of the application, by
+     `hash_hkdf('sha256', $secret, 32, 'phil_<bundle>.<usage>')`, never the secret itself: two usages never share a
+     key, so that a signature or a pseudonym made for one never matches in another.
+7. **Pass the checks.** From the root of the monorepo, after `composer install` and `composer hooks`, the quality
    checks run on every package — PHP-CS-Fixer, Rector, PHPStan at its maximum level, deptrac, Arkitect, PHPUnit and
    Infection — and `composer packages` installs each package on its own, checks its declared dependencies and runs
    its tests. A pull request is merged when every check passes.

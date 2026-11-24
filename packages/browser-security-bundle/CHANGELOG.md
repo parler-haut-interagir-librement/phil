@@ -26,6 +26,9 @@ The next version is 0.2.1-alpha.
 - The HTML error page of the ErrorHandler component wrote its `<style>` element without a nonce: under a policy
   without `'unsafe-inline'`, the browser refused it, and a site that loosened the policy to show its error pages
   loosened it for every page.
+- The throttle of the reports counted each client by the HMAC of its address under the secret itself,
+  `%kernel.secret%` by default, the same hash other bundles kept for the same address. `ReportReceiver` derives its
+  key by HKDF-SHA256 under `phil_browser_security.report_throttle` (`ReportReceiver::USAGE`).
 
 ## 0.2.0-alpha - 2026-11-20
 

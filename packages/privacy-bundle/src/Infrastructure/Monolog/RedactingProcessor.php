@@ -11,6 +11,7 @@ use Phil\PrivacyBundle\Domain\Exception\InvalidPrivacyValue;
 use Phil\PrivacyBundle\Domain\Redaction\ContextRedactor;
 use Phil\PrivacyBundle\Domain\Redaction\Denylist;
 use Phil\PrivacyBundle\Domain\Redaction\UrlRedactor;
+use Phil\PrivacyBundle\Domain\Subject\DataCategory;
 
 /**
  * Redacts every record before a handler writes it: the message, the context and the extra fields.
@@ -21,24 +22,30 @@ use Phil\PrivacyBundle\Domain\Redaction\UrlRedactor;
  */
 final readonly class RedactingProcessor implements ProcessorInterface
 {
+    /** The categories of `#[PersonalData]` the PHIL packages declare, denied by default. */
+    public const array PERSONAL_DATA_CATEGORIES = ['email', 'person_name', 'nickname', 'phone', 'ip', 'contact'];
+
     public function __construct(
         private ContextRedactor $redactor,
     ) {
     }
 
     /**
-     * The processor as the bundle configuration describes it: the denied keys, the token path prefixes and
-     * the short option table.
+     * The processor as the bundle configuration describes it: the denied keys, the token path prefixes, the short
+     * option table, and the categories of `#[PersonalData]` whose names are denied keys too.
      *
      * @param list<string>             $denylist
      * @param list<string>             $tokenPathPrefixes
-     * @param array<array-key, string> $shortOptions      each letter to the long option name it stands for
+     * @param array<array-key, string> $shortOptions           each letter to the long option name it stands for
+     * @param list<string>             $personalDataCategories categories such as `email`, each a denied key
      *
-     * @throws InvalidPrivacyValue when a key, a prefix, a letter or a long name is malformed
+     * @throws InvalidPrivacyValue when a key, a prefix, a letter, a long name or a category is malformed
      */
-    public static function fromConfiguration(array $denylist, array $tokenPathPrefixes, array $shortOptions = []): self
+    public static function fromConfiguration(array $denylist, array $tokenPathPrefixes, array $shortOptions = [], array $personalDataCategories = []): self
     {
-        return new self(new ContextRedactor(Denylist::fromList($denylist), new UrlRedactor($tokenPathPrefixes), $shortOptions));
+        $categories = array_map(static fn (string $category): string => DataCategory::fromString($category)->value, $personalDataCategories);
+
+        return new self(new ContextRedactor(Denylist::fromList([...$denylist, ...$categories]), new UrlRedactor($tokenPathPrefixes), $shortOptions));
     }
 
     #[Override]

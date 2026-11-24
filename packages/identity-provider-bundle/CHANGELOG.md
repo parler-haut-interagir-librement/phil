@@ -146,6 +146,10 @@ See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
 - A burst of failed sign-ins spread over many accounts and addresses passed under the limiters and hashed every
   password at once, each Argon2id hash taking tens of mebibytes, until the server ran out of memory: the hashes wait
   for a slot of `password.semaphore`.
+- The limiters of the sign-ins and of the registrations keyed their counts by the HMAC of the address and of the
+  identifier under `secret` itself, the same hash other bundles kept for the same address. `LoginRateLimiter` and
+  `RegistrationRateLimiter` derive their keys by HKDF-SHA256 under `phil_identity_provider.login_limiter` and
+  `phil_identity_provider.registration_limiter` (`USAGE` of each). The counts start again at the update.
 
 ## 0.3.0-alpha - 2026-11-20
 

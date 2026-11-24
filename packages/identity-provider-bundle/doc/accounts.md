@@ -104,7 +104,8 @@ phil_identity_provider:
 address typed, known or not, so that the answer still tells nobody who has an account; a refusal answers `429` with
 the form and `error.registration.too_many`. A verification email goes to one address once in each `resend_delay`,
 whether it is asked for by registration, by the account page or by a change of address: one asked for again too soon
-is not sent, and the page answers as if it were. The keys are keyed hashes: the cache never holds an address.
+is not sent, and the page answers as if it were. The keys are keyed hashes, under a key derived from `secret` by HKDF-SHA256 for that limiter alone: the
+cache never holds an address.
 
 The counts live in `cache.app`, under `lock.factory` when it is defined. On several servers, point `cache.app` to a
 shared store, or each server counts on its own. `registration: { rate_limit: false }` turns the limits off, for an
@@ -234,7 +235,8 @@ security:
 
 `LoginRateLimiter` counts three things in each `login_limiter.interval`: the attempts per address — an IPv6 client by
 its /64 network —, `network_max_attempts`; per identifier and address, `max_attempts`; per identifier, whatever the
-address, `account_max_attempts`. The keys are keyed hashes of the address and of the identifier, in lower case: the
+address, `account_max_attempts`. The keys are keyed hashes of the address and of the identifier, in lower case, under a key derived from
+`secret` by HKDF-SHA256 for that limiter alone: the
 cache never holds either. A successful sign-in clears both counts of its identifier and gives its token back to its
 address. The options of `login_throttling` itself, `max_attempts` and `interval`, are not read once a limiter is named.
 

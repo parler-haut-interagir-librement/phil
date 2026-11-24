@@ -26,7 +26,8 @@ keeps one of two things, or both:
   whose requests name people otherwise aliases `CurrentSubject` to its own service.
 - **The digest of an address**, for a visitor: a form designates one of its email fields
   (`Form::identifyBy('email')`), and the entry keeps `email_digest`, the HMAC-SHA256 of the address trimmed and
-  lower-cased, under the key `phil_forms.digest_key`. The address is found however it was written, and cannot be
+  lower-cased, under a key derived from `phil_forms.digest_key` by HKDF-SHA256 for that usage alone
+  (`phil_forms.email_digest`), so that the digests never match the pseudonyms another bundle keeps for the address. The address is found however it was written, and cannot be
   tried against the digests without the key. **Changing the key** loses the entries already kept to requests by
   address, until their retention ends.
 

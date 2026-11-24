@@ -25,13 +25,20 @@ use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
  */
 final readonly class SubscriptionRateLimiter implements ConfirmationThrottle
 {
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_newsletter.subscription_limiter';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     public function __construct(
         private RateLimiterFactoryInterface $perIp,
         private RateLimiterFactoryInterface $perAddress,
         private RateLimiterFactoryInterface $resend,
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     /**
@@ -58,6 +65,6 @@ final readonly class SubscriptionRateLimiter implements ConfirmationThrottle
      */
     private function key(string $part): string
     {
-        return sodium_bin2base64(hash_hmac('sha256', $part, $this->secret, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        return sodium_bin2base64(hash_hmac('sha256', $part, $this->key, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
     }
 }

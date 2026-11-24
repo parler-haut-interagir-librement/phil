@@ -35,7 +35,7 @@ phil_rate_limit:
 
 | Option | Default | Meaning |
 |---|---|---|
-| `secret` | `%kernel.secret%` | The key of the HMAC-SHA-256 of the `ip`, `user` and `ip_route` keys. |
+| `secret` | `%kernel.secret%` | The secret the keys of the HMAC-SHA-256 of the `ip`, `user` and `ip_route` keys are derived from, one per strategy, by HKDF-SHA256 under `phil_rate_limit.client_ip_key`, `phil_rate_limit.user_key` and `phil_rate_limit.ip_route_key`. |
 | `headers` | `draft` | `draft` writes `RateLimit-Policy` and `RateLimit`; `legacy` writes `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset`; `both`; `none` keeps `Retry-After` alone. |
 | `error_template` | `@PhilRateLimit/too_many_requests.html.twig` | The page of a refusal answered in HTML. |
 | `cache_pool` | `cache.app` | The cache pool of every limiter that names neither a pool nor a storage. |

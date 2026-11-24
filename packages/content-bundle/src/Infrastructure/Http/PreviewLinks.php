@@ -26,6 +26,12 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final readonly class PreviewLinks
 {
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_content.preview_link';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     public const string ROUTE = 'phil_content_preview';
 
     /**
@@ -36,11 +42,12 @@ final readonly class PreviewLinks
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
         private ClockInterface $clock,
         private int $ttl = 604_800,
         private ?TenantContext $tenants = null,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     /**
@@ -86,7 +93,7 @@ final readonly class PreviewLinks
             $input .= '|'.\strlen($part).':'.$part;
         }
 
-        return self::VERSION.'.'.hash_hmac('sha256', $input.'|'.$expires, $this->secret);
+        return self::VERSION.'.'.hash_hmac('sha256', $input.'|'.$expires, $this->key);
     }
 
     private function now(): int

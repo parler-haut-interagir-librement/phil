@@ -26,6 +26,12 @@ use SensitiveParameter;
  */
 final readonly class BrowserErrorReceiver
 {
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_error_tracking.browser_throttle';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     public const int DEFAULT_MAX_BYTES = 16_384;
 
     /**
@@ -37,13 +43,14 @@ final readonly class BrowserErrorReceiver
         private SafeCapture $capture,
         private IpAnonymizer $anonymizer,
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
         private int $maxBytes = self::DEFAULT_MAX_BYTES,
         private array $origins = [],
         #[SensitiveParameter]
         private ?string $token = null,
         private ?CaptureThrottle $throttle = null,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     public function maxBytes(): int
@@ -82,7 +89,7 @@ final readonly class BrowserErrorReceiver
             return Receipt::Forbidden;
         }
 
-        if ($this->throttle instanceof CaptureThrottle && !$this->throttle->allow(hash_hmac('sha256', $clientAddress ?? '', $this->secret))) {
+        if ($this->throttle instanceof CaptureThrottle && !$this->throttle->allow(hash_hmac('sha256', $clientAddress ?? '', $this->key))) {
             return Receipt::TooManyRequests;
         }
 

@@ -6,6 +6,7 @@ namespace Phil\PrivacyBundle\Domain\Redaction;
 
 use Phil\PrivacyBundle\Domain\Exception\InvalidPrivacyValue;
 use Throwable;
+use UnitEnum;
 
 /**
  * Redacts a log message and its structured context before anything is written.
@@ -19,9 +20,10 @@ use Throwable;
  *   message through both redactors, its code, file and line, and its previous throwable the same way. An
  *   exception message is where a failed request's URL most often lands, and a formatter would otherwise write
  *   it as it is. The stack trace is dropped: its arguments are not reachable without serialisation.
- * - **Other objects are left as they are.** Their content is not reachable without reflection or serialisation,
- *   and either would make this a normaliser. A context that logs an object holding a secret is a context to
- *   fix at the call site.
+ * - **Any other object, at any depth, is replaced by its class name**, and a case of an enum by its class and
+ *   case, `App\\Status::Open`. A formatter would otherwise write an object's public properties, or what it
+ *   serialises to, as they are: a message or a DTO of another bundle would reach the log whole, personal data
+ *   included. A context that needs a value logs that value, under a key the denylist can judge.
  */
 final readonly class ContextRedactor
 {
@@ -72,6 +74,8 @@ final readonly class ContextRedactor
             \is_string($value) => $this->redactString($value),
             \is_array($value) => $this->redactContext($value),
             $value instanceof Throwable => $this->redactThrowable($value),
+            $value instanceof UnitEnum => $value::class.'::'.$value->name,
+            \is_object($value) => $value::class,
             default => $value,
         };
     }

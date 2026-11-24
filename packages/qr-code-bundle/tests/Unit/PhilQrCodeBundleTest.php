@@ -11,6 +11,7 @@ use Phil\QrCodeBundle\Application\QrCodes;
 use Phil\QrCodeBundle\Infrastructure\DependencyInjection\QrCodeServices;
 use Phil\QrCodeBundle\Infrastructure\DependencyInjection\SvgBlocksPass;
 use Phil\QrCodeBundle\Infrastructure\Http\QrCodeController;
+use Phil\QrCodeBundle\Infrastructure\Http\QrCodeUriSigner;
 use Phil\QrCodeBundle\Infrastructure\Http\QrCodeUrls;
 use Phil\QrCodeBundle\Infrastructure\PagedMedia\PdfQrCodes;
 use Phil\QrCodeBundle\Infrastructure\Twig\Components\QrCodeComponent;
@@ -91,7 +92,8 @@ final class PhilQrCodeBundleTest extends TestCase
         self::assertEquals([new Reference(QrCodes::class), new Reference(QrCodeServices::SIGNER), 60], $container->getDefinition(QrCodeController::class)->getArguments());
         self::assertTrue($container->getDefinition(QrCodeController::class)->hasTag('controller.service_arguments'));
         self::assertTrue($container->getDefinition(QrCodeController::class)->isPublic());
-        self::assertSame(['%kernel.secret%', '_qr_signature'], $container->getDefinition(QrCodeServices::SIGNER)->getArguments());
+        self::assertSame(['%kernel.secret%'], $container->getDefinition(QrCodeServices::SIGNER)->getArguments());
+        self::assertSame([QrCodeUriSigner::class, 'create'], $container->getDefinition(QrCodeServices::SIGNER)->getFactory());
         self::assertEquals([new Reference('router'), new Reference(QrCodeServices::SIGNER), new Reference(QrCodes::class)], $container->getDefinition(QrCodeUrls::class)->getArguments());
         self::assertEquals(new Reference(QrCodeUrls::class), $container->getDefinition(QrCodeExtension::class)->getArgument(1));
         self::assertTrue($container->getDefinition(QrCodeUrls::class)->isPublic());

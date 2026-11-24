@@ -139,7 +139,7 @@ final class SpamProtectionTypeExtensionTest extends TestCase
         self::assertSame([Signal::HoneypotFilled, Signal::TooFast, Signal::Gibberish], $cause->signals);
 
         self::assertSame([['warning', 'A submission of the form "{scope}" was held for spam: {signals}, a score of {score} for {threshold}.', ['scope' => 'contact-us', 'signals' => 'honeypot_filled, too_fast, gibberish', 'score' => 300, 'threshold' => 100]]], $this->logger->records);
-        self::assertSame(['contact-us|'.hash_hmac('sha256', '203.0.113.7', 'k') => 1], $this->limiter->counts);
+        self::assertSame(['contact-us|'.hash_hmac('sha256', '203.0.113.7', hash_hkdf('sha256', 'k', 32, 'phil_spam_protection.client_key')) => 1], $this->limiter->counts);
     }
 
     public function testSignalsBelowTheThresholdAreAcceptedAndLogged(): void

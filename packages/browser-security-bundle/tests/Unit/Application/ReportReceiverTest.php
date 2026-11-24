@@ -57,7 +57,7 @@ final class ReportReceiverTest extends TestCase
         self::assertEquals([new DateTimeImmutable('2026-11-08 12:00:00'), new DateTimeImmutable('2026-11-08 12:00:00')], array_column($this->reports->recorded, 2));
         self::assertEquals([new ViolationReported($a, 'anon:192.0.2.10'), new ViolationReported($b, 'anon:192.0.2.10')], $this->dispatcher->events);
         self::assertSame([$a->fingerprint(), $b->fingerprint()], $throttle->fingerprints);
-        self::assertSame([hash_hmac('sha256', '192.0.2.10', 'secret')], $throttle->clients);
+        self::assertSame([hash_hmac('sha256', '192.0.2.10', hash_hkdf('sha256', 'secret', 32, 'phil_browser_security.report_throttle'))], $throttle->clients);
     }
 
     public function testAViolationAnnouncedWithinTheWindowIsStoredOnly(): void
@@ -101,7 +101,7 @@ final class ReportReceiverTest extends TestCase
 
     public function testAThrottledClient(): void
     {
-        $receiver = $this->receiver(new ListedThrottle([hash_hmac('sha256', '', 'secret')]));
+        $receiver = $this->receiver(new ListedThrottle([hash_hmac('sha256', '', hash_hkdf('sha256', 'secret', 32, 'phil_browser_security.report_throttle'))]));
 
         self::assertSame(Receipt::TooManyRequests, $receiver->receive(self::TYPE, $this->body(['https://example.com/a']), null));
         self::assertSame([], $this->reports->recorded);

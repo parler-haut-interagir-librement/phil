@@ -24,13 +24,19 @@ use SensitiveParameter;
  */
 final readonly class ReportReceiver
 {
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_browser_security.report_throttle';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     public const int DEFAULT_MAX_BYTES = 65_536;
 
     public function __construct(
         private ReportParser $parser,
         private ClockInterface $clock,
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
         private int $maxBytes = self::DEFAULT_MAX_BYTES,
         private ?ReportThrottle $throttle = null,
         private ?ReportDeduplicator $deduplicator = null,
@@ -38,6 +44,7 @@ final readonly class ReportReceiver
         private ?ReportRepository $repository = null,
         private ?EventDispatcherInterface $dispatcher = null,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     public function maxBytes(): int
@@ -55,7 +62,7 @@ final readonly class ReportReceiver
             return Receipt::TooLarge;
         }
 
-        if ($this->throttle instanceof ReportThrottle && !$this->throttle->allow(hash_hmac('sha256', $clientAddress ?? '', $this->secret))) {
+        if ($this->throttle instanceof ReportThrottle && !$this->throttle->allow(hash_hmac('sha256', $clientAddress ?? '', $this->key))) {
             return Receipt::TooManyRequests;
         }
 

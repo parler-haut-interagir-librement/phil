@@ -8,14 +8,19 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.3-alpha.
 
-Development only.
-
 ### Changed
 
 - The development requirements ask for the latest minor of each dependency (`twig/twig` 3.31,
   `symfony/polyfill-intl-normalizer` 1.43, `symfony/polyfill-mbstring` 1.43, `symfony/translation-contracts` 3.8).
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
   2026-11-24.
+
+### Security
+
+- The keys of the counts were the HMAC of the address or of the user under the secret itself, `%kernel.secret%` by
+  default, the same hash other bundles kept for the same address. `ClientIpKey`, `IpRouteKey` and `UserKey` derive
+  their keys by HKDF-SHA256 under `phil_rate_limit.client_ip_key`, `phil_rate_limit.ip_route_key` and
+  `phil_rate_limit.user_key` (`USAGE` of each). The counts start again at the update.
 
 ## 0.1.2-alpha - 2026-11-20
 

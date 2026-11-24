@@ -67,7 +67,7 @@ phil_email_address:
 | `allowed_domains` | `[]` | The only domains accepted, with their subdomains; an empty list accepts every domain. |
 | `disposable_domains` | `[]` | Disposable domains added to the list the library imports. |
 | `role_local_parts` | the bundle's list | The parts before the @ that name a role — warned about, never refused. |
-| `fingerprint_key` | `%kernel.secret%` | The secret the address fingerprints are keyed with. |
+| `fingerprint_key` | `%kernel.secret%` | The secret the key of the address fingerprints is derived from, by HKDF-SHA256 under `phil_email_address.fingerprint`: the fingerprints never match a hash another usage of the same secret keeps for the address. |
 
 `sites` and `lists` take the same options but `disposable_domains`, `role_local_parts` and `fingerprint_key`. Each
 option they leave out, or set to `null`, keeps the value of the policy under them: a site's is laid over the bundle's,

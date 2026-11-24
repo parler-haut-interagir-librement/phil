@@ -41,21 +41,36 @@ final class PhilPrivacyBundleTest extends TestCase
     {
         $container = $this->load(['log_redaction' => ['denylist' => ['password', 'Authorization'], 'token_path_prefixes' => ['/p/']]]);
 
-        self::assertSame([['password', 'Authorization'], ['/p/'], []], $container->getDefinition(RedactingProcessor::class)->getArguments());
+        self::assertSame([['password', 'Authorization'], ['/p/'], [], ['email', 'person_name', 'nickname', 'phone', 'ip', 'contact']], $container->getDefinition(RedactingProcessor::class)->getArguments());
     }
 
-    public function testTheDefaultsDenyNothingAndDeclareNoPrefix(): void
+    public function testTheDefaultsDenyThePersonalDataCategoriesOnlyAndDeclareNoPrefix(): void
     {
         $container = $this->load([]);
 
-        self::assertSame([[], [], []], $container->getDefinition(RedactingProcessor::class)->getArguments());
+        self::assertSame([[], [], [], RedactingProcessor::PERSONAL_DATA_CATEGORIES], $container->getDefinition(RedactingProcessor::class)->getArguments());
+        self::assertSame(['email', 'person_name', 'nickname', 'phone', 'ip', 'contact'], RedactingProcessor::PERSONAL_DATA_CATEGORIES);
+    }
+
+    public function testThePersonalDataCategoriesAreConfiguredAndChecked(): void
+    {
+        $container = $this->load(['log_redaction' => ['personal_data_categories' => []]]);
+        self::assertSame([[], [], [], []], $container->getDefinition(RedactingProcessor::class)->getArguments());
+
+        $container = $this->load(['log_redaction' => ['personal_data_categories' => ['birth_date']]]);
+        self::assertSame([[], [], [], ['birth_date']], $container->getDefinition(RedactingProcessor::class)->getArguments());
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('phil_privacy.log_redaction: "Birth Date" is not a data category');
+
+        $this->load(['log_redaction' => ['personal_data_categories' => ['Birth Date']]]);
     }
 
     public function testTheShortOptionTableComesFromConfiguration(): void
     {
         $container = $this->load(['log_redaction' => ['denylist' => ['password'], 'short_options' => ['p' => 'password', 'P' => 'port']]]);
 
-        self::assertSame([['password'], [], ['p' => 'password', 'P' => 'port']], $container->getDefinition(RedactingProcessor::class)->getArguments());
+        self::assertSame([['password'], [], ['p' => 'password', 'P' => 'port'], RedactingProcessor::PERSONAL_DATA_CATEGORIES], $container->getDefinition(RedactingProcessor::class)->getArguments());
     }
 
     public function testAMalformedShortOptionFailsTheBuild(): void
