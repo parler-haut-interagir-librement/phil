@@ -1,0 +1,30 @@
+{#
+ # The results of a questionnaire, withheld below its minimum: the share of each option, the mean of a scale, the Net
+ # Promoter Score, each row of a matrix. Free answers are never shown.
+ #
+ # Variables: questionnaire, results (a ResultsReport).
+ #}
+{%- set domain = 'phil_survey' -%}
+<section class="phil-survey__results" aria-labelledby="phil-survey-results">
+    <h2 id="phil-survey-results">{{ 'survey.results.title'|trans({}, domain) }}</h2>
+    {%- if results.withheld %}
+    <p>{{ 'survey.results.withheld'|trans({'%minimum%': results.minimum}, domain) }}</p>
+    {%- else %}
+    <p>{{ 'survey.results.responses'|trans({'%count%': results.responses}, domain) }}</p>
+    {%- for item in results.questions %}
+    <figure class="phil-survey__result">
+        <figcaption>{{ item.question.label }}</figcaption>
+        {%- if item.withheld %}
+        <p>{{ 'survey.results.withheld'|trans({'%minimum%': results.minimum}, domain) }}</p>
+        {%- elseif item.result is not null %}
+        {{ include('@PhilSurvey/_result.html.twig', {question: item.question, result: item.result, answered: item.answered}) }}
+        {%- else %}
+        {%- for row in item.question.rows %}
+        <h3>{{ row.label }}</h3>
+        {{ include('@PhilSurvey/_result.html.twig', {question: item.question, result: item.rows[row.value], answered: item.rows[row.value].ballots - item.rows[row.value].abstentions}) }}
+        {%- endfor %}
+        {%- endif %}
+    </figure>
+    {%- endfor %}
+    {%- endif %}
+</section>

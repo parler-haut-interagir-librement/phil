@@ -1,0 +1,4 @@
+# The known domains the email field's Stimulus controller suggests from.
+phil_email_address:
+    resource: '@PhilEmailAddressBundle/config/routes.php'
+    prefix: /email-address

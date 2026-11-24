@@ -1,0 +1,18 @@
+{#
+ # The page around the administration when the application names no layout of its own: `phil_faq.admin.layout` points
+ # to a template of its back office that defines the blocks `title` and `content`.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en')|replace({_: '-'}) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}{{ 'admin.title'|trans({}, 'phil_faq') }}{% endblock %}</title>
+</head>
+<body>
+<main>
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

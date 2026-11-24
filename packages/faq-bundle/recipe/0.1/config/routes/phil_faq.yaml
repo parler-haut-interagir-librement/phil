@@ -1,0 +1,4 @@
+# The page of questions, its votes and its searches without answer.
+phil_faq:
+    resource: '@PhilFaqBundle/config/routes.php'
+    prefix: /faq

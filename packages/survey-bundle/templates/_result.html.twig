@@ -1,0 +1,25 @@
+{#
+ # One count of phil/poll: each option with its score and share, then the mean of a scale or the Net Promoter Score.
+ #
+ # Variables: question, result, answered.
+ #}
+{%- set domain = 'phil_survey' -%}
+{%- set labels = {yes: 'survey.yes'|trans({}, domain), no: 'survey.no'|trans({}, domain)} -%}
+{%- for choice in question.choices %}{% set labels = labels|merge({(choice.value): choice.label}) %}{% endfor -%}
+<table class="phil-survey__counts">
+    <tbody>
+        {%- for standing in result.standings %}
+        <tr>
+            <th scope="row">{{ labels[standing.option] ?? standing.option }}</th>
+            <td>{{ standing.score }}</td>
+            <td><meter min="0" max="{{ max(answered, 1) }}" value="{{ standing.score }}">{{ answered > 0 ? (standing.score * 100 / answered)|round : 0 }} %</meter></td>
+        </tr>
+        {%- endfor %}
+    </tbody>
+</table>
+{%- if result.rating is not null and result.rating.mean is not null %}
+<p>{{ 'survey.results.mean'|trans({'%mean%': result.rating.mean|round(2)}, domain) }}</p>
+{%- endif %}
+{%- if result.netPromoter is not null and result.netPromoter.score is not null %}
+<p>{{ 'survey.results.nps'|trans({'%score%': result.netPromoter.score|round}, domain) }}</p>
+{%- endif %}

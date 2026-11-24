@@ -1,0 +1,24 @@
+{
+    "name": "@phil/faq-bundle",
+    "description": "The Stimulus controller of phil/faq-bundle: the search of the questions as one types, the question of the address opened, and the votes sent without leaving the page",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/faq_controller.js",
+    "symfony": {
+        "controllers": {
+            "faq": {
+                "main": "src/faq_controller.js",
+                "webpackMode": "eager",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

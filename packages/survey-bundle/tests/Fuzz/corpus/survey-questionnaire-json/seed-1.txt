@@ -1,0 +1,1 @@
+{"format": "phil-survey/1", "questionnaire": {"key": "colour", "title": "Colour", "sections": [{"name": "main", "title": "Main", "questions": [{"name": "colour", "label": "Colour", "type": "single_choice", "choices": [{"value": "red", "label": "Red"}, {"value": "blue", "label": "Blue"}]}]}], "endings": [{"name": "thanks", "title": "Thanks"}]}}

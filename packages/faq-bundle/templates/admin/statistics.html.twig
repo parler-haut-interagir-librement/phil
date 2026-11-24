@@ -1,0 +1,64 @@
+{% extends layout %}
+
+{% set d = 'phil_faq' %}
+
+{% block title %}{{ 'admin.menu.statistics'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'admin.menu.statistics'|trans({}, d) }}</h1>
+    {{ include('@PhilFaq/admin/_nav.html.twig') }}
+    <p>{{ 'admin.statistics.private'|trans({}, d) }}</p>
+
+    <h2>{{ 'admin.statistics.votes'|trans({}, d) }}</h2>
+    <table>
+        <thead>
+        <tr>
+            <th scope="col">{{ 'admin.question.anchor'|trans({}, d) }}</th>
+            <th scope="col">{{ 'admin.statistics.yes'|trans({}, d) }}</th>
+            <th scope="col">{{ 'admin.statistics.no'|trans({}, d) }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for question in questions %}
+            <tr>
+                <th scope="row"><code>#{{ question.anchor }}</code></th>
+                <td>{{ question.helpfulYes }}</td>
+                <td>{{ question.helpfulNo }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>{{ 'admin.statistics.unanswered'|trans({}, d) }}</h2>
+    <table>
+        <thead>
+        <tr>
+            <th scope="col">{{ 'admin.statistics.query'|trans({}, d) }}</th>
+            <th scope="col">{{ 'admin.locale'|trans({}, d) }}</th>
+            <th scope="col">{{ 'admin.statistics.searches'|trans({}, d) }}</th>
+            <th scope="col">{{ 'admin.statistics.last'|trans({}, d) }}</th>
+            <th scope="col">{{ 'admin.action.forget'|trans({}, d) }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for search in unanswered %}
+            <tr>
+                <th scope="row">{{ search.query }}</th>
+                <td>{{ search.locale }}</td>
+                <td>{{ search.searches }}</td>
+                <td>{{ search.lastSearchedOn|date('Y-m-d') }}</td>
+                <td>
+                    <form method="post" action="{{ path('phil_faq_admin_unanswered_forget') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="locale" value="{{ search.locale }}">
+                        <input type="hidden" name="query" value="{{ search.query }}">
+                        <button type="submit">{{ 'admin.action.forget'|trans({}, d) }}</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5">{{ 'admin.statistics.none'|trans({}, d) }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

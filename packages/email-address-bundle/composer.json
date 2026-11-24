@@ -1,0 +1,78 @@
+{
+    "name": "phil/email-address-bundle",
+    "description": "Catches mistyped, disposable and undeliverable email addresses in forms, and turns bounces and complaints into suspend, unsubscribe or review decisions.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "bounce",
+        "email",
+        "email-validation",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "phil/bounce-parser": "^0.1@dev",
+        "phil/email-address": "^0.1@dev",
+        "psr/cache": "^3.0",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/cache-contracts": "^3.6",
+        "symfony/clock": "^8.2",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/service-contracts": "^3.6",
+        "symfony/validator": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/remote-event": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6"
+    },
+    "suggest": {
+        "symfony/console": "For the commands that read a raw bounce and the bounce mailbox",
+        "symfony/form": "For the email field with its typo suggestion and role warning",
+        "symfony/messenger": "To send each bounce decision on to a worker, without the address",
+        "symfony/remote-event": "To consume the bounce and complaint events of a mail provider's webhook",
+        "symfony/routing": "For the route that serves the known domains to the Stimulus controller"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\EmailAddressBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\EmailAddressBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -246,6 +246,7 @@
             "npm ci --ignore-scripts --no-audit --no-fund --prefix packages/search-bundle/tests/Browser",
             "npm ci --ignore-scripts --no-audit --no-fund --prefix packages/checkin-bundle/tests/Browser",
             "npm ci --ignore-scripts --no-audit --no-fund --prefix packages/embed-bundle/tests/Browser",
+            "npm ci --ignore-scripts --no-audit --no-fund --prefix packages/faq-bundle/tests/Browser",
             "npm ci --ignore-scripts --no-audit --no-fund --prefix packages/ux-kit-shadcn/tests/Browser",
             "npm ci --ignore-scripts --no-audit --no-fund --prefix packages/data-table-bundle/tests/Browser",
             "npm ci --ignore-scripts --no-audit --no-fund --prefix packages/mentions-bundle/tests/Browser",

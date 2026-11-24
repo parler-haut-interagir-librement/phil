@@ -1,0 +1,63 @@
+{
+    "name": "phil/seo-check",
+    "description": "Find what keeps a page out of search results when it is published: title, description, language, canonical, indexing, hreflang, links and images.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "seo",
+        "canonical",
+        "hreflang",
+        "robots",
+        "lighthouse",
+        "publishing",
+        "html"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-uri": "*",
+        "phil/publishing": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "symfony/translation": "^8.2",
+        "symfony/translation-contracts": "^3.6"
+    },
+    "require-dev": {
+        "phil/link-checker": "^0.1@dev",
+        "phil/social-cards": "^0.1@dev",
+        "phil/structured-data": "^0.1@dev",
+        "phpunit/phpunit": "^13.4"
+    },
+    "suggest": {
+        "phil/link-checker": "For the broken-links rule, whose link statuses LinkCheckerStatuses reads from its link checker",
+        "phil/social-cards": "For the share-tags rule, which checks the Open Graph and X tags of a page",
+        "phil/structured-data": "For the structured-data rule, which validates the JSON-LD of a page"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SeoCheck\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SeoCheck\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

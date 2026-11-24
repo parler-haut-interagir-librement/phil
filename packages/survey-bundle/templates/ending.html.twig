@@ -1,0 +1,30 @@
+{#
+ # The ending reached: its title, its profile and its message; the results when the questionnaire shows them; and,
+ # when it takes addenda, the form that adds to the response by the receipt's token.
+ #
+ # Variables: questionnaire, receipt, results, token.
+ #}
+{%- set domain = 'phil_survey' -%}
+<section class="phil-survey phil-survey--ending" role="status">
+    <h1>{{ receipt.ending.title }}</h1>
+    {%- if receipt.ending.profile is not null %}
+    <p class="phil-survey__profile">{{ 'survey.profile'|trans({'%profile%': receipt.ending.profile}, domain) }}</p>
+    {%- endif %}
+    {%- if receipt.ending.message is not empty %}
+    <p>{{ receipt.ending.message }}</p>
+    {%- endif %}
+    {%- if results is not null %}
+    {{ include('@PhilSurvey/results.html.twig', {questionnaire: questionnaire, results: results}) }}
+    {%- endif %}
+    {%- if receipt.addendumToken is not null %}
+    <form class="phil-survey__addendum" method="post" action="{{ path('phil_survey_addendum', {key: questionnaire.key}) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <label for="phil-survey-addendum-token">{{ 'survey.addendum.token'|trans({}, domain) }}</label>
+        <input id="phil-survey-addendum-token" name="receipt" value="{{ receipt.addendumToken }}" readonly aria-describedby="phil-survey-addendum-token-help">
+        <small id="phil-survey-addendum-token-help">{{ 'survey.addendum.token.help'|trans({}, domain) }}</small>
+        <label for="phil-survey-addendum-text">{{ 'survey.addendum.text'|trans({}, domain) }}</label>
+        <textarea id="phil-survey-addendum-text" name="text" maxlength="5000" required></textarea>
+        <button type="submit">{{ 'survey.addendum.send'|trans({}, domain) }}</button>
+    </form>
+    {%- endif %}
+</section>

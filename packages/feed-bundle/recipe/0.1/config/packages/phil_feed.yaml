@@ -1,0 +1,20 @@
+# The feeds of the site: each service that implements Phil\FeedBundle\Application\Contract\FeedSource is served at
+# /feeds/{name}.atom, .rss and .json. See the configuration guide of phil/feed-bundle.
+phil_feed:
+    limit: 20
+    # formats: [atom, rss, json]
+    # cache: { max_age: 900, shared_max_age: ~ }
+    # Announce each change of a feed to WebSub hubs, and route AnnounceFeedUpdate to an asynchronous transport:
+    # websub:
+    #     hubs: ['https://hub.example.net/']
+    # The published contents of a kind of phil/content-bundle, as a feed:
+    # content:
+    #     news: { kind: news, locale: en, title: 'News', home_page: 'https://example.org/news' }
+
+when@dev:
+    phil_feed:
+        allow_localhost: true
+
+when@test:
+    phil_feed:
+        allow_localhost: true

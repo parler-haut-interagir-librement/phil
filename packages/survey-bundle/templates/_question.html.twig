@@ -1,0 +1,79 @@
+{#
+ # One question, its control by its type, wrapped for phil/form-logic's controller and the progress controller.
+ #
+ # Variables: question, value (the submitted value, after an error), error.
+ #}
+{%- set domain = 'phil_survey' -%}
+{%- set progress = 'phil--survey-bundle--progress' -%}
+{%- set id = 'phil-survey-' ~ question.name -%}
+{%- set name = 'answers[' ~ question.name ~ ']' -%}
+{%- set type = question.type.value -%}
+{%- set described = (question.help is not empty ? id ~ '-help ' : '') ~ (error is not null ? id ~ '-error' : '') -%}
+<div class="phil-survey__question" id="{{ id }}" data-form-logic-field="{{ question.name }}" data-{{ progress }}-target="question">
+    {%- if type in ['single_choice', 'multiple_choice', 'scale', 'net_promoter', 'ranking', 'matrix'] %}
+    <fieldset{% if described is not empty %} aria-describedby="{{ described|trim }}"{% endif %}{% if error is not null %} aria-invalid="true"{% endif %}>
+        <legend>{{ question.label }}{% if question.required %} <span class="phil-survey__required" aria-hidden="true">*</span><span class="visually-hidden">{{ 'survey.required'|trans({}, domain) }}</span>{% endif %}</legend>
+        {%- if type == 'single_choice' %}
+        {%- for choice in question.choices %}
+        <label><input type="radio" name="{{ name }}" value="{{ choice.value }}"{% if value == choice.value %} checked{% endif %}{% if question.required %} required{% endif %}> {{ choice.label }}</label>
+        {%- endfor %}
+        {%- elseif type == 'multiple_choice' %}
+        {%- for choice in question.choices %}
+        <label><input type="checkbox" name="{{ name }}[]" value="{{ choice.value }}"{% if value is iterable and choice.value in value %} checked{% endif %}> {{ choice.label }}</label>
+        {%- endfor %}
+        {%- elseif type in ['scale', 'net_promoter'] %}
+        {%- set lowest = type == 'net_promoter' ? 0 : question.min -%}
+        {%- set highest = type == 'net_promoter' ? 10 : question.max -%}
+        <div class="phil-survey__scale" role="presentation">
+            {%- for mark in lowest..highest %}
+            <label><input type="radio" name="{{ name }}" value="{{ mark }}"{% if value is not null and value ~ '' == mark ~ '' %} checked{% endif %}{% if question.required %} required{% endif %}> {{ mark }}</label>
+            {%- endfor %}
+        </div>
+        {%- elseif type == 'ranking' %}
+        <p class="phil-survey__hint">{{ 'survey.ranking.help'|trans({}, domain) }}</p>
+        {%- for choice in question.choices %}
+        <label>
+            <select name="{{ name }}[{{ choice.value }}]">
+                <option value="">{{ 'survey.ranking.none'|trans({}, domain) }}</option>
+                {%- for rank in 1..question.choices|length %}
+                <option value="{{ rank }}"{% if value is iterable and (value[choice.value] ?? null) == rank ~ '' %} selected{% endif %}>{{ rank }}</option>
+                {%- endfor %}
+            </select>
+            {{ choice.label }}
+        </label>
+        {%- endfor %}
+        {%- else %}
+        <table class="phil-survey__matrix">
+            <thead><tr><td></td>{% for column in question.choices %}<th scope="col">{{ column.label }}</th>{% endfor %}</tr></thead>
+            <tbody>
+                {%- for row in question.rows %}
+                <tr>
+                    <th scope="row">{{ row.label }}</th>
+                    {%- for column in question.choices %}
+                    <td><input type="radio" name="{{ name }}[{{ row.value }}]" value="{{ column.value }}" aria-label="{{ row.label }}: {{ column.label }}"{% if value is iterable and (value[row.value] ?? null) == column.value %} checked{% endif %}></td>
+                    {%- endfor %}
+                </tr>
+                {%- endfor %}
+            </tbody>
+        </table>
+        {%- endif %}
+    </fieldset>
+    {%- else %}
+    <label for="{{ id }}-control">{{ question.label }}{% if question.required %} <span class="phil-survey__required" aria-hidden="true">*</span><span class="visually-hidden">{{ 'survey.required'|trans({}, domain) }}</span>{% endif %}</label>
+    {%- set attributes = {id: id ~ '-control', name: name, required: question.required, 'aria-describedby': described is empty ? null : described|trim, 'aria-invalid': error is null ? null : 'true'} -%}
+    {%- if type == 'textarea' %}
+    <textarea {{ html_attr(attributes, {maxlength: question.maxLength}) }}>{{ value is iterable ? '' : value }}</textarea>
+    {%- elseif type == 'yes_no' %}
+    <input type="checkbox" value="1" {{ html_attr(attributes) }}{% if value in ['1', true] %} checked{% endif %}>
+    {%- else %}
+    {%- set input = {text: 'text', email: 'email', number: 'number', date: 'date'}[type] -%}
+    <input type="{{ input }}" {{ html_attr(attributes, {maxlength: question.maxLength, min: question.min, max: question.max, step: input == 'number' ? 'any' : false, value: value is iterable ? false : value}) }}>
+    {%- endif %}
+    {%- endif %}
+    {%- if question.help is not empty %}
+    <small id="{{ id }}-help">{{ question.help }}</small>
+    {%- endif %}
+    {%- if error is not null %}
+    <small id="{{ id }}-error" class="phil-survey__error">{{ ('survey.error.' ~ error)|trans({}, domain) }}</small>
+    {%- endif %}
+</div>

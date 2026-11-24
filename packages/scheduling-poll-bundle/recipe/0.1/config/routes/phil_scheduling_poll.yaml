@@ -1,0 +1,4 @@
+# The pages of the polls and the answer page of the personal links.
+phil_scheduling_poll:
+    resource: '@PhilSchedulingPollBundle/config/routes.php'
+    prefix: /scheduling-poll

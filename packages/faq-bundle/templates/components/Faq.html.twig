@@ -1,0 +1,93 @@
+{#
+ # The questions of a page. The search is a plain GET form that the server filters, which the Stimulus controller
+ # filters as one types; each question is a `details` element whose `id` is its anchor, so that a link opens it; each
+ # vote is a plain form that the controller sends without leaving the page. The fields and buttons are recipes of the
+ # kit, installed in the application, under the names `this.kit` gives.
+ #}
+{%- set faq = this.faq -%}
+{%- set domain = 'phil_faq' -%}
+{%- set c = 'phil--faq-bundle--faq' -%}
+{%- set voted = this.voted -%}
+{%- set level = max(2, min(5, this.headingLevel)) -%}
+{%- set search_id = 'phil-faq-search-' ~ faq.locale -%}
+<div{{ attributes.defaults({
+    class: 'phil-faq',
+    lang: this.languageTag,
+    'data-controller': c,
+    ('data-' ~ c ~ '-unanswered-url-value'): this.unansweredUrl,
+    ('data-' ~ c ~ '-token-value'): this.csrfToken,
+    ('data-' ~ c ~ '-found-none-value'): 'faq.search.found'|trans({'%count%': 0, '%query%': '%query%'}, domain),
+    ('data-' ~ c ~ '-found-one-value'): 'faq.search.found'|trans({'%count%': 1, '%query%': '%query%'}, domain),
+    ('data-' ~ c ~ '-found-many-value'): 'faq.search.many'|trans({'%query%': '%query%'}, domain),
+    ('data-' ~ c ~ '-thanks-value'): 'faq.vote.thanks'|trans({}, domain),
+    ('data-' ~ c ~ '-failed-value'): 'faq.vote.failed'|trans({}, domain),
+}) }}>
+    <form class="phil-faq__search" method="get" action="{{ this.searchAction }}" role="search" data-action="submit->{{ c }}#submit">
+        <label for="{{ search_id }}">{{ 'faq.search.label'|trans({}, domain) }}</label>
+        {{ component(this.kit('Input'), {
+            type: 'search',
+            id: search_id,
+            name: 'q',
+            value: faq.query,
+            maxlength: 100,
+            autocomplete: 'off',
+            ('data-' ~ c ~ '-target'): 'input',
+            'data-action': 'input->' ~ c ~ '#filter',
+        }) }}
+        {% component (this.kit('Button')) with {type: 'submit', variant: 'secondary'} %}{% block content %}{{ 'faq.search.submit'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+    </form>
+    <p class="phil-faq__status" role="status" aria-live="polite" data-{{ c }}-target="status">
+        {%- if faq.search %}{{ 'faq.search.found'|trans({'%count%': faq.found, '%query%': faq.query}, domain) }}{% endif -%}
+    </p>
+    {%- if faq.search %}
+    <p class="phil-faq__clear"><a href="{{ this.searchAction }}">{{ 'faq.search.clear'|trans({}, domain) }}</a></p>
+    {%- endif %}
+    <div class="phil-faq__none" data-{{ c }}-target="none"{% if not faq.hasNoResult %} hidden{% endif %}>
+        <p>{{ 'faq.search.none'|trans({}, domain) }}</p>
+        {%- if this.contactUrl %}
+        <p><a href="{{ this.contactUrl }}">{{ 'faq.search.contact'|trans({}, domain) }}</a></p>
+        {%- endif %}
+    </div>
+    {%- if faq.total == 0 %}
+    <p class="phil-faq__empty">{{ 'faq.empty'|trans({}, domain) }}</p>
+    {%- endif %}
+    {%- for section in faq.sections %}
+    <section class="phil-faq__section isAccordion" id="faq-{{ section.key }}" aria-labelledby="faq-{{ section.key }}-title" data-{{ c }}-target="section">
+        <h{{ level }} id="faq-{{ section.key }}-title">{{ section.title }}</h{{ level }}>
+        {%- for question in section.questions %}
+        {%- set link = this.pageUrl ~ '#' ~ question.anchor %}
+        <details class="phil-faq__question isAccordionItem" id="{{ question.anchor }}" data-{{ c }}-target="question"{% if question.locale != faq.locale %} lang="{{ question.locale|replace({_: '-'}) }}"{% endif %}{% if voted == question.anchor or faq.search %} open{% endif %}>
+            <summary class="isAccordionTrigger">{{ question.question }}</summary>
+            <div class="phil-faq__answer isAccordionContent">
+                {{ question.answerHtml|raw }}
+                <p class="phil-faq__meta">
+                    <a href="#{{ question.anchor }}" class="phil-faq__link">{{ 'faq.share.link'|trans({}, domain) }}</a>
+                    {{ component(this.kit('CopyButton'), {
+                        text: link,
+                        label: 'faq.share.copy'|trans({}, domain),
+                        copiedLabel: 'faq.share.copied'|trans({}, domain),
+                        failedLabel: 'faq.share.failed'|trans({}, domain),
+                    }) }}
+                    <small>{{ 'faq.updated'|trans({'%date%': question.updatedAt|date('Y-m-d', 'UTC')}, domain) }}</small>
+                </p>
+                <form class="phil-faq__vote" method="post" action="{{ this.voteUrl(question.anchor) }}" data-action="submit->{{ c }}#vote" data-anchor="{{ question.anchor }}">
+                    <input type="hidden" name="_token" value="{{ this.csrfToken }}">
+                    <input type="hidden" name="vote_token" value="{{ this.voteToken }}">
+                    <input type="hidden" name="back" value="{{ this.back }}">
+                    <fieldset>
+                        <legend>{{ 'faq.vote.question'|trans({}, domain) }}</legend>
+                        {%- if voted == question.anchor %}
+                        <p role="status">{{ 'faq.vote.thanks'|trans({}, domain) }}</p>
+                        {%- else %}
+                        {% component (this.kit('Button')) with {type: 'submit', name: 'helpful', value: 'yes', variant: 'outline', size: 'sm'} %}{% block content %}{{ 'faq.vote.yes'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% component (this.kit('Button')) with {type: 'submit', name: 'helpful', value: 'no', variant: 'outline', size: 'sm'} %}{% block content %}{{ 'faq.vote.no'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {%- endif %}
+                    </fieldset>
+                </form>
+            </div>
+        </details>
+        {%- endfor %}
+    </section>
+    {%- endfor %}
+    {{ this.jsonLd|raw }}
+</div>

@@ -1,0 +1,12 @@
+{
+    "bundles": {
+        "Phil\\SchedulingPollBundle\\PhilSchedulingPollBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "#1": "A key of the personal links, 32 bytes or more: php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'",
+        "SCHEDULING_POLL_LINK_KEY": ""
+    }
+}

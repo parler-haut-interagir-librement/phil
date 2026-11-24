@@ -1,0 +1,95 @@
+{% extends layout %}
+
+{% set d = 'phil_faq' %}
+
+{% block title %}{{ 'admin.title'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'admin.title'|trans({}, d) }}</h1>
+    {{ include('@PhilFaq/admin/_nav.html.twig') }}
+
+    {% if done %}<p role="status">{{ ('admin.done.' ~ done)|trans({}, d) }}</p>{% endif %}
+
+    {% if locales|length > 1 %}
+    <form method="get">
+        <label for="phil-faq-locale">{{ 'admin.locale'|trans({}, d) }}</label>
+        <select id="phil-faq-locale" name="locale">
+            {% for one in locales %}<option value="{{ one }}"{% if one == locale %} selected{% endif %}>{{ one }}</option>{% endfor %}
+        </select>
+        <button type="submit">{{ 'admin.locale'|trans({}, d) }}</button>
+    </form>
+    {% endif %}
+
+    <p><a href="{{ path('phil_faq_admin_section_new', {locale: locale}) }}">{{ 'admin.section.new'|trans({}, d) }}</a></p>
+
+    {% for row in rows %}
+        {% set section = row.section %}
+        <section aria-labelledby="section-{{ section.id }}">
+            <h2 id="section-{{ section.id }}">{{ row.title ?? section.key }} <small><code>#faq-{{ section.key }}</code></small></h2>
+            <div class="phil-faq-admin__actions">
+                <a href="{{ path('phil_faq_admin_section_edit', {id: section.id, locale: locale}) }}">{{ 'admin.action.edit'|trans({}, d) }}</a>
+                {% for direction in ['up', 'down'] %}
+                <form method="post" action="{{ path('phil_faq_admin_section_move', {id: section.id, locale: locale}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="direction" value="{{ direction }}">
+                    <button type="submit">{{ ('admin.action.' ~ direction)|trans({}, d) }}</button>
+                </form>
+                {% endfor %}
+                <form method="post" action="{{ path('phil_faq_admin_section_delete', {id: section.id, locale: locale}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token }}">
+                    <button type="submit">{{ 'admin.action.delete'|trans({}, d) }}</button>
+                </form>
+                <a href="{{ path('phil_faq_admin_question_new', {section: section.id, locale: locale}) }}">{{ 'admin.question.new'|trans({}, d) }}</a>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th scope="col">{{ 'admin.question.text'|trans({}, d) }}</th>
+                    <th scope="col">{{ 'admin.question.anchor'|trans({}, d) }}</th>
+                    <th scope="col">{{ 'admin.statistics.votes'|trans({}, d) }}</th>
+                    <th scope="col">{{ 'admin.action.edit'|trans({}, d) }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in row.questions %}
+                    {% set question = item.question %}
+                    {% set translation = item.translation %}
+                    <tr>
+                        <th scope="row">
+                            {{ translation ? translation.text : '—' }}
+                            <br><small>{{ (translation is null ? 'admin.state.missing' : (translation.published ? 'admin.state.published' : 'admin.state.draft'))|trans({}, d) }}</small>
+                        </th>
+                        <td><code>#{{ question.anchor }}</code></td>
+                        <td>{{ 'admin.statistics.yes'|trans({}, d) }} {{ question.helpfulYes }} · {{ 'admin.statistics.no'|trans({}, d) }} {{ question.helpfulNo }}</td>
+                        <td>
+                            <a href="{{ path('phil_faq_admin_question_edit', {id: question.id, locale: locale}) }}">{{ 'admin.action.edit'|trans({}, d) }}</a>
+                            {% if translation %}
+                            <form method="post" action="{{ path('phil_faq_admin_question_publish', {id: question.id, locale: locale}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token }}">
+                                <input type="hidden" name="published" value="{{ translation.published ? '0' : '1' }}">
+                                <button type="submit">{{ (translation.published ? 'admin.action.unpublish' : 'admin.action.publish')|trans({}, d) }}</button>
+                            </form>
+                            {% endif %}
+                            {% for direction in ['up', 'down'] %}
+                            <form method="post" action="{{ path('phil_faq_admin_question_move', {id: question.id, locale: locale}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token }}">
+                                <input type="hidden" name="direction" value="{{ direction }}">
+                                <button type="submit">{{ ('admin.action.' ~ direction)|trans({}, d) }}</button>
+                            </form>
+                            {% endfor %}
+                            <form method="post" action="{{ path('phil_faq_admin_question_delete', {id: question.id, locale: locale}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token }}">
+                                <button type="submit">{{ 'admin.action.delete'|trans({}, d) }}</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4">{{ 'admin.empty_section'|trans({}, d) }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    {% else %}
+        <p>{{ 'admin.empty'|trans({}, d) }}</p>
+    {% endfor %}
+{% endblock %}

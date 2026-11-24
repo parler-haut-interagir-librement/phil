@@ -1,0 +1,62 @@
+{
+    "version": "https://jsonfeed.org/version/1.1",
+    "title": "Nouvelles & « échos »",
+    "home_page_url": "https://example.org/fr/nouvelles",
+    "feed_url": "https://example.org/feeds/news.atom?page=2",
+    "description": "Ce qui se passe <ici>.",
+    "icon": "https://example.org/icon.png",
+    "next_url": "https://example.org/feeds/news.atom?page=3",
+    "language": "fr-CA",
+    "authors": [
+        {
+            "name": "Équipe",
+            "url": "https://example.org/equipe",
+            "avatar": "https://example.org/equipe.png"
+        }
+    ],
+    "hubs": [
+        {
+            "type": "WebSub",
+            "url": "https://hub.example.net/"
+        }
+    ],
+    "items": [
+        {
+            "id": "tag:example.org,2026:news-2",
+            "url": "https://example.org/fr/nouvelles/ouverture",
+            "title": "Ouverture <b>officielle</b> & café",
+            "content_html": "<p>Le <em>contenu</em> &amp; une <a href=\"https://example.org/?a=1&amp;b=2\">adresse</a>.</p>",
+            "summary": "Un résumé où 2 < 3 & « guillemets ».",
+            "date_published": "2026-11-20T14:30:00Z",
+            "date_modified": "2026-11-21T09:00:00Z",
+            "authors": [
+                {
+                    "name": "Zoé Lévesque",
+                    "url": "https://example.org/zoe"
+                }
+            ],
+            "tags": [
+                "Ouverture",
+                "café"
+            ],
+            "language": "fr",
+            "attachments": [
+                {
+                    "url": "https://example.org/episode-2.mp3",
+                    "mime_type": "audio/mpeg",
+                    "title": "Épisode 2",
+                    "size_in_bytes": 12345678,
+                    "duration_in_seconds": 1830
+                }
+            ]
+        },
+        {
+            "id": "https://example.org/fr/nouvelles/annonce",
+            "url": "https://example.org/fr/nouvelles/annonce",
+            "title": "Annonce",
+            "content_text": "Annonce",
+            "date_published": "2026-11-19T08:00:00Z",
+            "date_modified": "2026-11-19T08:00:00Z"
+        }
+    ]
+}

@@ -1,0 +1,36 @@
+{% extends layout %}
+
+{% set d = 'phil_faq' %}
+{% set heading = (question ? 'admin.question.edit' : 'admin.question.new')|trans({}, d) %}
+
+{% block title %}{{ heading }}{% endblock %}
+
+{% block content %}
+    <h1>{{ heading }}</h1>
+    {{ include('@PhilFaq/admin/_nav.html.twig') }}
+    {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+    <p>{{ 'admin.question.section'|trans({}, d) }}: <code>#faq-{{ section.key }}</code>{% if question %} · {{ 'admin.question.anchor'|trans({}, d) }}: <code>#{{ question.anchor }}</code>{% endif %}</p>
+    <form method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+        <input type="hidden" name="locale" value="{{ locale }}">
+        <p>
+            <label for="phil-faq-text">{{ 'admin.question.text'|trans({}, d) }} ({{ locale }})</label>
+            <input type="text" id="phil-faq-text" name="text" value="{{ values.text }}" required maxlength="300">
+        </p>
+        <p>
+            <label for="phil-faq-answer">{{ 'admin.question.answer'|trans({}, d) }}</label>
+            <textarea id="phil-faq-answer" name="answer" rows="12" required>{{ values.answer }}</textarea>
+        </p>
+        <p>
+            <label for="phil-faq-format">{{ 'admin.question.format'|trans({}, d) }}</label>
+            <select id="phil-faq-format" name="format">
+                {% for format in formats %}<option value="{{ format }}"{% if format == values.format %} selected{% endif %}>{{ format }}</option>{% endfor %}
+            </select>
+        </p>
+        <p>
+            <input type="checkbox" id="phil-faq-published" name="published" value="1"{% if values.published %} checked{% endif %}>
+            <label for="phil-faq-published">{{ 'admin.question.published'|trans({}, d) }}</label>
+        </p>
+        <button type="submit">{{ 'admin.action.save'|trans({}, d) }}</button>
+    </form>
+{% endblock %}

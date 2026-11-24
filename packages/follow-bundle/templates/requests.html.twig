@@ -1,0 +1,33 @@
+{#
+ # The requests the current member has to answer — to follow them or what they approve, or to join them in a mutual
+ # relationship —, each accepted or rejected by a plain form.
+ #
+ #     {{ include('@PhilFollow/requests.html.twig') }}
+ #}
+{%- set domain = 'phil_follow' -%}
+{%- set pending = phil_follow_requests() -%}
+{%- if pending is not null %}
+<section class="phil-follow-requests" aria-labelledby="phil-follow-requests-title">
+    <h2 id="phil-follow-requests-title">{{ 'requests.title'|trans({}, domain) }}</h2>
+    {%- if pending.requests is empty %}
+    <p>{{ 'requests.none'|trans({}, domain) }}</p>
+    {%- else %}
+    <ul role="list">
+        {%- for request in pending.requests %}
+        <li>
+            <form method="post" action="{{ pending.action }}">
+                <input type="hidden" name="_token" value="{{ pending.token }}">
+                <input type="hidden" name="request" value="{{ request.id }}">
+                <p>{{ ('requests.' ~ request.kind)|trans({'%name%': request.name}, domain) }}
+                    <small><time datetime="{{ request.requested_at|date('c') }}">{{ request.requested_at|date('Y-m-d') }}</time></small></p>
+                <div role="group">
+                    <button type="submit" name="decision" value="accept">{{ 'requests.accept'|trans({}, domain) }}</button>
+                    <button type="submit" name="decision" value="reject" class="secondary">{{ 'requests.reject'|trans({}, domain) }}</button>
+                </div>
+            </form>
+        </li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+</section>
+{%- endif -%}

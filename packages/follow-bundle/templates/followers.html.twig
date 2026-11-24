@@ -1,0 +1,20 @@
+{#
+ # The followers of a subject as the current viewer may see them: nothing at all, neither names nor count, when the
+ # member they follow hides them.
+ #
+ #     {{ include('@PhilFollow/followers.html.twig', {subject: 'member:' ~ member.id}) }}
+ #}
+{%- set domain = 'phil_follow' -%}
+{%- set list = phil_follow_followers(subject, limit|default(50)) -%}
+{%- if not list.hidden %}
+<section class="phil-follow-followers">
+    <h2>{{ 'followers.title'|trans({'%count%': list.count}, domain) }}</h2>
+    {%- if list.followers is not empty %}
+    <ul role="list">
+        {%- for follower in list.followers %}
+        <li>{{ follower.name }}</li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+</section>
+{%- endif -%}

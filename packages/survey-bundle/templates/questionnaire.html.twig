@@ -1,0 +1,61 @@
+{#
+ # A questionnaire, a plain form that works without JavaScript: every question on one page, its anonymity said before
+ # the first. With JavaScript, phil/form-logic's controller shows and hides the questions as the respondent answers,
+ # and the progress controller shows them a question or a section at a time, with the progress.
+ #
+ # Variables: questionnaire, subject, values, errors, refused, token.
+ #}
+{%- set domain = 'phil_survey' -%}
+{%- set progress = 'phil--survey-bundle--progress' -%}
+<section class="phil-survey" lang="{{ app.request.locale|default('en') }}">
+    <header class="phil-survey__header">
+        <h1>{{ questionnaire.title }}</h1>
+        {%- if questionnaire.description is not empty %}
+        <p class="phil-survey__description">{{ questionnaire.description }}</p>
+        {%- endif %}
+        <p class="phil-survey__anonymity" role="note">
+            <strong>{{ ('survey.anonymity.' ~ questionnaire.anonymity.value)|trans({}, domain) }}</strong>
+            {{ ('survey.anonymity.' ~ questionnaire.anonymity.value ~ '.help')|trans({}, domain) }}
+        </p>
+    </header>
+    {%- if refused is not null %}
+    <p class="phil-survey__refused" role="alert">{{ ('survey.refused.' ~ refused)|trans({}, domain) }}</p>
+    {%- else %}
+    {%- if errors is not empty %}
+    <div class="phil-survey__errors" role="alert" tabindex="-1">
+        <p>{{ 'survey.errors'|trans({'%count%': errors|length}, domain) }}</p>
+        <ul>
+            {%- for name, error in errors %}
+            <li><a href="#phil-survey-{{ name }}">{{ questionnaire.question(name).label }}</a> — {{ ('survey.error.' ~ error)|trans({}, domain) }}</li>
+            {%- endfor %}
+        </ul>
+    </div>
+    {%- endif %}
+    <form class="phil-survey__form" method="post" action="{{ path('phil_survey_submit', {key: questionnaire.key}) }}" novalidate
+          data-controller="phil--form-logic--logic {{ progress }}"
+          data-phil--form-logic--logic-steps-value="{{ questionnaire.logic.form.toArray()|json_encode }}"
+          data-{{ progress }}-pacing-value="{{ questionnaire.pacing.value }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        {%- if subject is not null %}
+        <input type="hidden" name="subject" value="{{ subject }}">
+        {%- endif %}
+        <progress class="phil-survey__progress" value="0" max="100" hidden data-{{ progress }}-target="bar" aria-label="{{ 'survey.progress'|trans({}, domain) }}"></progress>
+        {%- for section in questionnaire.sections %}
+        <fieldset class="phil-survey__section" data-{{ progress }}-target="section">
+            <legend>{{ section.title }}</legend>
+            {%- if section.description is not empty %}
+            <p>{{ section.description }}</p>
+            {%- endif %}
+            {%- for question in section.questions %}
+            {{ include('@PhilSurvey/_question.html.twig', {question: question, value: values[question.name] ?? null, error: errors[question.name] ?? null}) }}
+            {%- endfor %}
+        </fieldset>
+        {%- endfor %}
+        <nav class="phil-survey__nav">
+            <button type="button" class="secondary" hidden data-{{ progress }}-target="previous" data-action="{{ progress }}#previous">{{ 'survey.previous'|trans({}, domain) }}</button>
+            <button type="button" hidden data-{{ progress }}-target="next" data-action="{{ progress }}#next">{{ 'survey.next'|trans({}, domain) }}</button>
+            <button type="submit" data-{{ progress }}-target="submit">{{ 'survey.submit'|trans({}, domain) }}</button>
+        </nav>
+    </form>
+    {%- endif %}
+</section>

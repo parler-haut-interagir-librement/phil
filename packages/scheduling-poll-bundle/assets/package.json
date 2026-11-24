@@ -1,0 +1,30 @@
+{
+    "name": "@phil/scheduling-poll-bundle",
+    "description": "The Stimulus controllers of phil/scheduling-poll-bundle: the dates in the respondent's time zone, and the DOM event that says a date is chosen",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/timezone_controller.js",
+    "symfony": {
+        "controllers": {
+            "timezone": {
+                "main": "src/timezone_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            },
+            "chosen": {
+                "main": "src/chosen_controller.js",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

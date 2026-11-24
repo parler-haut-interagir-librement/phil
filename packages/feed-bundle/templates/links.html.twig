@@ -1,0 +1,4 @@
+{#- The <link rel="alternate"> of the feeds a page names, one per feed and format: see FeedRuntime. -#}
+{%- for link in links -%}
+<link rel="alternate" type="{{ link.type }}" title="{{ link.title }}" href="{{ link.href }}">{{ loop.last ? '' : '\n' }}
+{%- endfor -%}
