@@ -62,4 +62,9 @@ final class SubscriptionRefused extends DomainException implements DomainError
     {
         return new self(\sprintf('The subscription %s is not due for an order.', $id));
     }
+
+    public static function phoneRequired(string $method): self
+    {
+        return new self(\sprintf('The carrier of the delivery method "%s" asks for a telephone number.', $method));
+    }
 }

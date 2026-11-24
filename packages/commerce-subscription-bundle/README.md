@@ -7,8 +7,9 @@ tiers of a family, free and paid tiers or support tiers in one model. It starts 
 trial, orders each billing period through the core, renews, retries failed payments, and cancels at the end of the
 paid period. It changes tier at the next renewal, or at once with the unused part of the period credited. A buyer
 offers a subscription to someone else with a code. It tells which features a subscriber may use, and opens an
-organization's subscription to its members, with optional seats. With DoctrineBundle, offers, subscriptions, gifts
-and seats are stored.
+organization's subscription to its members, with optional seats. A subscription that ships something keeps a
+delivery address, frozen in each of its orders and erased some days after the last shipment. With DoctrineBundle,
+offers, subscriptions, gifts, seats and delivery addresses are stored.
 
 While a renewal is past due, each offer's dunning stages say what the subscriber keeps after so many days: every
 feature by default, some, or none.
@@ -34,6 +35,7 @@ the core; a change at once is prorated by an `OrderProcessor` before the core ta
 | Organizations, with optional seats | Implemented and tested |
 | Feature access per tier | Implemented and tested |
 | Dunning stages per offer: every feature, some or none after so many days past due | Implemented and tested |
+| Delivery addresses: on the subscription, frozen in each order, erased after the last shipment, in access and erasure requests | Implemented and tested |
 | Storage on Doctrine | Implemented and tested |
 
 ## Documentation
@@ -49,6 +51,7 @@ the core; a change at once is prorated by an `OrderProcessor` before the core ta
 | [Organizations](doc/organizations.md) | Membership through a port, what a member may use, seats. |
 | [Features](doc/features.md) | What a subscriber or a member may use. |
 | [Dunning](doc/dunning.md) | What a subscriber keeps while a renewal is past due, stage by stage. |
+| [Delivery addresses](doc/delivery-addresses.md) | Where a subscription's shipments go, the copy frozen in each order, the telephone number, the erasure. |
 | [Scope](doc/scope.md) | What the module holds, what it leaves to other packages and the seam with them, and the ports of the core it implements. |
 | [Extension points](doc/extension-points.md) | What an application implements, configures, replaces or relies on. |
 | [Testing](doc/testing.md) | How the module is tested, and how to run its tests. |
@@ -71,8 +74,10 @@ return [
 
 ## Requirements
 
-PHP 8.5 or later; `phil/commerce-bundle`, `phil/ddd-bundle` and `phil/money` 0.1; Doctrine ORM 3.7; `psr/clock` 1.0; `symfony/uid`,
-`symfony/config` and `symfony/dependency-injection` 8.2 or later.
+PHP 8.5 or later; `phil/commerce-bundle` 0.4; `phil/address`, `phil/ddd-bundle` and `phil/money` 0.1; Doctrine ORM 3.7
+and DBAL 4.5; `psr/clock` 1.0; `symfony/uid`, `symfony/config` and `symfony/dependency-injection` 8.2 or later.
+Optional: `symfony/console`, `symfony/scheduler` and `symfony/lock` for the purge of the delivery addresses, and
+`phil/privacy-bundle` 0.3 for their access and erasure requests.
 
 ## Contributing
 

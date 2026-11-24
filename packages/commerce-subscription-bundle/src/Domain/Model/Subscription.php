@@ -10,6 +10,7 @@ use Phil\CommerceSubscriptionBundle\Domain\Exception\SubscriptionRefused;
 use Phil\CommerceSubscriptionBundle\Domain\Offer\BillingUnit;
 use Phil\CommerceSubscriptionBundle\Domain\Subscription\SubscriptionState;
 use Phil\CommerceSubscriptionBundle\Domain\ValueObject\BillingPeriod;
+use Phil\CommerceSubscriptionBundle\Domain\ValueObject\DeliveryAddress;
 use Phil\CommerceSubscriptionBundle\Domain\ValueObject\ImmediateChange;
 use Phil\CommerceSubscriptionBundle\Domain\ValueObject\StableIdentifier;
 use Phil\DddBundle\Domain\Exception\InvalidValue;
@@ -113,6 +114,19 @@ final class Subscription
 
     #[ORM\Column(name: 'change_credit', type: 'bigint')]
     private int $changeCredit = 0;
+
+    /**
+     * Where its shipments go, as `DeliveryAddress::toArray()` writes it; `null` when nothing is shipped to the
+     * subscriber, or once erased.
+     *
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(name: 'delivery_address', type: 'json', nullable: true)]
+    private ?array $deliveryAddress = null;
+
+    /** When its last shipment left: what the erasure of its delivery address counts from once it ended. */
+    #[ORM\Column(name: 'last_shipped_at', nullable: true)]
+    private ?DateTimeImmutable $lastShippedAt = null;
 
     #[ORM\Version]
     #[ORM\Column(name: 'version', type: 'integer')]
@@ -312,6 +326,46 @@ final class Subscription
     public function endedAt(): ?DateTimeImmutable
     {
         return $this->endedAt;
+    }
+
+    /**
+     * Where its next shipments go, or `null`. The orders already placed keep the copy they were placed with.
+     */
+    public function deliveryAddress(): ?DeliveryAddress
+    {
+        return null === $this->deliveryAddress ? null : DeliveryAddress::fromArray($this->deliveryAddress);
+    }
+
+    public function shipTo(DeliveryAddress $address): void
+    {
+        $this->deliveryAddress = $address->toArray();
+    }
+
+    /**
+     * Forgets its delivery address, and when its last shipment left; whether it had one.
+     */
+    public function forgetDeliveryAddress(): bool
+    {
+        $had = null !== $this->deliveryAddress || $this->lastShippedAt instanceof DateTimeImmutable;
+        $this->deliveryAddress = null;
+        $this->lastShippedAt = null;
+
+        return $had;
+    }
+
+    /**
+     * Records a shipment that left at `$at`; an earlier one recorded late keeps the latest.
+     */
+    public function shipped(DateTimeImmutable $at): void
+    {
+        if (!$this->lastShippedAt instanceof DateTimeImmutable || $at > $this->lastShippedAt) {
+            $this->lastShippedAt = $at;
+        }
+    }
+
+    public function lastShippedAt(): ?DateTimeImmutable
+    {
+        return $this->lastShippedAt;
     }
 
     public function version(): int
