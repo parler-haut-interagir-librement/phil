@@ -1,6 +1,6 @@
 {
     "name": "phil/scheduling-poll-bundle",
-    "description": "Find a date everyone can make: proposed dates answered yes, if need be or no by personal link, no account needed; best date chosen, iCalendar mailed to all.",
+    "description": "Find a date that suits everyone: proposed dates answered yes, if need be or no by personal link without an account, best date chosen, iCalendar mailed to all.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

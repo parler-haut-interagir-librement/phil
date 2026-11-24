@@ -1,6 +1,6 @@
 {
     "name": "phil/commerce-consignment-bundle",
-    "description": "Sell consigned goods beside your own on one SKU: who owns each unit, which leaves first, the margin or commission of each sale, statements and payouts.",
+    "description": "Stock you own and stock left on consignment, side by side on one SKU: who owns each unit, which leaves first, and the margin or commission of every sale.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

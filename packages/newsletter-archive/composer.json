@@ -1,6 +1,6 @@
 {
     "name": "phil/newsletter-archive",
-    "description": "Put sent newsletters on the web without leaking subscribers: published issues by list and tag, revocable share links, web versions with no personal data.",
+    "description": "Give sent newsletters a public home: issues published as clean web pages, free of tracking and personal links, browsed by list and tag or shared by link.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

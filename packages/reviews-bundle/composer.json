@@ -1,6 +1,6 @@
 {
     "name": "phil/reviews-bundle",
-    "description": "Reviews and ratings you can trust for products, games or places: one per member, criteria scores, helpfulness votes, public replies, withdrawal by stated rules.",
+    "description": "Let members review a product, game or place: ratings by criteria, moderation, helpfulness votes and a fair Bayesian average, with verified-buyer marks.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [

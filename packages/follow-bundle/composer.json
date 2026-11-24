@@ -1,6 +1,6 @@
 {
     "name": "phil/follow-bundle",
-    "description": "Hear of new activity on what you follow: content, threads, listings or members, at your own level, through notifications; requests and mutual ties.",
+    "description": "Let members follow a topic, thread, listing or member and hear about new activity once, through notifications, with levels, approval requests and mutuals.",
     "license": "MIT",
     "type": "symfony-bundle",
     "keywords": [
