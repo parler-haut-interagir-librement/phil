@@ -11,11 +11,13 @@ module, wired by autoconfiguration and run from the console. The retention sched
 processing — purpose, recipients, processors and location of each store —, which the command prints with the
 declared fields and fails on in CI while a gap remains; it also becomes purge orders, with a run refused when a job
 line has no purger. A register keeps every confidentiality incident with the eight paragraphs Québec asks of each
-line, names the notifications and paragraphs still owed, keeps its corrections and keeps each line at least five
-years; drafts of the notices to the authority and to the people are written from it in Markdown, and sent by no one but
-the person in charge. A copy of the database is anonymized column by column — emails, names, telephones in fictional
-ranges, addresses, IBANs, shifted dates, hashes, placeholder text — from `#[Anonymize]`, the declared categories and the
-configuration, with locale packs for eight locales and a guard that refuses to touch a production database.
+line, names the notifications and paragraphs still owed, keeps its corrections and a journal of the communications to
+a third party, the notices put off for an investigation and the consultations of the person in charge, and keeps each
+line at least five years; drafts of the notices to the authority and to the people are written from it in Markdown,
+and sent by no one but the person in charge. A copy of the database is anonymized column by column — emails, names,
+telephones in fictional ranges, addresses, IBANs, shifted dates, hashes, placeholder text — from `#[Anonymize]`, the
+declared categories and the configuration, with locale packs for eight locales and a guard that refuses to touch a
+production database.
 
 Out of the box, a member downloads their data, as a ZIP archive with a readable README and one JSON file per module,
 and deletes their account from their preferences. A deletion is a workflow: a request, a delay during which it can be
@@ -76,6 +78,7 @@ for what the application decides.
 | A member's export and erasure from their preferences, as a ZIP archive | Implemented, tested and on by default |
 | The requests of people without an account, by a verified link | Implemented, tested and wired; off until enabled |
 | The register of confidentiality incidents, `phil:privacy:incident`, `phil:privacy:incidents`: the eight paragraphs of section 7 of the Québec regulation (r. 3.1), corrections kept, five years at least (section 8) | Implemented, tested and wired |
+| The journal of an incident, `phil:privacy:incident-journal`: communications to a third party, notices put off for an investigation and consultations of the person in charge (P-39.1, sections 3.5 and 3.7) | Implemented, tested and wired |
 | Drafts of the notices of an incident, `phil:privacy:incident-notice`: to the Commission, its follow-ups, to each person and in public (r. 3.1, sections 3 to 6), in Markdown, French and English, filled from the register; nothing is sent | Implemented, tested and wired |
 | Each member's consent to tracked emails, `EmailTrackingConsents` | Implemented, tested and wired; off until enabled |
 | The Stimulus controllers through AssetMapper and StimulusBundle | Implemented and tested |
@@ -119,7 +122,7 @@ for what the application decides.
   against abuse, and who a verified address is.
 - [The register of incidents](doc/incidents.md) — what the Québec law and regulation ask (P-39.1, sections 3.5 to
   3.8; r. 3.1), recording, completing, correcting and printing a line, the notifications a serious risk asks for, the
-  five years it is kept, and the migration of its tables.
+  journal of an incident, the five years it is kept, and the migration of its tables.
 - [The drafts of the notices of an incident](doc/incident-notices.md) — the notices to the Commission, their
   follow-ups, to each person and in public (r. 3.1, sections 3 to 6), the rubrics filled from the register and those
   left to complete, who decides and who sends, and overriding the templates.

@@ -87,6 +87,47 @@ final class PhilWellKnownBundleTest extends TestCase
         self::assertSame(['phil_well_known.document', 'phil_well_known.webfinger_resolver', 'phil_well_known_nodeinfo_document'], [WellKnownServices::DOCUMENT_TAG, WellKnownServices::RESOLVER_TAG, WellKnownServices::NODEINFO_ROUTE]);
     }
 
+    public function testGpcJsonIsServedWhileThePrivacyBundleIsRegistered(): void
+    {
+        $container = $this->load(['gpc' => ['last_update' => '2026-11-21']], [WellKnownServices::PRIVACY_BUNDLE => 'App\\PrivacyBundle']);
+
+        self::assertSame([StaticDocument::class, ['{"gpc":true,"lastUpdate":"2026-11-21"}', 'application/json', true]], $this->document($container, 'gpc.json'));
+        self::assertSame('PhilPrivacyBundle', WellKnownServices::PRIVACY_BUNDLE);
+
+        new WellKnownPass()->process($container);
+        self::assertContains('/.well-known/gpc.json', (array) $container->getParameter('phil_well_known.routes'));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, array<string, string>|null}>
+     */
+    public static function withoutGpc(): iterable
+    {
+        yield 'without the privacy bundle' => [['gpc' => ['last_update' => '2026-11-21']], ['OtherBundle' => 'Other\\Bundle', 'Other' => WellKnownServices::PRIVACY_BUNDLE]];
+        yield 'without the bundles of a kernel' => [['gpc' => ['last_update' => '2026-11-21']], null];
+        yield 'without a date' => [[], [WellKnownServices::PRIVACY_BUNDLE => 'App\\PrivacyBundle']];
+        yield 'turned off' => [['gpc' => ['enabled' => false, 'last_update' => '2026-11-21']], [WellKnownServices::PRIVACY_BUNDLE => 'App\\PrivacyBundle']];
+    }
+
+    /**
+     * @param array<string, mixed>       $config
+     * @param array<string, string>|null $bundles
+     */
+    #[DataProvider('withoutGpc')]
+    public function testGpcJsonIsServedOnlyByASiteThatHonoursTheSignal(array $config, ?array $bundles): void
+    {
+        self::assertFalse($this->load($config, $bundles)->hasDefinition('phil_well_known.document.gpc.json'));
+    }
+
+    public function testTheBundlesOfAKernelThatAreNoListServeNoGpcJson(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.bundles', WellKnownServices::PRIVACY_BUNDLE);
+        $this->extension()->load([['gpc' => ['last_update' => '2026-11-21']]], $container);
+
+        self::assertFalse($container->hasDefinition('phil_well_known.document.gpc.json'));
+    }
+
     public function testTheAttributeTagsADocument(): void
     {
         $container = $this->load([]);
@@ -272,6 +313,9 @@ final class PhilWellKnownBundleTest extends TestCase
         yield 'a document with both' => [['documents' => ['a' => ['content' => 'a', 'file' => 'b', 'content_type' => 'text/plain']]], 'one of them'];
         yield 'a document without type' => [['documents' => ['a' => ['content' => 'a']]], 'content_type'];
         yield 'a document at a bad path' => [['documents' => ['../a' => ['content' => 'a', 'content_type' => 'text/plain']]], '"../a" is not a well-known path'];
+        yield 'a gpc date that is not a full-date' => [['gpc' => ['last_update' => '2026-11-21T00:00:00Z']], 'The last_update of gpc is an RFC 3339 full-date, such as "2026-11-21": "2026-11-21T00:00:00Z".'];
+        yield 'a gpc date that is a number' => [['gpc' => ['last_update' => 20261121]], 'last_update'];
+        yield 'a gpc date the calendar lacks' => [['gpc' => ['enabled' => false, 'last_update' => '2026-02-30']], 'RFC 3339 full-date'];
     }
 
     /**
@@ -437,11 +481,17 @@ final class PhilWellKnownBundleTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param array<string, mixed>       $config
+     * @param array<string, string>|null $bundles the classes of the bundles of the kernel by name, or none
      */
-    private function load(array $config): ContainerBuilder
+    private function load(array $config, ?array $bundles = null): ContainerBuilder
     {
         $container = new ContainerBuilder();
+
+        if (null !== $bundles) {
+            $container->setParameter('kernel.bundles', $bundles);
+        }
+
         $this->extension()->load([$config], $container);
 
         return $container;

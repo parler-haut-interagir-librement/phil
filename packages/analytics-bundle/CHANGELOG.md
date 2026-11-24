@@ -6,14 +6,19 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.2.1-alpha.
-
-Tests only.
+The next version is 0.2.1-alpha: every `Sec-GPC` header of a request is read. See
+[Privacy signals](doc/privacy-signals.md).
 
 ### Changed
 
 - The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
+
+### Fixed
+
+- A browser that sent the Global Privacy Control in a second `Sec-GPC` header, or in a list such as `Sec-GPC: 0, 1`,
+  was counted: `CollectController` joins every occurrence of the header with commas, and `PrivacySignals::fromHeaders()`
+  reads one trimmed value `1` among them as the signal. `DNT` is still read as a single value.
 
 ## 0.2.0-alpha - 2026-11-18
 

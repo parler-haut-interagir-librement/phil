@@ -10,8 +10,8 @@ State: `PrivacySignals` is implemented and tested; `AdmissionRule` applies it
 
 ```php
 $signals = PrivacySignals::fromHeaders(
-    $request->headers->get('DNT'),       // Do Not Track
-    $request->headers->get('Sec-GPC'),   // Global Privacy Control
+    $request->headers->get('DNT'),                           // Do Not Track
+    implode(',', $request->headers->all('Sec-GPC')),         // Global Privacy Control, every occurrence
 );
 $signals->doNotTrack;            // bool
 $signals->globalPrivacyControl;  // bool
@@ -29,9 +29,17 @@ PrivacySignals::none()->optOut(); // false — for tests, or a request that carr
 | `0` | absent | `false` |
 | ` 1 ` (padded) | absent | `true` |
 | `yes` | `true` | `false` |
+| absent | `0, 1` (a list, or two headers joined) | `true` |
+| absent | ` 1 ,0` | `true` |
+| absent | empty | `false` |
+| absent | `10, 01` | `false` |
 
 **Only the value `1`, after trimming, is a signal.** `DNT: 0` expresses consent to nothing — it is not an
 opt-out — and an absent header is no signal.
+
+**`Sec-GPC` is read as a list.** A browser or a proxy may repeat the header or send a list separated by commas:
+`CollectController` joins every occurrence with commas, and `fromHeaders()` splits its second argument on them; one
+trimmed value `1` is the signal. `DNT` is read as a single value.
 
 ## Where it sits in admission
 

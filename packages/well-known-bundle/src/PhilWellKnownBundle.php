@@ -7,6 +7,7 @@ namespace Phil\WellKnownBundle;
 use Override;
 use Phil\WellKnownBundle\Domain\Exception\InvalidValue;
 use Phil\WellKnownBundle\Domain\ValueObject\Did;
+use Phil\WellKnownBundle\Domain\ValueObject\GpcSupport;
 use Phil\WellKnownBundle\Domain\ValueObject\NodeInfo;
 use Phil\WellKnownBundle\Domain\ValueObject\NodeInfoSoftware;
 use Phil\WellKnownBundle\Domain\ValueObject\WebFingerResource;
@@ -23,7 +24,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 
 /**
  * The `/.well-known/` addresses of a site (RFC 8615), each turned on in the `phil_well_known` configuration: security.txt,
- * change-password, WebFinger, NodeInfo, `did.json`, the DID configuration, the AT Protocol handle, the app links of
+ * change-password, the support of the Global Privacy Control, WebFinger, NodeInfo, `did.json`, the DID configuration, the AT Protocol handle, the app links of
  * Apple and Android, fixed documents, and the documents other bundles add with `#[AsWellKnownDocument]`.
  *
  * A value a document could not serve — a security.txt that expires, a contact that is not a URI, a DID that is not
@@ -48,6 +49,7 @@ final class PhilWellKnownBundle extends AbstractBundle
                 ->end()
                 ->append($this->securityTxt())
                 ->append($this->changePassword())
+                ->append($this->gpc())
                 ->append($this->webFinger())
                 ->append($this->nodeInfo())
                 ->append($this->jsonDocument('did', 'did.json, the DID document of a did:web identifier.', WellKnownServices::didDocument(...)))
@@ -125,6 +127,30 @@ final class PhilWellKnownBundle extends AbstractBundle
             ->validate()
                 ->ifTrue(static fn (array $config): bool => \is_string($config['url']) && !str_starts_with($config['url'], 'https://') && 1 !== preg_match('~^/(?![/\\\\])~', $config['url']))
                 ->then(static fn (array $config): never => throw InvalidValue::because(\sprintf('The URL of change_password is https://, or a path starting with "/": "%s".', \is_string($config['url']) ? $config['url'] : '')))
+            ->end();
+
+        return $node;
+    }
+
+    private function gpc(): ArrayNodeDefinition
+    {
+        $node = new TreeBuilder('gpc')->getRootNode();
+        $node->info('/.well-known/gpc.json: the site honours the Global Privacy Control. Served while phil/privacy-bundle, which honours it, is registered, once last_update is set.')
+            ->canBeDisabled()
+            ->children()
+                ->scalarNode('last_update')->info('The date the statement last changed, an RFC 3339 full-date such as "2026-11-21".')->defaultNull()->end()
+            ->end()
+            ->validate()
+                ->ifTrue(static fn (array $config): bool => null !== $config['last_update'])
+                ->then(static function (array $config): array {
+                    if (!\is_string($config['last_update'])) {
+                        throw InvalidValue::because('The last_update of gpc is an RFC 3339 full-date, such as "2026-11-21", as a string.');
+                    }
+
+                    GpcSupport::since($config['last_update']);
+
+                    return $config;
+                })
             ->end();
 
         return $node;

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=84600ada4665a9a677aa7a88207e57321f0496f41e4c56f42a68e6904ead9e5e -->
+<!-- phil-dev source-sha256=c975488bc07c2ff34bc95036c08d4cdc92c5b4bd23087623f422d5922f947f8a -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -22,6 +22,7 @@
 | `…\Domain\ValueObject\NodeInfoSoftware` | objet-valeur | `name`, `version`, `repository`, `homepage` |
 | `…\Domain\ValueObject\NodeInfoUsage` | objet-valeur | Les nombres facultatifs |
 | `…\Domain\ValueObject\Did` | objet-valeur | `of($did, $method)`, `did`, `method` |
+| `…\Domain\ValueObject\GpcSupport` | objet-valeur | `since($lastUpdate)`, `lastUpdate`, `toArray()` |
 | `…\Domain\Exception\WellKnownException` | interface | Chaque exception du bundle |
 | `…\Domain\Exception\InvalidValue` | `InvalidArgumentException` | Une valeur qu'un document refuse |
 | `…\Infrastructure\Http\WellKnownController` | contrôleur | Sert le document de la route, avec ses en-têtes |
@@ -50,6 +51,7 @@
 | `WellKnownServices::DOCUMENT_TAG` | `phil_well_known.document` |
 | `WellKnownServices::RESOLVER_TAG` | `phil_well_known.webfinger_resolver` |
 | `WellKnownServices::NODEINFO_ROUTE` | `phil_well_known_nodeinfo_document` |
+| `WellKnownServices::PRIVACY_BUNDLE` | `PhilPrivacyBundle`, le nom dans `kernel.bundles` dont l'enregistrement fait servir `gpc.json` |
 | `WellKnownRouteLoader::TYPE` | `phil_well_known` |
 | `WellKnownRouteLoader::PARAMETER` | `phil_well_known.routes` |
 | `WellKnownController::DOCUMENT` | `_phil_well_known` |

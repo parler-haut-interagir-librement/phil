@@ -83,19 +83,45 @@ final class ClientGrantsTest extends TestCase
         $this->clientKey = PrivateKey::generate(SigningAlgorithm::ES256, 'client-key');
     }
 
-    public function testAClientAuthenticatesByAnAssertionOnceForTheIssuerOrTheTokenEndpoint(): void
+    public function testAClientAuthenticatesByAnAssertionOnceForTheIssuerAlone(): void
     {
         $client = $this->keyClient();
         $tokens = $this->tokens();
 
         self::assertSame($client->id(), $tokens->authenticateClient('machine', $this->assertion(), ClientAuthMethod::PrivateKeyJwt, self::PATH)->id());
-        self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(['aud' => self::ISSUER.self::PATH]), ClientAuthMethod::PrivateKeyJwt, self::PATH)->id());
-        self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(['aud' => ['https://other.example', self::ISSUER]]), ClientAuthMethod::PrivateKeyJwt)->id());
 
         $assertion = $this->assertion(['jti' => 'once']);
         $tokens->authenticateClient('machine', $assertion, ClientAuthMethod::PrivateKeyJwt);
         $this->assertOAuthError('invalid_client', static fn (): Client => $tokens->authenticateClient('machine', $assertion, ClientAuthMethod::PrivateKeyJwt));
+    }
+
+    /**
+     * draft-ietf-oauth-rfc7523bis: the audience of a client assertion is the issuer, as a string. The token endpoint
+     * and the array form are refused unless the compatibility option is on.
+     */
+    public function testTheTokenEndpointAndAnArrayOfAudiencesAreRefusedByDefault(): void
+    {
+        $this->keyClient();
+        $tokens = $this->tokens();
+
+        $this->assertOAuthError('invalid_client', fn (): Client => $tokens->authenticateClient('machine', $this->assertion(['aud' => self::ISSUER.self::PATH]), ClientAuthMethod::PrivateKeyJwt, self::PATH));
+        $this->assertOAuthError('invalid_client', fn (): Client => $tokens->authenticateClient('machine', $this->assertion(['aud' => [self::ISSUER]]), ClientAuthMethod::PrivateKeyJwt, self::PATH));
+        $this->assertOAuthError('invalid_client', fn (): Client => $tokens->authenticateClient('machine', $this->assertion(['aud' => ['https://other.example', self::ISSUER]]), ClientAuthMethod::PrivateKeyJwt));
+    }
+
+    public function testTheCompatibilityOptionAcceptsTheTokenEndpointAndAnArray(): void
+    {
+        $this->keyClient();
+        $this->settings = new ProviderSettings(self::ISSUER, SigningAlgorithm::ES256, legacyAssertionAudiences: true);
+        $tokens = $this->tokens();
+
+        self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(), ClientAuthMethod::PrivateKeyJwt, self::PATH)->id());
+        self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(['aud' => self::ISSUER.self::PATH]), ClientAuthMethod::PrivateKeyJwt, self::PATH)->id());
+        self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(['aud' => ['https://other.example', self::ISSUER]]), ClientAuthMethod::PrivateKeyJwt)->id());
+        self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(['aud' => [7, self::ISSUER.self::PATH]]), ClientAuthMethod::PrivateKeyJwt, self::PATH)->id());
+        self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(['aud' => [['nested'], self::ISSUER.self::PATH]]), ClientAuthMethod::PrivateKeyJwt, self::PATH)->id());
         $this->assertOAuthError('invalid_client', fn (): Client => $tokens->authenticateClient('machine', $this->assertion(['aud' => self::ISSUER.self::PATH]), ClientAuthMethod::PrivateKeyJwt));
+        $this->assertOAuthError('invalid_client', fn (): Client => $tokens->authenticateClient('machine', $this->assertion(['aud' => [7, 'https://other.example']]), ClientAuthMethod::PrivateKeyJwt));
     }
 
     /**
@@ -192,10 +218,14 @@ final class ClientGrantsTest extends TestCase
 
     public function testTheAudiencesOfAnAssertion(): void
     {
-        self::assertSame([self::ISSUER, self::ISSUER.self::PATH], $this->settings->assertionAudiences(self::PATH));
-        self::assertSame([self::ISSUER], $this->settings->assertionAudiences(''));
-        self::assertSame([self::ISSUER], $this->settings->assertionAudiences('oidc/token'));
-        self::assertSame(['https://id.example:8443/idp', 'https://id.example:8443/idp/oidc/token'], new ProviderSettings('https://id.example:8443/idp')->assertionAudiences('/idp/oidc/token'));
+        self::assertFalse($this->settings->legacyAssertionAudiences);
+        self::assertSame([self::ISSUER], $this->settings->assertionAudiences(self::PATH));
+
+        $legacy = new ProviderSettings(self::ISSUER, legacyAssertionAudiences: true);
+        self::assertSame([self::ISSUER, self::ISSUER.self::PATH], $legacy->assertionAudiences(self::PATH));
+        self::assertSame([self::ISSUER], $legacy->assertionAudiences(''));
+        self::assertSame([self::ISSUER], $legacy->assertionAudiences('oidc/token'));
+        self::assertSame(['https://id.example:8443/idp', 'https://id.example:8443/idp/oidc/token'], new ProviderSettings('https://id.example:8443/idp', legacyAssertionAudiences: true)->assertionAudiences('/idp/oidc/token'));
     }
 
     public function testTheRegistryOfAClientWithKeysAndResources(): void

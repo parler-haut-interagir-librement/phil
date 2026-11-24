@@ -26,6 +26,8 @@ use Phil\PrivacyBundle\Domain\Subject\DataSubject;
  *   sealed;
  * - `phil_privacy_incident`: the register of confidentiality incidents;
  * - `phil_privacy_incident_revision`: what a line of that register held before each correction, only ever added;
+ * - `phil_privacy_incident_journal`: the journal of each line of that register — communications to a third party,
+ *   notices put off for an investigation, consultations of the person in charge —, only ever added;
  * - `phil_privacy_email_tracking`: each member's last choice about tracked emails, one row per member;
  * - `phil_privacy_erasure_request`: one row per erasure request, naming a person by their opaque identifier or the
  *   request made without an account it came from, never by an address;
@@ -49,6 +51,8 @@ final class PrivacyTables
     public const string INCIDENTS = 'phil_privacy_incident';
 
     public const string INCIDENT_REVISIONS = 'phil_privacy_incident_revision';
+
+    public const string INCIDENT_JOURNAL = 'phil_privacy_incident_journal';
 
     public const string EMAIL_TRACKING = 'phil_privacy_email_tracking';
 
@@ -160,6 +164,21 @@ final class PrivacyTables
                 ->addColumn(self::maybeText('previous'))
                 ->addColumn(self::moment('revised_at'))
                 ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('incident_id', 'sequence', 'field')->create())
+                ->create());
+        }
+
+        if (!$schema->hasTable(self::INCIDENT_JOURNAL)) {
+            $editor->addTable(Table::editor()
+                ->setUnquotedName(self::INCIDENT_JOURNAL)
+                ->addColumn(self::string('incident_id', 32, $binary))
+                ->addColumn(Column::editor()->setUnquotedName('sequence')->setTypeName(Types::INTEGER)->setNotNull(true)->create())
+                ->addColumn(self::string('kind', 32))
+                ->addColumn(self::moment('done_at'))
+                ->addColumn(self::string('party', 255))
+                ->addColumn(self::text('details'))
+                ->addColumn(self::maybeMoment('until_at'))
+                ->addColumn(self::moment('recorded_at'))
+                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('incident_id', 'sequence')->create())
                 ->create());
         }
 

@@ -16,6 +16,7 @@ use Phil\WellKnownBundle\Application\StaticWebFingerResolver;
 use Phil\WellKnownBundle\Application\WebFinger;
 use Phil\WellKnownBundle\Domain\Exception\InvalidValue;
 use Phil\WellKnownBundle\Domain\ValueObject\Did;
+use Phil\WellKnownBundle\Domain\ValueObject\GpcSupport;
 use Phil\WellKnownBundle\Domain\ValueObject\NodeInfoSoftware;
 use Phil\WellKnownBundle\Domain\ValueObject\SecurityTxt;
 use Phil\WellKnownBundle\Infrastructure\Http\Document\AtprotoDidDocument;
@@ -39,7 +40,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * The services of the well-known documents: the controller and the route loader, always; each document its
- * configuration turns on, tagged with its path; the resolvers of WebFinger and the provider of NodeInfo; and the check
+ * configuration turns on, tagged with its path; `gpc.json` while phil/privacy-bundle is registered in the kernel; the resolvers of WebFinger and the provider of NodeInfo; and the check
  * of the expiry of the security.txt, when phil/monitoring-bundle is installed.
  *
  * @phpstan-import-type ResourceConfig from StaticWebFingerResolver
@@ -50,6 +51,7 @@ use Symfony\Component\DependencyInjection\Reference;
  *     cache_max_age: int,
  *     security_txt: array{enabled: bool, contact: list<string>, expires: ?string, encryption: list<string>, acknowledgments: list<string>, preferred_languages: list<string>, canonical: list<string>, policy: list<string>, hiring: list<string>, signer: ?string, expiry_warning_days: int},
  *     change_password: array{enabled: bool, route: ?string, parameters: array<string, string>, url: ?string},
+ *     gpc: array{enabled: bool, last_update: ?string},
  *     webfinger: array{enabled: bool, resources: array<string, ResourceConfig>},
  *     nodeinfo: array{enabled: bool, path: string, software: array{name: string, version: string, repository: ?string, homepage: ?string}, protocols: list<string>, services: array{inbound: list<string>, outbound: list<string>}, open_registrations: bool, metadata: array<string, mixed>, provider: ?string},
  *     did: JsonDocumentConfig,
@@ -69,6 +71,12 @@ final class WellKnownServices
     public const string NODEINFO_ROUTE = 'phil_well_known_nodeinfo_document';
 
     public const string DID_CONFIGURATION_CONTEXT = 'https://identity.foundation/.well-known/did-configuration/v1';
+
+    /**
+     * The name, in `kernel.bundles`, of phil/privacy-bundle, which honours the Global Privacy Control: the bundle does
+     * not require it.
+     */
+    public const string PRIVACY_BUNDLE = 'PhilPrivacyBundle';
 
     private const string JSON = 'application/json';
 
@@ -102,6 +110,10 @@ final class WellKnownServices
         if ($config['change_password']['enabled']) {
             $route = $config['change_password']['route'];
             self::document($container, 'change-password', ChangePasswordDocument::class, null === $route ? [$config['change_password']['url']] : [$route, new Reference('router'), $config['change_password']['parameters']]);
+        }
+
+        if ($config['gpc']['enabled'] && null !== $config['gpc']['last_update'] && self::honoursGpc($container)) {
+            self::document($container, 'gpc.json', StaticDocument::class, [json_encode(GpcSupport::since($config['gpc']['last_update'])->toArray(), DocumentResponses::FLAGS), self::JSON, true]);
         }
 
         if ($config['webfinger']['enabled']) {
@@ -219,6 +231,17 @@ final class WellKnownServices
         }
 
         throw InvalidValue::because(\sprintf('A linked DID of %s is a JWT, or a JSON-LD credential as a map.', $source));
+    }
+
+    /**
+     * Whether the kernel registers phil/privacy-bundle, which honours the Global Privacy Control: a site states it only
+     * when it does.
+     */
+    private static function honoursGpc(ContainerBuilder $container): bool
+    {
+        $bundles = $container->hasParameter('kernel.bundles') ? $container->getParameter('kernel.bundles') : [];
+
+        return \is_array($bundles) && \array_key_exists(self::PRIVACY_BUNDLE, $bundles);
     }
 
     /**

@@ -97,13 +97,27 @@ final class OidcTest extends TestCase
         self::assertSame(999_999_999, $this->parse(['max_age' => '999999999'])->maxAge);
     }
 
-    public function testAClientMayGoWithoutPkceWhenRegisteredSo(): void
+    public function testAClientMayGoWithoutPkceWhenRegisteredSoWithANonce(): void
     {
-        $request = $this->parse(['client_id' => 'server', 'code_challenge' => null, 'code_challenge_method' => null]);
+        $request = $this->parse(['client_id' => 'server', 'code_challenge' => null, 'code_challenge_method' => null, 'nonce' => 'n-0S6']);
 
         self::assertNull($request->codeChallenge);
-        self::assertSame(['response_type' => 'code', 'client_id' => 'server', 'redirect_uri' => 'https://app.example/cb', 'scope' => 'openid'], $request->toQuery());
+        self::assertSame('n-0S6', $request->nonce);
+        self::assertSame(['response_type' => 'code', 'client_id' => 'server', 'redirect_uri' => 'https://app.example/cb', 'scope' => 'openid', 'nonce' => 'n-0S6'], $request->toQuery());
         self::assertSame(self::CHALLENGE, $this->parse(['client_id' => 'server'])->codeChallenge);
+        self::assertNull($this->parse(['client_id' => 'server'])->nonce, 'With a PKCE challenge, the nonce stays optional.');
+        self::assertNull($this->parse([])->nonce);
+    }
+
+    public function testTheNonceWithoutPkceCanBeLeftOptional(): void
+    {
+        $client = Client::register('server', 'Server', 'secret', ['https://app.example/cb'], [], [], false, new DateTimeImmutable('2026-11-14 10:00:00'), requirePkce: false);
+        $query = ['response_type' => 'code', 'client_id' => 'server', 'redirect_uri' => 'https://app.example/cb', 'scope' => 'openid'];
+
+        $request = new AuthorizationRequestParser(['openid'], false)->parse($query, static fn (string $id): Client => $client);
+
+        self::assertNull($request->nonce);
+        self::assertNull($request->codeChallenge);
     }
 
     /**
@@ -171,6 +185,7 @@ final class OidcTest extends TestCase
         yield 'no openid' => [['scope' => 'email'], 'invalid_scope'];
         yield 'no challenge' => [['code_challenge' => null], 'invalid_request'];
         yield 'no challenge, a method' => [['client_id' => 'server', 'code_challenge' => null], 'invalid_request'];
+        yield 'no challenge, a method, a nonce' => [['client_id' => 'server', 'code_challenge' => null, 'nonce' => 'n'], 'invalid_request'];
         yield 'plain challenge' => [['code_challenge_method' => 'plain'], 'invalid_request'];
         yield 'no method' => [['client_id' => 'server', 'code_challenge_method' => null], 'invalid_request'];
         yield 'short challenge' => [['code_challenge' => 'abc'], 'invalid_request'];
@@ -181,6 +196,8 @@ final class OidcTest extends TestCase
         yield 'negative age' => [['max_age' => '-1'], 'invalid_request'];
         yield 'long age' => [['max_age' => '1234567890'], 'invalid_request'];
         yield 'long nonce' => [['nonce' => str_repeat('n', 2049)], 'invalid_request'];
+        yield 'no challenge nor nonce (RFC 9700, section 2.1.1)' => [['client_id' => 'server', 'code_challenge' => null, 'code_challenge_method' => null], 'invalid_request'];
+        yield 'no challenge, an empty nonce' => [['client_id' => 'server', 'code_challenge' => null, 'code_challenge_method' => null, 'nonce' => ''], 'invalid_request'];
         yield 'long state' => [['state' => str_repeat('s', 2049)], 'invalid_request', null];
     }
 

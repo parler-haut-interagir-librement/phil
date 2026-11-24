@@ -37,7 +37,7 @@ final readonly class Authorization
         private ClockInterface $clock,
         private Journal $journal,
     ) {
-        $this->parser = new AuthorizationRequestParser($settings->scopes);
+        $this->parser = new AuthorizationRequestParser($settings->scopes, $settings->nonceWithoutPkce);
     }
 
     /**

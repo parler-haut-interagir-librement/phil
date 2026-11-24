@@ -3,10 +3,11 @@
 **The `/.well-known/` addresses of a Symfony site, each turned on in its configuration.**
 
 phil/well-known-bundle serves the documents other software looks for at fixed addresses of a domain (RFC 8615): how
-to report a vulnerability (`security.txt`), where to change a password, what the site says of an account (WebFinger),
-which software it runs (NodeInfo), the DID document of a `did:web` identifier and the credentials linking the domain to
-its DIDs, the DID an AT Protocol handle resolves to, and the app links of iOS and Android apps. Fixed documents of the
-configuration and documents of other bundles join them, each at its own exact route.
+to report a vulnerability (`security.txt`), where to change a password, that the site honours the Global Privacy
+Control (`gpc.json`), what the site says of an account (WebFinger), which software it runs (NodeInfo), the DID document
+of a `did:web` identifier and the credentials linking the domain to its DIDs, the DID an AT Protocol handle resolves
+to, and the app links of iOS and Android apps. Fixed documents of the configuration and documents of other bundles join
+them, each at its own exact route.
 
 Use it in a Symfony site that wants these addresses right without writing a controller for each: the media types,
 the CORS header of the documents read by other sites, cache headers and an `ETag`, `X-Robots-Tag: noindex`, no session
@@ -23,6 +24,7 @@ implementing `WellKnownDocument` with `#[AsWellKnownDocument]`.
 |---|---|
 | `security.txt` (RFC 9116), checked when the container is built, signed by a port | Implemented and tested |
 | `change-password` | Implemented and tested |
+| `gpc.json`, while phil/privacy-bundle is registered | Implemented and tested |
 | WebFinger (RFC 7033): `acct:` and `https:` resources, `rel`, resolvers | Implemented, tested and fuzzed |
 | NodeInfo 2.1 and its discovery document, with a provider port | Implemented and tested |
 | `did.json`, `did-configuration.json`, `atproto-did` | Implemented and tested |

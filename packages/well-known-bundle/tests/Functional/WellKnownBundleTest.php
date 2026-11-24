@@ -30,6 +30,7 @@ final class WellKnownBundleTest extends WebTestCase
     public static function documents(): iterable
     {
         yield 'security.txt' => ['/.well-known/security.txt', 'text/plain; charset=utf-8', false];
+        yield 'gpc.json' => ['/.well-known/gpc.json', 'application/json', true];
         yield 'nodeinfo' => ['/.well-known/nodeinfo', 'application/json', true];
         yield 'nodeinfo 2.1' => ['/nodeinfo/2.1', 'application/json; profile="http://nodeinfo.diaspora.software/ns/schema/2.1#"', true];
         yield 'did.json' => ['/.well-known/did.json', 'application/did+ld+json', true];
@@ -78,6 +79,7 @@ final class WellKnownBundleTest extends WebTestCase
             $this->body($client, '/.well-known/security.txt'),
         );
         self::assertSame('{"links":[{"rel":"http://nodeinfo.diaspora.software/ns/schema/2.1","href":"https://example.com/nodeinfo/2.1"}]}', $this->body($client, '/.well-known/nodeinfo'));
+        self::assertSame('{"gpc":true,"lastUpdate":"2026-11-21"}', $this->body($client, '/.well-known/gpc.json'));
         self::assertSame(
             '{"version":"2.1","software":{"name":"example","version":"1.2.3","repository":"https://example.com/code"},"protocols":["activitypub"],"services":{"inbound":[],"outbound":["rss2.0"]},"openRegistrations":true,"usage":{"users":{"total":42,"activeMonth":7},"localPosts":1000},"metadata":{"nodeName":"Example"}}',
             $this->body($client, '/nodeinfo/2.1'),
@@ -175,6 +177,18 @@ final class WellKnownBundleTest extends WebTestCase
     /**
      * With phil/monitoring-bundle installed, the expiry of the security.txt is one of the checks of the site.
      */
+    /**
+     * The statement is made only by a site that honours the signal, through phil/privacy-bundle.
+     */
+    public function testGpcJsonIsNotFoundWithoutThePrivacyBundle(): void
+    {
+        $client = self::createClient(['environment' => 'without_privacy'], ['HTTP_HOST' => 'example.com', 'HTTPS' => 'on']);
+
+        $client->request('GET', '/.well-known/gpc.json');
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
     public function testTheExpiryIsCheckedByTheMonitoring(): void
     {
         self::bootKernel();

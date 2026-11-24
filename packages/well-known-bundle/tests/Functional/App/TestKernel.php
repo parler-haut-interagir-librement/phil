@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\WellKnownBundle\Tests\Functional\App;
 
 use Override;
+use Phil\WellKnownBundle\Infrastructure\DependencyInjection\WellKnownServices;
 use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -13,7 +14,8 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /**
  * An application with every well-known document on, a resolver of its accounts, a NodeInfo provider, a signer, and a
- * document of its own; the environment `off` turns every document off.
+ * document of its own; the environment `off` turns every document off. The kernel names phil/privacy-bundle among its
+ * bundles, as an application that registers it, but in the environment `without_privacy`.
  */
 final class TestKernel extends Kernel
 {
@@ -35,6 +37,21 @@ final class TestKernel extends Kernel
     public function getLogDir(): string
     {
         return sys_get_temp_dir().'/phil-well-known-bundle-test/'.hash('xxh128', __DIR__).'/log';
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    #[Override]
+    protected function getKernelParameters(): array
+    {
+        $parameters = parent::getKernelParameters();
+
+        if ('without_privacy' !== $this->environment && \is_array($parameters['kernel.bundles'])) {
+            $parameters['kernel.bundles'][WellKnownServices::PRIVACY_BUNDLE] = self::class;
+        }
+
+        return $parameters;
     }
 
     private function configureContainer(ContainerConfigurator $container): void
@@ -70,6 +87,7 @@ final class TestKernel extends Kernel
                 'signer' => PrefixSigner::class,
             ],
             'change_password' => ['route' => 'account_password', 'parameters' => ['tab' => 'security']],
+            'gpc' => ['last_update' => '2026-11-21'],
             'webfinger' => ['resources' => [
                 'ACCT:site@EXAMPLE.com' => [
                     'aliases' => ['https://example.com/'],

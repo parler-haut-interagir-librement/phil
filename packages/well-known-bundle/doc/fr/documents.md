@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=05d7ddaca4cfbb6c71dbe91c82deeed3a17c08faaa6c2eac955a3b24473f2135 -->
+<!-- phil-dev source-sha256=08bf15708efe372e5c392053012ce3a8ffdb26eb764abd46c45c2ad0a44abe22 -->
 # Documents
 
 ## En-têtes
@@ -59,6 +59,20 @@ aucune vérification n'est enregistrée.
 
 L'URL bien connue du W3C pour changer de mot de passe : un `302` vers la route ou l'URL de la configuration, pour que
 les gestionnaires de mots de passe envoient leurs utilisateurs à la bonne page.
+
+## gpc.json
+
+Le Global Privacy Control du W3C permet à un site de dire, à `/.well-known/gpc.json`, qu'il respecte le signal `Sec-GPC`
+qu'envoient les navigateurs :
+
+```json
+{"gpc":true,"lastUpdate":"2026-11-21"}
+```
+
+Le document est servi en `application/json`, avec CORS, seulement tant que le noyau enregistre phil/privacy-bundle, qui
+refuse toute catégorie facultative de consentement à un navigateur qui envoie le signal ; le bundle le détecte parmi les
+bundles du noyau, et ne l'exige pas. `lastUpdate` est `gpc.last_update` de la configuration : changez-le quand ce que le
+site fait du signal change. Un site qui respecte le signal d'une autre façon sert son propre document avec `documents`.
 
 ## WebFinger
 

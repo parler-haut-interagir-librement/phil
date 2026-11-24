@@ -14,8 +14,9 @@ use SensitiveParameter;
  * The settings of the provider: its issuer, the algorithm its new keys use, the lifetimes of codes and tokens, the
  * scopes it knows, the rhythm of key rotation, the methods clients may authenticate by, the clock skew and the longest
  * lifetime of a client assertion, whether a refresh token lives no longer than its session — and at most how long
- * after the session opened —, the optional claims of the ID token: `acr`, `idp` and `session_start`, and the subject
- * type with the salt opaque and pairwise subjects are derived under.
+ * after the session opened —, the optional claims of the ID token: `acr`, `idp` and `session_start`, the subject
+ * type with the salt opaque and pairwise subjects are derived under, whether client assertions may name their
+ * audience the way older clients do, and whether a request without PKCE must carry a `nonce`.
  */
 final readonly class ProviderSettings
 {
@@ -25,24 +26,30 @@ final readonly class ProviderSettings
     public const array ACCOUNT_SCOPES = self::SCOPES;
 
     /**
-     * The audiences a client assertion may name: the issuer, or the token endpoint at the issuer's origin.
+     * The audiences a client assertion may name: the issuer alone (draft-ietf-oauth-rfc7523bis); with
+     * `legacyAssertionAudiences`, the token endpoint at the issuer's origin too.
      *
      * @return list<string>
      */
     public function assertionAudiences(string $tokenEndpointPath): array
     {
-        return 1 === preg_match('~^[A-Za-z][A-Za-z0-9+.-]*://[^/]+~', $this->issuer, $origin) && str_starts_with($tokenEndpointPath, '/') ? [$this->issuer, $origin[0].$tokenEndpointPath] : [$this->issuer];
+        return $this->legacyAssertionAudiences && 1 === preg_match('~^[A-Za-z][A-Za-z0-9+.-]*://[^/]+~', $this->issuer, $origin) && str_starts_with($tokenEndpointPath, '/') ? [$this->issuer, $origin[0].$tokenEndpointPath] : [$this->issuer];
     }
 
     /**
      * @param list<string>           $scopes
-     * @param list<ClientAuthMethod> $authMethods   the methods clients may authenticate by
-     * @param int                    $clockSkew     the seconds a time of a client assertion may be off
-     * @param ?int                   $sessionMaxAge the seconds after its session opened past which a refresh token is no
-     *                                              longer issued nor accepted; null for no bound but the session's end
-     * @param ?string                $acr           the `acr` of every ID token, null for none
-     * @param ?string                $idp           the `idp` of every ID token, null for none
-     * @param bool                   $sessionStart  whether the ID token carries `session_start`, when its session opened
+     * @param list<ClientAuthMethod> $authMethods              the methods clients may authenticate by
+     * @param int                    $clockSkew                the seconds a time of a client assertion may be off
+     * @param ?int                   $sessionMaxAge            the seconds after its session opened past which a refresh token is no
+     *                                                         longer issued nor accepted; null for no bound but the session's end
+     * @param ?string                $acr                      the `acr` of every ID token, null for none
+     * @param ?string                $idp                      the `idp` of every ID token, null for none
+     * @param bool                   $sessionStart             whether the ID token carries `session_start`, when its session opened
+     * @param bool                   $legacyAssertionAudiences whether a client assertion may also name the token
+     *                                                         endpoint, and name its audiences in an array; off, its
+     *                                                         `aud` is the issuer, as a string
+     * @param bool                   $nonceWithoutPkce         whether an authorization request without a PKCE challenge
+     *                                                         must carry a `nonce` (RFC 9700, section 2.1.1)
      */
     public function __construct(
         public string $issuer,
@@ -65,6 +72,8 @@ final readonly class ProviderSettings
         public SubjectType $subjectType = SubjectType::Account,
         #[SensitiveParameter]
         public ?string $subjectSalt = null,
+        public bool $legacyAssertionAudiences = false,
+        public bool $nonceWithoutPkce = true,
     ) {
         if ('' === $issuer || str_ends_with($issuer, '/') || str_contains($issuer, '?') || str_contains($issuer, '#')) {
             throw InvalidValue::because('The issuer is an https address without a trailing slash, query or fragment.');

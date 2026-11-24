@@ -4,6 +4,18 @@ All notable changes to `phil/well-known-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha: `/.well-known/gpc.json`, served while phil/privacy-bundle is registered. See
+[gpc.json](doc/documents.md#gpcjson).
+
+### Added
+
+- `gpc.json` (W3C, Global Privacy Control): the `gpc` section, on by default, with `last_update`, an RFC 3339 full-date
+  checked when the container is built; `{"gpc":true,"lastUpdate":"…"}` as `application/json` with CORS, served once
+  `last_update` is given and only while the kernel registers phil/privacy-bundle, which honours the signal, detected
+  among `kernel.bundles` without requiring it. `GpcSupport` and `WellKnownServices::PRIVACY_BUNDLE`.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

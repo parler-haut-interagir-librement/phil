@@ -16,10 +16,12 @@ use Phil\PrivacyBundle\Application\Export\ExportPackage;
 use Phil\PrivacyBundle\Application\Export\PlainExportReadme;
 use Phil\PrivacyBundle\Application\GuestRequest\EmailGuestSubjects;
 use Phil\PrivacyBundle\Application\GuestRequest\GuestRequests;
+use Phil\PrivacyBundle\Application\Incident\IncidentJournalRecorder;
 use Phil\PrivacyBundle\Domain\Consent\ConsentPolicy;
 use Phil\PrivacyBundle\Domain\Cookie\CookieInventory;
 use Phil\PrivacyBundle\Domain\Cookie\DeclaredCookie;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentCommand;
+use Phil\PrivacyBundle\Infrastructure\Console\IncidentJournalCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentsCommand;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalGuestRequests;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalIncidentRegister;
@@ -222,6 +224,9 @@ final class AdditionsWiringTest extends TestCase
         self::assertEquals([new Reference('database_connection'), new Reference('clock', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(DbalIncidentRegister::class)->getArguments());
         self::assertTrue($container->getDefinition(IncidentCommand::class)->hasTag('console.command'));
         self::assertTrue($container->getDefinition(IncidentsCommand::class)->hasTag('console.command'));
+        self::assertEquals([new Reference(IncidentRegister::class), new Reference('clock')], $container->getDefinition(IncidentJournalRecorder::class)->getArguments());
+        self::assertEquals([new Reference(IncidentJournalRecorder::class), new Reference('clock')], $container->getDefinition(IncidentJournalCommand::class)->getArguments());
+        self::assertTrue($container->getDefinition(IncidentJournalCommand::class)->hasTag('console.command'));
         self::assertSame(TwigExportReadme::class, (string) $container->getAlias(ExportReadme::class));
         self::assertEquals([new Reference(ExportReadme::class), new Reference('clock')], $container->getDefinition(ExportPackage::class)->getArguments());
         self::assertSame('app.incidents', (string) $this->load(['incidents' => ['store' => 'app.incidents']])->getAlias(IncidentRegister::class));
@@ -389,6 +394,8 @@ final class AdditionsWiringTest extends TestCase
             IncidentRegister::class => DbalIncidentRegister::class,
             IncidentCommand::class => IncidentCommand::class,
             IncidentsCommand::class => IncidentsCommand::class,
+            IncidentJournalRecorder::class => IncidentJournalRecorder::class,
+            IncidentJournalCommand::class => IncidentJournalCommand::class,
             GuestRequests::class => GuestRequests::class,
             GuestRequestController::class => GuestRequestController::class,
             GuestLinkSender::class => MailerGuestLinkSender::class,

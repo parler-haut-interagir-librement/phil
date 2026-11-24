@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a42c973f0547a7db13fb3c080a92ebe2a3d98bcab70ca0d8b411e263ea926f9b -->
+<!-- phil-dev source-sha256=e1550e5f6da38ec45a1adf0a85e9e1dc58bef79e196d3d402173dc3e5fcf3400 -->
 # Installation
 
 ```sh
@@ -87,6 +87,13 @@ utilisateurs : Argon2id (`sodium`). Générez la migration des tables avec `bin/
   composant Notifier, jamais par Messenger : `MailerAccountMailer` prend les transports et le moteur de rendu du
   corps de Twig au lieu de `MailerInterface`, et le bundle donne à `NotifierSmsSender` un texteur sans bus. Voir
   [Pourquoi les courriels de compte et les SMS ne passent jamais par Messenger](links-and-sms.md#pourquoi-les-courriels-de-compte-et-les-sms-ne-passent-jamais-par-messenger).
+- Une assertion de client nomme l'émetteur seul dans son `aud`, sous forme de chaîne (draft-ietf-oauth-rfc7523bis) :
+  une assertion destinée au point de terminaison des jetons, ou dont les audiences sont dans un tableau, est refusée
+  avec `invalid_client`. Mettez ces clients à jour, ou réglez `oidc.client_authentication.legacy_assertion_audiences:
+  true` le temps de les mettre à jour. `ProviderSettings::assertionAudiences()` donne l'émetteur seul tant que cette
+  option n'est pas activée.
+- Un client enregistré avec `--pkce-optional` envoie un `nonce` avec chaque demande d'autorisation qui ne porte aucun
+  défi PKCE ; une demande sans l'un ni l'autre lui revient avec `invalid_request` (RFC 9700, section 2.1.1).
 
 ## Où mènent les liens
 

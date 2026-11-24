@@ -13,6 +13,11 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // The year of a full-date read from its first group: the whole match, "2026-11-21", is read by `(int)` up to the
+            // first character that is not a digit, which is the same year.
+            'DecrementInteger' => [
+                'ignoreSourceCodeByRegex' => ['.*checkdate\\(\\(int\\) \\$parts\\[2\\], \\(int\\) \\$parts\\[3\\], \\(int\\) \\$parts\\[1\\]\\).*'],
+            ],
             // The constructor of Symfony's Loader only sets the environment, which the route loader never reads: without
             // the call, no route and no answer differ.
             'MethodCallRemoval' => [

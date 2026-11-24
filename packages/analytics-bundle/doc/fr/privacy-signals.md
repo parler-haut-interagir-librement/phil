@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f456f6a22952de4e2b4f5c6a30bb2db6fbd95adf316126e531e821379a9a420f -->
+<!-- phil-dev source-sha256=f444e238bb1a2828138e1c007eeda67719081e15306b172f05ab7676c34190ef -->
 # Signaux de confidentialité
 
 **Un navigateur qui envoie Do Not Track ou Global Privacy Control n'est compté dans aucun compteur** : ni l'audience,
@@ -11,8 +11,8 @@ ni le compteur des verdicts robot.
 
 ```php
 $signals = PrivacySignals::fromHeaders(
-    $request->headers->get('DNT'),       // Do Not Track
-    $request->headers->get('Sec-GPC'),   // Global Privacy Control
+    $request->headers->get('DNT'),                           // Do Not Track
+    implode(',', $request->headers->all('Sec-GPC')),         // Global Privacy Control, every occurrence
 );
 $signals->doNotTrack;            // bool
 $signals->globalPrivacyControl;  // bool
@@ -30,9 +30,18 @@ PrivacySignals::none()->optOut(); // false — for tests, or a request that carr
 | `0` | absent | `false` |
 | ` 1 ` (avec espaces) | absent | `true` |
 | `yes` | `true` | `false` |
+| absent | `0, 1` (une liste, ou deux en-têtes joints) | `true` |
+| absent | ` 1 ,0` | `true` |
+| absent | vide | `false` |
+| absent | `10, 01` | `false` |
 
 **Seule la valeur `1`, après retrait des espaces, est un signal.** `DNT: 0` n'exprime de consentement à rien — ce n'est
 simplement pas un refus —, et un en-tête absent n'est pas un signal.
+
+**`Sec-GPC` est lu comme une liste.** Un navigateur ou un mandataire peut répéter l'en-tête ou envoyer une liste
+séparée par des virgules : `CollectController` joint toutes les occurrences avec des virgules, et `fromHeaders()` coupe
+son deuxième argument sur celles-ci ; une seule valeur `1`, après retrait des espaces, est le signal. `DNT` est lu
+comme une valeur unique.
 
 ## Sa place dans l'admission
 

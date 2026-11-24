@@ -47,6 +47,11 @@ final class FakeOidcProvider
 
     public bool $tokenEndpointDown = false;
 
+    /**
+     * Whether the discovery document announces `authorization_response_iss_parameter_supported` (RFC 9207).
+     */
+    public bool $announcesIssuerParameter = false;
+
     /** @var (callable(string): string)|null */
     public $idTokenForger;
 
@@ -72,7 +77,7 @@ final class FakeOidcProvider
                 'userinfo_endpoint' => self::ISSUER.'/userinfo',
                 'jwks_uri' => self::ISSUER.'/jwks',
                 'end_session_endpoint' => self::ISSUER.'/logout',
-            ]),
+            ] + ($this->announcesIssuerParameter ? ['authorization_response_iss_parameter_supported' => true] : [])),
             self::ISSUER.'/jwks' => $this->json(['keys' => [self::key()->toPublic()->jsonSerialize()]]),
             self::ISSUER.'/userinfo' => $this->json(['sub' => 'subject-1', 'name' => 'From Userinfo']),
             self::ISSUER.'/token' => $this->token($options),
@@ -84,15 +89,16 @@ final class FakeOidcProvider
      * Answers an authorization request and returns the local callback address.
      *
      * @param array<string, mixed> $claims claims of the ID token, over the defaults
+     * @param string|null          $issuer the `iss` of the authorization response (RFC 9207), none when null
      */
-    public function authorize(string $authorizationUrl, array $claims = []): string
+    public function authorize(string $authorizationUrl, array $claims = [], ?string $issuer = null): string
     {
         $parameters = self::query($authorizationUrl);
         $code = 'code-'.++$this->serial;
         $this->codes[$code] = \is_string($parameters['nonce'] ?? null) ? $parameters['nonce'] : '';
         $this->codeClaims[$code] = $claims;
 
-        return '/oidc/callback?'.http_build_query(['code' => $code, 'state' => $parameters['state'] ?? '']);
+        return '/oidc/callback?'.http_build_query(array_filter(['code' => $code, 'state' => $parameters['state'] ?? '', 'iss' => $issuer], static fn (mixed $value): bool => null !== $value));
     }
 
     /**

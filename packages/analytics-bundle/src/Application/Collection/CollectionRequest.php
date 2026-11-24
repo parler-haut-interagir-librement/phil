@@ -16,7 +16,7 @@ final readonly class CollectionRequest
      * @param ?string $origin               the `Origin` header
      * @param ?string $referer              the `Referer` header
      * @param ?string $doNotTrack           the `DNT` header
-     * @param ?string $globalPrivacyControl the `Sec-GPC` header
+     * @param ?string $globalPrivacyControl every `Sec-GPC` header, joined by commas
      * @param string  $body                 the body the collection script sends, as text
      */
     public function __construct(

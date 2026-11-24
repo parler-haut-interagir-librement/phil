@@ -10,6 +10,7 @@ use Phil\IdentityClientBundle\Tests\Functional\App\FakeOidcProvider;
 use Phil\IdentityClientBundle\Tests\Functional\App\RecordingProvisioner;
 use Phil\IdentityClientBundle\Tests\Functional\App\TestKernel;
 use PHPUnit\Framework\TestCase;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Clock\MockClock;
@@ -33,6 +34,11 @@ abstract class FunctionalTestCase extends TestCase
 
         $this->client = new KernelBrowser($this->kernel);
         $this->client->disableReboot();
+
+        // The discovery document of an earlier test, kept in the cache directory, must not answer for this one.
+        $discovery = $this->container()->get('cache.security.discovery');
+        self::assertInstanceOf(CacheItemPoolInterface::class, $discovery);
+        $discovery->clear();
     }
 
     #[Override]

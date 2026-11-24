@@ -172,7 +172,8 @@ final class ConformanceKernel extends Kernel
             'login_route' => 'app_login',
             'default_target' => '/home',
             'open_routes' => ['app_logout'],
-            'oidc' => ['issuer' => $this->issuer],
+            // The Basic profile plays a client without PKCE nor nonce (oidcc-ensure-request-without-nonce-succeeds-for-code-flow).
+            'oidc' => ['issuer' => $this->issuer, 'require_nonce_without_pkce' => false],
             'secrets' => ['allow_plaintext_secrets' => true],
             'audit' => 'none',
         ]);

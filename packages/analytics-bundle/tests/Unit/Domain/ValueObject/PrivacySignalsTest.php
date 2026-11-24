@@ -25,6 +25,15 @@ final class PrivacySignalsTest extends TestCase
         yield 'padded value' => [' 1 ', null, true];
         yield 'padded global privacy control' => [null, ' 1 ', true];
         yield 'unrecognized value' => ['yes', 'true', false];
+        yield 'doubled global privacy control' => [null, '0,1', true];
+        yield 'global privacy control list' => [null, '0, 1', true];
+        yield 'global privacy control first of a list' => [null, '1,0', true];
+        yield 'global privacy control spaces' => [null, "\t1 , 0", true];
+        yield 'empty global privacy control' => [null, '', false];
+        yield 'empty values of global privacy control' => [null, ', ,', false];
+        yield 'global privacy control zeros' => [null, '0, 0', false];
+        yield 'global privacy control one inside a value' => [null, '10, 01', false];
+        yield 'do not track is not a list' => ['0, 1', null, false];
     }
 
     #[DataProvider('headers')]

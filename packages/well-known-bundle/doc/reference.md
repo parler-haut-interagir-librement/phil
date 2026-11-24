@@ -21,6 +21,7 @@
 | `…\Domain\ValueObject\NodeInfoSoftware` | value object | `name`, `version`, `repository`, `homepage` |
 | `…\Domain\ValueObject\NodeInfoUsage` | value object | The optional counts |
 | `…\Domain\ValueObject\Did` | value object | `of($did, $method)`, `did`, `method` |
+| `…\Domain\ValueObject\GpcSupport` | value object | `since($lastUpdate)`, `lastUpdate`, `toArray()` |
 | `…\Domain\Exception\WellKnownException` | interface | Every exception of the bundle |
 | `…\Domain\Exception\InvalidValue` | `InvalidArgumentException` | A value a document refuses |
 | `…\Infrastructure\Http\WellKnownController` | controller | Serves the document of the route, with its headers |
@@ -49,6 +50,7 @@
 | `WellKnownServices::DOCUMENT_TAG` | `phil_well_known.document` |
 | `WellKnownServices::RESOLVER_TAG` | `phil_well_known.webfinger_resolver` |
 | `WellKnownServices::NODEINFO_ROUTE` | `phil_well_known_nodeinfo_document` |
+| `WellKnownServices::PRIVACY_BUNDLE` | `PhilPrivacyBundle`, the name in `kernel.bundles` whose registration serves `gpc.json` |
 | `WellKnownRouteLoader::TYPE` | `phil_well_known` |
 | `WellKnownRouteLoader::PARAMETER` | `phil_well_known.routes` |
 | `WellKnownController::DOCUMENT` | `_phil_well_known` |

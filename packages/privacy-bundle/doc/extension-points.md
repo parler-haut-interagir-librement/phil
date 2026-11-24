@@ -296,8 +296,17 @@ A register that keeps its corrections also implements `IncidentHistory`, and `ph
 |---|---|
 | `revisions(string $id)` | What the line held before each correction, as `IncidentRevision` (the field, its previous value, when), the oldest first. |
 
+A register that keeps the journal of each incident also implements `IncidentJournal`; `IncidentJournalRecorder` and
+`phil:privacy:incident-journal` write it, and `phil:privacy:incidents` prints it:
+
+| Method | Contract |
+|---|---|
+| `append(JournalEntry $entry)` | Adds the entry after the last one of its incident and returns it numbered (`numbered()`), from 1; two entries added at once never share a number. |
+| `journal(string $incidentId)` | The entries of the incident, the oldest first; an empty list for an incident without any. |
+
 A register that also purges, as a `RetentionPurger` on its own store, never removes a line known for less than
-`Incident::MINIMUM_RETENTION`, whatever the cutoff it is given. See [incidents.md](incidents.md#keeping-it).
+`Incident::MINIMUM_RETENTION`, whatever the cutoff it is given, and removes the corrections and the journal of a line
+with it. See [incidents.md](incidents.md#keeping-it).
 
 ## `NoticeOrganisationSource`
 

@@ -28,9 +28,11 @@ use Phil\PrivacyBundle\Application\GuestRequest\GuestRequests;
 use Phil\PrivacyBundle\Application\Handler\AdvanceAccountDeletionHandler;
 use Phil\PrivacyBundle\Application\Handler\ProcessDueAccountDeletionsHandler;
 use Phil\PrivacyBundle\Application\Handler\RunRetentionHandler;
+use Phil\PrivacyBundle\Application\Incident\IncidentJournalRecorder;
 use Phil\PrivacyBundle\Application\PersonalDataDownload;
 use Phil\PrivacyBundle\Application\RetentionJob;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentCommand;
+use Phil\PrivacyBundle\Infrastructure\Console\IncidentJournalCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentNoticeCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\IncidentsCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\ProcessDeletionsCommand;
@@ -93,7 +95,7 @@ final class PrivacyServicesPass implements CompilerPassInterface
         }
 
         if (!$container->has('clock')) {
-            $this->remove($container, [ExportPackage::class, IncidentCommand::class, IncidentNoticeCommand::class]);
+            $this->remove($container, [ExportPackage::class, IncidentCommand::class, IncidentNoticeCommand::class, IncidentJournalRecorder::class, IncidentJournalCommand::class]);
         }
 
         if (!$container->has('twig')) {
@@ -241,7 +243,7 @@ final class PrivacyServicesPass implements CompilerPassInterface
 
         if (DbalIncidentRegister::class === (string) $container->getAlias(IncidentRegister::class)) {
             $container->removeAlias(IncidentRegister::class);
-            $this->remove($container, [IncidentCommand::class, IncidentsCommand::class, IncidentNoticeCommand::class]);
+            $this->remove($container, [IncidentCommand::class, IncidentsCommand::class, IncidentNoticeCommand::class, IncidentJournalRecorder::class, IncidentJournalCommand::class]);
         }
 
         if ($container->hasAlias(GuestRequestStore::class) && DbalGuestRequests::class === (string) $container->getAlias(GuestRequestStore::class)) {

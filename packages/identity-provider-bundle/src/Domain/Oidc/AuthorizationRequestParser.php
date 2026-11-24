@@ -14,8 +14,8 @@ use Phil\IdentityProviderBundle\Domain\Model\Oidc\Client;
  * 1. an unknown or disabled client, or a redirect address it did not register exactly, is shown, never redirected;
  * 2. a parameter given twice, a `request` or `request_uri` object, a response type other than `code`, a response mode
  *    other than `query`, a missing `openid` scope, a PKCE challenge that is `plain`, out of shape, or missing when
- *    the client requires one, a `prompt` of `none` with another value, or an out-of-shape `max_age` goes back to the
- *    client;
+ *    the client requires one, a request without a PKCE challenge nor a `nonce` (RFC 9700, section 2.1.1), a `prompt`
+ *    of `none` with another value, or an out-of-shape `max_age` goes back to the client;
  * 3. scopes the client may not ask for are dropped, unknown ones too: only those the provider and the client both
  *    know remain.
  *
@@ -29,10 +29,12 @@ final readonly class AuthorizationRequestParser
     public const array PROMPTS = ['none', 'login', 'consent'];
 
     /**
-     * @param list<string> $supportedScopes the scopes the provider knows
+     * @param list<string> $supportedScopes  the scopes the provider knows
+     * @param bool         $nonceWithoutPkce whether a request without a PKCE challenge must carry a `nonce`
      */
     public function __construct(
         private array $supportedScopes,
+        private bool $nonceWithoutPkce = true,
     ) {
     }
 
@@ -72,6 +74,14 @@ final readonly class AuthorizationRequestParser
             throw AuthorizationError::redirected('invalid_request', 'A PKCE challenge with the S256 method is required.', $redirectUri, $state);
         }
 
+        $nonce = $this->optional($query, 'nonce', $redirectUri, $state);
+
+        // Without PKCE, only the nonce binds the code to the client's session: a code injected from another session
+        // would otherwise be accepted.
+        if ($this->nonceWithoutPkce && null === $challenge && null === $nonce) {
+            throw AuthorizationError::redirected('invalid_request', 'A nonce is required when the request carries no PKCE challenge.', $redirectUri, $state);
+        }
+
         $prompt = Scopes::split($this->optional($query, 'prompt', $redirectUri, $state));
 
         if ([] !== array_diff($prompt, self::PROMPTS) || (\in_array('none', $prompt, true) && \count($prompt) > 1)) {
@@ -89,7 +99,7 @@ final readonly class AuthorizationRequestParser
             $redirectUri,
             array_values(array_intersect($requested, $this->supportedScopes, $client->scopes())),
             $state,
-            $this->optional($query, 'nonce', $redirectUri, $state),
+            $nonce,
             $challenge,
             $prompt,
             null === $maxAge ? null : (int) $maxAge,
