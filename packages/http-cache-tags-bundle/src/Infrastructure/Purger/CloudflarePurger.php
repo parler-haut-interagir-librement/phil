@@ -19,11 +19,19 @@ final readonly class CloudflarePurger implements CacheTagPurger
 {
     public const int TAGS_PER_CALL = 100;
 
+    /** The longest wait for a byte of an answer, in seconds, by default. */
+    public const float TIMEOUT = 5.0;
+
+    /** The longest whole call, in seconds, by default. */
+    public const float MAX_DURATION = 10.0;
+
     public function __construct(
         private HttpClientInterface $client,
         private string $zone,
         #[SensitiveParameter]
         private string $token,
+        private float $timeout = self::TIMEOUT,
+        private float $maxDuration = self::MAX_DURATION,
     ) {
     }
 
@@ -40,6 +48,8 @@ final readonly class CloudflarePurger implements CacheTagPurger
                 $status = $this->client->request('POST', \sprintf('https://api.cloudflare.com/client/v4/zones/%s/purge_cache', rawurlencode($this->zone)), [
                     'auth_bearer' => $this->token,
                     'json' => ['tags' => $chunk],
+                    'timeout' => $this->timeout,
+                    'max_duration' => $this->maxDuration,
                 ])->getStatusCode();
             } catch (TransportExceptionInterface $transportException) {
                 $failures[] = PurgeFailed::unreachable($what, $transportException);

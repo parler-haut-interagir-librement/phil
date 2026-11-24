@@ -102,6 +102,24 @@ final class PurgersTest extends TestCase
         self::assertSame(4, $calls);
     }
 
+    public function testEveryPurgeCallHasItsTimeouts(): void
+    {
+        $sent = [];
+        $client = new MockHttpClient(static function (string $method, string $url, array $options) use (&$sent): MockResponse {
+            $sent[] = [$options['timeout'], $options['max_duration']];
+
+            return new MockResponse('{"success":true}', ['http_code' => 200]);
+        });
+
+        new VarnishPurger($client, ['http://varnish-1'])->purge([CacheTag::of('a')]);
+        new VarnishPurger($client, ['http://varnish-1'], 'xkey-purge', 1.5, 2.5)->purge([CacheTag::of('a')]);
+        new CloudflarePurger($client, 'z', 't')->purge([CacheTag::of('a')]);
+        new CloudflarePurger($client, 'z', 't', 0.5, 1.0)->purge([CacheTag::of('a')]);
+
+        self::assertSame([[5.0, 10.0], [1.5, 2.5], [5.0, 10.0], [0.5, 1.0]], $sent);
+        self::assertSame([5.0, 10.0, 5.0, 10.0], [VarnishPurger::TIMEOUT, VarnishPurger::MAX_DURATION, CloudflarePurger::TIMEOUT, CloudflarePurger::MAX_DURATION]);
+    }
+
     public function testCloudflareIsPurgedAHundredTagsAtATime(): void
     {
         $sent = [];

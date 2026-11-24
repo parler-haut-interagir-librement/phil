@@ -8,6 +8,7 @@ use Phil\Geo\Exception\GeocodingFailed;
 use Phil\Geo\Exception\InvalidPlace;
 use Phil\Geo\Geocoding\IpLocator;
 use Phil\Geo\Geocoding\Place;
+use Phil\Geo\Geocoding\Timeouts;
 use SensitiveParameter;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -22,18 +23,28 @@ final readonly class IpstackLocator implements IpLocator
 
     public const string BASE_URL = 'https://api.ipstack.com';
 
+    private HttpClientInterface $client;
+
     public function __construct(
-        private HttpClientInterface $client,
+        HttpClientInterface $client,
         #[SensitiveParameter]
         private string $accessKey,
         private string $baseUrl = self::BASE_URL,
+        Timeouts $timeouts = new Timeouts(),
     ) {
+        $this->client = $timeouts->apply($client);
     }
 
     public function locate(string $ip): ?Place
     {
         if (false === filter_var($ip, \FILTER_VALIDATE_IP)) {
             throw InvalidPlace::ip($ip);
+        }
+
+        // A private or reserved address — a proxy's own, behind a proxy the application does not trust — locates no
+        // visitor, and is never looked up.
+        if (false === filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_NO_PRIV_RANGE | \FILTER_FLAG_NO_RES_RANGE)) {
+            return null;
         }
 
         $answer = Answer::of($this->client->request('GET', rtrim($this->baseUrl, '/').'/'.$ip, ['query' => ['access_key' => $this->accessKey]]), self::NAME);

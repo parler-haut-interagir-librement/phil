@@ -8,6 +8,13 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
+### Added
+
+- `phil_geo.http`: `client`, the HTTP client of the geocoders, of ipstack and of the MaxMind updater (`http_client` by
+  default), `timeout` (3 seconds) and `max_duration` (5 seconds), handed to each adapter as its `Timeouts`;
+  `DatabaseUpdater::TIMEOUT`, 30 seconds of wait for a byte of the download. `GeocodingServices::register()` takes the
+  `http` configuration, last and optional.
+
 ### Changed
 
 - A test of a directory that cannot be written is skipped when the tests run as a user who writes there anyway, such as
@@ -18,6 +25,11 @@ The next version is 0.1.1-alpha.
   `doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, …).
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
   2026-11-24.
+
+### Security
+
+- The geocoders and ipstack ran on `http_client` without a timeout: a slow provider held a worker until
+  `default_socket_timeout`, 60 seconds. They take the timeouts of `phil_geo.http`.
 
 ## 0.1.0-alpha - 2026-11-11
 

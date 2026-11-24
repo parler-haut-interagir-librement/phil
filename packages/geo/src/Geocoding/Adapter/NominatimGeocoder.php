@@ -7,6 +7,7 @@ namespace Phil\Geo\Geocoding\Adapter;
 use Phil\Geo\Coordinates;
 use Phil\Geo\Geocoding\Geocoder;
 use Phil\Geo\Geocoding\Place;
+use Phil\Geo\Geocoding\Timeouts;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -19,12 +20,16 @@ final readonly class NominatimGeocoder implements Geocoder
 
     public const string BASE_URL = 'https://nominatim.openstreetmap.org';
 
+    private HttpClientInterface $client;
+
     public function __construct(
-        private HttpClientInterface $client,
+        HttpClientInterface $client,
         private string $userAgent,
         private string $baseUrl = self::BASE_URL,
         private int $limit = 5,
+        Timeouts $timeouts = new Timeouts(),
     ) {
+        $this->client = $timeouts->apply($client);
     }
 
     public function geocode(string $address, ?string $locale = null): array

@@ -17,6 +17,12 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final readonly class VarnishPurger implements CacheTagPurger
 {
+    /** The longest wait for a byte of an answer, in seconds, by default. */
+    public const float TIMEOUT = 5.0;
+
+    /** The longest whole call, in seconds, by default. */
+    public const float MAX_DURATION = 10.0;
+
     /**
      * @param list<string> $urls each Varnish in front of the application
      */
@@ -24,6 +30,8 @@ final readonly class VarnishPurger implements CacheTagPurger
         private HttpClientInterface $client,
         private array $urls,
         private string $header = 'xkey-purge',
+        private float $timeout = self::TIMEOUT,
+        private float $maxDuration = self::MAX_DURATION,
     ) {
     }
 
@@ -36,7 +44,7 @@ final readonly class VarnishPurger implements CacheTagPurger
 
         foreach ($this->urls as $url) {
             try {
-                $status = $this->client->request('PURGE', $url, ['headers' => [$this->header => $value]])->getStatusCode();
+                $status = $this->client->request('PURGE', $url, ['headers' => [$this->header => $value], 'timeout' => $this->timeout, 'max_duration' => $this->maxDuration])->getStatusCode();
             } catch (TransportExceptionInterface $transportException) {
                 $failures[] = PurgeFailed::unreachable('Varnish at '.$url, $transportException);
                 $error ??= $transportException;

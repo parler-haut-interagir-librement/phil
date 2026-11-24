@@ -15,7 +15,9 @@ use Phil\Geo\Geocoding\Adapter\NominatimGeocoder;
 use Phil\Geo\Geocoding\Adapter\NrcanGeocoder;
 use Phil\Geo\Geocoding\Adapter\PhotonGeocoder;
 use Phil\Geo\Geocoding\Place;
+use Phil\Geo\Geocoding\Timeouts;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -31,6 +33,7 @@ use Throwable;
 #[CoversClass(NrcanGeocoder::class)]
 #[CoversClass(PhotonGeocoder::class)]
 #[CoversClass(Answer::class)]
+#[CoversClass(Timeouts::class)]
 final class AdaptersTest extends TestCase
 {
     /** @var list<array{string, string, array<string, mixed>}> */
@@ -221,14 +224,64 @@ final class AdaptersTest extends TestCase
 
         self::assertSame(['45.5,-73.5', 'ipstack', 'Montréal, Québec, Canada', null, 'Montréal', 'Québec', 'H2X', 'CA'], $this->shape($ipstack->locate('8.8.8.8') ?? self::fail('No place.')));
         self::assertSame('https://ip.example.com/8.8.8.8?access_key=secret', $this->requests[0][1]);
-        self::assertNull(($ipstack->locate('2001:db8::1') ?? self::fail('No place.'))->label);
-        self::assertNull($ipstack->locate('127.0.0.1'));
+        self::assertNull(($ipstack->locate('2606:4700:4700::1111') ?? self::fail('No place.'))->label);
+        self::assertNull($ipstack->locate('9.9.9.9'));
         self::assertSame(['ipstack', 'https://api.ipstack.com'], [IpstackLocator::NAME, IpstackLocator::BASE_URL]);
         new IpstackLocator($this->client([new JsonMockResponse([])]), 'k')->locate('1.1.1.1');
         self::assertSame('https://api.ipstack.com/1.1.1.1?access_key=k', $this->requests[3][1]);
 
         $this->expectException(InvalidPlace::class);
         $ipstack->locate('1.1.1.1/../x');
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function privateOrReservedAddresses(): iterable
+    {
+        foreach (['10.0.0.1', '172.16.5.4', '192.168.1.1', '127.0.0.1', '0.0.0.0', '169.254.1.1', '240.0.0.1', '::1', '::', 'fc00::1', 'fd12:3456::1', 'fe80::1', '::ffff:10.0.0.1'] as $ip) {
+            yield $ip => [$ip];
+        }
+    }
+
+    public function testTimeoutsAreBounded(): void
+    {
+        self::assertSame([3.0, 5.0, 120.0], [Timeouts::TIMEOUT, Timeouts::MAX_DURATION, Timeouts::MAX]);
+        self::assertSame([120.0, 120.0], [new Timeouts(120.0, 120.0)->timeout, new Timeouts(120.0, 120.0)->maxDuration]);
+
+        foreach ([[0.0, 1.0], [-1.0, 1.0], [1.0, 0.0], [120.1, 121.0], [1.0, 120.1], [2.0, 1.0]] as [$timeout, $maxDuration]) {
+            try {
+                new Timeouts($timeout, $maxDuration);
+                self::fail(\sprintf('%s and %s are refused.', $timeout, $maxDuration));
+            } catch (InvalidPlace $e) {
+                self::assertStringContainsString('at most 120 seconds', $e->getMessage());
+            }
+        }
+    }
+
+    #[DataProvider('privateOrReservedAddresses')]
+    public function testAPrivateOrReservedAddressIsNeverSentToIpstack(string $ip): void
+    {
+        $ipstack = new IpstackLocator($this->client([new JsonMockResponse(['latitude' => 45.5, 'longitude' => -73.5])]), 'secret');
+
+        self::assertNull($ipstack->locate($ip));
+        self::assertSame([], $this->requests);
+    }
+
+    public function testEveryCallOfAnAdapterHasItsTimeouts(): void
+    {
+        $options = [];
+        $client = new MockHttpClient(static function (string $method, string $url, array $request) use (&$options): JsonMockResponse {
+            $options[] = [$request['timeout'], $request['max_duration']];
+
+            return new JsonMockResponse(['latitude' => 45.5, 'longitude' => -73.5]);
+        });
+
+        new IpstackLocator($client, 'k')->locate('8.8.8.8');
+        new IpstackLocator($client, 'k', timeouts: new Timeouts(1.5, 2.5))->locate('8.8.8.8');
+        new NominatimGeocoder($client, 'ua', timeouts: new Timeouts(0.5, 0.5))->geocode('a');
+
+        self::assertSame([[3.0, 5.0], [1.5, 2.5], [0.5, 0.5]], $options);
     }
 
     public function testFailuresAreGeocodingFailures(): void

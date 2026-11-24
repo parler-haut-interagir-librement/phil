@@ -19,6 +19,12 @@ direct`.
   `OutboxIndexer` indexes the entity as it then is, or removes the document, when `phil/outbox-bundle` relays them. A
   flush rolled back records nothing; an engine down leaves the records to the relay, which tries again.
 
+### Added
+
+- `meilisearch.http_client`, `meilisearch.timeout` and `meilisearch.max_duration`: the HTTP client that calls
+  Meilisearch, `http_client` by default, and how long a call may take, 5 and 10 seconds by default;
+  `MeilisearchIndex::TIMEOUT` and `MAX_DURATION`, and its last two arguments, optional.
+
 ### Changed
 
 - The development requirements accept `phil/ux-kit` 0.6, the minor version of its main branch and no earlier one, so
@@ -38,6 +44,11 @@ direct`.
 - An index outside the database no longer receives the documents of a flush its transaction rolls back, nor misses those
   of a flush committed while the engine was down: with `index_entities: outbox`, the default for Meilisearch and Loupe,
   the index follows the database through the outbox.
+
+### Security
+
+- `MeilisearchIndex` called Meilisearch without a timeout: a slow server held a worker until `default_socket_timeout`,
+  60 seconds. Every call waits 5 seconds at most for a byte and lasts 10 at most by default.
 
 ## 0.2.0-alpha - 2026-11-18
 

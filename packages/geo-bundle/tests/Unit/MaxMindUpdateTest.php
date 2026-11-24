@@ -112,7 +112,9 @@ final class MaxMindUpdateTest extends TestCase
     {
         $this->serve($this->archive(['GeoLite2-City.mmdb' => self::mmdb('GeoLite2-City')]));
         $headers = [];
-        $client = new MockHttpClient(function (string $method, string $url, array $options) use (&$headers): MockResponse {
+        $timeouts = [];
+        $client = new MockHttpClient(function (string $method, string $url, array $options) use (&$headers, &$timeouts): MockResponse {
+            $timeouts[] = $options['timeout'] ?? null;
             $normalized = \is_array($options['normalized_headers'] ?? null) ? $options['normalized_headers'] : [];
             $authorization = \is_array($normalized['authorization'] ?? null) ? $normalized['authorization'] : [];
             $headers[] = \is_string($authorization[0] ?? null) ? $authorization[0] : '';
@@ -123,6 +125,8 @@ final class MaxMindUpdateTest extends TestCase
         new DatabaseUpdater($client, $this->database, '12345', 'secret')->update();
 
         self::assertSame(array_fill(0, 2, 'Authorization: Basic '.base64_encode('12345:secret')), $headers);
+        self::assertSame([30.0, 30.0], $timeouts);
+        self::assertSame(30.0, DatabaseUpdater::TIMEOUT);
     }
 
     public function testTheDefaults(): void

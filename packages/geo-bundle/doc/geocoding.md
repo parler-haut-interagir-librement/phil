@@ -29,6 +29,10 @@ phil_geo:
         cache:
             pool: cache.app
             lifetime: 604800
+    http:
+        client: http_client
+        timeout: 3.0
+        max_duration: 5.0
     ip_locator:
         maxmind:
             database: '%kernel.project_dir%/var/geoip/GeoLite2-City.mmdb'
@@ -41,6 +45,9 @@ phil_geo:
 
 | Option | Default | Role |
 |---|---|---|
+| `http.client` | `http_client` | The service id of the HTTP client of the geocoders, of ipstack and of the MaxMind updater |
+| `http.timeout` | `3.0` | The longest wait for a byte of an answer, in seconds, above zero and at most 120 |
+| `http.max_duration` | `5.0` | The longest call of a geocoder or of ipstack, in seconds, no shorter than `http.timeout`; the download of the MaxMind database waits 30 seconds at most for a byte and has no other bound |
 | `geocoding.providers` | none | `nominatim`, `google_maps`, `nrcan`, `photon`, `opencage`, `here`, `mapbox`, `azure_maps`, `adresses_quebec`; none, and no `Geocoder` is registered |
 | `geocoding.nominatim.user_agent` | | Required with Nominatim: the site and how to reach it |
 | `geocoding.nominatim.base_url` | the public server | Another server, one's own |
@@ -73,7 +80,8 @@ phil_geo:
 | `ip_locator.ipstack.base_url` | `https://api.ipstack.com` | `http://api.ipstack.com` on a plan that answers over plain HTTP only, which sends the visitor's IP address and the access key in clear |
 
 One provider is the `Geocoder`; several are a `ChainGeocoder`, asked in their order; with a pool, the whole is a
-`CachedGeocoder`. Each adapter takes the `http_client` service of FrameworkBundle. A pool keeps every provider's
+`CachedGeocoder`. Each adapter takes the client `http.client`, the `http_client` service of FrameworkBundle by
+default, with the timeouts of `http`. A pool keeps every provider's
 answers, so the configuration refuses a pool when the providers include Mapbox without `permanent`: its terms forbid
 keeping its temporary answers. Keep a lifetime under thirty days with HERE ([the terms of each](../../geo/doc/geocoding.md)).
 

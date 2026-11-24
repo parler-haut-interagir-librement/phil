@@ -85,7 +85,8 @@ final class PhilSearchBundleTest extends TestCase
     {
         $container = $this->load([['adapter' => 'meilisearch', 'meilisearch' => ['url' => 'http://meili:7700', 'key' => 'k']]]);
 
-        self::assertEquals([new Reference('http_client'), 'http://meili:7700', 'k'], $container->getDefinition(MeilisearchIndex::class)->getArguments());
+        self::assertEquals([new Reference('http_client'), 'http://meili:7700', 'k', 5.0, 10.0], $container->getDefinition(MeilisearchIndex::class)->getArguments());
+        self::assertEquals([new Reference('app.search_client'), 'http://meili:7700', null, 1.0, 2.0], $this->load([['adapter' => 'meilisearch', 'meilisearch' => ['url' => 'http://meili:7700', 'http_client' => 'app.search_client', 'timeout' => 1.0, 'max_duration' => 2.0]]])->getDefinition(MeilisearchIndex::class)->getArguments());
         self::assertSame(MeilisearchIndex::class, (string) $container->getAlias(SearchIndex::class));
         self::assertFalse($container->hasDefinition(DbalSearchIndex::class));
         self::assertFalse($container->hasDefinition(SearchSchemaListener::class));

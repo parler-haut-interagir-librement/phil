@@ -405,6 +405,8 @@ final class MaxMindTest extends TestCase
         self::assertNull($french->locate('81.2.74.1'));
         self::assertNull($french->locate('81.2.75.1'));
         self::assertNull($french->locate('9.9.9.9'));
+        self::assertNull($french->locate('10.0.0.1'));
+        self::assertNull($french->locate('::1'));
         self::assertSame('maxmind', MaxMindLocator::NAME);
 
         $this->expectException(GeocodingFailed::class);

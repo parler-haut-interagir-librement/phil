@@ -7,6 +7,7 @@ namespace Phil\Geo\Geocoding\Adapter;
 use Phil\Geo\Coordinates;
 use Phil\Geo\Geocoding\Geocoder;
 use Phil\Geo\Geocoding\Place;
+use Phil\Geo\Geocoding\Timeouts;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -26,15 +27,19 @@ final readonly class PhotonGeocoder implements Geocoder
     /** @var list<string> */
     public const array LANGUAGES = ['de', 'en', 'fr'];
 
+    private HttpClientInterface $client;
+
     /**
      * @param list<string> $languages the languages the server knows
      */
     public function __construct(
-        private HttpClientInterface $client,
+        HttpClientInterface $client,
         private string $baseUrl = self::BASE_URL,
         private int $limit = 5,
         private array $languages = self::LANGUAGES,
+        Timeouts $timeouts = new Timeouts(),
     ) {
+        $this->client = $timeouts->apply($client);
     }
 
     public function geocode(string $address, ?string $locale = null): array

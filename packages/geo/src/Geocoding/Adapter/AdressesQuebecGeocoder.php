@@ -8,6 +8,7 @@ use Phil\Geo\Coordinates;
 use Phil\Geo\Exception\GeocodingFailed;
 use Phil\Geo\Geocoding\Geocoder;
 use Phil\Geo\Geocoding\Place;
+use Phil\Geo\Geocoding\Timeouts;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -25,11 +26,15 @@ final readonly class AdressesQuebecGeocoder implements Geocoder
 
     public const string BASE_URL = 'https://servicescarto.mrnf.gouv.qc.ca/pes/rest/services/Territoire/Adresse_Geocodage/GeocodeServer';
 
+    private HttpClientInterface $client;
+
     public function __construct(
-        private HttpClientInterface $client,
+        HttpClientInterface $client,
         private string $baseUrl = self::BASE_URL,
         private int $limit = 5,
+        Timeouts $timeouts = new Timeouts(),
     ) {
+        $this->client = $timeouts->apply($client);
     }
 
     public function geocode(string $address, ?string $locale = null): array

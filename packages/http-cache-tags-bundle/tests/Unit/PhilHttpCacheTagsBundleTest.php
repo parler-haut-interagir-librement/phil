@@ -64,13 +64,14 @@ final class PhilHttpCacheTagsBundleTest extends TestCase
         self::assertSame(['Surrogate-Key', ' '], \array_slice($this->load([['header' => 'surrogate-key']])->getDefinition(ResponseTagsListener::class)->getArguments(), 1));
 
         $varnish = $this->load([['purger' => 'varnish', 'varnish' => ['urls' => ['http://varnish'], 'header' => 'xkey-softpurge']]]);
-        self::assertEquals([new Reference('http_client'), ['http://varnish'], 'xkey-softpurge'], $varnish->getDefinition(VarnishPurger::class)->getArguments());
+        self::assertEquals([new Reference('http_client'), ['http://varnish'], 'xkey-softpurge', 5.0, 10.0], $varnish->getDefinition(VarnishPurger::class)->getArguments());
         self::assertSame(VarnishPurger::class, (string) $varnish->getAlias(CacheTagPurger::class));
         self::assertFalse($varnish->hasDefinition(CloudflarePurger::class));
         self::assertSame('xkey-purge', $this->load([['purger' => 'varnish', 'varnish' => ['urls' => ['http://varnish']]]])->getDefinition(VarnishPurger::class)->getArgument(2));
 
         $cloudflare = $this->load([['purger' => 'cloudflare', 'cloudflare' => ['zone' => 'z', 'token' => 't']]]);
-        self::assertEquals([new Reference('http_client'), 'z', 't'], $cloudflare->getDefinition(CloudflarePurger::class)->getArguments());
+        self::assertEquals([new Reference('http_client'), 'z', 't', 5.0, 10.0], $cloudflare->getDefinition(CloudflarePurger::class)->getArguments());
+        self::assertEquals([new Reference('app.cdn'), 'z', 't', 1.5, 3.0], $this->load([['purger' => 'cloudflare', 'cloudflare' => ['zone' => 'z', 'token' => 't'], 'http' => ['client' => 'app.cdn', 'timeout' => 1.5, 'max_duration' => 3.0]]])->getDefinition(CloudflarePurger::class)->getArguments());
         self::assertSame(CloudflarePurger::class, (string) $cloudflare->getAlias(CacheTagPurger::class));
         self::assertFalse($cloudflare->hasDefinition(VarnishPurger::class));
     }

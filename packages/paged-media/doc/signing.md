@@ -22,7 +22,7 @@ restart:
 |---|---|
 | `FileCertificateSource($path, $keyPath, $password)` | On disk: a PKCS#12 file and its password, or a PEM certificate and the file of its key |
 | `InlineCertificateSource($certificate, $key, $password)` | In memory: a PEM certificate and key, or the bytes of a PKCS#12 file, from an environment variable or Symfony's secrets vault; sent as `signer.pem` and `signer.key`, or `signer.p12` |
-| `VaultCertificateSource($client, $address, $token, $path, $mount)` | In a key/value secrets engine, version 2, of HashiCorp Vault or OpenBao, read at `<address>/v1/<mount>/data/<path>`; the secret holds `certificate` and `key` in PEM |
+| `VaultCertificateSource($client, $address, $token, $path, $mount, $timeout, $maxDuration)` | In a key/value secrets engine, version 2, of HashiCorp Vault or OpenBao, read at `<address>/v1/<mount>/data/<path>`; the secret holds `certificate` and `key` in PEM; the call waits 5 seconds at most for a byte and lasts 10 at most, by default |
 
 A vault out of reach, or a secret of another shape, throws `CertificateUnavailable`. An application with its own vault
 implements `CertificateSource`.

@@ -18,6 +18,8 @@ use Phil\PagedMedia\Tests\Unit\Fixture\SelfSignedCertificate;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\JsonMockResponse;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
 #[CoversClass(Certificate::class)]
@@ -126,6 +128,22 @@ final class SigningTest extends TestCase
         self::assertSame(['hvs.token'], $server->last()['headers']['x-vault-token']);
         self::assertTrue($certificate->certificate->sameAs(InputFile::fromContents('signer.pem', $signer->certificate)));
         self::assertTrue($certificate->key instanceof InputFile && $certificate->key->sameAs(InputFile::fromContents('signer.key', $signer->key)));
+    }
+
+    public function testTheVaultIsAskedWithinItsTimeouts(): void
+    {
+        $sent = [];
+        $client = new MockHttpClient(static function (string $method, string $url, array $options) use (&$sent): JsonMockResponse {
+            $sent[] = [$options['timeout'], $options['max_duration']];
+
+            return new JsonMockResponse(['data' => ['data' => ['certificate' => 'C', 'key' => 'K']]]);
+        });
+
+        new VaultCertificateSource($client, 'http://vault:8200', 't', 'signer')->certificate();
+        new VaultCertificateSource($client, 'http://vault:8200', 't', 'signer', 'secret', 1.0, 2.0)->certificate();
+
+        self::assertSame([[5.0, 10.0], [1.0, 2.0]], $sent);
+        self::assertSame([5.0, 10.0], [VaultCertificateSource::TIMEOUT, VaultCertificateSource::MAX_DURATION]);
     }
 
     public function testTheVaultMountIsSecretByDefault(): void
