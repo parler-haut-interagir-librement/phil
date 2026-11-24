@@ -1,0 +1,61 @@
+{% extends '@PhilNewsletterArchive/archive/layout.html.twig' %}
+
+{% set domain = 'phil_newsletter_archive' %}
+{% set query = {list: list, tag: tag}|filter(value => value is not null) %}
+
+{% block meta %}
+    <link rel="canonical" href="{{ url('phil_newsletter_archive', page.filter.page > 1 ? query|merge({page: page.filter.page}) : query) }}">
+{% endblock %}
+
+{% block body %}
+    <h1>{{ 'archive.title'|trans({}, domain) }}</h1>
+
+    {% if lists is not empty or tags is not empty %}
+        <nav aria-label="{{ 'archive.filters'|trans({}, domain) }}">
+            {% if lists is not empty %}
+                <p>{{ 'archive.lists'|trans({}, domain) }}
+                    <a href="{{ path('phil_newsletter_archive', query|filter((value, key) => key != 'list')) }}"{% if list is null %} aria-current="page"{% endif %}>{{ 'archive.all'|trans({}, domain) }}</a>
+                    {% for key, name in lists %}
+                        · <a href="{{ path('phil_newsletter_archive', query|merge({list: key})) }}"{% if key == list %} aria-current="page"{% endif %}>{{ name }}</a>
+                    {% endfor %}
+                </p>
+            {% endif %}
+            {% if tags is not empty %}
+                <p>{{ 'archive.tags'|trans({}, domain) }}
+                    <a href="{{ path('phil_newsletter_archive', query|filter((value, key) => key != 'tag')) }}"{% if tag is null %} aria-current="page"{% endif %}>{{ 'archive.all'|trans({}, domain) }}</a>
+                    {% for one in tags %}
+                        · <a href="{{ path('phil_newsletter_archive', query|merge({tag: one})) }}"{% if one == tag %} aria-current="page"{% endif %}>#{{ one }}</a>
+                    {% endfor %}
+                </p>
+            {% endif %}
+        </nav>
+    {% endif %}
+
+    {% if page.issues is empty %}
+        <p>{{ 'archive.empty'|trans({}, domain) }}</p>
+    {% else %}
+        <ol class="phil-newsletter-archive__issues">
+            {% for issue in page.issues %}
+                <li>
+                    <article>
+                        <h2><a href="{{ path('phil_newsletter_archive_issue', {slug: issue.slug}) }}">{{ issue.subject }}</a></h2>
+                        <p><time datetime="{{ issue.sentAt|date('Y-m-d\\TH:i:sP', 'UTC') }}">{{ issue.sentAt|date('Y-m-d', 'UTC') }}</time>{% if issue.listName is not empty %} · {{ issue.listName }}{% endif %}</p>
+                        {% if issue.preheader is not empty %}<p>{{ issue.preheader }}</p>{% endif %}
+                    </article>
+                </li>
+            {% endfor %}
+        </ol>
+    {% endif %}
+
+    {% if page.pages > 1 %}
+        <nav aria-label="{{ 'archive.pagination'|trans({}, domain) }}">
+            {% if page.hasPrevious %}
+                <a rel="prev" href="{{ path('phil_newsletter_archive', page.filter.page > 2 ? query|merge({page: page.filter.page - 1}) : query) }}">{{ 'archive.previous'|trans({}, domain) }}</a>
+            {% endif %}
+            <span>{{ 'archive.page'|trans({'%page%': page.filter.page, '%pages%': page.pages}, domain) }}</span>
+            {% if page.hasNext %}
+                <a rel="next" href="{{ path('phil_newsletter_archive', query|merge({page: page.filter.page + 1})) }}">{{ 'archive.next'|trans({}, domain) }}</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+{% endblock %}

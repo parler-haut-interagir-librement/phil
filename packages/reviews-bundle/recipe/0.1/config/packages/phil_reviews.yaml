@@ -1,0 +1,8 @@
+# The types of subject the site reviews, each with its scale, its criteria and the positive labels it offers as
+# superlatives. See the configuration guide of phil/reviews-bundle for every option: the participants, the weighted
+# average, the removal criteria, the erasure and the rate limits.
+phil_reviews:
+    types:
+        product:
+            criteria: [quality, value]
+            superlatives: [well-made, great-value, as-described]

@@ -1,0 +1,4 @@
+# The pages of the reviews: /reviews/{type}/{id}, and the forms that post to them.
+phil_reviews:
+    resource: '@PhilReviewsBundle/config/routes.php'
+    prefix: /reviews

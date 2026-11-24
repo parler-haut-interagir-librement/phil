@@ -1,0 +1,49 @@
+{#
+ # The form that writes or changes the member's review, without JavaScript: the overall score and those of the
+ # criteria as groups of radio buttons — the recipe `Rating` of the kit —, the title and the text, the superlatives as
+ # check boxes, and the mention of a compensation. With phil/spam-protection-bundle, its honeypot, token and proof of
+ # work, which its Stimulus controller solves.
+ #
+ # subject, type, mine, values, spam, token, error: what ReviewsController gives page.html.twig.
+ #}
+{%- set content = mine.content ?? null -%}
+{%- set chosen = values.superlatives ?? content.superlatives ?? [] -%}
+{%- set compensated = values is not empty ? (values.compensated ?? null) is not null : (mine.compensation.received ?? false) -%}
+<form method="post" action="{{ path('phil_reviews_write', {type: subject.type, id: subject.id}) }}" class="phil-reviews__form"{% if error is not null %} aria-describedby="phil-reviews-error"{% endif %}>
+    <input type="hidden" name="_token" value="{{ token }}">
+    {{ component(phil_reviews_kit('Rating'), {label: 'form.overall'|trans({}, 'phil_reviews'), name: 'overall', value: values.overall ?? content.overall ?? 0, max: type.scale, starLabel: 'stars.choose'|trans({}, 'phil_reviews'), required: true}) }}
+    {%- for code in type.criteria %}
+    {{ component(phil_reviews_kit('Rating'), {label: ('criteria.' ~ code)|trans({}, 'phil_reviews'), name: 'criteria[' ~ code ~ ']', value: values.criteria[code] ?? content.criteria[code] ?? 0, max: type.scale, starLabel: 'stars.choose'|trans({}, 'phil_reviews'), clearLabel: 'form.unrated'|trans({}, 'phil_reviews')}) }}
+    {%- endfor %}
+    <p>
+        <label for="phil-reviews-title">{{ 'form.title'|trans({}, 'phil_reviews') }}</label>
+        {{ component(phil_reviews_kit('Input'), {id: 'phil-reviews-title', name: 'title', type: 'text', maxlength: 150, value: values.title ?? content.title ?? ''}) }}
+    </p>
+    <p>
+        <label for="phil-reviews-body">{{ 'form.body'|trans({}, 'phil_reviews') }}</label>
+        {% component (phil_reviews_kit('Textarea')) with {id: 'phil-reviews-body', name: 'body', rows: 6, maxlength: type.bodyLength} %}{% block content %}{{ values.body ?? content.body ?? '' }}{% endblock %}{% endcomponent %}
+    </p>
+    {%- if type.superlatives is not empty and type.maxSuperlatives > 0 %}
+    <fieldset class="phil-reviews__choose-superlatives">
+        <legend>{{ 'form.superlatives'|trans({'%count%': type.maxSuperlatives}, 'phil_reviews') }}</legend>
+        {%- for label in type.superlatives %}
+        <label>{{ component(phil_reviews_kit('Checkbox'), {name: 'superlatives[]', value: label, checked: label in chosen}) }} {{ ('superlatives.' ~ label)|trans({}, 'phil_reviews') }}</label>
+        {%- endfor %}
+    </fieldset>
+    {%- endif %}
+    <fieldset class="phil-reviews__compensation">
+        <legend>{{ 'form.compensation'|trans({}, 'phil_reviews') }}</legend>
+        <label>{{ component(phil_reviews_kit('Checkbox'), {name: 'compensated', value: '1', checked: compensated}) }} {{ 'form.compensated'|trans({}, 'phil_reviews') }}</label>
+        <label for="phil-reviews-compensation">{{ 'form.compensation_note'|trans({}, 'phil_reviews') }}</label>
+        {{ component(phil_reviews_kit('Input'), {id: 'phil-reviews-compensation', name: 'compensation_note', type: 'text', maxlength: 200, value: values.compensation_note ?? mine.compensation.note ?? ''}) }}
+    </fieldset>
+    {%- if spam is not null %}
+    <div style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+        <label for="phil-reviews-website">Website</label>
+        <input type="text" id="phil-reviews-website" name="website_url" autocomplete="off" tabindex="-1">
+    </div>
+    <input type="hidden" name="_phil_spam_token" value="{{ spam.token }}">
+    <input type="hidden" name="_phil_spam_proof" data-controller="phil--spam-protection-bundle--proof-of-work" data-phil--spam-protection-bundle--proof-of-work-challenge-value="{{ spam.challenge }}" data-phil--spam-protection-bundle--proof-of-work-difficulty-value="{{ spam.difficulty }}">
+    {%- endif %}
+    {% component (phil_reviews_kit('Button')) with {type: 'submit'} %}{% block content %}{{ (mine is null ? 'form.send' : 'form.update')|trans({}, 'phil_reviews') }}{% endblock %}{% endcomponent %}
+</form>

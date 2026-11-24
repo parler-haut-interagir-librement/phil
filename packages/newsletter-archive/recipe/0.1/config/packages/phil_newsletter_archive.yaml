@@ -1,0 +1,5 @@
+# The public archive of the newsletter: see vendor/phil/newsletter-archive/doc/configuration.md.
+phil_newsletter_archive:
+    page_size: 20
+    # The service of a Phil\Slug\Slugger, from phil/slug-bundle for one; by default, a TransliteratingSlugger.
+    slugger: ~

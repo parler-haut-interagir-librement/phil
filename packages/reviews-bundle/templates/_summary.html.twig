@@ -1,0 +1,42 @@
+{#
+ # The ratings of a subject: its average in stars and in words once it has the minimum of reviews of its type, the
+ # average of each criterion, the superlatives given most often, and the weighted average explained with its
+ # parameters. The stars are the recipe `Rating` of the kit, read as text by screen readers.
+ #
+ # summary: a RatingSummary; type: its SubjectType; superlatives: the labels to show, with how often each was given.
+ #}
+{%- set mean = summary.mean -%}
+<section class="phil-reviews__summary" aria-labelledby="phil-reviews-summary-title">
+    <h2 id="phil-reviews-summary-title">{{ 'summary.title'|trans({}, 'phil_reviews') }}</h2>
+    {%- if summary.suspended %}
+    <p class="phil-reviews__suspended" role="status">{{ 'summary.suspended'|trans({}, 'phil_reviews') }}</p>
+    {%- endif %}
+    {%- if mean is not null and type.prior.shows(summary.count) %}
+    <p class="phil-reviews__average">
+        {{ component(phil_reviews_kit('Rating'), {label: 'summary.average_label'|trans({}, 'phil_reviews'), value: (mean * 2)|round / 2, max: type.scale, starLabel: 'stars.read'|trans({}, 'phil_reviews')}) }}
+        <span>{{ 'summary.average'|trans({'%average%': mean|number_format(1), '%scale%': type.scale, '%count%': summary.count}, 'phil_reviews') }}</span>
+    </p>
+    {%- elseif summary.count > 0 %}
+    <p class="phil-reviews__average">{{ 'summary.too_few'|trans({'%count%': summary.count, '%minimum%': type.prior.minimum}, 'phil_reviews') }}</p>
+    {%- else %}
+    <p class="phil-reviews__average">{{ 'summary.none'|trans({}, 'phil_reviews') }}</p>
+    {%- endif %}
+    {%- if type.prior.shows(summary.count) and summary.criteria is not empty %}
+    <dl class="phil-reviews__criteria">
+        {%- for code in type.criteria|filter(code => summary.criteria[code] is defined) %}
+        {%- set criterion = summary.criteria[code] %}
+        <dt>{{ ('criteria.' ~ code)|trans({}, 'phil_reviews') }}</dt>
+        <dd>{{ component(phil_reviews_kit('Rating'), {label: ('criteria.' ~ code)|trans({}, 'phil_reviews'), value: (criterion.mean * 2)|round / 2, max: type.scale, starLabel: 'stars.read'|trans({}, 'phil_reviews')}) }}
+            <span>{{ 'summary.criterion'|trans({'%average%': criterion.mean|number_format(1), '%scale%': type.scale, '%count%': criterion.count}, 'phil_reviews') }}</span></dd>
+        {%- endfor %}
+    </dl>
+    {%- endif %}
+    {%- if superlatives is not empty %}
+    <ul class="phil-reviews__superlatives" aria-label="{{ 'summary.superlatives'|trans({}, 'phil_reviews') }}">
+        {%- for label, times in superlatives %}
+        <li>{% component (phil_reviews_kit('Badge')) with {variant: 'secondary'} %}{% block content %}{{ ('superlatives.' ~ label)|trans({}, 'phil_reviews') }} · {{ 'summary.times'|trans({'%count%': times}, 'phil_reviews') }}{% endblock %}{% endcomponent %}</li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+    <p class="phil-reviews__method">{{ 'summary.method'|trans({'%count%': type.prior.count, '%mean%': type.prior.mean|number_format(1), '%minimum%': type.prior.minimum}, 'phil_reviews') }}</p>
+</section>

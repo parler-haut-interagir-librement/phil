@@ -1,0 +1,79 @@
+{
+    "name": "phil/commerce-consignment-bundle",
+    "description": "Sell consigned goods beside your own on one SKU: who owns each unit, which leaves first, the margin or commission of each sale, statements and payouts.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "consignment",
+        "inventory",
+        "stock",
+        "margin",
+        "commission",
+        "commerce",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/orm": "^3.7",
+        "phil/commerce-bundle": "^0.4@dev",
+        "phil/commerce-logistics-bundle": "^0.1@dev",
+        "phil/money": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/event-manager": "^2.0",
+        "doctrine/persistence": "^4.1",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/doctrine-bundle": "For the ledger's tables: the layers of stock and their entries",
+        "symfony/messenger": "To write what an order shipped in a worker, from its number",
+        "twig/twig": "For the statement's template, which an application overrides"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CommerceConsignmentBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CommerceConsignmentBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": true
+            }
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

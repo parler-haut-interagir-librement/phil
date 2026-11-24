@@ -1,0 +1,67 @@
+{#
+    A consignor's statement, from StatementView::data(): override it in
+    templates/bundles/PhilCommerceConsignmentBundle/statement.html.twig.
+    Every value is escaped by Twig; amounts are decimals in `statement.currency`.
+#}
+<article class="consignment-statement" lang="en">
+    <header>
+        <h1>Statement {{ statement.number }}</h1>
+        <dl>
+            <dt>Consignor</dt><dd>{{ statement.consignor }}</dd>
+            <dt>Period</dt><dd><time datetime="{{ statement.period_start }}">{{ statement.period_start }}</time> to <time datetime="{{ statement.period_end }}">{{ statement.period_end }}</time> (end excluded, UTC)</dd>
+            <dt>Issued</dt><dd><time datetime="{{ statement.issued_at }}">{{ statement.issued_at }}</time></dd>
+        </dl>
+    </header>
+
+    <section>
+        <h2>Summary</h2>
+        <table>
+            <tbody>
+                <tr><th scope="row">Units sold</th><td>{{ statement.units_sold }}</td></tr>
+                <tr><th scope="row">Units returned by customers</th><td>{{ statement.units_returned }}</td></tr>
+                <tr><th scope="row">Units bought by the shop</th><td>{{ statement.units_bought_out }}</td></tr>
+                <tr><th scope="row">Units given back</th><td>{{ statement.units_given_back }}</td></tr>
+                <tr><th scope="row">Units still in the shop</th><td>{{ statement.units_held }}</td></tr>
+                <tr><th scope="row">Revenue</th><td>{{ statement.revenue }} {{ statement.currency }}</td></tr>
+                <tr><th scope="row">Shop's commission</th><td>{{ statement.commission }} {{ statement.currency }}</td></tr>
+                <tr><th scope="row">Owed to the consignor</th><td><strong>{{ statement.share }} {{ statement.currency }}</strong></td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>Entries</h2>
+        {% if statement.lines is empty %}
+            <p>No entry over the period.</p>
+        {% else %}
+            <table>
+                <thead>
+                    <tr><th scope="col">When</th><th scope="col">Reference</th><th scope="col">SKU</th><th scope="col">Location</th><th scope="col">What</th><th scope="col">Units</th><th scope="col">Revenue</th><th scope="col">Share</th><th scope="col">Commission</th></tr>
+                </thead>
+                <tbody>
+                    {% for line in statement.lines %}
+                        <tr><td><time datetime="{{ line.moved_at }}">{{ line.moved_at }}</time></td><td>{{ line.reference }}</td><td>{{ line.sku }}</td><td>{{ line.location }}</td><td>{{ line.kind }}</td><td>{{ line.units }}</td><td>{{ line.revenue }}</td><td>{{ line.share }}</td><td>{{ line.commission }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2>Still in the shop</h2>
+        {% if statement.held is empty %}
+            <p>No unit left in the shop at the end of the period.</p>
+        {% else %}
+            <table>
+                <thead>
+                    <tr><th scope="col">SKU</th><th scope="col">Location</th><th scope="col">Units</th><th scope="col">Received</th><th scope="col">Age in days</th></tr>
+                </thead>
+                <tbody>
+                    {% for units in statement.held %}
+                        <tr><td>{{ units.sku }}</td><td>{{ units.location }}</td><td>{{ units.units }}</td><td><time datetime="{{ units.received_at }}">{{ units.received_at }}</time></td><td>{{ units.age_in_days }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </section>
+</article>

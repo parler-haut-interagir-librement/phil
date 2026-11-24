@@ -1,0 +1,44 @@
+{% extends '@PhilNewsletterArchive/archive/layout.html.twig' %}
+
+{% set domain = 'phil_newsletter_archive' %}
+
+{% block title %}{{ issue.subject }}{% endblock %}
+
+{% block meta %}
+    {% if shared %}
+        <meta name="robots" content="noindex, nofollow">
+        <meta name="referrer" content="no-referrer">
+    {% endif %}
+    {% if issue.published %}
+        {% set canonical = url('phil_newsletter_archive_issue', {slug: issue.slug}) %}
+        <link rel="canonical" href="{{ canonical }}">
+        <meta property="og:url" content="{{ canonical }}">
+    {% endif %}
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ issue.subject }}">
+    {% if issue.preheader is not empty %}
+        <meta name="description" content="{{ issue.preheader }}">
+        <meta property="og:description" content="{{ issue.preheader }}">
+    {% endif %}
+{% endblock %}
+
+{% block body %}
+    <article class="phil-newsletter-archive__issue">
+        <header>
+            <h1>{{ issue.subject }}</h1>
+            <p><time datetime="{{ issue.sentAt|date('Y-m-d\\TH:i:sP', 'UTC') }}">{{ issue.sentAt|date('Y-m-d', 'UTC') }}</time>{% if issue.listName is not empty %} · {{ issue.listName }}{% endif %}</p>
+            {% if issue.tags is not empty %}
+                <ul class="phil-newsletter-archive__tags" aria-label="{{ 'archive.tags'|trans({}, domain) }}">
+                    {% for tag in issue.tagValues %}
+                        <li>{% if issue.published %}<a href="{{ path('phil_newsletter_archive', {tag: tag}) }}">#{{ tag }}</a>{% else %}#{{ tag }}{% endif %}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </header>
+        {#- The web version was purified by phil/markup when the issue was published. -#}
+        <div class="phil-newsletter-archive__content">{{ issue.html|raw }}</div>
+        {% if issue.published %}
+            <footer><a href="{{ path('phil_newsletter_archive') }}">{{ 'archive.back'|trans({}, domain) }}</a></footer>
+        {% endif %}
+    </article>
+{% endblock %}

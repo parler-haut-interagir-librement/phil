@@ -1,0 +1,98 @@
+{
+    "name": "phil/reviews-bundle",
+    "description": "Reviews and ratings you can trust for products, games or places: one per member, criteria scores, helpfulness votes, public replies, withdrawal by stated rules.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "reviews",
+        "ratings",
+        "bayesian-average",
+        "moderation",
+        "aggregate-rating",
+        "stimulus",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.5",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phil/moderation-bundle": "^0.3@dev",
+        "phil/privacy-bundle": "^0.3@dev",
+        "phil/spam-protection-bundle": "^0.3@dev",
+        "phil/structured-data": "^0.1@dev",
+        "phil/ux-kit": "^0.5@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.6",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-twig-component": "^3.7",
+        "symfony/yaml": "^8.2",
+        "twig/twig": "^3.21"
+    },
+    "suggest": {
+        "doctrine/orm": "For the tables added to the schema the ORM generates",
+        "phil/moderation-bundle": "To report reviews in the one queue of the moderation, and withdraw them under the published criteria",
+        "phil/privacy-bundle": "For the reviews, votes and responses in the export and the erasure of a member's data",
+        "phil/rate-limit-bundle": "To limit the review form and the votes through the rules named in the configuration",
+        "phil/spam-protection-bundle": "To hold the review form to a honeypot, a single-use token, a proof of work and content rules",
+        "phil/structured-data": "For the schema.org AggregateRating of a subject whose reviews were all collected on the site",
+        "phil/ux-kit": "For the recipes Rating, Button, Badge, Input, Checkbox and Textarea the pages draw, through the Symfony UX Toolkit",
+        "symfony/asset-mapper": "To serve the Stimulus controller of the votes without a build step",
+        "symfony/console": "For phil:reviews:recompute",
+        "symfony/routing": "For the pages of the reviews",
+        "symfony/security-core": "To name the current member from the authenticated user, and decide who responds",
+        "symfony/security-csrf": "For the forms of the pages",
+        "symfony/twig-bundle": "For the pages of the reviews",
+        "symfony/ux-twig-component": "For the recipes of the kit the pages draw"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ReviewsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ReviewsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,21 @@
+# Single sign-on through the SAML 2.0 identity provider of each organisation. See the installation and configuration
+# guides of phil/saml-sp-bundle: the key pair of the service provider is made with the command they give, and kept out
+# of the repository.
+phil_saml_sp:
+    signing:
+        certificate: '%env(file:resolve:SAML_SP_CERTIFICATE)%'
+        private_key: '%env(file:resolve:SAML_SP_PRIVATE_KEY)%'
+    # The accepted assertions go to a table of the Doctrine DBAL connection when there is one — create it with a
+    # migration, as the installation guide shows —, to the cache pool otherwise: in prod, a pool shared by every server,
+    # or single_server on a single server.
+    # single_server: true
+    identity_providers: {}
+        # acme:
+        #     metadata_url: 'https://login.microsoftonline.com/<tenant>/federationmetadata/2007-06/federationmetadata.xml?appid=<application>'
+        #     preset: entra_id
+
+when@dev:
+    phil_saml_sp:
+        allow_localhost: true
+        secure_cookie: false
+        bind_to_browser: false

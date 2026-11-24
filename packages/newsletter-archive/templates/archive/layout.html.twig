@@ -1,0 +1,15 @@
+{#- The page the archive's pages extend; an application overrides it to wear its own layout, and its block `meta` to add a sharing image, from phil/social-cards for one. -#}
+<!DOCTYPE html>
+<html lang="{{ 'locale'|trans({}, 'phil_newsletter_archive') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ 'archive.title'|trans({}, 'phil_newsletter_archive') }}{% endblock %}</title>
+    {% block meta %}{% endblock %}
+</head>
+<body>
+    <main class="phil-newsletter-archive">
+        {% block body %}{% endblock %}
+    </main>
+</body>
+</html>

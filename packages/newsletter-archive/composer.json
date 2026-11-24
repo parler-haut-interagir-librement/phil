@@ -1,0 +1,82 @@
+{
+    "name": "phil/newsletter-archive",
+    "description": "Put sent newsletters on the web without leaking subscribers: published issues by list and tag, revocable share links, web versions with no personal data.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "symfony-bundle",
+        "newsletter",
+        "archive",
+        "web-version",
+        "email"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.5",
+        "phil/markup": "^0.3@dev",
+        "phil/newsletter-bundle": "^0.3@dev || ^0.4@dev",
+        "phil/slug": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "twig/twig": "^3.30"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/orm": "^3.7",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/mailer": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/yaml": "^8.2"
+    },
+    "suggest": {
+        "doctrine/orm": "To add the archive's tables to the schema the ORM generates, with ArchiveSchemaListener",
+        "phil/slug-bundle": "To make the slugs of the issues with a slugger of the configuration, named by the slugger option",
+        "phil/social-cards": "To give each issue a sharing image, in the block meta of the layout",
+        "symfony/console": "For the command that publishes, unpublishes, shares and retags the issues"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\NewsletterArchive\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\NewsletterArchive\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

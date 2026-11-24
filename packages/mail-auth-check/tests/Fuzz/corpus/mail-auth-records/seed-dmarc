@@ -1,0 +1,1 @@
+v=DMARC1; p=quarantine; sp=none; aspf=s; adkim=r; psd=n; rua=mailto:a@example.org

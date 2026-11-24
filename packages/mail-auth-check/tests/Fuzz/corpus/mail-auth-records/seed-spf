@@ -1,0 +1,1 @@
+v=spf1 include:_spf.provider.example ip4:192.0.2.0/24 a mx/24 ~all

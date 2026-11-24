@@ -1,0 +1,56 @@
+{
+    "name": "phil/inventory-alerts",
+    "description": "Know when to reorder and whom to tell: reorder points, safety stock, min/max and EOQ, low-stock alerts per location, opt-in back-in-stock and price-drop alerts.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "inventory",
+        "reorder-point",
+        "safety-stock",
+        "eoq",
+        "low-stock",
+        "back-in-stock",
+        "price-drop"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*",
+        "phil/email-address": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\InventoryAlerts\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\InventoryAlerts\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": true
+            }
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}
