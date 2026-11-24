@@ -27,6 +27,7 @@ The next version is 0.2.0-alpha: the movements table gains two columns and two u
 
 ### Changed
 
+- It requires `phil/commerce-bundle` 0.5, the minor released the same evening.
 - `GiftCards::issueFor()` stores the cards it issues at once, through `addIssuedCards()`, and returns a
   `GiftCardIssuance` instead of a list: a `foreach` over it goes through the same cards as before.
 - `DoctrineStoredValueRepository` stores an order's cards with an entity manager of their own on the same connection,
