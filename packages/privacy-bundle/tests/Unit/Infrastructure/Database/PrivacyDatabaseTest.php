@@ -153,6 +153,16 @@ final class PrivacyDatabaseTest extends TestCase
                 'previous' => [null, false],
                 'revised_at' => [null, true],
             ],
+            PrivacyTables::INCIDENT_JOURNAL => [
+                'incident_id' => [32, true],
+                'sequence' => [null, true],
+                'kind' => [32, true],
+                'done_at' => [null, true],
+                'party' => [255, true],
+                'details' => [null, true],
+                'until_at' => [null, false],
+                'recorded_at' => [null, true],
+            ],
             PrivacyTables::ERASURE_REQUESTS => [
                 'id' => [32, true],
                 'subject' => [DataSubject::MAX_LENGTH, false],

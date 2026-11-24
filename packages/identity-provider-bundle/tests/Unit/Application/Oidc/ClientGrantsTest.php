@@ -119,6 +119,7 @@ final class ClientGrantsTest extends TestCase
         self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(['aud' => self::ISSUER.self::PATH]), ClientAuthMethod::PrivateKeyJwt, self::PATH)->id());
         self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(['aud' => ['https://other.example', self::ISSUER]]), ClientAuthMethod::PrivateKeyJwt)->id());
         self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(['aud' => [7, self::ISSUER.self::PATH]]), ClientAuthMethod::PrivateKeyJwt, self::PATH)->id());
+        self::assertSame('machine', $tokens->authenticateClient('machine', $this->assertion(['aud' => [['nested'], self::ISSUER.self::PATH]]), ClientAuthMethod::PrivateKeyJwt, self::PATH)->id());
         $this->assertOAuthError('invalid_client', fn (): Client => $tokens->authenticateClient('machine', $this->assertion(['aud' => self::ISSUER.self::PATH]), ClientAuthMethod::PrivateKeyJwt));
         $this->assertOAuthError('invalid_client', fn (): Client => $tokens->authenticateClient('machine', $this->assertion(['aud' => [7, 'https://other.example']]), ClientAuthMethod::PrivateKeyJwt));
     }

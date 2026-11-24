@@ -68,6 +68,7 @@ final class ProviderTest extends TestCase
     {
         $settings = new ProviderSettings('https://id.example');
         self::assertSame([SigningAlgorithm::RS256, 60, 600, 600, 2_592_000, ProviderSettings::SCOPES, 86_400, 604_800], [$settings->algorithm, $settings->codeLifetime, $settings->accessTokenLifetime, $settings->idTokenLifetime, $settings->refreshTokenLifetime, $settings->scopes, $settings->keyActivationDelay, $settings->retiredKeyRetention]);
+        self::assertTrue($settings->nonceWithoutPkce);
         new ProviderSettings('https://id.example', codeLifetime: 600, accessTokenLifetime: 1);
 
         foreach ([

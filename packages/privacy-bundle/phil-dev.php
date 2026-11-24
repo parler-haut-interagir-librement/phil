@@ -91,6 +91,7 @@ return [
             // which the shape check refuses right after.
             'IncrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
+                    '.*\\$journal->append\\(new JournalEntry\\(\\$incidentId, 0, .*',
                     'private const int PURGE_BATCH = 500;',
                     'is_numeric\\(\\$row\\[\'sequence\'\\]\\) \\? \\(int\\) \\$row\\[\'sequence\'\\] : 0,',
                     '\\$salt \\?\\?= random_bytes\\(32\\);',
@@ -146,15 +147,19 @@ return [
             // The date parts of the archive's headers come from DateTimeImmutable::format() as decimal strings, which
             // PHP's comparison, arithmetic and shift operators read as the same integers: the casts only give PHPStan
             // its integers.
-            // The number of a correction of the register of incidents: every driver returns the integer of its column.
+            // The number of a correction or of an entry of the journal of incidents: every driver returns the integer of its
+            // column, and PHP adds one to a numeric string as to its integer.
             'CastInt' => [
-                'ignore' => [ZipFile::class.'::__construct', ZipFile::class.'::dosTime', ZipFile::class.'::dosDate', DbalIncidentRegister::class.'::revise', DbalIncidentRegister::class.'::revisions'],
+                'ignore' => [ZipFile::class.'::__construct', ZipFile::class.'::dosTime', ZipFile::class.'::dosDate', DbalIncidentRegister::class.'::revise', DbalIncidentRegister::class.'::revisions', DbalIncidentRegister::class.'::append', DbalIncidentRegister::class.'::journal'],
             ],
             // The instants RetentionPeriod::lastsAtLeast() compares from: each duration the tests tell apart is told apart
             // from several of them, so that removing the first or the last leaves the answer as it is.
+            // And the type of the number of a journal entry, which PDO binds as the integer it is: the declared type serves
+            // the drivers that would bind it as a string.
             'ArrayItemRemoval' => [
                 'ignoreSourceCodeByRegex' => [
                     'private const array REFERENCES = \\[',
+                    '.*\\], \\[\x27sequence\x27 => ParameterType::INTEGER\\]\\);',
                 ],
             ],
             // The configuration tree always gives `guest_requests.enabled`, which GuestRequestServices reads without a

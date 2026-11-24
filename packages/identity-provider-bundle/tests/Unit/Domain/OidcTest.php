@@ -185,6 +185,7 @@ final class OidcTest extends TestCase
         yield 'no openid' => [['scope' => 'email'], 'invalid_scope'];
         yield 'no challenge' => [['code_challenge' => null], 'invalid_request'];
         yield 'no challenge, a method' => [['client_id' => 'server', 'code_challenge' => null], 'invalid_request'];
+        yield 'no challenge, a method, a nonce' => [['client_id' => 'server', 'code_challenge' => null, 'nonce' => 'n'], 'invalid_request'];
         yield 'plain challenge' => [['code_challenge_method' => 'plain'], 'invalid_request'];
         yield 'no method' => [['client_id' => 'server', 'code_challenge_method' => null], 'invalid_request'];
         yield 'short challenge' => [['code_challenge' => 'abc'], 'invalid_request'];

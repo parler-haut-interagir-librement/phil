@@ -81,6 +81,11 @@ final class IncidentJournalCommandTest extends TestCase
 
         self::assertSame(Command::SUCCESS, $tester->execute(['incident' => self::ID]));
         self::assertSame("The journal of this incident is empty.\n", $tester->getDisplay());
+
+        $blank = $this->tester();
+
+        self::assertSame(Command::SUCCESS, $blank->execute(['incident' => self::ID, '--kind' => '']));
+        self::assertSame("The journal of this incident is empty.\n", $blank->getDisplay());
     }
 
     public function testWhatIsRefused(): void
