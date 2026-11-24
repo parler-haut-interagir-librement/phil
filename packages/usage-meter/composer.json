@@ -27,7 +27,7 @@
     "require-dev": {
         "doctrine/dbal": "^4.5",
         "doctrine/orm": "^3.7",
-        "phil/commerce-subscription-bundle": "^0.1@dev",
+        "phil/commerce-subscription-bundle": "^0.2@dev",
         "phil/money": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
         "symfony/clock": "^8.2"

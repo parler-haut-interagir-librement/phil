@@ -15,7 +15,7 @@ The next version is 0.1.1-alpha.
   `suggested_retail_price`, null by default. A table of 0.1.0-alpha gains that column and nothing else changes.
 - The cost of a product: `ProductCosts`, a public alias of `CompositeCosts`, which gives a composite the sum of its
   parts' unit costs times their units, and any other product the unit cost of `UnitCosts`; `LogisticsUnitCosts`, the
-  `UnitCosts` of `phil/commerce-logistics-bundle` 0.1.1 or later, registered when its bundle is, which the package
+  `UnitCosts` of `phil/commerce-logistics-bundle` 0.2 or later, registered when its bundle is, which the package
   suggests and which conflicts below 0.1.1.
 
 ### Fixed
