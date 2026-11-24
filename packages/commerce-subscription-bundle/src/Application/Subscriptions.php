@@ -29,6 +29,9 @@ use Throwable;
  *
  * A change of tier takes effect at the next renewal with `changeTo()`, or at once with `changeNow()`, prorated. A
  * change to a lower tier waits for the next renewal unless `$immediateDowngrades` is set.
+ *
+ * Each order placed here freezes the subscription's delivery address, when it has one and `DeliveryAddresses` is
+ * given: the order keeps that copy whatever the subscriber changes afterwards.
  */
 final readonly class Subscriptions
 {
@@ -49,6 +52,7 @@ final readonly class Subscriptions
         private int $abandonPendingAfterDays = 7,
         private ?FeatureAccess $access = null,
         private bool $immediateDowngrades = false,
+        private ?DeliveryAddresses $addresses = null,
     ) {
     }
 
@@ -239,6 +243,7 @@ final readonly class Subscriptions
         $this->orders->add($order, $this->reference($subscription), self::ONE_PERIOD, PricingContext::of(self::ONE_PERIOD, $at));
         $this->orders->changeTaxZone($order, $taxZone);
         $this->orders->place($order, $at);
+        $this->addresses?->freeze($subscription, $orderNumber, $at);
 
         return $order;
     }

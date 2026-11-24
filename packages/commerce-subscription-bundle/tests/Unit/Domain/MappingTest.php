@@ -12,6 +12,7 @@ use Phil\CommerceSubscriptionBundle\Domain\Gift\GiftRenewal;
 use Phil\CommerceSubscriptionBundle\Domain\Gift\GiftState;
 use Phil\CommerceSubscriptionBundle\Domain\Model\Gift;
 use Phil\CommerceSubscriptionBundle\Domain\Model\Offer;
+use Phil\CommerceSubscriptionBundle\Domain\Model\OrderAddress;
 use Phil\CommerceSubscriptionBundle\Domain\Model\Seat;
 use Phil\CommerceSubscriptionBundle\Domain\Model\Subscription;
 use Phil\CommerceSubscriptionBundle\Domain\Offer\BillingUnit;
@@ -30,6 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Subscription::class)]
 #[CoversClass(Gift::class)]
 #[CoversClass(Seat::class)]
+#[CoversClass(OrderAddress::class)]
 final class MappingTest extends TestCase
 {
     public function testTheOfferTable(): void
@@ -38,7 +40,7 @@ final class MappingTest extends TestCase
 
         self::assertSame('phil_commerce_subscription_offer', $metadata->getTableName());
         self::assertSame(['code'], $metadata->getIdentifierFieldNames());
-        self::assertSame([['columns' => ['family']]], array_values($metadata->table['indexes'] ?? []));
+        self::assertSame([['family']], $this->columnsOf($metadata->table['indexes'] ?? []));
         self::assertSame([
             'priceMinorUnits' => ['price', 'bigint', null, false, null],
             'currencyCode' => ['currency', 'string', 3, false, true],
@@ -65,7 +67,7 @@ final class MappingTest extends TestCase
         self::assertSame('phil_commerce_subscription', $metadata->getTableName());
         self::assertSame(['id'], $metadata->getIdentifierFieldNames());
         self::assertSame('version', $metadata->versionField);
-        self::assertSame([['columns' => ['subscriber']], ['columns' => ['state', 'period_end']]], array_values($metadata->table['indexes'] ?? []));
+        self::assertSame([['subscriber'], ['state', 'period_end']], $this->columnsOf($metadata->table['indexes'] ?? []));
         self::assertSame([
             'state' => ['state', 'string', 16, false, null],
             'nextOfferCode' => ['next_offer', 'string', 64, true, null],
@@ -90,6 +92,8 @@ final class MappingTest extends TestCase
             'changeSecondsLeft' => ['change_seconds_left', 'integer', null, false, null],
             'changePeriodSeconds' => ['change_period_seconds', 'integer', null, true, null],
             'changeCredit' => ['change_credit', 'bigint', null, false, null],
+            'deliveryAddress' => ['delivery_address', 'json', null, true, null],
+            'lastShippedAt' => ['last_shipped_at', 'datetime_immutable', null, true, null],
             'version' => ['version', 'integer', null, false, null],
             'id' => ['id', 'string', 36, false, true],
             'subscriber' => ['subscriber', 'string', 255, false, null],
@@ -109,8 +113,8 @@ final class MappingTest extends TestCase
         self::assertSame('phil_commerce_subscription_gift', $metadata->getTableName());
         self::assertSame(['id'], $metadata->getIdentifierFieldNames());
         self::assertSame('version', $metadata->versionField);
-        self::assertSame([['columns' => ['buyer']]], array_values($metadata->table['indexes'] ?? []));
-        self::assertSame([['columns' => ['code_hash']]], array_values($metadata->table['uniqueConstraints'] ?? []));
+        self::assertSame([['buyer']], $this->columnsOf($metadata->table['indexes'] ?? []));
+        self::assertSame([['code_hash']], $this->columnsOf($metadata->table['uniqueConstraints'] ?? []));
         self::assertSame([
             'state' => ['state', 'string', 16, false, null],
             'codeHash' => ['code_hash', 'string', 64, true, true],
@@ -139,11 +143,29 @@ final class MappingTest extends TestCase
 
         self::assertSame('phil_commerce_subscription_seat', $metadata->getTableName());
         self::assertSame(['subscriptionId', 'member'], $metadata->getIdentifierFieldNames());
-        self::assertSame([['columns' => ['member']]], array_values($metadata->table['indexes'] ?? []));
+        self::assertSame([['member']], $this->columnsOf($metadata->table['indexes'] ?? []));
         self::assertSame([
             'subscriptionId' => ['subscription', 'string', 36, false, true],
             'member' => ['member', 'string', 255, false, null],
             'assignedAt' => ['assigned_at', 'datetime_immutable', null, false, null],
+        ], $this->columns($metadata));
+    }
+
+    public function testTheOrderAddressTable(): void
+    {
+        $metadata = $this->metadata(OrderAddress::class);
+
+        self::assertSame('phil_commerce_subscription_order_address', $metadata->getTableName());
+        self::assertSame(['orderNumber'], $metadata->getIdentifierFieldNames());
+        self::assertSame([['subscriber'], ['kept_since']], $this->columnsOf($metadata->table['indexes'] ?? []));
+        self::assertSame([
+            'shippedAt' => ['shipped_at', 'datetime_immutable', null, true, null],
+            'keptSince' => ['kept_since', 'datetime_immutable', null, false, null],
+            'orderNumber' => ['order_number', 'string', 64, false, null],
+            'subscriptionId' => ['subscription_id', 'string', 36, false, true],
+            'subscriber' => ['subscriber', 'string', 255, false, null],
+            'address' => ['address', 'json', null, false, null],
+            'frozenAt' => ['frozen_at', 'datetime_immutable', null, false, null],
         ], $this->columns($metadata));
     }
 
@@ -170,6 +192,18 @@ final class MappingTest extends TestCase
         self::assertSame($gifts['buyer']->length, \strlen($gift->buyer));
         self::assertSame($gifts['offerCode']->length, \strlen($gift->offerCode));
         self::assertSame($gifts['currencyCode']->length, \strlen($gift->currency()->code));
+    }
+
+    /**
+     * The columns of each index, in order.
+     *
+     * @param array<array-key, mixed> $indexes
+     *
+     * @return list<mixed>
+     */
+    private function columnsOf(array $indexes): array
+    {
+        return array_values(array_map(static fn (mixed $index): mixed => \is_array($index) ? ($index['columns'] ?? null) : null, $indexes));
     }
 
     /**

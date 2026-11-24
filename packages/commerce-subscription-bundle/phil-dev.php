@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPublicMethodParameterRector;
 use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 
 /*
@@ -45,6 +46,11 @@ return [
             StringClassNameToClassConstantRector::class => [
                 'src/PhilCommerceSubscriptionBundle.php',
                 'tests/Unit/PhilCommerceSubscriptionBundleTest.php',
+            ],
+            // Messenger hands the handler its message: the message carries nothing, and its type names what the
+            // handler handles.
+            RemoveUnusedPublicMethodParameterRector::class => [
+                'src/Application/Handler/PurgeDeliveryAddressesHandler.php',
             ],
         ],
     ],

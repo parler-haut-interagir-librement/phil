@@ -8,6 +8,23 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
+### Added
+
+- Delivery addresses: `DeliveryAddress`, a `phil/address` address with its delivery method and a telephone number in
+  E.164 kept only when the method's carrier asks for one; `Subscription::shipTo()`, `deliveryAddress()`,
+  `forgetDeliveryAddress()`, `shipped()` and `lastShippedAt()`, nullable columns `delivery_address` and
+  `last_shipped_at`; `OrderAddress`, the copy frozen in each order, table `phil_commerce_subscription_order_address`;
+  `DeliveryAddresses` (`change()`, `remove()`, `of()`, `ofOrder()`, `freeze()`, `shipped()`, `copiesOf()`, `erase()`,
+  `purge()`), which `Subscriptions` receives to freeze the address of each order it places;
+  `SubscriptionRefused::phoneRequired()`. See [Delivery addresses](doc/delivery-addresses.md).
+- The ports `PhoneRequirement`, answered by `ConfiguredPhoneRequirement`, and `DeliveryAddressRepository`, with its
+  Doctrine adapter; its `erase()` and `purge()` are idempotent.
+- The erasure of the addresses 90 days after the last shipment: the key `delivery_addresses` (`retention_days`,
+  `phone_required_methods`, `purge_batch`, `schedule`, `lock_factory`); the command
+  `phil:commerce-subscription:purge-addresses`; the schedule `phil_commerce_subscription_addresses`, sending
+  `PurgeDeliveryAddresses` to `PurgeDeliveryAddressesHandler`; both under the `lock.factory` service when it exists.
+- `DeliveryAddressPrivacy`, the delivery addresses in the access and erasure requests of `phil/privacy-bundle`.
+
 ### Fixed
 
 - It requires `phil/commerce-bundle` 0.4, the version published on 2026-11-20, beside which its requirement of 0.2 or

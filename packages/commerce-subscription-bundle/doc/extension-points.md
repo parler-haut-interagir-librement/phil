@@ -26,13 +26,21 @@ The application implements `Application\Contract\OrganizationMembership`: `organ
 stable identifiers of the organizations a member belongs to. Declared as a service, it is the one `FeatureAccess`
 receives; without it, no organization opens its features. See [Organizations](organizations.md).
 
+## Delivery addresses
+
+The application implements `Application\Contract\PhoneRequirement` when its carriers ask for a telephone number by
+other rules than a list of delivery methods, and aliases it under that interface. Another package reads a delivery
+address through `DeliveryAddresses::of()` and `ofOrder()`, behind a port of its own. See
+[Delivery addresses](delivery-addresses.md).
+
 ## Repositories
 
-`OfferRepository`, `SubscriptionRepository`, `GiftRepository` and `SeatRepository` are public aliases of their
-Doctrine adapters; a store of the application's own keeps `findByCodes()` and `forSubscribers()` reading many rows at
+`OfferRepository`, `SubscriptionRepository`, `GiftRepository`, `SeatRepository` and `DeliveryAddressRepository` are
+public aliases of their Doctrine adapters; a store of the application's own keeps `findByCodes()` and `forSubscribers()` reading many rows at
 once, the sweeps — `periodOverBy()`, `pendingWithoutOrder()`, `pendingCreatedBefore()` — bounded by their limit,
-`findByCodeHash()` on an index, and `holdsSeat()` counting the seats assigned before the member's rather than reading
-them.
+`findByCodeHash()` on an index, `holdsSeat()` counting the seats assigned before the member's rather than reading
+them, and `DeliveryAddressRepository::erase()` and `purge()` idempotent, writing at once, each purge batch bounded by
+its limit.
 
 ## Configuration
 
@@ -42,6 +50,7 @@ them.
 | `abandon_pending_after_days` | How many days an unpaid first period stays pending before the sweep ends it |
 | `immediate_downgrades` | Whether a change at once to a lower tier is prorated now rather than at the next renewal |
 | `gift_redeem_within_days` | How many days a gift's code redeems it |
+| `delivery_addresses` | How long delivery addresses are kept, which carriers ask for a telephone number, how the purge runs |
 
 See [Configuration](configuration.md).
 
@@ -53,3 +62,4 @@ See [Configuration](configuration.md).
 | `Gifts` | Gifts bought, paid and redeemed by a code; public — see [Gifts](gifts.md) |
 | `Seats` | The seats of an organization's subscription; public — see [Organizations](organizations.md) |
 | `FeatureAccess` | What a subscriber or a member may use; public, reset between requests |
+| `DeliveryAddresses` | Delivery addresses, their copies in each order, their erasure and purge; public — see [Delivery addresses](delivery-addresses.md) |

@@ -32,11 +32,14 @@ The module gives those packages what a subscriber is entitled to, and nothing th
 | The features a person may use now | `FeatureAccess::features()` and `grants()` | Their own subscriptions', their organizations' — every member, or the seat holders —, gifts redeemed, and the dunning stages of a renewal past due |
 | Who holds a subscription, of which tier, until when | `SubscriptionRepository::forSubscribers()`, `Subscription::offerCode()`, `periodEnd()`, `state()`, `payer()` | The subscriber's stable identifier, never an email address; who pays a gifted one |
 | Who in an organization uses it | `SeatRepository::holdsSeat()`, and the application's `OrganizationMembership` | The members holding the first seats of an offer that counts them |
+| Where a shipment goes | `DeliveryAddresses::of()` and `ofOrder()` | The address of a subscription, and the copy frozen in each order, until their erasure |
 
 - **A content right is a feature name**: `phil/content-access` maps a page, a file or an episode to a feature
   (`episodes:early`), and asks `FeatureAccess::grants()`; this module never knows what a feature opens.
 - **A benefit is owed per period paid**: `phil/benefit-deliverables` reads a subscription's state and period end to
   know who is owed what this quarter, and keeps what it delivered in its own store; this module keeps no delivery.
+  It reads the address a benefit is shipped to through a port of its own, which an adapter answers from
+  `DeliveryAddresses`.
 - **Neither package is required**: this module depends on neither, and neither needs more than the reads above.
 - **Organizations themselves**, their members and their roles, belong to the application: the module reads them
   through `OrganizationMembership`, and depends on no package of tenants.
