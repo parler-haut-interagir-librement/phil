@@ -412,6 +412,135 @@ final class CostingTest extends TestCase
         self::assertSame([], $this->repository->entries);
     }
 
+    public function testALandedCostIsCheckedBeforeItsLayerIsLooked(): void
+    {
+        $costing = $this->costing(CostingMethod::FirstInFirstOut);
+
+        $this->refused('A cost of DICE is zero or more; -0.50 CAD is not.', fn () => $costing->land('DICE', 'warehouse', $this->cad(-50), 'PO-1', $this->at));
+        $this->refused('The stock of DICE is valued in CAD; a cost in USD cannot join it.', fn () => $costing->land('DICE', 'warehouse', Money::of(50, Currency::of('USD')), 'PO-1', $this->at));
+    }
+
+    public function testAReturnGoesBackToEachOwnerForAllThatTheirIssuesAndReturnsTell(): void
+    {
+        $costing = $this->costing(CostingMethod::FirstInFirstOut);
+        $costing->receive('ZINE', 'warehouse', 2, null, '17', 'R-1', $this->at);
+        $costing->receive('ZINE', 'warehouse', 1, null, '17', 'R-2', $this->at->modify('+1 hour'));
+        $costing->receive('ZINE', 'warehouse', 1, null, '18', 'R-3', $this->at->modify('+2 hours'));
+        $costing->issue('ZINE', 'warehouse', 2, 4, '2026-0001', $this->at);
+        $costing->issue('ZINE', 'warehouse', 2, 2, '2026-0001', $this->at);
+
+        $costing->returnFromSale('2026-0001', 'ZINE', 'store', 4, $this->at->modify('+1 day'));
+
+        self::assertSame([['17', 3, 0], ['18', 1, 0]], $this->layers('ZINE', 'store'));
+        self::assertSame([
+            [CostEntryKind::Issued, '17', -2, 0, 0, '2026-0001'],
+            [CostEntryKind::Issued, '17', -1, 0, 0, '2026-0001'],
+            [CostEntryKind::Issued, '18', -1, 0, 0, '2026-0001'],
+            [CostEntryKind::Returned, '17', 3, 0, 0, '2026-0001'],
+            [CostEntryKind::Returned, '18', 1, 0, 0, '2026-0001'],
+        ], \array_slice($this->entries(), 3));
+
+        // Everything that left came back: one more unit is the shop's, uncosted, and no owner gets a share of nothing.
+        $costing->returnFromSale('2026-0001', 'ZINE', 'store', 1, $this->at->modify('+2 days'));
+
+        self::assertSame([['17', 3, 0], ['18', 1, 0]], $this->layers('ZINE', 'store'));
+        self::assertSame([[CostEntryKind::Returned, null, 1, 1, 0, '2026-0001']], \array_slice($this->entries(), 8));
+    }
+
+    public function testTheShopsUnitsComeBackFirstAtTheRunningBalanceOfTheirCostThenTheOwners(): void
+    {
+        $costing = $this->costing(CostingMethod::FirstInFirstOut);
+        $costing->receive('DICE', 'warehouse', 3, $this->cad(111), null, 'R-1', $this->at);
+        $costing->receive('DICE', 'warehouse', 2, null, '17', 'R-2', $this->at->modify('+1 hour'));
+        $costing->land('DICE', 'warehouse', $this->cad(1), 'R-1', $this->at);
+        $costing->issue('DICE', 'warehouse', 5, 5, '2026-0001', $this->at);
+
+        foreach ([1, 1, 1, 1, 2] as $day => $units) {
+            $costing->returnFromSale('2026-0001', 'DICE', 'store', $units, $this->at->modify(\sprintf('+%d days', $day + 1)));
+        }
+
+        // 3.34 over three units, to the cent: the remainders go to the larger fractions, then to the first.
+        self::assertSame([
+            [CostEntryKind::Issued, null, -3, 0, -334, '2026-0001'],
+            [CostEntryKind::Issued, '17', -2, 0, 0, '2026-0001'],
+            [CostEntryKind::Returned, null, 1, 0, 111, '2026-0001'],
+            [CostEntryKind::Returned, null, 1, 0, 112, '2026-0001'],
+            [CostEntryKind::Returned, null, 1, 0, 111, '2026-0001'],
+            [CostEntryKind::Returned, '17', 1, 0, 0, '2026-0001'],
+            [CostEntryKind::Returned, '17', 1, 0, 0, '2026-0001'],
+            [CostEntryKind::Returned, null, 1, 1, 0, '2026-0001'],
+        ], \array_slice($this->entries(), 3));
+        self::assertSame([[null, 1, 111], [null, 1, 112], [null, 1, 111], ['17', 1, 0], ['17', 1, 0]], $this->layers('DICE', 'store'));
+    }
+
+    public function testATransferOfAnOwnersUnitsFromSeveralLayersIsOneEntryAndNothingMovesWithoutUnits(): void
+    {
+        $costing = $this->costing(CostingMethod::FirstInFirstOut);
+        $costing->receive('ZINE', 'warehouse', 2, null, '17', 'R-1', $this->at);
+        $costing->receive('ZINE', 'warehouse', 3, null, '17', 'R-2', $this->at->modify('+1 hour'));
+        $costing->transfer('ZINE', 'warehouse', 'store', 4, 5, 'TR-1', $this->at);
+
+        self::assertSame([['17', 2, 0], ['17', 2, 0]], $this->layers('ZINE', 'store'));
+        self::assertSame([['17', 1, 0]], $this->layers('ZINE', 'warehouse'));
+        self::assertSame([
+            [CostEntryKind::TransferredOut, '17', -4, 0, 0, 'TR-1'],
+            [CostEntryKind::TransferredIn, '17', 4, 0, 0, 'TR-1'],
+        ], \array_slice($this->entries(), 2));
+
+        $costing->transfer('ZINE', 'warehouse', 'store', 0, 1, 'TR-0', $this->at);
+        self::assertCount(4, $this->repository->entries);
+    }
+
+    public function testTheOwnersAnApplicationNamesAreHeldToWhatEachHoldsAndTheShopToItsOwn(): void
+    {
+        $ownership = new class implements StockOwnership {
+            /** @var list<array{int, int, list<array{string, int}>}> */
+            public array $asked = [];
+
+            /** @var list<array{string, int}> */
+            public array $answer = [];
+
+            #[Override]
+            public function leaving(string $sku, string $location, int $units, int $shopUnits, array $consigned, ?string $reference): array
+            {
+                $this->asked[] = [$units, $shopUnits, $consigned];
+
+                return $this->answer;
+            }
+        };
+        $costing = new Costing($this->repository, CostingMethod::FirstInFirstOut, $this->cad, $ownership);
+        $costing->receive('ZINE', 'warehouse', 3, null, '9', 'R-1', $this->at);
+        $costing->receive('ZINE', 'warehouse', 1, null, '3', 'R-2', $this->at);
+
+        // Nothing is asked of the owners for a difference of nothing, whatever they would answer.
+        $ownership->answer = [['nobody', 1]];
+        $costing->vary('ZINE', 'warehouse', 0, 4, null, 'COUNT-0', $this->at);
+        self::assertSame([], $ownership->asked);
+
+        // A level that holds fewer units than its owners hold has no shop units, never a negative number of them.
+        $ownership->answer = [];
+        $this->refused('The owners given for 1 units of ZINE leaving warehouse do not add up: each owner gives no more than they hold, and the shop no more than it holds.', fn () => $costing->vary('ZINE', 'warehouse', -1, 2, null, 'COUNT-1', $this->at));
+        self::assertSame([[1, 0, [['9', 3], ['3', 1]]]], $ownership->asked);
+
+        // Two shares of one owner add up against what the owner holds.
+        $ownership->answer = [['9', 2], ['9', 2]];
+        $this->refused('The owners given for 4 units of ZINE leaving warehouse do not add up: each owner gives no more than they hold, and the shop no more than it holds.', fn () => $costing->vary('ZINE', 'warehouse', -4, 4, null, 'COUNT-2', $this->at));
+
+        // An owner who holds nothing gives nothing, whatever the shop could cover.
+        $ownership->answer = [['nobody', 1]];
+        $this->refused('The owners given for 1 units of ZINE leaving warehouse do not add up: each owner gives no more than they hold, and the shop no more than it holds.', fn () => $costing->vary('ZINE', 'warehouse', -1, 10, null, 'COUNT-4', $this->at));
+
+        // A share of nothing, even of an owner who holds nothing, is no refusal and no entry; the owners can cover it all.
+        $ownership->answer = [['9', 1], ['3', 1], ['9', 0], ['nobody', 0]];
+        $costing->vary('ZINE', 'warehouse', -2, 4, VarianceReason::Lost, 'COUNT-3', $this->at);
+
+        self::assertSame([
+            [CostEntryKind::Variance, '9', -1, 0, 0, 'COUNT-3'],
+            [CostEntryKind::Variance, '3', -1, 0, 0, 'COUNT-3'],
+        ], \array_slice($this->entries(), 2));
+        self::assertSame([['9', 2, 0]], $this->layers('ZINE', 'warehouse'));
+    }
+
     public function testAReceiptsTermsAreBoundAsOnAPurchaseOrderLine(): void
     {
         [$stock] = $this->services(CostingMethod::WeightedAverage);

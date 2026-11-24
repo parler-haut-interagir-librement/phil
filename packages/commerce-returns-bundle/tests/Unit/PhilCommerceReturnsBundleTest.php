@@ -174,6 +174,8 @@ final class PhilCommerceReturnsBundleTest extends TestCase
         self::assertNull($restocking->getArgument('$location'));
         self::assertSame('returns', $this->load(['logistics_restocking' => ['location' => 'returns']], $bundles)->getDefinition(LogisticsRestocking::class)->getArgument('$location'));
         self::assertSame(str_repeat('a', 64), $this->load(['logistics_restocking' => ['location' => str_repeat('a', 64)]], $bundles)->getDefinition(LogisticsRestocking::class)->getArgument('$location'));
+        // Sixty-four characters of two bytes each: the pattern counts characters, not bytes.
+        self::assertSame(str_repeat('é', 64), $this->load(['logistics_restocking' => ['location' => str_repeat('é', 64)]], $bundles)->getDefinition(LogisticsRestocking::class)->getArgument('$location'));
         self::assertSame('a', $this->load(['logistics_restocking' => ['location' => 'a']], $bundles)->getDefinition(LogisticsRestocking::class)->getArgument('$location'));
     }
 

@@ -121,33 +121,28 @@ final readonly class Costing
      */
     public function returnFromSale(string $orderNumber, string $sku, string $location, int $units, DateTimeImmutable $at): void
     {
-        // Out of the shop's units: those that left, those whose cost was known, and their value; then those that came
-        // back already. Issues are negative in the journal, returns positive.
-        [$issued, $costedIssued, $issuedValue, $returned, $costedReturned, $returnedValue] = [0, 0, 0, 0, 0, 0];
+        // Out of the shop's units: those still out, those of them whose cost was known, and their value. Issues are
+        // negative in the journal and returns positive, so each entry takes its units off what is still out.
+        [$outstanding, $costedOutstanding, $outstandingValue] = [0, 0, 0];
         $owners = [];
 
         foreach ($this->costs->salesEntriesOf($orderNumber, $sku) as $entry) {
             if (null !== $entry->owner) {
                 $owners[self::KEY.$entry->owner] = [$entry->owner, ($owners[self::KEY.$entry->owner][1] ?? 0) - $entry->units];
-            } elseif (CostEntryKind::Issued === $entry->kind) {
-                $issued -= $entry->units;
-                $costedIssued -= $entry->costedUnits();
-                $issuedValue -= $entry->value()->minorUnits;
             } else {
-                $returned += $entry->units;
-                $costedReturned += $entry->costedUnits();
-                $returnedValue += $entry->value()->minorUnits;
+                $outstanding -= $entry->units;
+                $costedOutstanding -= $entry->costedUnits();
+                $outstandingValue -= $entry->value()->minorUnits;
             }
         }
 
         $left = $units;
-        $part = min($left, $issued - $returned);
-        $costedReturnable = $costedIssued - $costedReturned;
-        $costed = min($part, $costedReturnable);
+        $part = min($left, $outstanding);
+        $costed = min($part, $costedOutstanding);
         $value = Money::zero($this->currency);
 
         if ($costed > 0) {
-            $value = Money::of($issuedValue - $returnedValue, $this->currency)->allocate($costed, $costedReturnable - $costed)[0];
+            $value = Money::of($outstandingValue, $this->currency)->allocate($costed, $costedOutstanding - $costed)[0];
             $this->addShopUnits($sku, $location, $costed, $value, $orderNumber, $at, $at);
         }
 
@@ -245,13 +240,12 @@ final readonly class Costing
      * Takes units out of a level's layers, each owner's as `StockOwnership` says and the shop's from its own layers,
      * the oldest first; the shop's units beyond its layers are uncosted.
      *
-     * @return array{shop: list<array{CostLayer, int, Money}>, uncosted: int, owners: list<array{string, list<array{CostLayer, int}>}>}
+     * @return array{shop: list<array{CostLayer, int, Money}>, uncosted: int, owners: list<array{string, list<array{CostLayer, int, Money}>}>}
      */
     private function leave(string $sku, string $location, int $units, int $onHandBefore, ?string $reference): array
     {
         $shopLayers = [];
         $ownerLayers = [];
-        $held = [];
         $consigned = [];
 
         foreach ($this->costs->layersOf($sku, $location) as $layer) {
@@ -262,29 +256,23 @@ final readonly class Costing
             }
 
             $key = self::KEY.$layer->owner;
-
-            if (!isset($held[$key])) {
-                $consigned[] = [$layer->owner, 0];
-            }
-
             $ownerLayers[$key][] = $layer;
-            $held[$key] = ($held[$key] ?? 0) + $layer->units();
+            $consigned[$key] = [$layer->owner, ($consigned[$key][1] ?? 0) + $layer->units()];
         }
 
-        foreach ($consigned as $index => [$owner]) {
-            $consigned[$index][1] = $held[self::KEY.$owner];
-        }
-
+        $held = array_map(static fn (array $owned): int => $owned[1], $consigned);
         $shopUnits = max(0, $onHandBefore - array_sum($held));
-        $shares = $this->owners->leaving($sku, $location, $units, $shopUnits, $consigned, $reference);
+        $shares = $this->owners->leaving($sku, $location, $units, $shopUnits, array_values($consigned), $reference);
         $shared = 0;
 
         foreach ($shares as [$owner, $part]) {
-            if ($part < 0 || $part > ($held[self::KEY.$owner] ?? 0)) {
+            $holds = $held[self::KEY.$owner] ?? 0;
+
+            if ($part < 0 || $part > $holds) {
                 throw CostRefused::share($sku, $location, $units);
             }
 
-            $held[self::KEY.$owner] -= $part;
+            $held[self::KEY.$owner] = $holds - $part;
             $shared += $part;
         }
 
@@ -300,7 +288,7 @@ final readonly class Costing
 
         foreach ($shares as [$owner, $part]) {
             if ($part > 0) {
-                $owners[] = [$owner, array_map(static fn (array $piece): array => [$piece[0], $piece[1]], $this->take($ownerLayers[self::KEY.$owner], $part))];
+                $owners[] = [$owner, $this->take($ownerLayers[self::KEY.$owner], $part)];
             }
         }
 
@@ -308,7 +296,7 @@ final readonly class Costing
     }
 
     /**
-     * @param array{shop: list<array{CostLayer, int, Money}>, uncosted: int, owners: list<array{string, list<array{CostLayer, int}>}>} $left
+     * @param array{shop: list<array{CostLayer, int, Money}>, uncosted: int, owners: list<array{string, list<array{CostLayer, int, Money}>}>} $left
      */
     private function journalOut(string $sku, string $location, CostEntryKind $kind, array $left, ?string $reference, DateTimeImmutable $at, ?VarianceReason $reason): void
     {
@@ -394,7 +382,8 @@ final readonly class Costing
         $pool = array_shift($layers);
 
         foreach ($layers as $layer) {
-            $pool?->add($layer->units(), $layer->value());
+            \assert($pool instanceof CostLayer);
+            $pool->add($layer->units(), $layer->value());
             $this->costs->removeLayer($layer);
         }
 

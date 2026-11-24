@@ -93,10 +93,6 @@ final readonly class DoctrineLogisticsRepository implements CostRepository, Loca
     #[Override]
     public function levelsOfSkus(array $skus): array
     {
-        if ([] === $skus) {
-            return [];
-        }
-
         return $this->entityManager->getRepository(StockLevel::class)->findBy(['sku' => $skus]);
     }
 
@@ -219,8 +215,8 @@ final readonly class DoctrineLogisticsRepository implements CostRepository, Loca
             ->andWhere('c.endsOn >= :from')
             ->orderBy('c.startsOn', SortDirection::Ascending)
             ->addOrderBy('c.code', SortDirection::Ascending)
-            ->setParameter('until', $until->setTime(0, 0), 'date_immutable')
-            ->setParameter('from', $from->setTime(0, 0), 'date_immutable')
+            ->setParameter('until', $until, 'date_immutable')
+            ->setParameter('from', $from, 'date_immutable')
             ->getQuery()
             ->getResult();
     }
@@ -246,10 +242,6 @@ final readonly class DoctrineLogisticsRepository implements CostRepository, Loca
     #[Override]
     public function conventionSkus(array $skus): array
     {
-        if ([] === $skus) {
-            return [];
-        }
-
         /** @var list<array{sku: string}> $rows */
         $rows = $this->entityManager->createQueryBuilder()
             ->select('DISTINCT q.sku')

@@ -175,6 +175,8 @@ abstract class ServerTestCase extends TestCase
         self::assertSame(['SHIRT-L', 'SHIRT-M'], $this->repository->conventionSkus(['SHIRT-M', 'SHIRT-L', 'DICE']));
         self::assertSame(['PS-1', null], [$this->repository->findDocument(ShippingDocumentKind::PickingSlip, '2026-0001', null)?->number, $this->repository->findDocument(ShippingDocumentKind::PickingSlip, '2026-0001', null)?->shipment()]);
         self::assertSame(['DN-1', $shipment->id], [$this->repository->findDocument(ShippingDocumentKind::DeliveryNote, '2026-0001', $shipment->id)?->number, $this->repository->findDocument(ShippingDocumentKind::DeliveryNote, '2026-0001', $shipment->id)?->shipment()]);
+        self::assertNull($this->repository->findDocument(ShippingDocumentKind::DeliveryNote, '2026-0001', null));
+        self::assertNull($this->repository->findDocument(ShippingDocumentKind::PickingSlip, '2026-0001', $shipment->id));
         self::assertSame([['product:A' => 1]], array_map(static fn (Shipment $shipped): array => $shipped->lines, $this->repository->shipmentsOf('2026-0001')));
         self::assertSame(['sooner', 'later'], array_map(static fn (ShippingWave $wave): string => $wave->code, $waves->planned()));
     }
@@ -261,8 +263,11 @@ abstract class ServerTestCase extends TestCase
         $levelOfDice->receive(5);
 
         $this->repository->addLevel($levelOfDice);
-        $this->repository->addLevel(StockLevel::of('BOOK', $warehouse));
+        $levelOfBook = StockLevel::of('BOOK', $warehouse);
+        $this->repository->addLevel($levelOfBook);
         $this->repository->addLevel(StockLevel::of('CARD', $warehouse));
+        $this->repository->addLevel(StockLevel::of('MAP', $warehouse));
+        $this->repository->record(StockMovement::of($levelOfBook, MovementKind::Received, 1, 0, 'book', $at));
 
         // The journal: the later moment written first, then two of one moment.
         $this->repository->record(StockMovement::of($levelOfDice, MovementKind::Received, 2, 0, 'late', $at->modify('+1 hour')));
@@ -275,19 +280,23 @@ abstract class ServerTestCase extends TestCase
         $this->repository->addReservation($first);
         $this->repository->addReservation(Reservation::hold('2026-0002', $levelOfDice, 1));
 
+        // The latest moment is the first written, and so has the lowest key: the order of the keys is not the order asked.
+        $late = Shipment::of('2026-0001', ['product:DICE' => 1], $at->modify('+1 day'));
         $early = Shipment::of('2026-0001', ['product:DICE' => 1], $at);
         $tied = Shipment::of('2026-0001', ['product:DICE' => 1], $at);
-        $late = Shipment::of('2026-0001', ['product:DICE' => 1], $at->modify('+1 day'));
+        $foreign = Shipment::of('2026-0009', ['product:DICE' => 1], $at);
 
-        foreach ([$late, $tied, $early, Shipment::of('2026-0009', ['product:DICE' => 1], $at)] as $shipment) {
+        foreach ([$late, $tied, $early, $foreign] as $shipment) {
             $this->repository->addShipment($shipment);
         }
 
         $this->repository->addCost(ShippingCost::of($late, 'post', 'regular', Money::of(900, $cad), $at->modify('+1 day')));
         $this->repository->addCost(ShippingCost::of($tied, 'post', 'regular', Money::of(700, $cad), $at));
         $this->repository->addCost(ShippingCost::of($early, 'post', 'regular', Money::of(800, $cad), $at));
+        $this->repository->addCost(ShippingCost::of($foreign, 'post', 'regular', Money::of(600, $cad), $at));
         $this->repository->addPolicy(StockPolicy::of('DICE'));
         $this->repository->addPolicy(StockPolicy::of('BOOK'));
+        $this->repository->addPolicy(StockPolicy::of('ZINE'));
 
         $con = Convention::of('con', 'Con', new DateTimeImmutable('2026-12-20'), new DateTimeImmutable('2026-12-21'));
         $other = Convention::of('other-con', 'Other', new DateTimeImmutable('2026-12-19'), new DateTimeImmutable('2026-12-20'));
@@ -307,7 +316,8 @@ abstract class ServerTestCase extends TestCase
         $closedOrder = PurchaseOrder::of('PO-0', 'Dice Works', $warehouse, ['DICE' => 1], $at->modify('-1 day'));
         $closedOrder->close();
 
-        foreach ([PurchaseOrder::of('PO-3', 'Dice Works', $warehouse, ['DICE' => 1], $at->modify('+1 day')), PurchaseOrder::of('PO-2', 'Dice Works', $warehouse, ['DICE' => 1], $at), $closedOrder, PurchaseOrder::of('PO-1', 'Dice Works', $warehouse, ['DICE' => 1], $at)] as $order) {
+        // Ordered last but numbered first, and two of one moment: by moment, then by number.
+        foreach ([PurchaseOrder::of('PO-3', 'Dice Works', $warehouse, ['DICE' => 1], $at->modify('+1 day')), PurchaseOrder::of('PO-4', 'Dice Works', $warehouse, ['DICE' => 1], $at), PurchaseOrder::of('PO-2', 'Dice Works', $warehouse, ['DICE' => 1], $at), $closedOrder, PurchaseOrder::of('PO-1', 'Dice Works', $warehouse, ['DICE' => 1], $at->modify('+2 days'))] as $order) {
             $this->repository->addPurchaseOrder($order);
         }
 
@@ -318,7 +328,7 @@ abstract class ServerTestCase extends TestCase
             $this->repository->addSerial($serial);
         }
 
-        $bookSerial = SerialNumber::of(StockLevel::of('BOOK', $warehouse), 'SN-0', $at);
+        $bookSerial = SerialNumber::of(StockLevel::of('BOOK', $warehouse), 'SN-9', $at);
         $bookSerial->ship('2026-0001', $at);
 
         $this->repository->addSerial($bookSerial);
@@ -346,8 +356,7 @@ abstract class ServerTestCase extends TestCase
         self::assertSame([], $this->repository->journal('DICE', 'b-store'));
         self::assertSame([$first->id, $second->id], array_map(static fn (Reservation $reservation): string => $reservation->id, $this->repository->reservationsOf('2026-0001')));
         self::assertSame([$early->id, $tied->id, $late->id], array_map(static fn (Shipment $shipment): string => $shipment->id, $this->repository->shipmentsOf('2026-0001')));
-        $earlyFirst = strcmp($early->id, $tied->id) < 0;
-        self::assertSame($earlyFirst ? [800, 700, 900] : [700, 800, 900], array_map(static fn (ShippingCost $cost): int => $cost->cost->minorUnits, $this->repository->costsOf('2026-0001')));
+        self::assertSame([800, 700, 900], array_map(static fn (ShippingCost $cost): int => $cost->cost->minorUnits, $this->repository->costsOf('2026-0001')));
         self::assertSame(700, $this->repository->costOf($tied->id)?->cost->minorUnits);
         self::assertSame([['BOOK', 'DICE'], [], ['BOOK', 'CARD', 'DICE'], []], [
             $this->sorted(array_map(static fn (StockPolicy $policy): string => $policy->sku, $this->repository->policiesOf(['DICE', 'BOOK', 'CARD']))),
@@ -362,14 +371,133 @@ abstract class ServerTestCase extends TestCase
         self::assertSame([], $this->repository->conventionSkus([]));
         self::assertSame(5, $this->repository->quantity('con', 'SHIRT-M')?->quantity());
         self::assertSame([$firstJob->id, $secondJob->id], array_map(static fn (PrintJob $job): string => $job->id, $this->repository->printJobsOf('2026-0001')));
-        self::assertSame(['PO-1', 'PO-2', 'PO-3'], array_map(static fn (PurchaseOrder $order): string => $order->number, $this->repository->openPurchaseOrders()));
+        self::assertSame(['PO-2', 'PO-4', 'PO-3', 'PO-1'], array_map(static fn (PurchaseOrder $order): string => $order->number, $this->repository->openPurchaseOrders()));
         self::assertSame([1, 1], [$this->repository->serialsInStock('DICE', 'a-store'), $this->repository->serialsInStock('BOOK', 'a-store')]);
-        self::assertSame([['BOOK', 'SN-0'], ['DICE', 'SN-2'], ['DICE', 'SN-3']], array_map(static fn (SerialNumber $serial): array => [$serial->sku, $serial->serial], $this->repository->serialsOfOrder('2026-0001')));
+        self::assertSame([['BOOK', 'SN-9'], ['DICE', 'SN-2'], ['DICE', 'SN-3']], array_map(static fn (SerialNumber $serial): array => [$serial->sku, $serial->serial], $this->repository->serialsOfOrder('2026-0001')));
         self::assertSame(['early', 'a-wave', 'b-wave'], array_map(static fn (ShippingWave $wave): string => $wave->code, $this->repository->plannedWaves()));
         self::assertSame(['2026-0001', '2026-0003'], $this->repository->ordersOfWave('a-wave'));
         self::assertSame([], $this->repository->ordersOfWave('b-wave'));
         self::assertNull($this->repository->assignmentOf('2026-0002'));
         self::assertSame('a-wave', $this->repository->assignmentOf('2026-0001')?->wave());
+    }
+
+    /**
+     * What a query finds and what the unit of work holds are read together: layers and entries written and not flushed
+     * yet join the ones stored, the ones removed leave, and those of another SKU, place, order, owner or kind are no
+     * part of an answer.
+     */
+    public function testTheCostLayersAreReadWithWhatIsNotFlushedYet(): void
+    {
+        $cad = Currency::of('CAD');
+        $at = new DateTimeImmutable('2026-11-21 10:00:00');
+        $shop = static fn (string $sku, string $location, string $reference, string $moment): CostLayer => CostLayer::shop($sku, $location, 1, Money::of(100, $cad), $at->modify($moment), $reference);
+
+        $removed = $shop('DICE', 'warehouse', 'L3', '+3 hours');
+        $stored = [
+            $removed,
+            $shop('DICE', 'warehouse', 'L1', '+1 hour'),
+            $shop('DICE', 'warehouse', 'L2a', '+2 hours'),
+            $shop('DICE', 'warehouse', 'L2b', '+2 hours'),
+            $shop('BOOK', 'warehouse', 'B1', '+1 hour'),
+            $shop('DICE', 'store', 'S1', '+1 hour'),
+            CostLayer::owned('DICE', 'warehouse', '17', 1, $cad, $at->modify('+5 hours'), 'O1'),
+        ];
+
+        foreach ($stored as $layer) {
+            $this->repository->addLayer($layer);
+        }
+
+        $this->entityManager->flush();
+
+        foreach ([$shop('BOOK', 'warehouse', 'B2', '+1 hour'), $shop('DICE', 'store', 'S2', '+1 hour'), CostLayer::owned('DICE', 'warehouse', '17', 1, $cad, $at->modify('+6 hours'), 'O2'), $shop('DICE', 'warehouse', 'L4', '+4 hours')] as $layer) {
+            $this->repository->addLayer($layer);
+        }
+
+        $this->repository->removeLayer($removed);
+
+        $reference = static fn (CostLayer $layer): ?string => $layer->reference;
+        // By the moment received, the layers of one moment by their key; the owner's are in the level too.
+        self::assertSame(['L1', 'L2a', 'L2b', 'L4', 'O1', 'O2'], array_map($reference, $this->repository->layersOf('DICE', 'warehouse')));
+        // The shop's, of every place, in no order a server owes; the first one stored is gone, and no gap is left.
+        $shops = array_map($reference, $this->repository->shopLayersOf('DICE'));
+        self::assertSame([0, 1, 2, 3, 4, 5], array_keys($shops));
+        self::assertSame(['L1', 'L2a', 'L2b', 'L4', 'S1', 'S2'], $this->sorted($shops));
+    }
+
+    public function testTheCostJournalIsReadWithWhatIsNotFlushedYet(): void
+    {
+        $cad = Currency::of('CAD');
+        $at = new DateTimeImmutable('2026-11-21 10:00:00');
+        $shop = static fn (string $sku, CostEntryKind $kind, int $units, int $uncosted, string $reference): CostEntry => CostEntry::shop($sku, 'warehouse', $kind, $units, $uncosted, Money::of(100 * $units, $cad), $reference, $at);
+
+        // Sales of an order, the older key written after the newer one.
+        $returned = $shop('DICE', CostEntryKind::Returned, 1, 0, 'O-1');
+        $issued = $shop('DICE', CostEntryKind::Issued, -2, 0, 'O-1');
+        $noise = static fn (): array => [
+            $shop('DICE', CostEntryKind::Issued, -1, 0, 'O-2'),
+            $shop('BOOK', CostEntryKind::Issued, -1, 0, 'O-1'),
+            $shop('DICE', CostEntryKind::Received, 1, 0, 'O-1'),
+        ];
+
+        foreach ([$issued, ...$noise()] as $entry) {
+            $this->repository->addEntry($entry);
+        }
+
+        $this->entityManager->flush();
+
+        foreach ([$returned, ...$noise()] as $entry) {
+            $this->repository->addEntry($entry);
+        }
+
+        self::assertSame([$returned->id, $issued->id], array_map(static fn (CostEntry $entry): string => $entry->id, $this->repository->salesEntriesOf('O-1', 'DICE')));
+
+        // The latest receipt with a cost, the shop's: written last among the right ones, and the wrong ones after it.
+        $stored = $shop('DICE', CostEntryKind::Received, 2, 0, 'R-1');
+        $this->repository->addEntry($stored);
+        $this->entityManager->flush();
+        $latest = $shop('DICE', CostEntryKind::Received, 2, 1, 'R-2');
+        $this->repository->addEntry($latest);
+
+        foreach ([
+            $shop('BOOK', CostEntryKind::Received, 1, 0, 'R-3'),
+            $shop('DICE', CostEntryKind::Issued, -1, 0, 'R-4'),
+            CostEntry::owned('DICE', 'warehouse', CostEntryKind::Received, '17', 1, $cad, 'R-5', $at),
+            $shop('DICE', CostEntryKind::Received, 1, 1, 'R-6'),
+        ] as $entry) {
+            $this->repository->addEntry($entry);
+        }
+
+        self::assertSame('R-2', $this->repository->latestCostedReceipt('DICE')?->reference);
+        self::assertNull($this->repository->latestCostedReceipt('MAP'));
+    }
+
+    public function testTheStockIsValuedWhereItHoldsUnitsOrValueAndNowhereElse(): void
+    {
+        $cad = Currency::of('CAD');
+        $at = new DateTimeImmutable('2026-11-21 10:00:00');
+        $entries = [
+            CostEntry::shop('ZINE', 'warehouse', CostEntryKind::Received, 3, 0, Money::zero($cad), 'R-1', $at),
+            CostEntry::shop('MAP', 'warehouse', CostEntryKind::Received, 1, 0, Money::of(100, $cad), 'R-2', $at),
+            CostEntry::shop('MAP', 'warehouse', CostEntryKind::Issued, -1, 0, Money::of(-100, $cad), '2026-0001', $at),
+            CostEntry::shop('DICE', 'warehouse', CostEntryKind::Received, 2, 0, Money::of(200, $cad), 'R-3', $at),
+            CostEntry::shop('BOOK', 'warehouse', CostEntryKind::Landed, 0, 0, Money::of(86, $cad), 'R-4', $at),
+        ];
+
+        foreach ($entries as $entry) {
+            $this->repository->addEntry($entry);
+        }
+
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        self::assertSame(
+            [
+                ['sku' => 'BOOK', 'location' => 'warehouse', 'currency' => 'CAD', 'units' => 0, 'value' => 86],
+                ['sku' => 'DICE', 'location' => 'warehouse', 'currency' => 'CAD', 'units' => 2, 'value' => 200],
+                ['sku' => 'ZINE', 'location' => 'warehouse', 'currency' => 'CAD', 'units' => 3, 'value' => 0],
+            ],
+            $this->repository->valuation($at),
+        );
     }
 
     public function testTheCostOfTheStockIsKeptAcrossUnitsOfWork(): void
@@ -537,9 +665,9 @@ abstract class ServerTestCase extends TestCase
     }
 
     /**
-     * @param list<string> $values
+     * @param list<string|null> $values
      *
-     * @return list<string>
+     * @return list<string|null>
      */
     private function sorted(array $values): array
     {
