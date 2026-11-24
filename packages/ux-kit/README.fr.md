@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=395171a1705fe819128eeffd8678b0074f3d1caa1b798440b43f2921e5232c62 -->
+<!-- phil-dev source-sha256=25b815f98052382a70d4512861a4581c6f4b33e6174d94ef76ede89cdca6e4db -->
 # phil/ux-kit
 
 **Le kit PHIL UX pour le Symfony UX Toolkit : les mêmes recettes que le kit Shadcn, habillées par phil-ux, installées
@@ -92,6 +92,10 @@ noms et props, sont le kit [`phil/ux-kit-shadcn`](https://github.com/parler-haut
 | [BeforeAfter](before-after/README.md) | composant | Deux images l'une sur l'autre, la première coupée là où le dit un curseur. | Implémenté et testé |
 | [Chart](chart/README.md) | composant | Un graphique dessiné par le serveur en SVG, en barres ou en lignes, avec le tableau de ses valeurs. | Implémenté et testé |
 | [ChartJs](chart-js/README.md) | composant | Un graphique de Symfony UX Chart.js dans une figure, avec sa légende et le tableau de ses valeurs. | Implémenté et testé |
+| [ThemeSwitcher](theme-switcher/README.md) | composant | Le choix du schéma de couleurs, clair, sombre ou celui du système, gardé dans le navigateur et écrit sur la page avant sa première peinture. | Implémenté et testé |
+| [StickyHeader](sticky-header/README.md) | composant | L'en-tête de la page, gardé en haut de l'écran, les ancres s'arrêtant sous lui ; il peut glisser hors de l'écran pendant que le lecteur défile vers le bas, inerte tant qu'il est caché. | Implémenté et testé |
+| [Timeline](timeline/README.md) | composant | Des entrées datées le long d'une ligne, chacune avec son marqueur, sa date et son contenu. | Implémenté et testé |
+| [FloatingLabel](floating-label/README.md) | composant | Un champ dont l'étiquette se tient dans le contrôle vide et passe au-dessus dès que le contrôle a une valeur ou le focus. | Implémenté et testé |
 
 ## Documentation
 

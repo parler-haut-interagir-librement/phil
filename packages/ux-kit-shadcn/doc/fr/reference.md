@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3ab887b78f671e81b0b970c6612419597b9a8ca357f6f7d8e67f130896da32b5 -->
+<!-- phil-dev source-sha256=60f6a00d614b977032a750e8bfe4380265723d940471b07784780d2aef99b95e -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -37,6 +37,12 @@
 | `before-after/templates/components/` | Le composant `BeforeAfter` |
 | `carousel/templates/components/` | Le composant `Carousel` et ses `Content`, `Item`, `Previous` et `Next` |
 | `carousel/assets/controllers/` | Le contrôleur Stimulus `carousel`, le même fichier que dans le kit PHIL UX |
+| `theme-switcher/templates/components/` | Le composant `ThemeSwitcher` et son `Script` |
+| `theme-switcher/assets/controllers/` | Le contrôleur Stimulus `theme-switcher`, le même fichier que dans le kit PHIL UX |
+| `sticky-header/templates/components/` | Le composant `StickyHeader` |
+| `sticky-header/assets/controllers/` | Le contrôleur Stimulus `sticky-header`, le même fichier que dans le kit PHIL UX |
+| `timeline/templates/components/` | Le composant `Timeline` et son `Item` |
+| `floating-label/templates/components/` | Le composant `FloatingLabel` |
 | `coming-soon/templates/components/ComingSoon.html.twig` | Le composant `ComingSoon` |
 | `login-form/templates/components/LoginForm.html.twig` | Le bloc `LoginForm` |
 | `signup-form/templates/components/SignupForm.html.twig` | Le bloc `SignupForm` |

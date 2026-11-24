@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=46059d696f126ffa672dd4a184ba4eb48dce412a778740e3773c6276f3795a2c -->
+<!-- phil-dev source-sha256=8c3ae6c6976a169f79bc1f3098f4171056aa348acf834353a956ab369f094f42 -->
 # Installation
 
 ## La feuille de style
@@ -118,6 +118,12 @@ Copiez les fichiers des recettes dont la page a besoin, depuis ce dossier, en ga
 | Sparkline | `sparkline/templates/components/` | `templates/components/` |
 | BeforeAfter | `before-after/templates/components/` | `templates/components/` |
 | BeforeAfter | `before-after/assets/controllers/` | `assets/controllers/` |
+| ThemeSwitcher | `theme-switcher/templates/components/` | `templates/components/` |
+| ThemeSwitcher | `theme-switcher/assets/controllers/` | `assets/controllers/` |
+| StickyHeader | `sticky-header/templates/components/` | `templates/components/` |
+| StickyHeader | `sticky-header/assets/controllers/` | `assets/controllers/` |
+| Timeline | `timeline/templates/components/` | `templates/components/` |
+| FloatingLabel | `floating-label/templates/components/` | `templates/components/` |
 | Pagination | `pagination/templates/components/` | `templates/components/` |
 | Carousel | `carousel/templates/components/` | `templates/components/` |
 | Carousel | `carousel/assets/controllers/` | `assets/controllers/` |

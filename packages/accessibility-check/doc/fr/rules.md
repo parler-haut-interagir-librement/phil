@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5e4ffa150a7f2a2727075cc2ce742d7723c94efe74e5466f8d6454d5a1705055 -->
+<!-- phil-dev source-sha256=0ef01f0c709c2a2c8c25ddfec8a5d402b546532c17fa660c214d943842f72831 -->
 # Règles
 
 Les règles de `DefaultRules::all()`, dans leur ordre d'exécution. Chacune lit le HTML ; chacune sauf `html-lang` lit
@@ -14,6 +14,7 @@ en donner une autre à une règle. Une clé de message est formée de l'identifi
 | `empty-heading` | 2.4.6 En-têtes et étiquettes (AA) | avertissement | les titres ont du texte |
 | `link-name` | 2.4.4 Fonction du lien (selon le contexte) (A) | erreur | les liens ont un nom |
 | `button-name` | 4.1.2 Nom, rôle et valeur (A) | erreur | les boutons ont un nom |
+| `tab-name` | 4.1.2 Nom, rôle et valeur (A) | erreur | les onglets ont un nom |
 | `link-text` | 2.4.4 Fonction du lien (selon le contexte) (A) | avertissement | le nom des liens dit où ils mènent |
 | `color-contrast` | 1.4.3 Contraste (minimum) (AA), ou 1.4.6 (AAA) | erreur | le texte coloré se détache de son fond |
 | `table-headers` | 1.3.1 Information et relations (A) | erreur | les tableaux de données marquent leurs cellules d'en-tête |
@@ -87,6 +88,16 @@ Un `input` `submit` ou `reset` sans valeur prend le nom que lui donne le navigat
 | Clé | Paramètres |
 |---|---|
 | `button-name.empty` | |
+
+## `tab-name`
+
+Un élément de rôle `tab` a un nom accessible : son texte, le texte de remplacement d'une image qu'il contient, un nom
+d'ARIA, sinon son `title`. Sans nom, un lecteur d'écran n'annonce que son rôle et sa position, « onglet, 2 sur 3 ». Le
+rôle est le premier mot de `role`, comme pour `button-name`.
+
+| Clé | Paramètres |
+|---|---|
+| `tab-name.empty` | |
 
 ## `link-text`
 
@@ -210,3 +221,15 @@ Ce qui dépend de l'apparence et du comportement d'une page plutôt que de son c
 focus, le contraste des couleurs définies par les feuilles de style, le mouvement, les délais, les formulaires et leurs
 erreurs. Ce qui demande une personne : si un texte de remplacement décrit son image, si les sous-titres disent ce que
 dit le son, si un titre nomme sa section.
+
+Les critères de succès que WCAG 2.2 a ajoutés sont laissés à des tests dans un navigateur, qui voit la page mise en
+page et en usage :
+
+| Critère | Ce que vérifie le test du navigateur |
+|---|---|
+| 2.4.11 Focus non masqué (minimum) (AA) | l'élément qui a le focus n'est pas caché par un en-tête collant, une bannière ou une boîte de dialogue |
+| 2.5.7 Mouvements de glissement (AA) | ce qui se fait en glissant se fait aussi par des actions simples du pointeur |
+| 2.5.8 Taille de la cible (minimum) (AA) | les cibles font 24 sur 24 pixels CSS, ou sont espacées d'autant |
+| 3.2.6 Aide cohérente (A) | l'aide offerte sur plusieurs pages se trouve dans le même ordre sur chacune |
+| 3.3.7 Saisie redondante (A) | ce qui a été saisi plus tôt dans un parcours est rempli ou offert de nouveau |
+| 3.3.8 Authentification accessible (minimum) (AA) | l'ouverture de session n'exige ni test de mémoire ni résolution d'énigme, ou offre une autre voie |

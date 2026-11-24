@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5a635976b2a7f933e9d61509d4a6d90d7373bcc9d4a207094c3adb67e03b984f -->
+<!-- phil-dev source-sha256=9bc4c0cc85b88e80b89e19fc87f4b568de433a74514775bf898928ca443bf8cd -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -1595,3 +1595,88 @@ extensions sont ceux de l'application ; la recette dépend de `symfony/ux-chartj
 | `chart` | requis | Le `Symfony\UX\Chartjs\Model\Chart` que l'application a bâti |
 | `label` | requis | Ce que montre le graphique, sa légende |
 | `tableLabel` | `null` | Le résumé d'un dévoilement qui montre le tableau ; sans lui, seuls les lecteurs d'écran le lisent |
+
+## ThemeSwitcher
+
+`<twig:ThemeSwitcher>` : un `fieldset` de classes `isThemeSwitcher isToggleGroup`, caché jusqu'à ce que son contrôleur
+démarre, sa légende lue par les lecteurs d'écran seuls et trois étiquettes `isToggle` autour de leurs boutons radio,
+`light`, `dark` et `system`, le dernier coché. Contrôleur `theme-switcher` : l'action `choose`, les cibles `option`,
+l'événement `theme-switcher:change`, dont `detail.theme` est le choix. Le choix est gardé dans le `localStorage` du
+navigateur sous `storageKey` et écrit sur la racine comme `data-theme`, que phil-ux lit ; `system` retire les deux, et
+la page suit de nouveau `prefers-color-scheme`. Un choix fait dans un autre onglet est suivi. Là où le stockage est
+refusé, le choix ne vaut que pour la page.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `label` | `Theme` | Ce que les lecteurs d'écran appellent le groupe |
+| `lightLabel` | `Light` | Le nom du schéma clair |
+| `darkLabel` | `Dark` | Le nom du schéma sombre |
+| `systemLabel` | `System` | Le nom du schéma du système |
+| `name` | `theme` | Le nom des boutons radio, unique dans la page |
+| `storageKey` | `theme` | La clé du choix dans le stockage du navigateur, la même que celle du script |
+
+`<twig:ThemeSwitcher:Script>`, dans le `head` avant les feuilles de style : un script en ligne classique, exécuté avant
+la première peinture, qui écrit le schéma gardé sur la racine, pour que la page ne clignote jamais dans l'autre. Son
+texte ne change jamais : une politique de sécurité du contenu l'autorise par son empreinte,
+`'sha256-H4rtu+mjeozEL6qbMxmp6ImhtKrOXaaLCG7dH9fc88E='` dans `script-src`, ou par le nonce de la requête.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `storageKey` | `theme` | La clé du choix dans le stockage du navigateur, la même que celle du sélecteur |
+| `nonce` | `null` | Le nonce de la politique de sécurité du contenu de la requête |
+
+## StickyHeader
+
+`<twig:StickyHeader>` : un `header` de classe `isStickyHeader`, gardé en haut de l'écran pendant que la page défile, son
+bloc `content` contenant la marque, la navigation et les actions. Contrôleur `sticky-header` : il garde
+`--phil-sticky-header-size` sur la racine à la hauteur de l'en-tête, que lit le remplissage de défilement de la racine,
+de sorte qu'un lien vers une ancre et le focus déplacé par le clavier s'arrêtent sous l'en-tête (critère de succès
+2.4.11). Avec `hideOnScroll`, de classe `hasHideOnScroll`, l'en-tête glisse hors de l'écran pendant que le lecteur
+défile vers le bas au-delà de lui et revient quand il remonte ou atteint le haut. Caché, il est `inert` et marqué
+`data-hidden` : ses liens ne s'atteignent pas au clavier et ne sont pas lus par les lecteurs d'écran. Il ne glisse
+jamais là où le mouvement est réduit, par le système ou par `data-motion="reduce"` sur un ancêtre, ni pendant qu'il a
+le focus.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `hideOnScroll` | `false` | S'il glisse hors de l'écran pendant que le lecteur défile vers le bas |
+| `threshold` | `8` | De combien la page défile, en pixels CSS, avant que l'en-tête glisse ou revienne |
+
+## Timeline
+
+`<twig:Timeline>` : un `ol` de classe `isTimeline`, contenant des `<twig:Timeline:Item>`, un `li` de classe
+`isTimelineItem` : sa date, un `time` de classe `isTimelineDate`, puis son bloc `content` dans un `div` de classe
+`isTimelineContent`. Les entrées gardent l'ordre où elles sont données ; la ligne et les marqueurs sont dessinés par la
+feuille de style.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `label` | `null` | Ce que les lecteurs d'écran appellent la liste des entrées |
+
+`<twig:Timeline:Item>` :
+
+| Prop | Par défaut | |
+|---|---|---|
+| `datetime` | requis | Le moment de l'entrée, un `DateTimeInterface` ou une chaîne que lit le filtre `date` |
+| `format` | `Y-m-d` | La date écrite, dans le format du filtre `date` |
+| `dateLabel` | `null` | La date écrite à la place, comme une saison ou une année |
+| `allDay` | `true` | Si le `datetime` du `time` est le jour seul, `Y-m-d`, plutôt que le moment avec son décalage |
+
+## FloatingLabel
+
+`<twig:FloatingLabel>` : un `div` de classe `hasFloatingLabel`, contenant un `input`, ou un `textarea` quand `type` est
+`textarea`, puis son `label`. L'étiquette se tient dans le contrôle vide et passe au-dessus dès que le contrôle a une
+valeur ou le focus ; elle reste affichée et est celle du contrôle, jamais un texte indicatif. Le texte indicatif du
+contrôle est une seule espace, ce qui dit à la feuille de style qu'il est vide. Aucun contrôleur.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `label` | requis | Le nom du champ, affiché dans celui-ci |
+| `id` | requis | L'identifiant du contrôle, vers lequel pointe l'étiquette |
+| `name` | `null` | Le nom du contrôle dans le formulaire |
+| `type` | `text` | Le type de l'input, ou `textarea` pour un texte de plusieurs lignes |
+| `value` | `null` | La valeur du contrôle |
+| `autocomplete` | `null` | L'`autocomplete` du contrôle |
+| `describedBy` | `null` | L'identifiant de l'élément qui décrit le contrôle, comme une aide ou une erreur |
+| `required` | `false` | Si le champ doit être rempli |
+| `disabled` | `false` | Si le champ ne peut pas être modifié pour l'instant |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7568b98efd22ce9ab803e6db1889dc22166d0b2d533a6b5e2e9b744b2aaed0ba -->
+<!-- phil-dev source-sha256=37877df4743aa4b45cc9073ca3a7bba9cfd93dfd5c0fd07a5dbc6639643dd217 -->
 # Thèmes
 
 ## Un thème, clair et sombre
@@ -9,7 +9,7 @@ phil-ux a un seul thème. Chaque rôle de couleur porte son ton clair et son ton
 ```css
 :root {
     color-scheme: light dark;
-    --phil-color-surface: light-dark(var(--phil-neutral-99), var(--phil-neutral-10));
+    --phil-color-surface: light-dark(var(--phil-neutral-99), var(--phil-neutral-15));
 }
 ```
 
@@ -25,10 +25,15 @@ Par défaut, la page suit le système, par `prefers-color-scheme`. `data-theme` 
 Il se met sur la racine ou sur n'importe quel élément, qui bascule alors son sous-arbre : une bande sombre dans une page
 claire est une `<section data-theme="dark">`.
 
+Une page dont le lecteur a choisi un schéma l'écrit sur la racine, et omet `data-theme` autrement :
+
 ```twig
-{% set theme = random(['default', 'dark']) %}
-<html lang="{{ app.request.locale }}" data-theme="{{ theme }}">
+{# theme: the reader's choice, "light", "dark", or null for the system's #}
+<html lang="{{ app.request.locale }}"{% if theme in ['light', 'dark'] %} data-theme="{{ theme }}"{% endif %}>
 ```
+
+La recette `ThemeSwitcher` du kit PHIL UX offre ce choix, le garde dans le navigateur et l'écrit sur la racine avant la
+première peinture de la page.
 
 ## Les surcharges d'un site
 
