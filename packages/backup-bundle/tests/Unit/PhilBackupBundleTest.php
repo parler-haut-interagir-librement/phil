@@ -16,8 +16,10 @@ use Phil\Backup\Restore\RestoreGuard;
 use Phil\Backup\Rotation\RotationPolicy;
 use Phil\Backup\Storage\BackupDirectory;
 use Phil\BackupBundle\Infrastructure\Console\CreateBackupCommand;
+use Phil\BackupBundle\Infrastructure\Console\MonitorBackupCommand;
 use Phil\BackupBundle\Infrastructure\Console\RestoreBackupCommand;
 use Phil\BackupBundle\Infrastructure\Console\VerifyBackupCommand;
+use Phil\BackupBundle\Infrastructure\Lock\BackupLock;
 use Phil\BackupBundle\Infrastructure\Process\ProcessCommandRunner;
 use Phil\BackupBundle\PhilBackupBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -25,7 +27,10 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\FlockStore;
 
 /**
  * The services the bundle declares from its configuration, and a container compiled with them.
@@ -69,15 +74,38 @@ final class PhilBackupBundleTest extends TestCase
         self::assertFalse($container->hasDefinition(RotationPolicy::class));
         self::assertEquals([new Reference(PhilBackupBundle::DATABASE_CLIENT), new Reference(BackupDirectory::class), null, new Reference(MediaArchive::class), null, true], $container->getDefinition(Backups::class)->getArguments());
         self::assertTrue($container->getDefinition(Backups::class)->isPublic());
-        self::assertEquals([new Reference(Backups::class), null], $container->getDefinition(VerifyBackupCommand::class)->getArguments());
-        self::assertEquals([new Reference(Backups::class), new Reference(RestoreGuard::class), 3], $container->getDefinition(RestoreBackupCommand::class)->getArguments());
-        self::assertEquals([new Reference(Backups::class)], $container->getDefinition(CreateBackupCommand::class)->getArguments());
+        $lock = new Reference(BackupLock::class);
+        self::assertEquals([new Reference(Backups::class), null, $lock], $container->getDefinition(VerifyBackupCommand::class)->getArguments());
+        self::assertEquals([new Reference(Backups::class), new Reference(RestoreGuard::class), 3, $lock], $container->getDefinition(RestoreBackupCommand::class)->getArguments());
+        self::assertEquals([new Reference(Backups::class), $lock], $container->getDefinition(CreateBackupCommand::class)->getArguments());
+        self::assertEquals([new Reference(Backups::class), 26, new Reference('clock', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $container->getDefinition(MonitorBackupCommand::class)->getArguments());
+        self::assertEquals([new Reference(PhilBackupBundle::LOCK_FACTORY), '%kernel.project_dir%/var/backup', 86400.0], $container->getDefinition(BackupLock::class)->getArguments());
+        self::assertSame(LockFactory::class, $container->getDefinition(PhilBackupBundle::LOCK_FACTORY)->getClass());
+        self::assertEquals([new Definition(FlockStore::class)], $container->getDefinition(PhilBackupBundle::LOCK_FACTORY)->getArguments());
 
-        foreach ([CreateBackupCommand::class, RestoreBackupCommand::class, VerifyBackupCommand::class] as $command) {
+        foreach ([CreateBackupCommand::class, RestoreBackupCommand::class, VerifyBackupCommand::class, MonitorBackupCommand::class] as $command) {
             self::assertTrue($container->getDefinition($command)->hasTag('console.command'), $command);
         }
 
         self::assertSame('phil_backup.database_client', PhilBackupBundle::DATABASE_CLIENT);
+        self::assertSame('phil_backup.lock_factory', PhilBackupBundle::LOCK_FACTORY);
+    }
+
+    public function testTheLockMayUseAnotherFactoryOrBeDisabled(): void
+    {
+        $shared = $this->load(['directory' => '/backups', 'lock' => ['factory' => 'lock.factory', 'ttl' => 7200], 'monitor' => ['max_age_hours' => 50]]);
+        self::assertEquals([new Reference('lock.factory'), '/backups', 7200.0], $shared->getDefinition(BackupLock::class)->getArguments());
+        self::assertFalse($shared->hasDefinition(PhilBackupBundle::LOCK_FACTORY));
+        self::assertSame(50, $shared->getDefinition(MonitorBackupCommand::class)->getArgument(1));
+
+        foreach ([['lock' => false], ['lock' => ['enabled' => false]]] as $config) {
+            $unlocked = $this->load($config);
+            self::assertFalse($unlocked->hasDefinition(BackupLock::class));
+            self::assertFalse($unlocked->hasDefinition(PhilBackupBundle::LOCK_FACTORY));
+            self::assertNull($unlocked->getDefinition(CreateBackupCommand::class)->getArgument(1));
+            self::assertNull($unlocked->getDefinition(RestoreBackupCommand::class)->getArgument(3));
+            self::assertNull($unlocked->getDefinition(VerifyBackupCommand::class)->getArgument(2));
+        }
     }
 
     public function testTheConfigurationReachesTheServices(): void
@@ -139,6 +167,8 @@ final class PhilBackupBundleTest extends TestCase
             ['timeout' => -1],
             ['warn_after' => -1],
             ['grace_period' => -1],
+            ['lock' => ['ttl' => 0]],
+            ['monitor' => ['max_age_hours' => 0]],
         ] as $config) {
             try {
                 $this->load($config);
@@ -166,7 +196,7 @@ final class PhilBackupBundleTest extends TestCase
         $container->setParameter('kernel.project_dir', sys_get_temp_dir());
         $container->register('database_connection', Connection::class)->setFactory([DriverManager::class, 'getConnection'])->setArguments([['driver' => 'pdo_sqlite', 'path' => $path]]);
 
-        foreach ([PhilBackupBundle::DATABASE_CLIENT, CreateBackupCommand::class, RestoreBackupCommand::class, VerifyBackupCommand::class] as $id) {
+        foreach ([PhilBackupBundle::DATABASE_CLIENT, CreateBackupCommand::class, RestoreBackupCommand::class, VerifyBackupCommand::class, MonitorBackupCommand::class, BackupLock::class] as $id) {
             $container->getDefinition($id)->setPublic(true);
         }
 
@@ -180,6 +210,8 @@ final class PhilBackupBundleTest extends TestCase
         self::assertInstanceOf(RestoreBackupCommand::class, $container->get(RestoreBackupCommand::class));
         self::assertInstanceOf(CreateBackupCommand::class, $container->get(CreateBackupCommand::class));
         self::assertInstanceOf(VerifyBackupCommand::class, $container->get(VerifyBackupCommand::class));
+        self::assertInstanceOf(MonitorBackupCommand::class, $container->get(MonitorBackupCommand::class));
+        self::assertInstanceOf(BackupLock::class, $container->get(BackupLock::class));
         self::assertFileDoesNotExist($path, 'Building the client opens no connection.');
     }
 

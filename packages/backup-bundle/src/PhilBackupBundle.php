@@ -15,17 +15,22 @@ use Phil\Backup\Restore\RestoreGuard;
 use Phil\Backup\Rotation\RotationPolicy;
 use Phil\Backup\Storage\BackupDirectory;
 use Phil\BackupBundle\Infrastructure\Console\CreateBackupCommand;
+use Phil\BackupBundle\Infrastructure\Console\MonitorBackupCommand;
 use Phil\BackupBundle\Infrastructure\Console\RestoreBackupCommand;
 use Phil\BackupBundle\Infrastructure\Console\VerifyBackupCommand;
 use Phil\BackupBundle\Infrastructure\Doctrine\DatabaseClients;
+use Phil\BackupBundle\Infrastructure\Lock\BackupLock;
 use Phil\BackupBundle\Infrastructure\Process\ProcessCommandRunner;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\FlockStore;
 
 /**
  * Backups of the application's database and media files, from its configuration:
@@ -41,12 +46,14 @@ use Symfony\Component\DependencyInjection\Reference;
  * in clear is refused when restored or tested, unless `allow_unencrypted: true` accepts those written before the key.
  *
  * It registers `Backups` over the client of the Doctrine DBAL connection, the backup directory, the cipher, the media
- * archive and the rotation, the `RestoreGuard`, and the commands `phil:backup:create`, `phil:backup:restore` and
- * `phil:backup:verify`.
+ * archive and the rotation, the `RestoreGuard`, the `BackupLock` the commands that write or read sets hold, and the
+ * commands `phil:backup:create`, `phil:backup:restore`, `phil:backup:verify` and `phil:backup:monitor`.
  */
 final class PhilBackupBundle extends AbstractBundle
 {
     public const string DATABASE_CLIENT = 'phil_backup.database_client';
+
+    public const string LOCK_FACTORY = 'phil_backup.lock_factory';
 
     #[Override]
     protected string $extensionAlias = 'phil_backup';
@@ -129,6 +136,32 @@ final class PhilBackupBundle extends AbstractBundle
                         ->end()
                     ->end()
                 ->end()
+                ->arrayNode('lock')
+                    ->info('The exclusive lock that phil:backup:create, phil:backup:restore and phil:backup:verify hold, so that a rotation never removes a set another command is writing or testing.')
+                    ->addDefaultsIfNotSet()
+                    ->canBeDisabled()
+                    ->children()
+                        ->scalarNode('factory')
+                            ->info('Service id of the Symfony Lock factory, such as "lock.factory" for a store shared by several machines; null, a flock store in the system temporary directory, for the commands of one machine.')
+                            ->defaultNull()
+                        ->end()
+                        ->floatNode('ttl')
+                            ->info('Seconds the lock lives at most in a store whose locks expire: longer than the longest backup, restore or test. The flock store ignores it.')
+                            ->defaultValue(86400.0)
+                            ->min(1)
+                        ->end()
+                    ->end()
+                ->end()
+                ->arrayNode('monitor')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->integerNode('max_age_hours')
+                            ->info('Hours the most recent backup without a label may be old before phil:backup:monitor fails.')
+                            ->defaultValue(MonitorBackupCommand::DEFAULT_MAX_AGE_HOURS)
+                            ->min(1)
+                        ->end()
+                    ->end()
+                ->end()
                 ->arrayNode('verify')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -151,7 +184,7 @@ final class PhilBackupBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{connection: string, directory: string, binaries: array<string, string>, timeout: ?float, warn_after: float, grace_period: float, key: ?string, allow_unencrypted: bool, media: array<string, string>, rotation: array{last: int, daily: int, weekly: int, monthly: int}, restore: array{production_environments: list<string>, keep_before_restore: int}, verify: array{database: ?string}} $config */
+        /** @var array{connection: string, directory: string, binaries: array<string, string>, timeout: ?float, warn_after: float, grace_period: float, key: ?string, allow_unencrypted: bool, media: array<string, string>, rotation: array{last: int, daily: int, weekly: int, monthly: int}, restore: array{production_environments: list<string>, keep_before_restore: int}, lock: array{enabled: bool, factory: ?string, ttl: float}, monitor: array{max_age_hours: int}, verify: array{database: ?string}} $config */
         $rotation = $config['rotation'];
 
         // Built once here so that a bad media name fails the container build rather than the first backup.
@@ -190,8 +223,24 @@ final class PhilBackupBundle extends AbstractBundle
         $services->set(Backups::class)
             ->args([new Reference(self::DATABASE_CLIENT), new Reference(BackupDirectory::class), $cipher, new Reference(MediaArchive::class), $policy, $config['allow_unencrypted']])
             ->public();
-        $services->set(CreateBackupCommand::class)->args([new Reference(Backups::class)])->tag('console.command');
-        $services->set(RestoreBackupCommand::class)->args([new Reference(Backups::class), new Reference(RestoreGuard::class), $config['restore']['keep_before_restore']])->tag('console.command');
-        $services->set(VerifyBackupCommand::class)->args([new Reference(Backups::class), $config['verify']['database']])->tag('console.command');
+
+        $lock = null;
+
+        if ($config['lock']['enabled']) {
+            $factory = $config['lock']['factory'];
+
+            if (null === $factory) {
+                $services->set(self::LOCK_FACTORY, LockFactory::class)->args([new Definition(FlockStore::class)]);
+                $factory = self::LOCK_FACTORY;
+            }
+
+            $services->set(BackupLock::class)->args([new Reference($factory), $config['directory'], $config['lock']['ttl']]);
+            $lock = new Reference(BackupLock::class);
+        }
+
+        $services->set(CreateBackupCommand::class)->args([new Reference(Backups::class), $lock])->tag('console.command');
+        $services->set(RestoreBackupCommand::class)->args([new Reference(Backups::class), new Reference(RestoreGuard::class), $config['restore']['keep_before_restore'], $lock])->tag('console.command');
+        $services->set(VerifyBackupCommand::class)->args([new Reference(Backups::class), $config['verify']['database'], $lock])->tag('console.command');
+        $services->set(MonitorBackupCommand::class)->args([new Reference(Backups::class), $config['monitor']['max_age_hours'], new Reference('clock', ContainerInterface::NULL_ON_INVALID_REFERENCE)])->tag('console.command');
     }
 }

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9230a29da5843800c64ee36266e91213b93f7f3769854a7b6557e22bd3f33b20 -->
+<!-- phil-dev source-sha256=b9b8a54fd1d6ca46c0d470eacf320f4384616a7bc00213681d6be710d5ee3345 -->
 # Rotation
 
 ## Les règles
@@ -32,3 +32,39 @@ sauvegarde n'est pas comptée : après une semaine de panne, `daily: 7` garde en
 retourne. Seuls les jeux **sans étiquette** sont en rotation : la copie faite avant une restauration, une copie
 anonymisée ou une copie faite avant une migration reste jusqu'à ce qu'elle soit supprimée à la main, ou par
 `Backups::keepLatest()` pour une étiquette. Les fichiers du répertoire qui ne sont pas des jeux ne sont jamais touchés.
+
+## Les jeux étiquetés et leur conservation
+
+Un jeu étiqueté n'a pas de période propre : il reste jusqu'à ce que quelque chose le supprime. Donnez une période à
+chaque étiquette, notée à côté des autres périodes de conservation de l'application, et supprimez ses jeux quand elle
+se termine :
+
+- **par nombre** : `Backups::keepLatest($label, $keep)` supprime les jeux de l'étiquette sauf les `keep` plus
+  récents, et les retourne, du plus ancien au plus récent ;
+- **par âge** : listez les jeux de l'étiquette et supprimez ceux qui ont été faits avant la période :
+
+```php
+$cutoff = new DateTimeImmutable('-30 days');
+
+foreach ($backups->directory()->labelled($backups->client()->extension(), 'anonymized') as $set) {
+    if ($set->time < $cutoff) {
+        $backups->directory()->remove($set);
+    }
+}
+```
+
+**Une copie étiquetée `anonymized` contient des renseignements personnels.** Une base de données dont des colonnes ont
+été réécrites pour travailler sur une copie de la production garde ses clés primaires, les colonnes qu'aucune règle ne
+nomme et son texte libre : on peut la relier aux personnes de la production. Selon la loi québécoise sur la protection
+des renseignements personnels dans le secteur privé, elle est au mieux dépersonnalisée, non anonymisée, et d'autres lois
+la voient de la même façon. Une telle copie demande une courte période — le temps du travail pour lequel elle a été
+faite —, un chiffrement comme tout autre jeu, et sa fuite est un incident de confidentialité. La supprimer à la fin de
+sa période est le comportement par défaut ; rien dans cette bibliothèque ne rend une copie anonyme.
+
+## La rotation à côté d'une sauvegarde
+
+`Backups` ne prend aucun verrou : `prune()` et `keepLatest()` suppriment des jeux pendant qu'un autre processus peut
+en écrire un nouveau ou en tester un ancien. Un jeu en cours d'écriture n'est jamais supprimé — il n'a pas de nom avant
+d'être complet, et le jeu le plus récent est toujours gardé —, mais un jeu en cours de test peut l'être. Une
+application qui lance des sauvegardes, des rotations et des tests depuis plus d'un processus les sérialise avec un
+verrou par répertoire ; phil/backup-bundle le fait avec Symfony Lock.

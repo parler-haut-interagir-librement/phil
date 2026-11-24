@@ -72,7 +72,20 @@ final readonly class PolicyVersion
      */
     public function text(string $locale, string $fallback): string
     {
-        return $this->texts[$locale] ?? $this->texts[$fallback] ?? array_first($this->texts);
+        return $this->texts[$this->textLocale($locale, $fallback)];
+    }
+
+    /**
+     * The locale whose text `text()` gives: the locale when the version has its text, else the fallback locale when it
+     * has that one, else the first locale of the version.
+     */
+    public function textLocale(string $locale, string $fallback): string
+    {
+        if (isset($this->texts[$locale])) {
+            return $locale;
+        }
+
+        return isset($this->texts[$fallback]) ? $fallback : array_key_first($this->texts);
     }
 
     /**

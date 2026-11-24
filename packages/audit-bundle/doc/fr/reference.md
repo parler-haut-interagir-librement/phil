@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=05e4015edc9752e0ebef056a45ee7496aa2693953d58caa37b75e8c54fe4bb39 -->
+<!-- phil-dev source-sha256=214187f8f621e49361fc2809c1e894a51be1cb0fbcb0b93f02705171b63abeec -->
 # Référence de l'API
 
 Chaque type sous `Phil\AuditBundle\`, par couche.
@@ -25,7 +25,7 @@ Chaque type sous `Phil\AuditBundle\`, par couche.
 | `AuditRow`, `RowKind` | Une ligne : segment, séquence, genre, instant, version de sérialisation, charge utile, empreinte précédente, empreinte; `append()`, `restore()`, `isIntact()`; `GENESIS` | Implémenté et testé |
 | `Anchor` | Les empreintes de bornes d'un segment à la fin d'une période | Implémenté et testé |
 | `ChainVerifier`, `ChainBreak` | Vérifie un segment par rapport à ses ancres en une seule passe; ce qui ne va pas, une alarme ou une rupture expliquée par une discontinuité ancrée (`isAlarm()`) | Implémenté et testé |
-| `Facts`, `Subject` | Ce qui indexe une ligne et que son empreinte couvre : action, acteur, sujet, locataire; `of()`, `none()`, `inTenant()`, `restore()`, `isWellFormed()` | Implémenté et testé |
+| `Facts`, `Subject` | Ce qui indexe une ligne et que son empreinte couvre : action, acteur, sujet, locataire; `of()`, `read()`, `none()`, `inTenant()`, `restore()`, `isWellFormed()`, `isRead()` | Implémenté et testé |
 | `SiteSegment` | Le segment d'un locataire : `of()`, `isSite()`, `belongsTo()`, `base()`; `DIGEST_LENGTH = 32` (128 bits), `MAX_BASE_LENGTH = 29` | Implémenté et testé |
 
 ### `Domain\Contract`
@@ -51,7 +51,7 @@ Chaque type sous `Phil\AuditBundle\`, par couche.
 
 | Type | Rôle | État |
 |---|---|---|
-| `AuditQuery`, `Order` | Les filtres, l'ordre, la taille de page et le curseur d'une lecture; `matches()` et `isAfterCursor()` pour un adaptateur qui balaie | Implémenté et testé |
+| `AuditQuery`, `Order` | Les filtres, l'ordre, la taille de page et le curseur d'une lecture, `reads()` pour les lectures seulement; `matches()` et `isAfterCursor()` pour un adaptateur qui balaie | Implémenté et testé |
 | `Cursor`, `AuditPage` | Où une page s'est arrêtée, sous forme de jeton; une page et le curseur de la suivante | Implémenté et testé |
 | `SegmentStatus`, `ChainState` | La tête d'un segment et, une fois vérifié, ses ruptures et son état; son site (`site()`) et le segment nommé (`base()`) | Implémenté et testé |
 
@@ -59,7 +59,7 @@ Chaque type sous `Phil\AuditBundle\`, par couche.
 
 | Type | Rôle | État |
 |---|---|---|
-| `AuditTrail` | `record($segment, $fields, $facts)`, `recordDiscontinuity($segment, $reason, $tenant)`, `segmentFor($segment, $tenant)`, retenté en cas de concurrence, estampillé du locataire, dans le segment du site avec les segments de site, passé au notificateur | Implémenté et testé |
+| `AuditTrail` | `record($segment, $fields, $facts)`, `recordRead($segment, $what, $subject, $actor, $fields)`, `recordDiscontinuity($segment, $reason, $tenant)`, `segmentFor($segment, $tenant)`, retenté en cas de concurrence, estampillé du locataire, dans le segment du site avec les segments de site, passé au notificateur | Implémenté et testé |
 | `AuditLog` | `page()`, `history()`, `row()`, `each()`, limité au locataire courant, chaque ligne soumise à la requête avec `===` | Implémenté et testé |
 | `ChainStatus` | `segments()`, `verify($segment)`, limité au site du locataire courant | Implémenté et testé |
 | `DashboardFeed` | `feed($segments, $max)`, `feedSegment($segment, $max)`, `lag($segment)` : les faits depuis l'emplacement de l'alimentation | Implémenté et testé |

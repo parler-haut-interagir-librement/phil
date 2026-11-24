@@ -13,6 +13,11 @@ use Phil\DddBundle\Domain\Exception\InvalidValue;
  */
 final readonly class Facts
 {
+    /**
+     * The prefix of the actions that record a read rather than a change: `read.` then what was read.
+     */
+    public const string READ_PREFIX = 'read.';
+
     private function __construct(
         public ?string $action,
         public ?string $actor,
@@ -48,6 +53,31 @@ final readonly class Facts
         }
 
         return new self($action, $actor, $subject, $tenant);
+    }
+
+    /**
+     * The facts of a read of sensitive data — a record opened, an export downloaded, a document decrypted for someone
+     * to see —: the action `read.` then what was read, and the record read, which a read always names.
+     *
+     * @param string      $what  what was read, as an action names it, such as `account.profile` or `order.invoice`;
+     *                           with the prefix, 64 characters at most
+     * @param string|null $actor the stable identifier of the account or the process that read; `null` for none
+     *
+     * @throws InvalidValue when a value is not an identifier
+     */
+    public static function read(string $what, Subject $subject, ?string $actor = null, ?string $tenant = null): self
+    {
+        self::assertAction($what);
+
+        return self::of(self::READ_PREFIX.$what, $actor, $subject, $tenant);
+    }
+
+    /**
+     * Whether the facts are those of a read: an action that starts with {@see self::READ_PREFIX}.
+     */
+    public function isRead(): bool
+    {
+        return null !== $this->action && str_starts_with($this->action, self::READ_PREFIX);
     }
 
     /**

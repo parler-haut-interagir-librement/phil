@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=087142f7c5cf4abbc94d043cb1d51e0fc078957aed33d89c9c808dd352c6c3dd -->
+<!-- phil-dev source-sha256=5e6b46a575081b2aa5d201ca00008bd5d5176f45c608e3161a3758703af72cac -->
 # Renseignements personnels
 
 ## Ce que conserve une acceptation
@@ -10,6 +10,7 @@
 | `accepted_at` | Quand, selon l'horloge, gardé en UTC |
 | `channel` | `signup`, `form`, `api` ou `import` |
 | `network` | Quand `network` est activé, le réseau de l'adresse de la requête ; sinon rien |
+| `locale`, `text_sha256` | La locale du texte montré et le SHA-256 de son HTML ([Acceptation](acceptance.md#prouver-le-texte-accepté)) ; `NULL` sur une acceptation consignée avant 0.3 |
 
 L'adresse elle-même n'est jamais conservée. Quand `network` est activé, `phil/ip-anonymizer` la tronque par défaut à
 un /24 pour IPv4 et à un /48 pour IPv6 ; un texte qui n'est pas une adresse ne conserve rien. Une application qui veut
@@ -21,9 +22,9 @@ trace de ce qui a été accepté et quand. Le bundle n'en met jamais une à jour
 ## Exportation et effacement
 
 Avec `phil/privacy-bundle`, `AcceptancesPrivacy` est le module `terms` d'une demande d'accès ou d'effacement, pour le
-membre que nomme la personne concernée : l'exportation énumère chaque acceptation — politique, version, moment, canal
-et réseau —, l'effacement les supprime toutes et signale le stockage `phil_terms_acceptance` comme supprimé. Il
-s'exécute de nouveau sur un membre déjà effacé avec le même rapport.
+membre que nomme la personne concernée : l'exportation énumère chaque acceptation — politique, version, moment, canal,
+réseau, locale et SHA-256 du texte —, l'effacement les supprime toutes et signale le stockage `phil_terms_acceptance`
+comme supprimé. Il s'exécute de nouveau sur un membre déjà effacé avec le même rapport.
 
 ## Versions
 

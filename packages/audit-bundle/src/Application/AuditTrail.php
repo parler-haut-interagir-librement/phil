@@ -10,6 +10,7 @@ use Phil\AuditBundle\Domain\Chain\AuditRow;
 use Phil\AuditBundle\Domain\Chain\Facts;
 use Phil\AuditBundle\Domain\Chain\RowKind;
 use Phil\AuditBundle\Domain\Chain\SiteSegment;
+use Phil\AuditBundle\Domain\Chain\Subject;
 use Phil\AuditBundle\Domain\Contract\AuditRowRepository;
 use Phil\AuditBundle\Domain\Contract\CanonicalSerializer;
 use Phil\AuditBundle\Domain\Exception\ChainConflict;
@@ -51,6 +52,18 @@ final readonly class AuditTrail
         }
 
         return $this->append($this->segmentFor($segment, $facts->tenant), RowKind::Event, $this->serializer->serialize($fields), $facts);
+    }
+
+    /**
+     * Records a read of sensitive data: the facts of {@see Facts::read()}, in the current tenant, and the fields the
+     * application keeps about the read — a reason, the screen, the format of an export —, never the data read.
+     *
+     * @param string                                    $what   what was read, such as `account.profile`
+     * @param array<string, bool|float|int|string|null> $fields the payload, serialized as is
+     */
+    public function recordRead(string $segment, string $what, Subject $subject, ?string $actor = null, array $fields = []): AuditRow
+    {
+        return $this->record($segment, $fields, Facts::read($what, $subject, $actor));
     }
 
     /**

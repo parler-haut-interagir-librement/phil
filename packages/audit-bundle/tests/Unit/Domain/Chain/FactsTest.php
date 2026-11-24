@@ -47,6 +47,27 @@ final class FactsTest extends TestCase
         self::assertSame('x', Facts::of('a', tenant: 'x')->tenant);
     }
 
+    public function testAReadIsAnActionUnderItsPrefix(): void
+    {
+        $subject = Subject::of('account', 'acct-9');
+        $read = Facts::read('account.profile', $subject, 'acct-7', 'shop-a');
+
+        self::assertSame('read.', Facts::READ_PREFIX);
+        self::assertSame(['read.account.profile', 'acct-7', 'shop-a'], [$read->action, $read->actor, $read->tenant]);
+        self::assertSame($subject, $read->subject);
+        self::assertTrue($read->isRead());
+        self::assertNull(Facts::read('account.profile', $subject)->actor);
+        self::assertNull(Facts::read('account.profile', $subject)->tenant);
+        self::assertSame('read.a'.str_repeat('b', 58), Facts::read('a'.str_repeat('b', 58), $subject)->action, 'the longest: 64 characters with the prefix');
+
+        self::assertFalse(Facts::of('account.updated')->isRead());
+        self::assertFalse(Facts::of('reader.added')->isRead());
+        self::assertFalse(Facts::of('read')->isRead());
+        self::assertFalse(Facts::none()->isRead());
+        self::assertTrue(Facts::of('read.x')->isRead(), 'any action under the prefix');
+        self::assertTrue(Facts::restore('read.x', null, null, null)->isRead());
+    }
+
     public function testTheCheckersAreOpenToWhoReadsTheLog(): void
     {
         Facts::assertAction('order.paid');
@@ -106,5 +127,10 @@ final class FactsTest extends TestCase
         yield 'tenant too long' => [static fn (): Facts => Facts::of('a', tenant: str_repeat('a', 256)), $tenant];
         yield 'tenant of invalid UTF-8' => [static fn (): Facts => Facts::of('a', tenant: "\xFF"), $tenant];
         yield 'tenant moved to a bad reference' => [static fn (): Facts => Facts::none()->inTenant(' '), $tenant];
+        yield 'empty read' => [static fn (): Facts => Facts::read('', Subject::of('a', '1')), \sprintf($action, '')];
+        yield 'read starting with a dot' => [static fn (): Facts => Facts::read('.a', Subject::of('a', '1')), \sprintf($action, '.a')];
+        yield 'read too long with its prefix' => [static fn (): Facts => Facts::read('a'.str_repeat('b', 59), Subject::of('a', '1')), \sprintf($action, 'read.a'.str_repeat('b', 59))];
+        yield 'read by an e-mail address' => [static fn (): Facts => Facts::read('a', Subject::of('a', '1'), 'ada@example.org'), \sprintf($actor, 'ada@example.org')];
+        yield 'read in a bad tenant' => [static fn (): Facts => Facts::read('a', Subject::of('a', '1'), tenant: ' a'), $tenant];
     }
 }

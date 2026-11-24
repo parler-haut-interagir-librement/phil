@@ -36,6 +36,8 @@ final readonly class DbalAcceptances implements AcceptanceRepository
             'accepted_at' => $acceptance->acceptedAt,
             'channel' => $acceptance->channel->value,
             'network' => $acceptance->network,
+            'locale' => $acceptance->locale,
+            'text_sha256' => $acceptance->textSha256,
         ], ['accepted_at' => Types::DATETIME_UTC_IMMUTABLE]);
     }
 
@@ -59,7 +61,7 @@ final readonly class DbalAcceptances implements AcceptanceRepository
     public function ofMember(string $member): array
     {
         $rows = $this->connection->fetchAllAssociative(
-            'SELECT member, policy, version, accepted_at, channel, network FROM '.TermsTables::ACCEPTANCES.' WHERE member = ? ORDER BY id',
+            'SELECT member, policy, version, accepted_at, channel, network, locale, text_sha256 FROM '.TermsTables::ACCEPTANCES.' WHERE member = ? ORDER BY id',
             [$member],
         );
 
@@ -90,7 +92,7 @@ final readonly class DbalAcceptances implements AcceptanceRepository
         }
 
         try {
-            return new Acceptance($member, $policy, $version, $at, $channel, $read->text($row, 'network'));
+            return new Acceptance($member, $policy, $version, $at, $channel, $read->text($row, 'network'), $read->text($row, 'locale'), $read->text($row, 'text_sha256'));
         } catch (InvalidTerms) {
             return null;
         }

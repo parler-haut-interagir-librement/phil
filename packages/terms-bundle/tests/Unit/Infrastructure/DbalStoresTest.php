@@ -107,7 +107,7 @@ final class DbalStoresTest extends TestCase
     public function testAnAcceptanceIsAddedAndReadBackInItsOrder(): void
     {
         $acceptances = new DbalAcceptances($this->connection);
-        $first = new Acceptance('42', 'terms', 1, new DateTimeImmutable('2026-05-01 10:00'), AcceptanceChannel::Signup, '192.0.2.0');
+        $first = new Acceptance('42', 'terms', 1, new DateTimeImmutable('2026-05-01 10:00'), AcceptanceChannel::Signup, '192.0.2.0', 'fr-CA', 'a3f1000000000000000000000000000000000000000000000000000000000000');
         $second = new Acceptance('42', 'privacy', 2, new DateTimeImmutable('2026-05-02 10:00'), AcceptanceChannel::Form);
         $acceptances->append($first);
         $acceptances->append(new Acceptance('43', 'terms', 1, new DateTimeImmutable(), AcceptanceChannel::Api));
@@ -115,6 +115,29 @@ final class DbalStoresTest extends TestCase
 
         self::assertEquals([$first, $second], $acceptances->ofMember('42'));
         self::assertSame([], $acceptances->ofMember('44'));
+        self::assertSame(['fr-CA', 'a3f1000000000000000000000000000000000000000000000000000000000000'], array_values((array) $this->connection->fetchAssociative('SELECT locale, text_sha256 FROM phil_terms_acceptance WHERE member = ? AND policy = ?', ['42', 'terms'])));
+    }
+
+    public function testAnAcceptanceRecordedBeforeTheProofReadsBackWithout(): void
+    {
+        $this->connection->insert(TermsTables::ACCEPTANCES, ['member' => '42', 'policy' => 'terms', 'version' => 1, 'accepted_at' => '2026-05-01 10:00:00', 'channel' => 'form']);
+
+        $read = new DbalAcceptances($this->connection)->ofMember('42');
+
+        self::assertCount(1, $read);
+        self::assertNull($read[0]->locale);
+        self::assertNull($read[0]->textSha256);
+    }
+
+    public function testTheProofColumnsAreNullable(): void
+    {
+        $table = TermsTables::configure(Schema::editor()->create())->getTable(TermsTables::ACCEPTANCES);
+
+        self::assertFalse($table->getColumn('locale')->getNotnull());
+        self::assertSame(35, $table->getColumn('locale')->getLength());
+        self::assertFalse($table->getColumn('text_sha256')->getNotnull());
+        self::assertSame(64, $table->getColumn('text_sha256')->getLength());
+        self::assertTrue($table->getColumn('text_sha256')->getFixed());
     }
 
     public function testTheMembersInOrderWithAPolicy(): void
@@ -176,7 +199,7 @@ final class DbalStoresTest extends TestCase
     {
         $row = ['member' => '42', 'policy' => 'terms', 'version' => 1, 'accepted_at' => '2026-05-01 10:00:00', 'channel' => 'form', 'network' => null];
 
-        foreach ([['channel' => 'mail'], ['accepted_at' => 'not a date'], ['policy' => 'Bad'], ['network' => ''], ['version' => 0], ['version' => 'x'], ['member' => '43'], ['network' => '192.0.2.0']] as $changes) {
+        foreach ([['channel' => 'mail'], ['accepted_at' => 'not a date'], ['policy' => 'Bad'], ['network' => ''], ['version' => 0], ['version' => 'x'], ['member' => '43'], ['locale' => 'French'], ['text_sha256' => 'not a digest'], ['network' => '192.0.2.0']] as $changes) {
             $this->connection->insert(TermsTables::ACCEPTANCES, $changes + $row);
         }
 
@@ -212,7 +235,7 @@ final class DbalStoresTest extends TestCase
         $columns = [];
         $names = [
             TermsTables::VERSIONS => ['id', 'policy', 'number', 'format', 'texts', 'published_at', 'effective_at', 'material', 'licence'],
-            TermsTables::ACCEPTANCES => ['id', 'member', 'policy', 'version', 'accepted_at', 'channel', 'network'],
+            TermsTables::ACCEPTANCES => ['id', 'member', 'policy', 'version', 'accepted_at', 'channel', 'network', 'locale', 'text_sha256'],
         ];
 
         foreach ($names as $table => $tableColumns) {
@@ -244,6 +267,8 @@ final class DbalStoresTest extends TestCase
                 'accepted_at' => ['datetime_utc_immutable', null, true, false],
                 'channel' => ['string', 16, true, false],
                 'network' => ['string', 64, false, false],
+                'locale' => ['string', 35, false, false],
+                'text_sha256' => ['string', 64, false, false],
             ],
         ], $columns);
 

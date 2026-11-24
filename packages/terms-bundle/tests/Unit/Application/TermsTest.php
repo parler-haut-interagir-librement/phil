@@ -87,9 +87,68 @@ final class TermsTest extends TestCase
 
         $acceptance = $kit->terms->accept('42', 'terms', 1, AcceptanceChannel::Api, '192.0.2.7');
 
-        self::assertEquals(new Acceptance('42', 'terms', 1, $kit->clock->now(), AcceptanceChannel::Api), $acceptance);
+        self::assertEquals(new Acceptance('42', 'terms', 1, $kit->clock->now(), AcceptanceChannel::Api, null, 'en', hash('sha256', '<p>x</p>')), $acceptance);
         self::assertSame([$acceptance], $kit->acceptances->acceptances);
         self::assertEquals(new TermsAccepted('42', 'terms', 1, AcceptanceChannel::Api), $kit->events->events[1]);
+    }
+
+    public function testAnAcceptanceKeepsTheLocaleShownAndTheSha256OfItsHtml(): void
+    {
+        $kit = new Kit();
+        $kit->terms->publish('terms', ['en' => 'Hello', 'fr' => "Bonjour\n\nà tous"]);
+
+        $french = $kit->terms->accept('42', 'terms', 1, AcceptanceChannel::Form, locale: 'fr');
+        self::assertSame('fr', $french->locale);
+        self::assertSame(hash('sha256', "<p>Bonjour</p>\n<p>à tous</p>"), $french->textSha256);
+
+        $german = $kit->terms->accept('42', 'terms', 1, AcceptanceChannel::Form, locale: 'de');
+        self::assertSame('en', $german->locale, 'the default locale, whose text a German reader is shown');
+        self::assertSame(hash('sha256', '<p>Hello</p>'), $german->textSha256);
+
+        self::assertSame('en', $kit->terms->accept('42', 'terms', 1, AcceptanceChannel::Api)->locale);
+    }
+
+    public function testWithoutTheDefaultLocaleTheFirstTextIsShown(): void
+    {
+        $kit = new Kit();
+        $terms = new Terms($kit->policies, $kit->catalog, $kit->versions, $kit->texts, $kit->acceptances, $kit->clock, defaultLocale: 'fr');
+        $terms->publish('terms', ['de' => 'Hallo', 'fr' => 'Bonjour']);
+
+        self::assertSame('fr', $terms->accept('42', 'terms', 1, AcceptanceChannel::Form)->locale);
+        self::assertSame('fr', $terms->accept('42', 'terms', 1, AcceptanceChannel::Form, locale: 'it')->locale);
+        self::assertSame('de', $terms->accept('42', 'terms', 1, AcceptanceChannel::Form, locale: 'de')->locale);
+        self::assertSame('de', $kit->terms->accept('42', 'terms', 1, AcceptanceChannel::Form, locale: 'it')->locale, 'neither the locale nor the default: the first text');
+    }
+
+    public function testAnotherTextGivesAnotherSha256(): void
+    {
+        $kit = new Kit();
+        $kit->terms->publish('terms', ['en' => 'You may post.']);
+        $kit->terms->publish('privacy', ['en' => 'You may post!']);
+
+        $first = $kit->terms->accept('42', 'terms', 1, AcceptanceChannel::Form);
+        $second = $kit->terms->accept('42', 'privacy', 1, AcceptanceChannel::Form);
+
+        self::assertNotSame($first->textSha256, $second->textSha256);
+        self::assertSame(hash('sha256', '<p>You may post.</p>'), $first->textSha256);
+        self::assertSame(hash('sha256', '<p>You may post!</p>'), $second->textSha256);
+    }
+
+    public function testTheTextAnAcceptanceProvesIsChecked(): void
+    {
+        $kit = new Kit();
+        $kit->terms->publish('terms', ['en' => 'Hello', 'fr' => 'Bonjour']);
+
+        $acceptance = $kit->terms->accept('42', 'terms', 1, AcceptanceChannel::Form, locale: 'fr');
+        $at = $kit->clock->now();
+
+        self::assertTrue($kit->terms->textMatches($acceptance));
+        self::assertFalse($kit->terms->textMatches(new Acceptance('42', 'terms', 1, $at, AcceptanceChannel::Form, null, 'en', $acceptance->textSha256)), 'the text of another locale');
+        self::assertFalse($kit->terms->textMatches(new Acceptance('42', 'terms', 1, $at, AcceptanceChannel::Form, null, 'fr', hash('sha256', '<p>Bonjour !</p>'))), 'another text');
+        self::assertFalse($kit->terms->textMatches(new Acceptance('42', 'terms', 2, $at, AcceptanceChannel::Form, null, 'fr', $acceptance->textSha256)), 'a version not found');
+        self::assertNull($kit->terms->textMatches(new Acceptance('42', 'terms', 1, $at, AcceptanceChannel::Form)));
+        self::assertNull($kit->terms->textMatches(new Acceptance('42', 'terms', 1, $at, AcceptanceChannel::Form, null, 'fr')));
+        self::assertNull($kit->terms->textMatches(new Acceptance('42', 'terms', 1, $at, AcceptanceChannel::Form, null, null, $acceptance->textSha256)));
     }
 
     public function testTheAddressIsKeptAsTheMaskerTurnsIt(): void

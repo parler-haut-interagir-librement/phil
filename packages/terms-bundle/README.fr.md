@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4fb1ee5c421cd7ee4bfa90c80d484268ef87af0fcc41c614a941163d98a204a2 -->
+<!-- phil-dev source-sha256=6adbab5578804f57b27525c9896a9c4c8c1dffc59db963e64e05cecd3f1ed795 -->
 # phil/terms-bundle
 
 **Des conditions d'utilisation versionnées pour Symfony : chaque version publiée une seule fois, chaque acceptation
@@ -9,7 +9,8 @@ sa politique de confidentialité, son code de conduite — sous forme de version
 modifiées : un numéro, le texte de chaque locale, le moment de sa publication, le moment de son entrée en vigueur, et
 s'il modifie les conditions assez pour que chaque membre doive l'accepter de nouveau. Chaque acceptation est un
 enregistrement auquel on ne fait jamais qu'ajouter : qui, quelle version, quand, où, et — quand l'application le
-veut — le réseau d'où venait la requête, jamais l'adresse. Une porte envoie un membre connecté qui a une version
+veut — le réseau d'où venait la requête, jamais l'adresse —, avec la locale du texte montré et le SHA-256 de son HTML, la
+preuve du texte même qui a été accepté. Une porte envoie un membre connecté qui a une version
 importante à accepter vers une page où chaque version a sa propre case à cocher, jamais cochée d'avance ; une API
 reçoit une réponse `403` avec un problème en JSON. Un formulaire d'inscription obtient la même case à cocher grâce à
 une seule option. Une acceptation peut être redemandée après un certain nombre de jours, et des rappels partent selon
@@ -25,6 +26,7 @@ Il s'adresse à tout site ouvert au public qui doit montrer quelles conditions c
 |---|---|
 | Politiques, versions immuables avec leurs locales, leurs moments et leur indicateur de changement important | Implémenté et testé |
 | Acceptations, en ajout seulement, avec leur canal et, au besoin, le réseau | Implémenté et testé |
+| La locale et le SHA-256 du texte accepté, et la vérification de cette preuve | Implémenté et testé |
 | La porte sur chaque requête, la page d'acceptation, le problème d'une API | Implémenté, testé et mesuré au banc d'essai |
 | La case à cocher d'inscription, la version affichée vérifiée à la soumission | Implémenté et testé |
 | Renouvellement périodique, rappels selon un horaire, avis d'une nouvelle version | Implémenté et testé |
@@ -43,7 +45,7 @@ Il s'adresse à tout site ouvert au public qui doit montrer quelles conditions c
 | [Installation](doc/fr/installation.md) | Les prérequis, l'enregistrement du bundle, les tables, la recette, les routes. |
 | [Configuration](doc/fr/configuration.md) | Chaque option de `phil_terms`. |
 | [Politiques et versions](doc/fr/versions.md) | Les politiques, les versions, les changements importants, l'entrée en vigueur d'une version, les textes. |
-| [Acceptation](doc/fr/acceptance.md) | Ce qu'un membre doit accepter, la porte, la page d'acceptation, les API, le formulaire d'inscription, l'enregistrement depuis le code. |
+| [Acceptation](doc/fr/acceptance.md) | Ce qu'un membre doit accepter, la porte, la page d'acceptation, les API, le formulaire d'inscription, l'enregistrement depuis le code, la preuve du texte accepté. |
 | [Renouvellement et rappels](doc/fr/renewal-and-reminders.md) | Les acceptations redemandées, les rappels, les avis d'une nouvelle version. |
 | [Licence des contributions](doc/fr/contribution-licence.md) | La licence des contributions des membres, choisie avec une version et datée par son acceptation. |
 | [Pages publiques](doc/fr/public-pages.md) | Les adresses versionnées, les changements, le cache, les recettes du kit. |

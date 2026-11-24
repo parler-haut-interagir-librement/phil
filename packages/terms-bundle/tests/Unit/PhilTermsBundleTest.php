@@ -138,6 +138,7 @@ final class PhilTermsBundleTest extends TestCase
             null,
             null,
             new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            'en',
         ], $container->getDefinition(Terms::class)->getArguments());
         self::assertTrue($container->getDefinition(Terms::class)->isPublic());
         self::assertEquals([new Reference(Policies::class), new Reference(VersionCatalog::class), new Reference(AcceptanceRepository::class), new Reference(MemberSource::class)], $container->getDefinition(Outstanding::class)->getArguments());
@@ -231,6 +232,7 @@ final class PhilTermsBundleTest extends TestCase
 
         self::assertSame('site.html.twig', $container->getDefinition(Pages::class)->getArgument(3));
         self::assertSame('fr', $container->getDefinition(AcceptanceController::class)->getArgument(6));
+        self::assertSame('fr', $container->getDefinition(Terms::class)->getArgument(9));
         self::assertSame('fr', $container->getDefinition(PolicyController::class)->getArgument(5));
         self::assertEquals($clock, $container->getDefinition(PolicyController::class)->getArgument(4));
         self::assertSame([['logout'], ['/media/'], ['/api/'], 'https://example.org/terms'], \array_slice($container->getDefinition(AcceptanceGate::class)->getArguments(), 4, 4));

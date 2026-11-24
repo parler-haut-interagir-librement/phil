@@ -6,9 +6,20 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.2.1-alpha.
+The next version is 0.3.0-alpha.
 
-Development only.
+Each acceptance proves the text accepted, with two nullable columns of `phil_terms_acceptance`. See [Upgrading from
+0.2](doc/installation.md#upgrading-from-02).
+
+### Added
+
+- `Acceptance` keeps `locale`, the locale whose text the member was shown, and `textSha256`, the SHA-256 of the HTML
+  `PolicyTexts::toHtml()` renders from that text; `phil_terms_acceptance` keeps them in `locale` and `text_sha256`,
+  both nullable for the acceptances recorded before them. `Terms::accept()` takes the locale shown as a last argument
+  — the acceptance page and `SignupAcceptances::record()` give the request's —, falls back to `default_locale`, then
+  to the first locale of the version, and `Terms::textMatches()` checks the proof against the version kept.
+  `PolicyVersion::textLocale()` names the locale whose text `text()` gives. The export of `phil/privacy-bundle` lists
+  both. The [acceptance guide](doc/acceptance.md#proving-the-text-accepted) says how to prove the text accepted.
 
 ### Changed
 

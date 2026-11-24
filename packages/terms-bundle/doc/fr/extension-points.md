@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=672a68abdbf2553c4143e3b73d93ca3eec85e69959bc03cd9b087df4cbbd8fd5 -->
+<!-- phil-dev source-sha256=d2b9452e3433f32ed4ad6ddf22517fec4d5273b3291cf8fdb55df332f1539a4c -->
 # Points d'extension
 
 | Point | Comment |
@@ -10,7 +10,7 @@
 | Comment les textes sont vérifiés, affichés et comparés | Implémentez `Application\Contract\PolicyTexts` et créez-en un alias |
 | Où les versions sont conservées | Implémentez `Domain\Contract\PolicyVersionRepository` et créez-en un alias |
 | Où les acceptations sont conservées | Implémentez `Domain\Contract\AcceptanceRepository` et créez-en un alias |
-| Publier et accepter depuis le code | `Application\Terms` : `publish()`, `accept()` |
+| Publier et accepter depuis le code | `Application\Terms` : `publish()`, `accept()`, `textMatches()` |
 | Ce qu'un membre doit accepter | `Application\AcceptanceChecker::pending()` |
 | Qui n'a pas accepté | `Application\Outstanding` : `at()`, `ofLatestMaterial()` |
 | Réagir à une publication ou à une acceptation | Écoutez `Application\Event\VersionPublished` et `TermsAccepted` |

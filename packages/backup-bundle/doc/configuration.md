@@ -17,6 +17,12 @@ phil_backup:
     restore:
         production_environments: [prod]
         keep_before_restore: 3
+    lock:
+        enabled: true                           # false, the commands run without a lock
+        factory: null                           # a Symfony Lock factory service, such as lock.factory
+        ttl: 86400                              # seconds, for a store whose locks expire
+    monitor:
+        max_age_hours: 26                       # phil:backup:monitor fails past it
     verify:
         database: null                          # the scratch database of a server's restore test
 ```
@@ -35,6 +41,10 @@ phil_backup:
 | `rotation.last`, `daily`, `weekly`, `monthly` | integers, 0 or more | `0` | How many sets each rule keeps after each `phil:backup:create`; all zero, every set is kept. See phil/backup's rotation (`doc/rotation.md` of that package). |
 | `restore.production_environments` | list of strings | `[prod]` | Kernel environments in which a restore needs `PHIL_BACKUP_ALLOW_PRODUCTION_RESTORE`; see [restore-protection.md](restore-protection.md). |
 | `restore.keep_before_restore` | integer, 1 or more | `3` | How many sets labelled `before-restore` are kept once a restore succeeds; the older ones are removed. |
+| `lock.enabled` | boolean | `true` | Whether `phil:backup:create`, `phil:backup:restore` and `phil:backup:verify` hold the exclusive lock of the directory; see [The lock](commands.md#the-lock). `lock: false` disables it. |
+| `lock.factory` | string or null | `null` | Service id of a Symfony Lock `LockFactory`, such as `lock.factory` with a store several machines share; `null`, a factory over a flock store in the system temporary directory, which serves the commands of one machine. |
+| `lock.ttl` | float, 1 or more | `86400` | Seconds the lock lives at most in a store whose locks expire, such as Redis: longer than the longest backup, restore or test, or the lock lapses while the command runs. The flock store never expires, and ignores it. |
+| `monitor.max_age_hours` | integer, 1 or more | `26` | Hours the most recent backup without a label may be old before `phil:backup:monitor` fails: a nightly backup, and two hours for it to run late. |
 | `verify.database` | string or null | `null` | The scratch database, on the same server, into which `phil:backup:verify` restores a MySQL, MariaDB or PostgreSQL backup; `null`, it is not restored. |
 
 ## Services
@@ -48,7 +58,10 @@ phil_backup:
 | `Phil\Backup\Rotation\RotationPolicy` | — | private | Only when a rule is above zero. |
 | `Phil\Backup\Restore\RestoreGuard` | — | private | From `%kernel.environment%` and `restore.production_environments`. |
 | `Phil\Backup\Backups` | — | public | Over the client, the directory, the cipher or null, the media archive and the rotation or null. |
-| `CreateBackupCommand`, `RestoreBackupCommand`, `VerifyBackupCommand` | — | private | `phil:backup:create`, `phil:backup:restore`, `phil:backup:verify`; the restore with `restore.keep_before_restore`, the last with `verify.database`. |
+| `phil_backup.lock_factory` | `Symfony\Component\Lock\LockFactory` | private | Only with the lock enabled and no `lock.factory`: over a `FlockStore` in the system temporary directory (`PhilBackupBundle::LOCK_FACTORY`). |
+| `Phil\BackupBundle\Infrastructure\Lock\BackupLock` | — | private | Only with the lock enabled: over the factory, `directory` and `lock.ttl`. |
+| `CreateBackupCommand`, `RestoreBackupCommand`, `VerifyBackupCommand` | — | private | `phil:backup:create`, `phil:backup:restore`, `phil:backup:verify`, each with the lock or null; the restore with `restore.keep_before_restore`, the test with `verify.database`. |
+| `MonitorBackupCommand` | — | private | `phil:backup:monitor`, with `monitor.max_age_hours` and the `clock` service when it exists. |
 
 Nothing connects to the database while the container is built or the client created: the platform comes from the
 connection's parameters, or from the server version they give.

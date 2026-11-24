@@ -146,6 +146,7 @@ final class TermsServices
                 self::masker($container, $config['network']),
                 $notifier,
                 new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                $config['default_locale'],
             ])
             ->setPublic(true);
         $container->register(ContributionLicences::class, ContributionLicences::class)

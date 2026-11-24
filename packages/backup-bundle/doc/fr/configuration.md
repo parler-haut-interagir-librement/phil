@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8c2e9001871db3b9cb98074e3895fa5a3aebde38329f5a34cb3f389a529cf731 -->
+<!-- phil-dev source-sha256=8bcb40913419385a1abb4de7917ad3b5ac8fb568b7a91c41454d3d1db747dbbf -->
 # Configuration
 
 Chaque clé de `phil_backup`, avec sa valeur par défaut :
@@ -18,6 +18,12 @@ phil_backup:
     restore:
         production_environments: [prod]
         keep_before_restore: 3
+    lock:
+        enabled: true                           # false, the commands run without a lock
+        factory: null                           # a Symfony Lock factory service, such as lock.factory
+        ttl: 86400                              # seconds, for a store whose locks expire
+    monitor:
+        max_age_hours: 26                       # phil:backup:monitor fails past it
     verify:
         database: null                          # the scratch database of a server's restore test
 ```
@@ -36,6 +42,10 @@ phil_backup:
 | `rotation.last`, `daily`, `weekly`, `monthly` | entiers, 0 ou plus | `0` | Le nombre de jeux que garde chaque règle après chaque `phil:backup:create` ; tous à zéro, chaque jeu est gardé. Voir la rotation de phil/backup (`doc/rotation.md` de ce paquet). |
 | `restore.production_environments` | liste de chaînes | `[prod]` | Les environnements du noyau dans lesquels une restauration exige `PHIL_BACKUP_ALLOW_PRODUCTION_RESTORE` ; voir [restore-protection.md](restore-protection.md). |
 | `restore.keep_before_restore` | entier, 1 ou plus | `3` | Le nombre de jeux étiquetés `before-restore` gardés une fois une restauration réussie ; les plus anciens sont supprimés. |
+| `lock.enabled` | booléen | `true` | Si `phil:backup:create`, `phil:backup:restore` et `phil:backup:verify` tiennent le verrou exclusif du répertoire ; voir [Le verrou](commands.md#le-verrou). `lock: false` le désactive. |
+| `lock.factory` | chaîne ou null | `null` | L'identifiant d'un service `LockFactory` de Symfony Lock, tel que `lock.factory` avec un magasin que plusieurs machines partagent ; avec `null`, une fabrique au-dessus d'un magasin flock du répertoire temporaire du système, qui sert les commandes d'une seule machine. |
+| `lock.ttl` | nombre à virgule, 1 ou plus | `86400` | Le nombre de secondes que le verrou vit au plus dans un magasin dont les verrous expirent, tel que Redis : plus long que la plus longue sauvegarde, restauration ou test, sinon le verrou expire pendant que la commande s'exécute. Le magasin flock n'expire jamais et l'ignore. |
+| `monitor.max_age_hours` | entier, 1 ou plus | `26` | Le nombre d'heures que peut avoir au plus la dernière sauvegarde sans étiquette avant que `phil:backup:monitor` échoue : une sauvegarde de nuit, et deux heures pour qu'elle s'exécute en retard. |
 | `verify.database` | chaîne ou null | `null` | La base de travail, sur le même serveur, dans laquelle `phil:backup:verify` restaure une sauvegarde MySQL, MariaDB ou PostgreSQL ; avec `null`, elle n'est pas restaurée. |
 
 ## Services
@@ -49,7 +59,10 @@ phil_backup:
 | `Phil\Backup\Rotation\RotationPolicy` | — | privé | Seulement lorsqu'une règle est supérieure à zéro. |
 | `Phil\Backup\Restore\RestoreGuard` | — | privé | À partir de `%kernel.environment%` et de `restore.production_environments`. |
 | `Phil\Backup\Backups` | — | public | Au-dessus du client, du répertoire, du chiffreur ou de null, de l'archive des médias et de la rotation ou de null. |
-| `CreateBackupCommand`, `RestoreBackupCommand`, `VerifyBackupCommand` | — | privé | `phil:backup:create`, `phil:backup:restore`, `phil:backup:verify` ; la restauration avec `restore.keep_before_restore`, la dernière avec `verify.database`. |
+| `phil_backup.lock_factory` | `Symfony\Component\Lock\LockFactory` | privé | Seulement avec le verrou activé et sans `lock.factory` : au-dessus d'un `FlockStore` du répertoire temporaire du système (`PhilBackupBundle::LOCK_FACTORY`). |
+| `Phil\BackupBundle\Infrastructure\Lock\BackupLock` | — | privé | Seulement avec le verrou activé : au-dessus de la fabrique, de `directory` et de `lock.ttl`. |
+| `CreateBackupCommand`, `RestoreBackupCommand`, `VerifyBackupCommand` | — | privé | `phil:backup:create`, `phil:backup:restore`, `phil:backup:verify`, chacune avec le verrou ou null ; la restauration avec `restore.keep_before_restore`, le test avec `verify.database`. |
+| `MonitorBackupCommand` | — | privé | `phil:backup:monitor`, avec `monitor.max_age_hours` et le service `clock` quand il existe. |
 
 Rien ne se connecte à la base de données pendant la construction du conteneur ou la création du client : la plateforme
 vient des paramètres de la connexion, ou de la version du serveur qu'ils donnent.

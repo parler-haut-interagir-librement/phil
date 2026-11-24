@@ -117,13 +117,13 @@ final class AdaptersTest extends TestCase
     public function testTheAcceptancesAreExportedThenErased(): void
     {
         $acceptances = new InMemoryAcceptances();
-        $acceptances->append(new Acceptance('42', 'terms', 1, new DateTimeImmutable('2026-05-01 10:00:00+00:00'), AcceptanceChannel::Signup, '192.0.2.0'));
+        $acceptances->append(new Acceptance('42', 'terms', 1, new DateTimeImmutable('2026-05-01 10:00:00+00:00'), AcceptanceChannel::Signup, '192.0.2.0', 'fr', 'a3f1000000000000000000000000000000000000000000000000000000000000'));
         $acceptances->append(new Acceptance('43', 'terms', 1, new DateTimeImmutable(), AcceptanceChannel::Signup));
 
         $privacy = new AcceptancesPrivacy($acceptances);
 
         self::assertSame('terms', $privacy->module()->value);
-        self::assertSame(['acceptances' => [['policy' => 'terms', 'version' => 1, 'accepted_at' => '2026-05-01T10:00:00+00:00', 'channel' => 'signup', 'network' => '192.0.2.0']]], $privacy->export(DataSubject::fromString('42')));
+        self::assertSame(['acceptances' => [['policy' => 'terms', 'version' => 1, 'accepted_at' => '2026-05-01T10:00:00+00:00', 'channel' => 'signup', 'network' => '192.0.2.0', 'locale' => 'fr', 'text_sha256' => 'a3f1000000000000000000000000000000000000000000000000000000000000']]], $privacy->export(DataSubject::fromString('42')));
         self::assertSame([], $privacy->export(DataSubject::fromString('44')));
 
         $report = $privacy->erase(DataSubject::fromString('42'));

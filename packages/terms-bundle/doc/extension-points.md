@@ -9,7 +9,7 @@
 | How the texts are checked, shown and compared | Implement `Application\Contract\PolicyTexts` and alias it |
 | Where the versions are kept | Implement `Domain\Contract\PolicyVersionRepository` and alias it |
 | Where the acceptances are kept | Implement `Domain\Contract\AcceptanceRepository` and alias it |
-| Publishing and accepting from code | `Application\Terms`: `publish()`, `accept()` |
+| Publishing and accepting from code | `Application\Terms`: `publish()`, `accept()`, `textMatches()` |
 | What a member has to accept | `Application\AcceptanceChecker::pending()` |
 | Who has not accepted | `Application\Outstanding`: `at()`, `ofLatestMaterial()` |
 | Reacting to a publication or an acceptance | Listen to `Application\Event\VersionPublished` and `TermsAccepted` |

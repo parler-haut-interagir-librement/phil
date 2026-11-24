@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=107b46059439a73855d67385ce19b77c6210499784075f02e463abcaeca8e3be -->
+<!-- phil-dev source-sha256=434cd4d54d2736435f9ff90202a907d1d5bf0a7dedd1ff6f7433f81394f4443c -->
 # Fichiers médias
 
 ## Répertoires nommés
@@ -66,7 +66,13 @@ est désactivé sauf s'il est demandé : un fichier téléversé après la sauve
 faites d'abord une sauvegarde du contenu actuel.
 
 `verify($file)` lit toute l'archive, comme la première étape de `extract()`, sans rien écrire, et retourne le nombre de
-fichiers.
+fichiers. Elle refuse un chemin que l'archive contient deux fois — deux fichiers, deux répertoires, un fichier et un
+répertoire au même endroit, ou le même endroit sous deux noms qui mènent à un seul répertoire — : `TarWriter` n'en
+écrit jamais, et une restauration garderait celui qui vient en dernier, de sorte qu'une telle archive a été écrite par
+autre chose, ou falsifiée. Le message nomme le chemin : `The media archive holds uploads/2026/11/poster.jpg twice.`
+Chaque chemin lu est gardé sous forme d'une empreinte de 16 octets jusqu'à la fin de l'archive, de sorte que la
+mémoire qu'une vérification prend croît avec le nombre d'entrées — environ cent octets chacune, quelque 100 Mo pour un
+million de fichiers —, jamais avec la longueur de leurs noms.
 
 ## Le format tar
 

@@ -29,6 +29,10 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  * accepted it. A version of the policy that names the licence of the contributions names one, and only such a version
  * does. An acceptance is of the version in force or of a later one already published, never of a version a
  * later one replaced; the address of the request is kept only as the masker turns it, and not at all without one.
+ *
+ * An acceptance keeps the locale whose text was shown — the locale asked for when the version has its text, else the
+ * default locale, else the first locale of the version — and the SHA-256 of the HTML `PolicyTexts::toHtml()` renders
+ * from that text, the proof of the very text accepted. `textMatches()` checks that proof against the version kept.
  */
 final readonly class Terms
 {
@@ -42,6 +46,7 @@ final readonly class Terms
         private ?AddressMasker $masker = null,
         private ?TermsNotifier $notifier = null,
         private ?EventDispatcherInterface $events = null,
+        private string $defaultLocale = 'en',
     ) {
     }
 
@@ -85,9 +90,11 @@ final readonly class Terms
     }
 
     /**
+     * @param string|null $locale the locale of the text shown to the member, the default locale when null
+     *
      * @throws InvalidTerms when the policy, the version or the member is not one to accept
      */
-    public function accept(string $member, string $policy, int $version, AcceptanceChannel $channel, ?string $address = null): Acceptance
+    public function accept(string $member, string $policy, int $version, AcceptanceChannel $channel, ?string $address = null, ?string $locale = null): Acceptance
     {
         $policy = $this->policies->get($policy)->key;
         $now = $this->clock->now();
@@ -98,10 +105,41 @@ final readonly class Terms
             throw InvalidTerms::because('superseded_version', 'Version %version% of policy "%policy%" was replaced by version %current%.', ['%policy%' => $policy, '%version%' => (string) $version, '%current%' => (string) $inForce->number]);
         }
 
-        $acceptance = new Acceptance(Identifiers::member($member), $policy, $version, $now, $channel, null === $address ? null : $this->masker?->mask($address));
+        $shown = $accepted->textLocale($locale ?? $this->defaultLocale, $this->defaultLocale);
+        $acceptance = new Acceptance(
+            Identifiers::member($member),
+            $policy,
+            $version,
+            $now,
+            $channel,
+            null === $address ? null : $this->masker?->mask($address),
+            $shown,
+            $this->digest($accepted, $shown),
+        );
         $this->acceptances->append($acceptance);
         $this->events?->dispatch(new TermsAccepted($member, $policy, $version, $channel));
 
         return $acceptance;
+    }
+
+    /**
+     * Whether the text an acceptance proves is the text of its version as the site renders it now: `true` when the
+     * SHA-256 of the HTML of the version in the acceptance's locale is the one kept, `false` when it differs or the
+     * version is no longer found, `null` for an acceptance recorded without a proof.
+     */
+    public function textMatches(Acceptance $acceptance): ?bool
+    {
+        if (null === $acceptance->locale || null === $acceptance->textSha256) {
+            return null;
+        }
+
+        $version = $this->catalog->find($acceptance->policy, $acceptance->version);
+
+        return $version instanceof PolicyVersion && hash_equals($acceptance->textSha256, $this->digest($version, $acceptance->locale));
+    }
+
+    private function digest(PolicyVersion $version, string $locale): string
+    {
+        return hash('sha256', $this->texts->toHtml($version, $locale, $locale));
     }
 }

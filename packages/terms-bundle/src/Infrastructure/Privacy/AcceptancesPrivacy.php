@@ -17,7 +17,8 @@ use Phil\TermsBundle\Domain\ValueObject\Acceptance;
 
 /**
  * The terms' part of an access or erasure request: the acceptances of the member the subject names — which policy,
- * which version, when, where, and the network when one was kept. Erasing deletes them.
+ * which version, when, where, the network when one was kept, the locale of the text shown and the SHA-256 of its HTML.
+ * Erasing deletes them.
  */
 final readonly class AcceptancesPrivacy implements PersonalDataExporter, PersonalDataEraser
 {
@@ -45,6 +46,8 @@ final readonly class AcceptancesPrivacy implements PersonalDataExporter, Persona
             'accepted_at' => $acceptance->acceptedAt->format(DateTimeInterface::ATOM),
             'channel' => $acceptance->channel->value,
             'network' => $acceptance->network,
+            'locale' => $acceptance->locale,
+            'text_sha256' => $acceptance->textSha256,
         ], $acceptances)];
     }
 

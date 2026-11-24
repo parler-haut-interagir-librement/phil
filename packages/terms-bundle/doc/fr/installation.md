@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=814d508b6aaf690eb9dd755f64f5787e549f7dc22b719b8f63b97497e322dc67 -->
+<!-- phil-dev source-sha256=b523977db2566ae64acf27ed69b52c2b3decabf9dd7be8a3d1e426de70a84e9c -->
 # Installation
 
 ## Prérequis
@@ -88,6 +88,20 @@ Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de
 `doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
 brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
 écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
+
+#### Mise à niveau depuis 0.2
+
+`phil_terms_acceptance` a deux colonnes de plus, `locale` et `text_sha256`, la preuve du texte montré à chaque
+acceptation ([Acceptation](acceptance.md#prouver-le-texte-accepté)). `doctrine:migrations:diff` écrit la migration ; sur
+MySQL, elle se lit ainsi :
+
+```sql
+ALTER TABLE phil_terms_acceptance ADD locale VARCHAR(35) DEFAULT NULL, ADD text_sha256 CHAR(64) DEFAULT NULL;
+```
+
+Les deux colonnes acceptent `NULL` : les acceptations consignées avant la migration y gardent `NULL` et se relisent sans
+preuve, et chaque acceptation consignée après en a deux. Rien n'est rempli après coup : un texte accepté dans le passé ne
+peut pas se déduire de la version seule, puisque la locale que le membre a lue n'a pas été gardée.
 
 ## Installer la recette
 

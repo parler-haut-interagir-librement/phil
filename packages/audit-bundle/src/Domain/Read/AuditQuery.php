@@ -90,6 +90,14 @@ final class AuditQuery
         return $query;
     }
 
+    /**
+     * The reads only: rows whose action starts with {@see Facts::READ_PREFIX}.
+     */
+    public function reads(): self
+    {
+        return $this->withAction(Facts::READ_PREFIX, true);
+    }
+
     public function about(Subject $subject): self
     {
         $query = clone $this;

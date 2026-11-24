@@ -7,7 +7,8 @@ phil/terms-bundle keeps the policies a site asks its members to accept — its t
 code of conduct — as versions that are published once and never changed: a number, the text of each locale, the moment
 it was published, the moment it takes effect, and whether it changes the terms enough that every member must accept it
 again. Each acceptance is a record that is only ever added to: who, which version, when, where, and — when the
-application wants it — the network the request came from, never the address. A gate sends a signed-in member who has
+application wants it — the network the request came from, never the address —, with the locale of the text shown and
+the SHA-256 of its HTML, the proof of the very text accepted. A gate sends a signed-in member who has
 a material version to accept to a page where each version comes with its own checkbox, never ticked in advance; an API
 is answered `403` with a problem in JSON. A signup form gets the same checkbox from one option. An acceptance can be
 asked again after some days, and reminders go out on a schedule. One policy can name the licence of the members'
@@ -22,6 +23,7 @@ It is for any site that opens to the public and must show which terms each membe
 |---|---|
 | Policies, immutable versions with their locales, moments and material flag | Implemented and tested |
 | Acceptances, append-only, with their channel and, optionally, the network | Implemented and tested |
+| The locale and the SHA-256 of the text accepted, and the check of that proof | Implemented and tested |
 | The gate on every request, the acceptance page, the problem of an API | Implemented and tested, benchmarked |
 | The signup checkbox, the version shown checked at submission | Implemented and tested |
 | Periodic renewal, reminders on a schedule, notices of a new version | Implemented and tested |
@@ -40,7 +42,7 @@ It is for any site that opens to the public and must show which terms each membe
 | [Installation](doc/installation.md) | Requirements, registering the bundle, the tables, the recipe, the routes. |
 | [Configuration](doc/configuration.md) | Every option of `phil_terms`. |
 | [Policies and versions](doc/versions.md) | Policies, versions, material changes, the moment a version takes effect, the texts. |
-| [Acceptance](doc/acceptance.md) | What a member has to accept, the gate, the acceptance page, APIs, the signup form, recording from code. |
+| [Acceptance](doc/acceptance.md) | What a member has to accept, the gate, the acceptance page, APIs, the signup form, recording from code, proving the text accepted. |
 | [Renewal and reminders](doc/renewal-and-reminders.md) | Acceptances asked again, the reminders, the notices of a new version. |
 | [Contribution licence](doc/contribution-licence.md) | The licence of the members' contributions, chosen with a version and dated by its acceptance. |
 | [Public pages](doc/public-pages.md) | The versioned addresses, the changes, the cache, the recipes of the kit. |

@@ -60,7 +60,12 @@ entries removed back, directories aside. Pruning is off unless asked for: a file
 once it runs, so take a backup of the current content first.
 
 `verify($file)` reads the archive whole, as the first step of `extract()`, without writing anything, and gives the
-number of files back.
+number of files back. It refuses a path the archive holds twice — two files, two directories, a file and a directory
+of the same place, or the same place under two names that point to one directory —: `TarWriter` never writes one,
+and a restore would keep whichever came last, so such an archive was written by something else, or tampered with. The
+message names the path: `The media archive holds uploads/2026/11/poster.jpg twice.` Each path read is kept as a
+16-byte digest until the end of the archive, so the memory a check takes grows with the number of entries — about a
+hundred bytes each, some 100 MB for a million files —, never with the length of their names.
 
 ## The tar format
 

@@ -4,7 +4,7 @@ Every type under `Phil\BackupBundle\`. "Implemented" means implemented and cover
 
 | Type | Role | State |
 |---|---|---|
-| `PhilBackupBundle` | `AbstractBundle`, alias `phil_backup`; the configuration tree and the services; `DATABASE_CLIENT` | Implemented |
+| `PhilBackupBundle` | `AbstractBundle`, alias `phil_backup`; the configuration tree and the services; `DATABASE_CLIENT`, `LOCK_FACTORY` | Implemented |
 | `Infrastructure\Doctrine\DatabaseClients` | `forConnection($connection, $runner)`: the client of a DBAL connection | Implemented |
 | `Infrastructure\Process\ProcessCommandRunner` | The `CommandRunner` over Symfony Process; the warning after `warn_after`, the stop after `timeout` | Implemented |
 | `Infrastructure\Process\WatchedProcess` | Internal: the Symfony `Process` that lets the runner watch a tool at each of its timeout checks | Implemented |
@@ -12,3 +12,5 @@ Every type under `Phil\BackupBundle\`. "Implemented" means implemented and cover
 | `Infrastructure\Console\CreateBackupCommand` | `phil:backup:create` | Implemented |
 | `Infrastructure\Console\RestoreBackupCommand` | `phil:backup:restore` | Implemented |
 | `Infrastructure\Console\VerifyBackupCommand` | `phil:backup:verify` | Implemented |
+| `Infrastructure\Console\MonitorBackupCommand` | `phil:backup:monitor`; `DEFAULT_MAX_AGE_HOURS`, 26 | Implemented |
+| `Infrastructure\Lock\BackupLock` | The exclusive lock of a backup directory over Symfony Lock: `exclusively($work)`, `resource()`; `PREFIX` | Implemented |

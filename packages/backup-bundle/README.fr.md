@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f477e9f401a44dd998e32154e8fcc186619d0a9f57414e7f856e84e36bff33d2 -->
+<!-- phil-dev source-sha256=bbbc46c00a373f460aaae91641ec5f3a8930bd49deabcdf699d763c5e40c4618 -->
 # phil/backup-bundle
 
 **Sauvegardez la base de données et les fichiers médias d'une application Symfony à partir de sa configuration,
@@ -8,7 +8,9 @@ phil/backup-bundle intègre `phil/backup` à une application Symfony. Il lit la 
 client — SQLite, MySQL, MariaDB ou PostgreSQL — et lui donner les identifiants de connexion, qui n'atteignent jamais une
 ligne de commande. Il sauvegarde les répertoires de médias à côté de la base de données, chiffre chaque fichier avec une
 clé lue dans l'environnement et fait tourner les sauvegardes après chacune d'elles. Trois commandes font le travail :
-`phil:backup:create`, `phil:backup:restore` et `phil:backup:verify`.
+`phil:backup:create`, `phil:backup:restore` et `phil:backup:verify`, chacune tenant un verrou exclusif du répertoire de
+sauvegarde, de sorte qu'une rotation ne supprime jamais un jeu qu'une autre commande écrit ou teste ; une quatrième,
+`phil:backup:monitor`, dit à la surveillance si la dernière sauvegarde est assez récente.
 
 Une restauration est une décision prise deux fois. En production, elle est refusée à moins que
 `PHIL_BACKUP_ALLOW_PRODUCTION_RESTORE` ne contienne le nom de la base de données. Partout, elle exige `--confirm` et le
@@ -20,21 +22,23 @@ une sauvegarde dans une copie — un fichier temporaire pour SQLite, une base de
 cet endroit, sans toucher à la base de données.
 
 Il s'adresse aux développeurs et aux exploitants d'une application Symfony qui ont besoin de sauvegardes fiables et de
-restaurations impossibles à lancer par accident. Il ne planifie pas les sauvegardes, ne les copie pas hors de la machine
-et ne surveille pas leur exécution : le planificateur, le stockage et la surveillance de l'application s'en chargent ;
-voir [commands.md](doc/fr/commands.md).
+restaurations impossibles à lancer par accident. Il ne planifie pas les sauvegardes et ne les copie pas hors de la machine :
+le planificateur et le stockage de l'application s'en chargent, et sa surveillance lit `phil:backup:monitor` ; voir
+[commands.md](doc/fr/commands.md).
 
-C'est un bundle Symfony au-dessus de `phil/backup`, du composant Console, de Doctrine DBAL et de Symfony Process. Il
-exige les outils clients de la base de données là où s'exécutent les commandes.
+C'est un bundle Symfony au-dessus de `phil/backup`, du composant Console, de Doctrine DBAL, de Symfony Lock et de Symfony Process, et
+il exige les outils clients de la base de données là où s'exécutent les commandes.
 
 ## État
 
 | Domaine | État |
 |---|---|
-| `PhilBackupBundle` : connection, directory, binaries, timeout, warn_after, grace_period, key, allow_unencrypted, media, rotation, restore, verify | Implémenté et testé |
+| `PhilBackupBundle` : connection, directory, binaries, timeout, warn_after, grace_period, key, allow_unencrypted, media, rotation, restore, lock, monitor, verify | Implémenté et testé |
 | `DatabaseClients` : le client d'une connexion DBAL, sans se connecter | Implémenté et testé |
 | `ProcessCommandRunner` : Symfony Process, aucun shell, un avertissement et un événement pour un outil lent, une limite de temps facultative | Implémenté et testé |
 | `phil:backup:create`, `phil:backup:restore`, `phil:backup:verify` | Implémenté et testé sur SQLite avec le vrai `sqlite3` ; MySQL, MariaDB et PostgreSQL par leurs lignes de commande |
+| `BackupLock` : un verrou exclusif par répertoire, au-dessus de Symfony Lock, tenu par ces trois commandes | Implémenté et testé |
+| `phil:backup:monitor` : l'âge de la dernière sauvegarde comparé à un seuil en heures | Implémenté et testé |
 
 ## Documentation
 
@@ -42,8 +46,9 @@ exige les outils clients de la base de données là où s'exécutent les command
   clients, une première clé.
 - [Configuration](doc/fr/configuration.md) — chaque clé de `phil_backup`, sa valeur par défaut et son effet, les
   services qu'elle branche et chaque erreur à la construction.
-- [Commandes](doc/fr/commands.md) — créer, restaurer et tester une sauvegarde, leurs options et leurs messages, la
-  planification, et la copie d'une base de production pour travailler.
+- [Commandes](doc/fr/commands.md) — créer, restaurer, tester et surveiller les sauvegardes, leurs options et leurs messages, le
+  verrou, la planification, et la copie d'une base de production pour travailler, avec la conservation d'une copie
+  anonymisée.
 - [Protection des restaurations](doc/fr/restore-protection.md) — la production, la confirmation, le nom saisi de nouveau
   et la sauvegarde faite d'abord.
 - [Points d'extension](doc/fr/extension-points.md) — les services sur lesquels compter, un autre exécuteur ou client.

@@ -46,7 +46,7 @@ what the design decides, and leaves ports such as `CanonicalSerializer`, `Anchor
 | `AuditRow`, `RowKind`, `ChainVerifier`, `ChainBreak`, `Anchor`, `Domain\Contract\AuditRowRepository` | Implemented and tested |
 | `SiteSegment`; `site_segments`, `phil:audit:verify --tenant` | Implemented and tested |
 | `DashboardFeed`, `ExportedFact`, `FactExporter`, `FeedCheckpoints`; `JsonLinesFactExporter`, `OtlpLogExporter`, `DbalFeedCheckpoints`, `phil:audit:feed`, `FeedOnRecorded` | Implemented and tested |
-| `AuditTrail` (events, discontinuities), `Anchoring`, `TrailVerification` | Implemented and tested |
+| `AuditTrail` (events, reads of sensitive data, discontinuities), `Anchoring`, `TrailVerification` | Implemented and tested |
 | `DbalAuditRowRepository` and its table; `phil:audit:anchor`, `phil:audit:verify` | Implemented and tested |
 | `Facts`, `Subject`; `AuditQuery`, `Cursor`, `AuditPage`; `AuditLog`, `ChainStatus` | Implemented and tested |
 | `DbalAuditLogReader`, `ScanningAuditLogReader` | Implemented and tested |
@@ -63,8 +63,8 @@ what the design decides, and leaves ports such as `CanonicalSerializer`, `Anchor
 - [Configuration](doc/configuration.md) — the keys under `phil_audit` (`connection`, `serializer`, `anchor_writer`,
   `anchor_reader`, `anchor_file`, `dispatch_bus`, `workflow_segment`, `site_segments`, `feed`), the services wired,
   and how to register your own adapters.
-- [Reading the log](doc/reading.md) — the facts a row is indexed by, `AuditQuery`, pages and cursors, `AuditLog`,
-  the history of a record, `ChainStatus`, and the two readers.
+- [Reading the log](doc/reading.md) — the facts a row is indexed by, reads of sensitive data, `AuditQuery`, pages and
+  cursors, `AuditLog`, the history of a record, `ChainStatus`, and the two readers.
 - [Integrations](doc/integrations.md) — changes of state from Symfony Workflow, the current account from the
   Security component, the tenant from `phil/tenancy-bundle`, and the dispatch to dashboards with Messenger.
 - [One chain per site](doc/sites.md) — site segments, what verification adds, what a tenant sees, and

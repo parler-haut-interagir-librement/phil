@@ -14,10 +14,12 @@ use Phil\AuditBundle\Domain\Chain\Anchor;
 use Phil\AuditBundle\Domain\Chain\AuditRow;
 use Phil\AuditBundle\Domain\Chain\ChainBreak;
 use Phil\AuditBundle\Domain\Chain\RowKind;
+use Phil\AuditBundle\Domain\Chain\Subject;
 use Phil\AuditBundle\Domain\Contract\AnchorReader;
 use Phil\AuditBundle\Domain\Contract\AnchorWriter;
 use Phil\AuditBundle\Domain\Contract\AuditRowRepository;
 use Phil\AuditBundle\Domain\Exception\ChainConflict;
+use Phil\AuditBundle\Tests\Unit\Fixture\FixedTenant;
 use Phil\AuditBundle\Tests\Unit\Fixture\InMemoryAuditRows;
 use Phil\AuditBundle\Tests\Unit\Fixture\JsonSerializer;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -59,6 +61,19 @@ final class TrailTest extends TestCase
         self::assertSame([RowKind::Discontinuity, '{"discontinuity":"restored from the backup of 2026-11-03"}'], [$restore->kind, $restore->payload]);
         self::assertSame(['members', 'orders'], $this->rows->segments());
         self::assertEqualsWithDelta(time(), new AuditTrail($this->rows, new JsonSerializer(), new NativeClock())->record('orders', [])->recordedAt->getTimestamp(), 5);
+    }
+
+    public function testAReadIsRecordedWithItsFacts(): void
+    {
+        $trail = new AuditTrail($this->rows, new JsonSerializer(), $this->clock, new FixedTenant('shop-a'));
+        $read = $trail->recordRead('members', 'account.profile', Subject::of('account', 'acct-9'), 'acct-7', ['reason' => 'support']);
+        $bare = $trail->recordRead('members', 'account.export', Subject::of('account', 'acct-9'));
+
+        self::assertSame(['read.account.profile', 'acct-7', 'account', 'acct-9', 'shop-a'], $read->facts->hashLines());
+        self::assertSame(['{"reason":"support"}', '[]'], [$read->payload, $bare->payload]);
+        self::assertSame(['read.account.export', null], [$bare->facts->action, $bare->facts->actor]);
+        self::assertTrue($read->facts->isRead());
+        self::assertSame([1, 2], [$read->sequence, $bare->sequence]);
     }
 
     public function testARaceIsRetriedOnTheNewHead(): void

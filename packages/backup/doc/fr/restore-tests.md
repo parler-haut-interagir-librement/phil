@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4339b84ac230723a4779851d11a1c2c2d2a210f20ff96e2fbcb3d64a1c832647 -->
+<!-- phil-dev source-sha256=98b06bf448c520e41cdd6d27741700b3d2c8e5b3717835e17e5b211e3cd13504 -->
 # Tests de restauration
 
 `Backups::verify($set, $scratch = null)` prouve ce qui peut être prouvé d'un jeu sans toucher à la base de données, et
@@ -13,8 +13,8 @@ retourne une `Verification`.
    - **MySQL, MariaDB, PostgreSQL** : dans la base de travail `$scratch`, sur le même serveur et avec les mêmes
      identifiants ; la réussite de l'outil de restauration tient lieu de vérification. Sans base de travail, la base de
      données n'est pas restaurée, et `restoredInto` est null.
-3. L'archive des médias est lue en entier, chaque en-tête et chaque chemin vérifiés ; `mediaFiles` est son nombre de
-   fichiers, null si le jeu n'en a pas.
+3. L'archive des médias est lue en entier, chaque en-tête et chaque chemin vérifiés, et un chemin présent deux fois refusé ; `mediaFiles` est
+   son nombre de fichiers, null si le jeu n'en a pas.
 
 Un échec à n'importe quelle étape est un `BackupFailed` qui nomme le fichier et la cause.
 

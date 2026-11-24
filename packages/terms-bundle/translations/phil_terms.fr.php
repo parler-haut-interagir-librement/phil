@@ -75,6 +75,7 @@ return [
     'error.effective_at' => 'Le moment d’entrée en vigueur n’est pas une date et une heure.',
     'error.renewal' => 'Une acceptation se renouvelle après 1 à 3650 jours.',
     'error.network' => 'Ce réseau ne peut pas être conservé.',
+    'error.text_sha256' => 'Ce n’est pas l’empreinte SHA-256 d’un texte.',
     'error.licence' => '« %licence% » n’est pas un identifiant de licence SPDX.',
     'error.licence_required' => 'Indiquez la licence des contributions.',
     'error.licence_not_expected' => 'Cette politique n’indique pas de licence.',

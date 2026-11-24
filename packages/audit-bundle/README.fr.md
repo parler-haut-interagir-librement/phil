@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3d51bbb89c65227c87f63f15a7206b5436a91fbe5177d48864ac9ad9da2d344c -->
+<!-- phil-dev source-sha256=a3f1a1178e4c702328519c00a0f4b52b88513d689775178497c0c9b56cad15f6 -->
 # phil/audit-bundle
 
 **Une piste d'audit en ajout seul qui révèle toute falsification et permet quand même d'effacer les renseignements
@@ -53,7 +53,7 @@ d'adaptateurs : il porte ce que la conception décide, et laisse des ports comme
 | `AuditRow`, `RowKind`, `ChainVerifier`, `ChainBreak`, `Anchor`, `Domain\Contract\AuditRowRepository` | Implémenté et testé |
 | `SiteSegment`; `site_segments`, `phil:audit:verify --tenant` | Implémenté et testé |
 | `DashboardFeed`, `ExportedFact`, `FactExporter`, `FeedCheckpoints`; `JsonLinesFactExporter`, `OtlpLogExporter`, `DbalFeedCheckpoints`, `phil:audit:feed`, `FeedOnRecorded` | Implémenté et testé |
-| `AuditTrail` (événements, discontinuités), `Anchoring`, `TrailVerification` | Implémenté et testé |
+| `AuditTrail` (événements, lectures de données sensibles, discontinuités), `Anchoring`, `TrailVerification` | Implémenté et testé |
 | `DbalAuditRowRepository` et sa table; `phil:audit:anchor`, `phil:audit:verify` | Implémenté et testé |
 | `Facts`, `Subject`; `AuditQuery`, `Cursor`, `AuditPage`; `AuditLog`, `ChainStatus` | Implémenté et testé |
 | `DbalAuditLogReader`, `ScanningAuditLogReader` | Implémenté et testé |
@@ -70,8 +70,8 @@ d'adaptateurs : il porte ce que la conception décide, et laisse des ports comme
 - [Configuration](doc/fr/configuration.md) : les clés sous `phil_audit` (`connection`, `serializer`, `anchor_writer`,
   `anchor_reader`, `anchor_file`, `dispatch_bus`, `workflow_segment`, `site_segments`, `feed`), les services câblés,
   et la façon d'enregistrer vos propres adaptateurs.
-- [Lire le journal](doc/fr/reading.md) : les faits qui indexent une ligne, `AuditQuery`, les pages et les curseurs,
-  `AuditLog`, l'historique d'un enregistrement, `ChainStatus` et les deux lecteurs.
+- [Lire le journal](doc/fr/reading.md) : les faits qui indexent une ligne, les lectures de données sensibles, `AuditQuery`, les
+  pages et les curseurs, `AuditLog`, l'historique d'un enregistrement, `ChainStatus` et les deux lecteurs.
 - [Intégrations](doc/fr/integrations.md) : les changements d'état de Symfony Workflow, le compte courant du composant
   Security, le locataire de `phil/tenancy-bundle`, et l'envoi aux tableaux de bord avec Messenger.
 - [Une chaîne par site](doc/fr/sites.md) : les segments de site, ce que la vérification ajoute, ce qu'un locataire

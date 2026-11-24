@@ -45,6 +45,10 @@ final class ModelsTest extends TestCase
         self::assertSame('Bonjour', $version->text('fr', 'en'));
         self::assertSame('Hello', $version->text('de', 'en'));
         self::assertSame('Bonjour', $version->text('de', 'it'));
+        self::assertSame('fr', $version->textLocale('fr', 'en'));
+        self::assertSame('en', $version->textLocale('de', 'en'));
+        self::assertSame('fr', $version->textLocale('de', 'it'));
+        self::assertSame('en', $version->textLocale('en', 'fr'));
     }
 
     public function testAVersionIsInForceFromItsMoment(): void
@@ -149,10 +153,17 @@ final class ModelsTest extends TestCase
         self::assertSame('192.0.2.0', $acceptance->network);
         self::assertNull(new Acceptance('42', 'terms', 999999, $at, AcceptanceChannel::Form)->network);
         self::assertSame(str_repeat('a', 64), new Acceptance('42', 'terms', 1, $at, AcceptanceChannel::Form, str_repeat('a', 64))->network);
+        self::assertNull($acceptance->locale);
+        self::assertNull($acceptance->textSha256);
+
+        $proved = new Acceptance('42', 'terms', 3, $at, AcceptanceChannel::Form, null, 'fr-CA', 'a3f1000000000000000000000000000000000000000000000000000000000000');
+        self::assertSame('fr-CA', $proved->locale);
+        self::assertSame('a3f1000000000000000000000000000000000000000000000000000000000000', $proved->textSha256);
+        self::assertSame(64, Acceptance::SHA256_LENGTH);
     }
 
     /**
-     * @return iterable<string, array{string, string, int, string|null, string}>
+     * @return iterable<string, array{0: string, 1: string, 2: int, 3: string|null, 4: string, 5?: string|null, 6?: string|null}>
      */
     public static function badAcceptances(): iterable
     {
@@ -162,13 +173,20 @@ final class ModelsTest extends TestCase
         yield 'version 1000000' => ['42', 'terms', 1000000, null, 'version_number'];
         yield 'an empty network' => ['42', 'terms', 1, '', 'network'];
         yield 'a long network' => ['42', 'terms', 1, str_repeat('a', 65), 'network'];
+        yield 'a bad locale' => ['42', 'terms', 1, null, 'locale', 'French'];
+        yield 'an empty SHA-256' => ['42', 'terms', 1, null, 'text_sha256', 'en', ''];
+        yield 'a short SHA-256' => ['42', 'terms', 1, null, 'text_sha256', 'en', str_repeat('a', 63)];
+        yield 'a long SHA-256' => ['42', 'terms', 1, null, 'text_sha256', 'en', str_repeat('a', 65)];
+        yield 'an uppercase SHA-256' => ['42', 'terms', 1, null, 'text_sha256', 'en', str_repeat('A', 64)];
+        yield 'a SHA-256 with a line break' => ['42', 'terms', 1, null, 'text_sha256', 'en', str_repeat('a', 64)."\n"];
+        yield 'a SHA-256 with a prefix' => ['42', 'terms', 1, null, 'text_sha256', 'en', 'x'.str_repeat('a', 64)];
     }
 
     #[DataProvider('badAcceptances')]
-    public function testABadAcceptanceIsRefused(string $member, string $policy, int $version, ?string $network, string $reason): void
+    public function testABadAcceptanceIsRefused(string $member, string $policy, int $version, ?string $network, string $reason, ?string $locale = null, ?string $sha256 = null): void
     {
         try {
-            new Acceptance($member, $policy, $version, new DateTimeImmutable(), AcceptanceChannel::Api, $network);
+            new Acceptance($member, $policy, $version, new DateTimeImmutable(), AcceptanceChannel::Api, $network, $locale, $sha256);
             self::fail('Accepted.');
         } catch (InvalidTerms $invalidTerms) {
             self::assertSame($reason, $invalidTerms->reason);

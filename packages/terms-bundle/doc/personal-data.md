@@ -9,6 +9,7 @@
 | `accepted_at` | When, from the clock, kept in UTC |
 | `channel` | `signup`, `form`, `api` or `import` |
 | `network` | With `network` enabled, the network of the request's address; otherwise nothing |
+| `locale`, `text_sha256` | The locale of the text shown and the SHA-256 of its HTML ([Acceptance](acceptance.md#proving-the-text-accepted)); `NULL` on an acceptance recorded before 0.3 |
 
 The address itself is never kept. With `network` enabled, `phil/ip-anonymizer` truncates it to a /24 for IPv4 and a
 /48 for IPv6 by default; a text that is not an address keeps nothing. An application that wants another treatment —
@@ -20,9 +21,9 @@ was accepted when. The bundle never updates one, and removes them only for an er
 ## Export and erasure
 
 With `phil/privacy-bundle`, `AcceptancesPrivacy` is the module `terms` of an access or erasure request, for the member
-the subject names: the export lists each acceptance — policy, version, moment, channel and network —, the erasure
-deletes them all and reports the store `phil_terms_acceptance` as deleted. It runs again on an erased member with the
-same report.
+the subject names: the export lists each acceptance — policy, version, moment, channel, network, locale and SHA-256
+of the text —, the erasure deletes them all and reports the store `phil_terms_acceptance` as deleted. It runs again
+on an erased member with the same report.
 
 ## Versions
 

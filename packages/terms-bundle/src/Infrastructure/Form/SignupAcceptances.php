@@ -16,7 +16,7 @@ use Symfony\Component\Form\FormInterface;
  * ```php
  * if ($form->isSubmitted() && $form->isValid()) {
  *     $member = $members->register($form->getData());
- *     $signupAcceptances->record($form, $member->id, $request->getClientIp());
+ *     $signupAcceptances->record($form, $member->id, $request->getClientIp(), $request->getLocale());
  * }
  * ```
  */
@@ -29,12 +29,13 @@ final readonly class SignupAcceptances
 
     /**
      * @param FormInterface<mixed> $form
+     * @param string|null          $locale the locale of the form, whose texts the member was shown
      *
      * @return list<Acceptance>
      *
      * @throws InvalidTerms when the form is not valid, or a version can no longer be accepted
      */
-    public function record(FormInterface $form, string $member, ?string $address = null): array
+    public function record(FormInterface $form, string $member, ?string $address = null, ?string $locale = null): array
     {
         if (!$form->isSubmitted() || !$form->isValid()) {
             throw InvalidTerms::because('form_not_valid', 'Only a submitted and valid form carries acceptances.');
@@ -51,7 +52,7 @@ final readonly class SignupAcceptances
 
             $policy = substr($name, \strlen(TermsAcceptanceTypeExtension::CHECKBOX));
             $version = $form->get(TermsAcceptanceTypeExtension::VERSION.$policy)->getData();
-            $acceptances[] = $this->terms->accept($member, $policy, \is_string($version) ? (int) $version : throw InvalidTerms::because('form_not_valid', 'The form carries no version.'), AcceptanceChannel::Signup, $address);
+            $acceptances[] = $this->terms->accept($member, $policy, \is_string($version) ? (int) $version : throw InvalidTerms::because('form_not_valid', 'The form carries no version.'), AcceptanceChannel::Signup, $address, $locale);
         }
 
         return $acceptances;

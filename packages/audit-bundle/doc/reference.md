@@ -24,7 +24,7 @@ Every type under `Phil\AuditBundle\`, by layer.
 | `AuditRow`, `RowKind` | A row: segment, sequence, kind, instant, serialization version, payload, previous hash, hash; `append()`, `restore()`, `isIntact()`; `GENESIS` | Implemented and tested |
 | `Anchor` | The boundary hashes of a segment at the end of a period | Implemented and tested |
 | `ChainVerifier`, `ChainBreak` | Verifies a segment against its anchors in one pass; what is wrong, an alarm or a break explained by an anchored discontinuity (`isAlarm()`) | Implemented and tested |
-| `Facts`, `Subject` | What a row is indexed by and its hash covers: action, actor, subject, tenant; `of()`, `none()`, `inTenant()`, `restore()`, `isWellFormed()` | Implemented and tested |
+| `Facts`, `Subject` | What a row is indexed by and its hash covers: action, actor, subject, tenant; `of()`, `read()`, `none()`, `inTenant()`, `restore()`, `isWellFormed()`, `isRead()` | Implemented and tested |
 | `SiteSegment` | The segment of one tenant: `of()`, `isSite()`, `belongsTo()`, `base()`; `DIGEST_LENGTH = 32` (128 bits), `MAX_BASE_LENGTH = 29` | Implemented and tested |
 
 ### `Domain\Contract`
@@ -50,7 +50,7 @@ Every type under `Phil\AuditBundle\`, by layer.
 
 | Type | Role | State |
 |---|---|---|
-| `AuditQuery`, `Order` | The filters, order, page size and cursor of a read; `matches()` and `isAfterCursor()` for an adapter that scans | Implemented and tested |
+| `AuditQuery`, `Order` | The filters, order, page size and cursor of a read, `reads()` for the reads only; `matches()` and `isAfterCursor()` for an adapter that scans | Implemented and tested |
 | `Cursor`, `AuditPage` | Where a page stopped, as a token; a page and the cursor of the next | Implemented and tested |
 | `SegmentStatus`, `ChainState` | A segment's head and, once verified, its breaks and state; its site (`site()`) and the segment named (`base()`) | Implemented and tested |
 
@@ -58,7 +58,7 @@ Every type under `Phil\AuditBundle\`, by layer.
 
 | Type | Role | State |
 |---|---|---|
-| `AuditTrail` | `record($segment, $fields, $facts)`, `recordDiscontinuity($segment, $reason, $tenant)`, `segmentFor($segment, $tenant)`, retried on a race, stamped with the tenant, in the site's segment with site segments, passed to the notifier | Implemented and tested |
+| `AuditTrail` | `record($segment, $fields, $facts)`, `recordRead($segment, $what, $subject, $actor, $fields)`, `recordDiscontinuity($segment, $reason, $tenant)`, `segmentFor($segment, $tenant)`, retried on a race, stamped with the tenant, in the site's segment with site segments, passed to the notifier | Implemented and tested |
 | `AuditLog` | `page()`, `history()`, `row()`, `each()`, held to the current tenant, every row held to the query with `===` | Implemented and tested |
 | `ChainStatus` | `segments()`, `verify($segment)`, held to the current tenant's site | Implemented and tested |
 | `DashboardFeed` | `feed($segments, $max)`, `feedSegment($segment, $max)`, `lag($segment)`: the facts since the feed's place | Implemented and tested |

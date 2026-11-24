@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=24e4550b00e14dbdc6626baa3c0a0ca5a3085812c0b03699eb3b673dfb343bfc -->
+<!-- phil-dev source-sha256=87bc3dbd7cdd0cb1488040a76cb4097151dd99d0260ac776df62c9421376d0a6 -->
 # Lire le journal
 
 Le bundle relit sa propre piste sous forme de services d'application : des pages de lignes trouvées par qui a agi, ce
@@ -40,6 +40,44 @@ charge utile sous forme d'engagement ([commitments-and-erasure.md](commitments-a
 Sans faits, `record($segment, $fields)` écrit une ligne qu'on ne retrouve que par son segment et son instant. Une
 ligne de discontinuité n'a aucun fait.
 
+## Lectures de données sensibles
+
+La piste consigne les changements; elle peut aussi consigner qui a **lu** un enregistrement dont la lecture compte. Une
+lecture est une action sous le préfixe `Facts::READ_PREFIX`, `read.`, suivi de ce qui a été lu, et elle nomme toujours
+l'enregistrement lu :
+
+```php
+use Phil\AuditBundle\Domain\Chain\Facts;
+use Phil\AuditBundle\Domain\Chain\Subject;
+
+$subject = Subject::of('account', $memberId);
+$trail->recordRead('members', 'account.profile', $subject, $operator->id(), ['reason' => 'support']);
+
+// The same row, with the facts built by hand:
+$trail->record('members', ['reason' => 'support'], Facts::read('account.profile', $subject, $operator->id()));
+```
+
+`what` suit la forme d'une action et compte 59 caractères au plus, de sorte que l'action, avec son préfixe, en compte
+64. `Facts::isRead()` distingue une lecture d'un changement, et `AuditQuery::reads()` ne garde que les lectures; c'est
+`withAction('read.', prefix: true)`, le filtre que tout lecteur d'actions par préfixe offre déjà. La charge utile
+contient ce que l'application retient de la lecture — une raison, un écran, le format d'une exportation —, jamais les
+données lues.
+
+**Quand consigner une lecture.** Consignez les lectures dont quelqu'un pourrait devoir répondre plus tard : un membre du
+personnel qui ouvre le profil d'un membre, ses données de santé ou de paiement, ou ses messages privés; une
+exportation ou un téléchargement de renseignements personnels; un document déchiffré pour qu'une personne le voie; une
+recherche dans les enregistrements d'autrui par quelqu'un qui n'est pas du soutien. Laissez de côté un membre qui lit
+ses propres données, les pages que tout visiteur voit et les lectures qu'un processus fait pour accomplir son travail :
+ce sont le volume, non l'exception, et la piste n'est pas un journal d'accès.
+
+**Quel volume prévoir.** Une ligne de lecture est une ligne ordinaire : une par lecture consignée, à peu près de la
+taille des autres lignes du segment, chaînée, vérifiée et ancrée comme elles. Les lectures sont bien plus fréquentes
+que les changements quand on les consigne largement; consignez-les par enregistrement ouvert, non par champ affiché ni
+par page d'une liste, et gardez-les dans un segment à part (`members` ci-dessus) pour que les chaînes de changements
+restent courtes à vérifier. Un outil d'administration où dix membres du personnel ouvrent chacun cent enregistrements
+par jour écrit environ mille lignes par jour, quelque 365 000 par année : bien en deçà de ce qu'une table et une
+passe de vérification supportent, mais assez pour planifier l'ancrage et la conservation de ce segment.
+
 ## Comparaison exacte
 
 Un locataire, un acteur et l'identifiant d'un enregistrement sont comparés octet par octet, afin qu'un locataire ne lise
@@ -65,6 +103,7 @@ Une requête immuable : chaque méthode en retourne une nouvelle.
 | `AuditQuery::historyOf(Subject)` | Les lignes d'un enregistrement, la plus ancienne d'abord |
 | `byActor(string)` | Un acteur |
 | `withAction(string, bool $prefix = false)` | Une action, ou, avec `$prefix`, chaque action qui commence ainsi, comme `workflow.order.` |
+| `reads()` | Les lectures seulement, les actions sous `read.` |
 | `about(Subject)`, `aboutType(string)` | Un enregistrement, ou chaque enregistrement d'un type |
 | `inSegment(string)` | Un segment |
 | `inTenant(?string)` | Un locataire; `null`, chaque locataire et aucun |
