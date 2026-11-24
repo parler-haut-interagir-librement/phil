@@ -131,6 +131,7 @@ final class ReturnFlowTest extends KernelTestCase
         $stock = $this->service(Stock::class, Stock::class);
         $stock->receive('DICE', 'warehouse', 2, $at, 'PO-1', Money::of(1_000, $cad));
         $stock->receive('DICE', 'warehouse', 2, $at->modify('+1 hour'), 'PO-2', Money::of(1_400, $cad));
+
         $entityManager->flush();
 
         $order = Order::open('D-1', $cad);
@@ -143,6 +144,7 @@ final class ReturnFlowTest extends KernelTestCase
         $stock->ship('D-1', $at->modify('+1 day'));
         // A receipt after the sale moves the day's cost; the return does not follow it.
         $stock->receive('DICE', 'warehouse', 1, $at->modify('+2 days'), 'PO-3', Money::of(2_000, $cad));
+
         $entityManager->flush();
         $entityManager->clear();
 

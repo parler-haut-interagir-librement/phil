@@ -86,6 +86,7 @@ final class CostingFlowTest extends KernelTestCase
         $price = Money::of(2_500, $cad);
         $order->add(Sellable::of(SellableReference::of('product', 'DICE'), 'Dice', $price, 'goods'), 4, $price);
         $order->place($at);
+
         $stock->reserve($order, $at);
         $this->entityManager()->flush();
         $stock->ship('2026-0001', $at->modify('+2 days'));

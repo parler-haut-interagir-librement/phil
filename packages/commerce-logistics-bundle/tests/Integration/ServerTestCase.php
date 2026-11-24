@@ -259,6 +259,7 @@ abstract class ServerTestCase extends TestCase
         $warehouse = $this->repository->findLocation('a-store') ?? self::fail('No location.');
         $levelOfDice = StockLevel::of('DICE', $warehouse);
         $levelOfDice->receive(5);
+
         $this->repository->addLevel($levelOfDice);
         $this->repository->addLevel(StockLevel::of('BOOK', $warehouse));
         $this->repository->addLevel(StockLevel::of('CARD', $warehouse));
@@ -267,6 +268,7 @@ abstract class ServerTestCase extends TestCase
         $this->repository->record(StockMovement::of($levelOfDice, MovementKind::Received, 2, 0, 'late', $at->modify('+1 hour')));
         $this->repository->record(StockMovement::of($levelOfDice, MovementKind::Received, 1, 0, 'first', $at));
         $this->repository->record(StockMovement::of($levelOfDice, MovementKind::Received, 2, 0, 'second', $at));
+
         $first = Reservation::hold('2026-0001', $levelOfDice, 1);
         $second = Reservation::hold('2026-0001', $levelOfDice, 1);
         $this->repository->addReservation($second);
@@ -295,6 +297,7 @@ abstract class ServerTestCase extends TestCase
         $this->repository->addQuantity(ConventionQuantity::of($con, 'SHIRT-M', 5));
         $this->repository->addQuantity(ConventionQuantity::of($con, 'SHIRT-L', 5));
         $this->repository->addQuantity(ConventionQuantity::of($other, 'SHIRT-M', 5));
+
         $firstJob = PrintJob::of('2026-0001', 'SHIRT-M', 1, $at);
         $secondJob = PrintJob::of('2026-0001', 'SHIRT-L', 1, $at);
         $this->repository->addPrintJob($secondJob);
@@ -317,9 +320,11 @@ abstract class ServerTestCase extends TestCase
 
         $bookSerial = SerialNumber::of(StockLevel::of('BOOK', $warehouse), 'SN-0', $at);
         $bookSerial->ship('2026-0001', $at);
+
         $this->repository->addSerial($bookSerial);
         $diceSerial = SerialNumber::of($levelOfDice, 'SN-2', $at);
         $diceSerial->ship('2026-0001', $at);
+
         $this->repository->addSerial($diceSerial);
 
         $waves = new ShippingWaves($this->repository);
@@ -329,6 +334,7 @@ abstract class ServerTestCase extends TestCase
         $waves->assign('2026-0003', 'a-wave');
         $waves->assign('2026-0001', 'a-wave');
         $waves->assign('2026-0002', 'b-wave');
+
         $this->entityManager->flush();
         $waves->withdraw('2026-0002');
         $this->entityManager->flush();
@@ -371,12 +377,14 @@ abstract class ServerTestCase extends TestCase
         $at = new DateTimeImmutable('2026-11-21 10:00:00', new DateTimeZone('America/Toronto'));
         $this->repository->addLocation(Location::of('warehouse', 'Entrepôt', 10));
         $this->repository->addLocation(Location::of('store', 'Magasin', 0));
+
         $this->entityManager->flush();
         [$stock, $purchasing] = $this->costed(CostingMethod::WeightedAverage);
         $purchasing->order('PO-1', 'Dice Works', 'warehouse', ['DICE' => PurchaseLine::of(4, $this->cad(1_000)), 'LENT' => PurchaseLine::of(2, $this->cad(500), '17')], $at);
 
         // Two receipts in one unit of work join one pool: the second finds the first before it is flushed.
         $purchasing->receive('PO-1', ['DICE' => 2, 'LENT' => 2], $at, $this->cad(101));
+
         $stock->receive('DICE', 'warehouse', 2, $at->modify('+1 hour'), 'PO-2', $this->cad(1_200));
         $this->entityManager->flush();
         $this->entityManager->clear();
@@ -390,6 +398,7 @@ abstract class ServerTestCase extends TestCase
         $this->entityManager->flush();
         $stock->ship('2026-0001', $at->modify('+1 day'));
         $stock->adjustFor('DICE', 'warehouse', -1, VarianceReason::Theft, $at->modify('+2 days'), 'COUNT-1');
+
         $this->entityManager->flush();
         $this->entityManager->clear();
 
@@ -441,6 +450,7 @@ abstract class ServerTestCase extends TestCase
         $stock->receive('DICE', 'warehouse', 1, $at->modify('+1 day'), 'PO-2', $this->cad(1_300));
         $stock->receive('DICE', 'warehouse', 1, $at, 'PO-1', $this->cad(1_000));
         $stock->receive('DICE', 'warehouse', 1, $at->modify('+2 days'), 'PO-3');
+
         $this->entityManager->flush();
         $this->entityManager->clear();
 

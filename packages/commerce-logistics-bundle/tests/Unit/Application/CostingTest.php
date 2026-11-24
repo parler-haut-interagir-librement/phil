@@ -23,8 +23,10 @@ use Phil\CommerceLogisticsBundle\Domain\Exception\CostRefused;
 use Phil\CommerceLogisticsBundle\Domain\Model\CostEntry;
 use Phil\CommerceLogisticsBundle\Domain\Model\CostLayer;
 use Phil\CommerceLogisticsBundle\Domain\Model\Location;
+use Phil\CommerceLogisticsBundle\Domain\Model\PurchaseOrder;
 use Phil\CommerceLogisticsBundle\Domain\Model\StockMovement;
 use Phil\CommerceLogisticsBundle\Domain\Purchasing\PurchaseLine;
+use Phil\CommerceLogisticsBundle\Domain\ValueObject\ValuedStock;
 use Phil\CommerceLogisticsBundle\Tests\Unit\Support\InMemoryLogistics;
 use Phil\DddBundle\Domain\Exception\InvalidValue;
 use Phil\Money\Currency;
@@ -56,6 +58,7 @@ final class CostingTest extends TestCase
         $this->repository = new InMemoryLogistics();
         $this->repository->addLocation(Location::of('warehouse', 'Warehouse', 10));
         $this->repository->addLocation(Location::of('store', 'Store', 0));
+
         $this->at = new DateTimeImmutable('2026-11-21T10:00:00Z');
         $this->cad = Currency::of('CAD');
     }
@@ -157,7 +160,7 @@ final class CostingTest extends TestCase
         $stock = new Stock($this->repository, $this->repository);
         $plain = new Purchasing($this->repository, $this->repository, $stock);
         $plain->order('PO-0', 'Books & Co', 'warehouse', ['BOOK' => PurchaseLine::of(3, $this->cad(1_000))], $this->at);
-        $this->refused('Costing is not enabled: set phil_commerce_logistics.costing to record a landed cost.', fn () => $plain->receive('PO-0', ['BOOK' => 1], $this->at, $this->cad(100)));
+        $this->refused('Costing is not enabled: set phil_commerce_logistics.costing to record a landed cost.', fn (): PurchaseOrder => $plain->receive('PO-0', ['BOOK' => 1], $this->at, $this->cad(100)));
 
         [, $purchasing] = $this->services(CostingMethod::WeightedAverage);
         $purchasing->order('PO-1', 'Books & Co', 'warehouse', ['LENT' => PurchaseLine::of(2, $this->cad(700), 'consignor-17'), 'CARD' => 2], $this->at);
@@ -482,7 +485,7 @@ final class CostingTest extends TestCase
      */
     private function valued(DateTimeImmutable $at): array
     {
-        return array_map(static fn ($stock): array => [$stock->sku, $stock->location, $stock->units, $stock->value->minorUnits], $this->value()->valuedStock($at));
+        return array_map(static fn (ValuedStock $stock): array => [$stock->sku, $stock->location, $stock->units, $stock->value->minorUnits], $this->value()->valuedStock($at));
     }
 
     /**

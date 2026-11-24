@@ -51,6 +51,7 @@ final class LogisticsRestockingTest extends TestCase
         $this->levels->addLocation(Location::of('warehouse', 'Warehouse', 10));
         $this->levels->addLocation(Location::of('store', 'Store', 5));
         $this->levels->addLocation(Location::of('returns', 'Returns', 0));
+
         $this->returns = new InMemoryReturns();
         $this->stock = new Stock($this->levels, $this->levels);
         $this->stock->receive('DICE', 'warehouse', 1, $this->at);

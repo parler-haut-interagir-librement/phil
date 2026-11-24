@@ -35,7 +35,7 @@ final class CostRefused extends DomainException implements DomainError
 
     public static function ownedValue(string $sku, string $location): self
     {
-        return new self(\sprintf('The units of %s at %s belong to someone else: they carry no value of the shop\'s.', $sku, $location));
+        return new self(\sprintf("The units of %s at %s belong to someone else: they carry no value of the shop's.", $sku, $location));
     }
 
     public static function share(string $sku, string $location, int $units): self
@@ -50,7 +50,7 @@ final class CostRefused extends DomainException implements DomainError
 
     public static function noLineBears(string $number): self
     {
-        return new self(\sprintf('No line of the receipt against %s bears a landed cost: it needs units of the shop\'s with a unit cost.', $number));
+        return new self(\sprintf("No line of the receipt against %s bears a landed cost: it needs units of the shop's with a unit cost.", $number));
     }
 
     public static function noLayer(string $sku, string $location, string $reference): self

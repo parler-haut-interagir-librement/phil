@@ -102,7 +102,7 @@ final class PhilCommerceLogisticsBundle extends AbstractBundle
                     ->canBeEnabled()
                     ->children()
                         ->enumNode('method')
-                            ->info('How the shop\'s units leave: at the average of their pool, or the oldest layer first.')
+                            ->info("How the shop's units leave: at the average of their pool, or the oldest layer first.")
                             ->values(array_map(static fn (CostingMethod $method): string => $method->value, CostingMethod::cases()))
                             ->defaultValue(CostingMethod::WeightedAverage->value)
                         ->end()

@@ -37,6 +37,7 @@ final class CompositeCostsTest extends TestCase
     {
         $box = $this->product('BOX');
         $box->composeOf([ProductComponent::of('BOOK'), ProductComponent::of('DICE', 3)]);
+
         $shirt = $this->product('SHIRT');
         $shirt->defineAxes(['size']);
 
@@ -92,8 +93,8 @@ final class CompositeCostsTest extends TestCase
 
     private function costs(): CompositeCosts
     {
-        $units = new class($this) implements UnitCosts {
-            public function __construct(private readonly CompositeCostsTest $test)
+        $units = new readonly class($this) implements UnitCosts {
+            public function __construct(private CompositeCostsTest $test)
             {
             }
 
