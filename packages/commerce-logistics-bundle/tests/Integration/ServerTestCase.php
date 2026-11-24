@@ -27,17 +27,25 @@ use Phil\CommerceLogisticsBundle\Application\Stock;
 use Phil\CommerceLogisticsBundle\Domain\Cost\CostEntryKind;
 use Phil\CommerceLogisticsBundle\Domain\Cost\CostingMethod;
 use Phil\CommerceLogisticsBundle\Domain\Cost\VarianceReason;
+use Phil\CommerceLogisticsBundle\Domain\Delivery\DeliveryKind;
 use Phil\CommerceLogisticsBundle\Domain\Document\ShippingDocumentKind;
 use Phil\CommerceLogisticsBundle\Domain\Model\Convention;
 use Phil\CommerceLogisticsBundle\Domain\Model\ConventionQuantity;
 use Phil\CommerceLogisticsBundle\Domain\Model\CostEntry;
 use Phil\CommerceLogisticsBundle\Domain\Model\CostLayer;
+use Phil\CommerceLogisticsBundle\Domain\Model\DeliveryMethod;
 use Phil\CommerceLogisticsBundle\Domain\Model\Location;
+use Phil\CommerceLogisticsBundle\Domain\Model\PrintJob;
+use Phil\CommerceLogisticsBundle\Domain\Model\PurchaseOrder;
 use Phil\CommerceLogisticsBundle\Domain\Model\Reservation;
+use Phil\CommerceLogisticsBundle\Domain\Model\SerialNumber;
 use Phil\CommerceLogisticsBundle\Domain\Model\Shipment;
+use Phil\CommerceLogisticsBundle\Domain\Model\ShippingCost;
 use Phil\CommerceLogisticsBundle\Domain\Model\ShippingDocument;
 use Phil\CommerceLogisticsBundle\Domain\Model\ShippingWave;
+use Phil\CommerceLogisticsBundle\Domain\Model\StockLevel;
 use Phil\CommerceLogisticsBundle\Domain\Model\StockMovement;
+use Phil\CommerceLogisticsBundle\Domain\Model\StockPolicy;
 use Phil\CommerceLogisticsBundle\Domain\Purchasing\PurchaseLine;
 use Phil\CommerceLogisticsBundle\Domain\Stock\MovementKind;
 use Phil\CommerceLogisticsBundle\Domain\ValueObject\SaleCost;
@@ -225,6 +233,139 @@ abstract class ServerTestCase extends TestCase
         self::assertSame([null], $this->entityManager->getConnection()->fetchFirstColumn("SELECT line_terms FROM phil_commerce_logistics_purchase_order WHERE number = 'PO-2'"));
     }
 
+    /**
+     * Every query of the adapter keeps its filters and its order: each row below is written in an order its sort undoes,
+     * and ties on the first key are broken by the next.
+     */
+    public function testEachQueryFiltersAndSortsAsItSays(): void
+    {
+        $cad = Currency::of('CAD');
+        $at = new DateTimeImmutable('2026-11-21 10:00:00');
+        $closed = Location::of('closed', 'Closed', 9);
+        $closed->close();
+
+        foreach ([Location::of('c-store', 'C', 5), Location::of('a-store', 'A', 1), $closed, Location::of('b-store', 'B', 5)] as $location) {
+            $this->repository->addLocation($location);
+        }
+
+        $withdrawn = DeliveryMethod::of('withdrawn', 'Withdrawn', DeliveryKind::Shipping, Money::of(100, $cad), priority: 9);
+        $withdrawn->withdraw();
+
+        foreach ([DeliveryMethod::of('c-ship', 'C', DeliveryKind::Shipping, Money::of(100, $cad), priority: 5), DeliveryMethod::of('a-ship', 'A', DeliveryKind::Shipping, Money::of(100, $cad), priority: 1), $withdrawn, DeliveryMethod::of('b-ship', 'B', DeliveryKind::Shipping, Money::of(100, $cad), priority: 5)] as $method) {
+            $this->repository->addMethod($method);
+        }
+
+        $this->entityManager->flush();
+        $warehouse = $this->repository->findLocation('a-store') ?? self::fail('No location.');
+        $levelOfDice = StockLevel::of('DICE', $warehouse);
+        $levelOfDice->receive(5);
+        $this->repository->addLevel($levelOfDice);
+        $this->repository->addLevel(StockLevel::of('BOOK', $warehouse));
+        $this->repository->addLevel(StockLevel::of('CARD', $warehouse));
+
+        // The journal: the later moment written first, then two of one moment.
+        $this->repository->record(StockMovement::of($levelOfDice, MovementKind::Received, 2, 0, 'late', $at->modify('+1 hour')));
+        $this->repository->record(StockMovement::of($levelOfDice, MovementKind::Received, 1, 0, 'first', $at));
+        $this->repository->record(StockMovement::of($levelOfDice, MovementKind::Received, 2, 0, 'second', $at));
+        $first = Reservation::hold('2026-0001', $levelOfDice, 1);
+        $second = Reservation::hold('2026-0001', $levelOfDice, 1);
+        $this->repository->addReservation($second);
+        $this->repository->addReservation($first);
+        $this->repository->addReservation(Reservation::hold('2026-0002', $levelOfDice, 1));
+
+        $early = Shipment::of('2026-0001', ['product:DICE' => 1], $at);
+        $tied = Shipment::of('2026-0001', ['product:DICE' => 1], $at);
+        $late = Shipment::of('2026-0001', ['product:DICE' => 1], $at->modify('+1 day'));
+
+        foreach ([$late, $tied, $early, Shipment::of('2026-0009', ['product:DICE' => 1], $at)] as $shipment) {
+            $this->repository->addShipment($shipment);
+        }
+
+        $this->repository->addCost(ShippingCost::of($late, 'post', 'regular', Money::of(900, $cad), $at->modify('+1 day')));
+        $this->repository->addCost(ShippingCost::of($tied, 'post', 'regular', Money::of(700, $cad), $at));
+        $this->repository->addCost(ShippingCost::of($early, 'post', 'regular', Money::of(800, $cad), $at));
+        $this->repository->addPolicy(StockPolicy::of('DICE'));
+        $this->repository->addPolicy(StockPolicy::of('BOOK'));
+
+        $con = Convention::of('con', 'Con', new DateTimeImmutable('2026-12-20'), new DateTimeImmutable('2026-12-21'));
+        $other = Convention::of('other-con', 'Other', new DateTimeImmutable('2026-12-19'), new DateTimeImmutable('2026-12-20'));
+        $this->repository->addConvention($other);
+        $this->repository->addConvention($con);
+        $this->repository->addConvention(Convention::of('b-con', 'B', new DateTimeImmutable('2026-12-20'), new DateTimeImmutable('2026-12-20')));
+        $this->repository->addQuantity(ConventionQuantity::of($con, 'SHIRT-M', 5));
+        $this->repository->addQuantity(ConventionQuantity::of($con, 'SHIRT-L', 5));
+        $this->repository->addQuantity(ConventionQuantity::of($other, 'SHIRT-M', 5));
+        $firstJob = PrintJob::of('2026-0001', 'SHIRT-M', 1, $at);
+        $secondJob = PrintJob::of('2026-0001', 'SHIRT-L', 1, $at);
+        $this->repository->addPrintJob($secondJob);
+        $this->repository->addPrintJob($firstJob);
+        $this->repository->addPrintJob(PrintJob::of('2026-0002', 'SHIRT-L', 1, $at));
+
+        $closedOrder = PurchaseOrder::of('PO-0', 'Dice Works', $warehouse, ['DICE' => 1], $at->modify('-1 day'));
+        $closedOrder->close();
+
+        foreach ([PurchaseOrder::of('PO-3', 'Dice Works', $warehouse, ['DICE' => 1], $at->modify('+1 day')), PurchaseOrder::of('PO-2', 'Dice Works', $warehouse, ['DICE' => 1], $at), $closedOrder, PurchaseOrder::of('PO-1', 'Dice Works', $warehouse, ['DICE' => 1], $at)] as $order) {
+            $this->repository->addPurchaseOrder($order);
+        }
+
+        $shipped = SerialNumber::of($levelOfDice, 'SN-3', $at);
+        $shipped->ship('2026-0001', $at);
+
+        foreach ([$shipped, SerialNumber::of($levelOfDice, 'SN-1', $at), SerialNumber::of(StockLevel::of('BOOK', $warehouse), 'SN-2', $at)] as $serial) {
+            $this->repository->addSerial($serial);
+        }
+
+        $bookSerial = SerialNumber::of(StockLevel::of('BOOK', $warehouse), 'SN-0', $at);
+        $bookSerial->ship('2026-0001', $at);
+        $this->repository->addSerial($bookSerial);
+        $diceSerial = SerialNumber::of($levelOfDice, 'SN-2', $at);
+        $diceSerial->ship('2026-0001', $at);
+        $this->repository->addSerial($diceSerial);
+
+        $waves = new ShippingWaves($this->repository);
+        $waves->plan('b-wave', 'B', new DateTimeImmutable('2027-01-01'));
+        $waves->plan('a-wave', 'A', new DateTimeImmutable('2027-01-01'));
+        $waves->plan('early', 'Early', new DateTimeImmutable('2026-12-01'));
+        $waves->assign('2026-0003', 'a-wave');
+        $waves->assign('2026-0001', 'a-wave');
+        $waves->assign('2026-0002', 'b-wave');
+        $this->entityManager->flush();
+        $waves->withdraw('2026-0002');
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        self::assertSame(['b-store', 'c-store', 'a-store'], array_map(static fn (Location $location): string => $location->code, $this->repository->openLocations()));
+        self::assertSame(['b-ship', 'c-ship', 'a-ship'], array_map(static fn (DeliveryMethod $method): string => $method->code, $this->repository->activeMethods()));
+        self::assertSame(['first', 'second', 'late'], array_map(static fn (StockMovement $movement): ?string => $movement->reference, $this->repository->journal('DICE', 'a-store')));
+        self::assertSame([], $this->repository->journal('DICE', 'b-store'));
+        self::assertSame([$first->id, $second->id], array_map(static fn (Reservation $reservation): string => $reservation->id, $this->repository->reservationsOf('2026-0001')));
+        self::assertSame([$early->id, $tied->id, $late->id], array_map(static fn (Shipment $shipment): string => $shipment->id, $this->repository->shipmentsOf('2026-0001')));
+        $earlyFirst = strcmp($early->id, $tied->id) < 0;
+        self::assertSame($earlyFirst ? [800, 700, 900] : [700, 800, 900], array_map(static fn (ShippingCost $cost): int => $cost->cost->minorUnits, $this->repository->costsOf('2026-0001')));
+        self::assertSame(700, $this->repository->costOf($tied->id)?->cost->minorUnits);
+        self::assertSame([['BOOK', 'DICE'], [], ['BOOK', 'CARD', 'DICE'], []], [
+            $this->sorted(array_map(static fn (StockPolicy $policy): string => $policy->sku, $this->repository->policiesOf(['DICE', 'BOOK', 'CARD']))),
+            $this->repository->policiesOf([]),
+            $this->sorted(array_map(static fn (StockLevel $level): string => $level->sku, $this->repository->levelsOfSkus(['DICE', 'BOOK', 'CARD', 'NONE']))),
+            $this->repository->levelsOfSkus([]),
+        ]);
+        self::assertSame(['other-con', 'b-con', 'con'], array_map(static fn (Convention $convention): string => $convention->code, $this->repository->conventionsMeeting(new DateTimeImmutable('2026-12-20 23:00'), new DateTimeImmutable('2026-12-20 01:00'))));
+        self::assertSame(['con'], array_map(static fn (Convention $convention): string => $convention->code, $this->repository->conventionsMeeting(new DateTimeImmutable('2026-12-21 23:59'), new DateTimeImmutable('2026-12-21 00:00'))));
+        self::assertSame(['SHIRT-L', 'SHIRT-M'], array_map(static fn (ConventionQuantity $quantity): string => $quantity->sku, $this->repository->quantitiesOf('con')));
+        self::assertSame(['SHIRT-L', 'SHIRT-M'], $this->repository->conventionSkus(['SHIRT-M', 'SHIRT-L', 'NONE']));
+        self::assertSame([], $this->repository->conventionSkus([]));
+        self::assertSame(5, $this->repository->quantity('con', 'SHIRT-M')?->quantity());
+        self::assertSame([$firstJob->id, $secondJob->id], array_map(static fn (PrintJob $job): string => $job->id, $this->repository->printJobsOf('2026-0001')));
+        self::assertSame(['PO-1', 'PO-2', 'PO-3'], array_map(static fn (PurchaseOrder $order): string => $order->number, $this->repository->openPurchaseOrders()));
+        self::assertSame([1, 1], [$this->repository->serialsInStock('DICE', 'a-store'), $this->repository->serialsInStock('BOOK', 'a-store')]);
+        self::assertSame([['BOOK', 'SN-0'], ['DICE', 'SN-2'], ['DICE', 'SN-3']], array_map(static fn (SerialNumber $serial): array => [$serial->sku, $serial->serial], $this->repository->serialsOfOrder('2026-0001')));
+        self::assertSame(['early', 'a-wave', 'b-wave'], array_map(static fn (ShippingWave $wave): string => $wave->code, $this->repository->plannedWaves()));
+        self::assertSame(['2026-0001', '2026-0003'], $this->repository->ordersOfWave('a-wave'));
+        self::assertSame([], $this->repository->ordersOfWave('b-wave'));
+        self::assertNull($this->repository->assignmentOf('2026-0002'));
+        self::assertSame('a-wave', $this->repository->assignmentOf('2026-0001')?->wave());
+    }
+
     public function testTheCostOfTheStockIsKeptAcrossUnitsOfWork(): void
     {
         $at = new DateTimeImmutable('2026-11-21 10:00:00', new DateTimeZone('America/Toronto'));
@@ -383,6 +524,18 @@ abstract class ServerTestCase extends TestCase
         $this->entityManager->clear();
 
         self::assertSame([2, 2], [$this->repository->reservationsOf('2026-0001')[0]->returned(), $this->repository->level('DICE', 'warehouse')?->onHand()]);
+    }
+
+    /**
+     * @param list<string> $values
+     *
+     * @return list<string>
+     */
+    private function sorted(array $values): array
+    {
+        sort($values);
+
+        return $values;
     }
 
     /**

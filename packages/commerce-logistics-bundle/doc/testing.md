@@ -39,15 +39,16 @@ writes off a theft, takes a return back and reads the value through `InventoryVa
 calls a carrier over the network. Installed on its own, where FrameworkBundle is a development requirement, the suite
 is skipped.
 
-An integration suite, `tests/Integration`, runs the Doctrine adapter on SQLite, MySQL 8.4 and PostgreSQL 17 — its
-tables created from the mapping, purchase orders with numeric SKUs and the terms of their lines, serial numbers,
+The Doctrine adapter runs on SQLite in the unit suite, `tests/Unit/Infrastructure/SqliteLogisticsTest`, and on MySQL
+8.4 and PostgreSQL 17 in the integration suite, `tests/Integration` — its tables created from the mapping, each query's
+filters and order, ties broken by its next key, purchase orders with numeric SKUs and the terms of their lines, serial numbers,
 conventions found by their days, documents with and without a shipment, shipments and waves read back; two
 adjustments of one level made at once in two entity managers, the second refused by the level's version and retried,
 both counted; cost layers and entries read within one unit of work before they are flushed and across units of work,
 the stock valued at a moment, the cost of sales of a period and the cost journal paged; a database of 0.1.0-alpha
 compared with the mapping, which adds `returned`, `line_terms`, `reason` and the two tables of costing and changes
 nothing else, its rows read back after the change. SQLite runs on a file of the temporary directory, or the one
-`PHIL_TEST_SQLITE_PATH` names; MySQL and PostgreSQL run when `PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL` name a
+`PHIL_TEST_SQLITE_PATH` names, and needs no server; MySQL and PostgreSQL run when `PHIL_TEST_MYSQL_URL` and `PHIL_TEST_POSTGRESQL_URL` name a
 server, and are skipped otherwise:
 
 ```sh
