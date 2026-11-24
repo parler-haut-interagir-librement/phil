@@ -38,6 +38,40 @@ erased without breaking the chain, a name or an address never goes in one; it go
 Without facts, `record($segment, $fields)` writes a row found by its segment and its instant only. A discontinuity
 row has no facts.
 
+## Reads of sensitive data
+
+The trail records changes; it can also record who **read** a record whose reading matters. A read is an action under
+the prefix `Facts::READ_PREFIX`, `read.`, then what was read, and it always names the record read:
+
+```php
+use Phil\AuditBundle\Domain\Chain\Facts;
+use Phil\AuditBundle\Domain\Chain\Subject;
+
+$subject = Subject::of('account', $memberId);
+$trail->recordRead('members', 'account.profile', $subject, $operator->id(), ['reason' => 'support']);
+
+// The same row, with the facts built by hand:
+$trail->record('members', ['reason' => 'support'], Facts::read('account.profile', $subject, $operator->id()));
+```
+
+`what` follows the form of an action and holds 59 characters at most, so that the action, with its prefix, holds 64.
+`Facts::isRead()` tells a read from a change, and `AuditQuery::reads()` keeps the reads only; it is
+`withAction('read.', prefix: true)`, the filter any reader of actions by prefix already offers. The payload holds what
+the application keeps about the read — a reason, a screen, the format of an export —, never the data read.
+
+**When to record a read.** Record the reads that someone may later have to account for: a staff member opening a
+member's profile, health or payment details, or private messages; an export or a download of personal data; a
+document decrypted for a person to see; a search through other people's records by someone outside the support role.
+Leave out a member reading their own data, the pages every visitor sees, and the reads a process makes to do its
+work: those are the volume, not the exception, and the trail is not an access log.
+
+**What volume to expect.** A read row is an ordinary row: one per read recorded, about the size of the other rows of
+the segment, chained, verified and anchored like them. Reads come far more often than changes when they are recorded
+broadly; record them per record opened, not per field shown nor per page of a list, and keep them in a segment of
+their own (`members` above) so that the chains of changes stay short to verify. A back office where ten staff members
+each open a hundred records a day writes about a thousand rows a day, some 365,000 a year: well within a table and
+a verification pass, but enough to plan the anchoring and the retention of that segment.
+
 ## Exact comparison
 
 A tenant, an actor and a record's identifier are compared byte by byte, so that one tenant never reads another
@@ -62,6 +96,7 @@ An immutable query: each method returns a new one.
 | `AuditQuery::historyOf(Subject)` | The rows about one record, the earliest first |
 | `byActor(string)` | One actor |
 | `withAction(string, bool $prefix = false)` | One action, or with `$prefix` every action that starts with it, such as `workflow.order.` |
+| `reads()` | The reads only, the actions under `read.` |
 | `about(Subject)`, `aboutType(string)` | One record, or every record of a type |
 | `inSegment(string)` | One segment |
 | `inTenant(?string)` | One tenant; `null`, every tenant and none |

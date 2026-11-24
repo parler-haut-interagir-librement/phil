@@ -56,6 +56,10 @@ final class QueryTest extends TestCase
         self::assertSame(['invoice', null, 'order', '42'], [$typed->subjectType, $typed->subjectId, $query->subjectType, $query->subjectId]);
         self::assertNull($query->inTenant(null)->tenant);
         self::assertFalse($query->withAction('order.paid')->actionIsPrefix);
+        self::assertSame(['read.', true], [$all->reads()->action, $all->reads()->actionIsPrefix]);
+        self::assertTrue($all->reads()->matches($this->row('members', 1, '2026-11-04 12:00 UTC', Facts::read('account.profile', Subject::of('account', '9')))));
+        self::assertFalse($all->reads()->matches($this->row('members', 1, '2026-11-04 12:00 UTC', Facts::of('reader.added'))));
+        self::assertNull($all->action);
         self::assertSame(1, $all->limitedTo(1)->limit);
 
         $history = AuditQuery::historyOf(Subject::of('order', '42'));
