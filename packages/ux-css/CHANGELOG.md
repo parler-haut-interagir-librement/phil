@@ -6,10 +6,15 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.7.0-alpha.
+The next version is 0.6.0-alpha.
 
 ### Added
 
+- `css/layers/components.css`: the range of the date picker, `isDatePicker.hasRange`, its two fields in
+  `isDatePickerPart` labels and its two months in `isDatePickerMonths`, each an `isDatePickerCalendar`, side by side
+  where the panel holds both and stacked where it does not; the days of the range, marked by `data-range`, filled and
+  underlined, its start and its end filled loud and bold, in the colours of the selection of the system under forced
+  colours, the fill fading in only without `prefers-reduced-motion: reduce`.
 - `css/tokens/palette.css`: `--phil-neutral-15`, `oklch(0.15 0.012 265)`, `#090B10`.
 - `css/layers/components.css`: `isThemeSwitcher`, the group of the choice of the colour scheme, without the frame of a
   `fieldset`; `isStickyHeader`, a header kept at the top of the screen, the scroll padding of the root kept below it
@@ -27,16 +32,6 @@ The next version is 0.7.0-alpha.
   `isFullHeight` at `100svh`, `isBleed` at `40svh` below 48rem, and the list of `isSelectViewport` within the screen.
   The dialogs, the sheets and the lightbox keep `dvh`, which they fill.
 - `doc/themes.md` writes the reader's choice of scheme on the root, or nothing for the system's.
-
-## 0.6.0-alpha
-
-### Added
-
-- `css/layers/components.css`: the range of the date picker, `isDatePicker.hasRange`, its two fields in
-  `isDatePickerPart` labels and its two months in `isDatePickerMonths`, each an `isDatePickerCalendar`, side by side
-  where the panel holds both and stacked where it does not; the days of the range, marked by `data-range`, filled and
-  underlined, its start and its end filled loud and bold, in the colours of the selection of the system under forced
-  colours, the fill fading in only without `prefers-reduced-motion: reduce`.
 
 ## 0.5.0-alpha - 2026-11-12
 

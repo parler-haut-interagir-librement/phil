@@ -6,10 +6,18 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.7.0-alpha.
+The next version is 0.6.0-alpha.
 
 ### Added
 
+- On `DatePicker`: `range`, two date fields of the browser, the start and the end, each under its label, `startLabel`
+  and `endLabel`, the end named by `endName` and given by `endValue`, which work alone without JavaScript, the `min` of
+  the end kept at the start by the template and by the controller; the button opens two months side by side, stacked
+  where the screen is narrow, the first day chosen being the start and the second the end, swapped when the end comes
+  first, the range previewed under the pointer and the focus, each of its days `aria-selected`, its first and last day
+  named with `rangeStartLabel` and `rangeEndLabel` and the start announced by a live region; the keyboard of the date
+  picker of WAI-ARIA goes from one month to the other, mirrored right to left. Styled by `hasRange`,
+  `isDatePickerPart`, `isDatePickerMonths` and `isDatePickerCalendar` of phil-ux 0.6.
 - The recipe `ThemeSwitcher`: the choice of the colour scheme, light, dark or the system's, three `isToggle` radio
   buttons in an `isThemeSwitcher` group named by its legend, hidden until the controller `theme-switcher` runs; the
   choice kept in the `localStorage` of the browser under `storageKey`, written on the root as `data-theme`, taken away
@@ -28,26 +36,10 @@ The next version is 0.7.0-alpha.
 
 ### Changed
 
-- The browser suite audits with axe-core 4.14.1, which no longer reports `target-size` where a target is spaced
-  enough.
-
-## 0.6.0-alpha
-
-### Added
-
-- On `DatePicker`: `range`, two date fields of the browser, the start and the end, each under its label, `startLabel`
-  and `endLabel`, the end named by `endName` and given by `endValue`, which work alone without JavaScript, the `min` of
-  the end kept at the start by the template and by the controller; the button opens two months side by side, stacked
-  where the screen is narrow, the first day chosen being the start and the second the end, swapped when the end comes
-  first, the range previewed under the pointer and the focus, each of its days `aria-selected`, its first and last day
-  named with `rangeStartLabel` and `rangeEndLabel` and the start announced by a live region; the keyboard of the date
-  picker of WAI-ARIA goes from one month to the other, mirrored right to left. Styled by `hasRange`,
-  `isDatePickerPart`, `isDatePickerMonths` and `isDatePickerCalendar` of phil-ux 0.6.
-
-### Changed
-
 - The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
+- The browser suite audits with axe-core 4.14.1, which no longer reports `target-size` where a target is spaced
+  enough.
 
 ## 0.5.0-alpha - 2026-11-12
 
