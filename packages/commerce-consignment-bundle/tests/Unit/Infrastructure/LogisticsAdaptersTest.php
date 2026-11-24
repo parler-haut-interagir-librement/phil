@@ -137,12 +137,15 @@ final class LogisticsAdaptersTest extends TestCase
     {
         $this->stock->receive(Fixtures::BOOK, Fixtures::SHELF, 3, Fixtures::at(9));
         $this->stock->receive('PEN', Fixtures::SHELF, 3, Fixtures::at(9));
+
         $order = Order::open('ORD-1', Currency::of('CAD'));
         $order->add(Sellable::of(SellableReference::of('product', 'PEN'), 'Pen', Fixtures::cad(200), 'goods'), 1, Fixtures::cad(200));
         $order->add(Sellable::of(SellableReference::of('product', Fixtures::BOOK), 'Book', Fixtures::cad(2000), 'goods'), 2, Fixtures::cad(2000));
         $order->place(Fixtures::at(10));
+
         $this->stock->reserve($order, Fixtures::at(10));
         $this->stock->ship('ORD-1', Fixtures::at(11));
+
         $this->memory->movements = [];
 
         $this->movements->restock(Fixtures::BOOK, Fixtures::BACK, 2, Fixtures::at(12), 'ORD-1');

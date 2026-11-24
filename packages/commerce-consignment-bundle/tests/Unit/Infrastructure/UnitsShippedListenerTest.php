@@ -35,8 +35,6 @@ final class UnitsShippedListenerTest extends TestCase implements OrderRepository
     /** @var array<string, Order> */
     private array $orders = [];
 
-    private LogisticsMemory $memory;
-
     private InMemoryLedgerRepository $layers;
 
     private Ledger $ledger;
@@ -47,15 +45,17 @@ final class UnitsShippedListenerTest extends TestCase implements OrderRepository
 
     protected function setUp(): void
     {
-        $this->memory = new LogisticsMemory();
-        $this->memory->addLocation(Location::of(Fixtures::SHELF, 'Store', 10));
+        $memory = new LogisticsMemory();
+        $memory->addLocation(Location::of(Fixtures::SHELF, 'Store', 10));
+
         $this->layers = new InMemoryLedgerRepository();
         $this->ledger = new Ledger($this->layers);
-        $this->listener = new UnitsShippedListener($this, new ShippedOrders($this->ledger, new LogisticsShippedUnits($this->memory), new ConfiguredIssueOrder(IssueOrder::ConsignedFirst)));
+        $this->listener = new UnitsShippedListener($this, new ShippedOrders($this->ledger, new LogisticsShippedUnits($memory), new ConfiguredIssueOrder(IssueOrder::ConsignedFirst)));
 
         $dispatcher = new EventDispatcher();
         $dispatcher->addListener(UnitsShipped::class, $this->listener);
-        $this->stock = new Stock($this->memory, $this->memory, dispatcher: $dispatcher);
+
+        $this->stock = new Stock($memory, $memory, dispatcher: $dispatcher);
     }
 
     #[Override]

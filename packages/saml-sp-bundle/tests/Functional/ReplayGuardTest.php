@@ -40,7 +40,6 @@ final class ReplayGuardTest extends WebTestCase
         self::assertTrue(mkdir(self::$directory, 0o700, true));
     }
 
-    #[Override]
     protected function tearDown(): void
     {
         parent::tearDown();
