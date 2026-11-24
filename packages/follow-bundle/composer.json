@@ -23,7 +23,7 @@
     "require": {
         "php": ">=8.5",
         "doctrine/dbal": "^4.5",
-        "phil/notifications-bundle": "^0.3@dev",
+        "phil/notifications-bundle": "^0.4@dev",
         "psr/clock": "^1.0",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
