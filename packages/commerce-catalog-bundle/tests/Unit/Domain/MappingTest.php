@@ -58,6 +58,7 @@ final class MappingTest extends TestCase
             'suggestedPrice' => ['suggested_price', 'bigint', null, true, null],
             'maximumPrice' => ['maximum_price', 'bigint', null, true, null],
             'communityCopyPrice' => ['community_copy_price', 'bigint', null, true, null],
+            'suggestedRetailPrice' => ['suggested_retail_price', 'bigint', null, true, null],
             'sku' => ['sku', 'string', 64, false, null],
             'kind' => ['kind', 'string', 16, false, null],
             'name' => ['name', 'string', 255, false, null],

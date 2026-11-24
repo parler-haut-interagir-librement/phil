@@ -9,10 +9,13 @@ use Override;
 use Phil\CommerceBundle\Domain\Event\OrderPurchased;
 use Phil\CommerceBundle\Domain\Repository\OrderRepository;
 use Phil\CommerceCatalogBundle\Application\CommunityCopies;
+use Phil\CommerceCatalogBundle\Application\CompositeCosts;
 use Phil\CommerceCatalogBundle\Application\CompositeProducts;
 use Phil\CommerceCatalogBundle\Application\Contract\CommunityCopyLedger;
 use Phil\CommerceCatalogBundle\Application\Contract\ProductClassification;
+use Phil\CommerceCatalogBundle\Application\Contract\ProductCosts;
 use Phil\CommerceCatalogBundle\Application\Contract\ProductListing;
+use Phil\CommerceCatalogBundle\Application\Contract\UnitCosts;
 use Phil\CommerceCatalogBundle\Application\PriceBookPrices;
 use Phil\CommerceCatalogBundle\Application\PriceRuleSellables;
 use Phil\CommerceCatalogBundle\Application\ProductAvailability;
@@ -25,12 +28,14 @@ use Phil\CommerceCatalogBundle\Infrastructure\Doctrine\DoctrineCommunityCopyLedg
 use Phil\CommerceCatalogBundle\Infrastructure\Doctrine\DoctrinePriceBookRepository;
 use Phil\CommerceCatalogBundle\Infrastructure\Doctrine\DoctrineProductRepository;
 use Phil\CommerceCatalogBundle\Infrastructure\Http\ProductFeedController;
+use Phil\CommerceCatalogBundle\Infrastructure\Logistics\LogisticsUnitCosts;
 use Phil\CommerceCatalogBundle\Infrastructure\ProductFeeds\FeedDefinition;
 use Phil\CommerceCatalogBundle\Infrastructure\ProductFeeds\ProductFeeds;
 use Phil\CommerceCatalogBundle\Infrastructure\ProductFeeds\PublishProductFeed;
 use Phil\CommerceCatalogBundle\Infrastructure\ProductFeeds\PublishProductFeedCommand;
 use Phil\CommerceCatalogBundle\Infrastructure\ProductFeeds\PublishProductFeedHandler;
 use Phil\CommerceCatalogBundle\Infrastructure\Taxonomy\TaxonomyProductClassification;
+use Phil\CommerceLogisticsBundle\Application\Contract\InventoryValuation;
 use Phil\DoctrineBehaviours\Translations;
 use Phil\LocaleDimensions\DeclaredLocales;
 use Phil\LocaleDimensions\Exception\InvalidLocaleDimension;
@@ -66,6 +71,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
  * Price rules sell a product at the price the buyer chose, under the reference type `pay_what_you_want` with the
  * core's amount option, and community copies, under `community_copy`, funded by paid orders through the core's
  * `OrderPurchased`.
+ *
+ * The cost of a product, a composite's the sum of its parts', is read through `ProductCosts`, from the costing of
+ * `phil/commerce-logistics-bundle` when the application registers it.
  *
  * The module plugs into `phil/commerce-bundle`, and refuses to load without it. With DoctrineBundle, products, their
  * translations, price books and community copies are mapped and stored. Promotions are the module `phil/commerce-promotions-bundle`.
@@ -241,6 +249,15 @@ final class PhilCommerceCatalogBundle extends AbstractBundle
         $services->set(ProductAvailability::class)->autowire()->autoconfigure();
         $services->set(ProductVariants::class)->autowire()->public();
         $services->set(CompositeProducts::class)->autowire()->public();
+        // The cost of a product, a composite's the sum of its parts': from the logistics module's costing when the
+        // application registers it, or from the application's own `UnitCosts`; unknown without either.
+        $services->set(CompositeCosts::class)->args([new Reference(ProductRepository::class), new Reference(UnitCosts::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)]);
+        $services->alias(ProductCosts::class, CompositeCosts::class)->public();
+
+        if ($this->hasBundle($builder, 'PhilCommerceLogisticsBundle')) {
+            $services->set(LogisticsUnitCosts::class)->args([new Reference(InventoryValuation::class)]);
+            $services->alias(UnitCosts::class, LogisticsUnitCosts::class);
+        }
 
         // The ports by reflection: the bundle class wires adapters, and names no class of the domain.
         foreach ([DoctrineProductRepository::class, DoctrinePriceBookRepository::class, DoctrineCommunityCopyLedger::class] as $adapter) {

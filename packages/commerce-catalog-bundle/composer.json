@@ -39,6 +39,7 @@
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.3",
         "doctrine/persistence": "^4.1",
+        "phil/commerce-logistics-bundle": "^0.1.1@dev",
         "phil/product-feeds": "^0.1@dev",
         "phil/resource": "^0.1@dev",
         "phil/taxonomy-bundle": "^0.2@dev",
@@ -55,7 +56,11 @@
         "symfony/routing": "^8.2",
         "symfony/yaml": "^8.2"
     },
+    "conflict": {
+        "phil/commerce-logistics-bundle": "<0.1.1"
+    },
     "suggest": {
+        "phil/commerce-logistics-bundle": "To read the cost of products, a composite's the sum of its parts', from the value of the stock (0.1.1 or later)",
         "phil/commerce-promotions-bundle": "For promotions on the products: a share off, an amount off, N for X, bundle prices, free shipping",
         "phil/product-feeds": "For the catalogue published as feed files for comparison sites and marketplaces",
         "phil/taxonomy-bundle": "For the products filed in categories and tags shared with the rest of the site",

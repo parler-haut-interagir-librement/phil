@@ -69,3 +69,22 @@ $composites->partsOf(SellableReference::of('product', 'BOX'));   // the parts on
 The parts are what the stock gives out and what a return takes back whole: `partsOf()` reads them from an order
 line's reference, and finds none for a product of its own or another sellable. A special between two products sold
 apart — two lines, each with its share of the discount — is a bundle of `phil/commerce-promotions-bundle` instead.
+
+### The cost of a composite
+
+`Application\Contract\ProductCosts` gives what one unit of a product costs the shop; a composite costs the sum of its
+parts, each part's unit cost times its units.
+
+```php
+$costs->costOf('BOX');   // 1 × RULEBOOK at 12.50 + 2 × DICE-SET at 3.33 = 19.16 CAD
+```
+
+- `CompositeCosts`, the module's `ProductCosts`, reads each part's unit cost from `Application\Contract\UnitCosts`.
+  With `phil/commerce-logistics-bundle` registered, `LogisticsUnitCosts` reads it from the logistics module's costing:
+  the shop's own units, units left on consignment never counted. An application points the alias of `UnitCosts` at a
+  service of its own otherwise.
+- A composite whose part has no known cost has none either: `costOf()` gives null rather than a sum short of a part.
+  The parts' costs are in one currency, refused with `CatalogRefused::currency()` otherwise.
+- Any other SKU costs what `UnitCosts` says; a family, never sold itself, costs nothing known; without a `UnitCosts`,
+  no cost is known.
+- `costOf()` reads the product once, then one unit cost per part, and writes nothing.

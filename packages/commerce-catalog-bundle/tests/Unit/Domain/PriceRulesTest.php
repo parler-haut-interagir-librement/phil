@@ -157,6 +157,46 @@ final class PriceRulesTest extends TestCase
         $this->product()->offerCommunityCopies(Money::of(100, Currency::of('EUR')));
     }
 
+    public function testTheSuggestedRetailPriceIsKeptBesideTheBasePrice(): void
+    {
+        $zine = $this->product();
+        self::assertNull($zine->suggestedRetailPrice());
+
+        $zine->suggestRetailPrice($this->cad(1));
+        self::assertSame([1, 'CAD'], [$zine->suggestedRetailPrice()?->minorUnits, $zine->suggestedRetailPrice()?->currency->code]);
+        self::assertSame(500, $zine->price->minorUnits);
+
+        $zine->suggestRetailPrice($this->cad(1_299));
+        self::assertSame(1_299, $zine->suggestedRetailPrice()?->minorUnits);
+
+        $zine->suggestRetailPrice(null);
+        self::assertNull($zine->suggestedRetailPrice());
+    }
+
+    public function testASuggestedRetailPriceIsMoreThanZero(): void
+    {
+        $zine = $this->product();
+        $zine->suggestRetailPrice($this->cad(1_299));
+
+        try {
+            $zine->suggestRetailPrice($this->cad(0));
+            self::fail('A suggested retail price of zero was kept.');
+        } catch (InvalidValue $invalidValue) {
+            self::assertSame('The suggested retail price of ZINE is more than zero.', $invalidValue->getMessage());
+        }
+
+        self::assertSame(1_299, $zine->suggestedRetailPrice()?->minorUnits);
+        $this->expectException(InvalidValue::class);
+        $zine->suggestRetailPrice($this->cad(-1));
+    }
+
+    public function testASuggestedRetailPriceCountsInTheProductsCurrency(): void
+    {
+        $this->expectExceptionObject(CatalogRefused::currency('The product ZINE', 'CAD', 'EUR'));
+
+        $this->product()->suggestRetailPrice(Money::of(100, Currency::of('EUR')));
+    }
+
     public function testAPhysicalProductCarriesSerialNumbersAndItsVariantsToo(): void
     {
         $console = Product::create('CONSOLE', ProductKind::Physical, 'Console', $this->cad(30_000), 'goods');

@@ -8,6 +8,16 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
+### Added
+
+- The suggested retail price of a product: `Product::suggestRetailPrice()` and `suggestedRetailPrice()`, more than zero
+  and in the product's currency, kept beside the base price and never pricing a line; the column
+  `suggested_retail_price`, null by default. A table of 0.1.0-alpha gains that column and nothing else changes.
+- The cost of a product: `ProductCosts`, a public alias of `CompositeCosts`, which gives a composite the sum of its
+  parts' unit costs times their units, and any other product the unit cost of `UnitCosts`; `LogisticsUnitCosts`, the
+  `UnitCosts` of `phil/commerce-logistics-bundle` 0.1.1 or later, registered when its bundle is, which the package
+  suggests and which conflicts below 0.1.1.
+
 ### Fixed
 
 - It requires `phil/commerce-bundle` 0.4, the version published on 2026-11-20, beside which its requirement of 0.2 or

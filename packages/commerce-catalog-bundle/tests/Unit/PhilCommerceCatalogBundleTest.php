@@ -9,10 +9,13 @@ use LogicException;
 use Phil\CommerceBundle\Domain\Event\OrderPurchased;
 use Phil\CommerceBundle\Domain\Repository\OrderRepository;
 use Phil\CommerceCatalogBundle\Application\CommunityCopies;
+use Phil\CommerceCatalogBundle\Application\CompositeCosts;
 use Phil\CommerceCatalogBundle\Application\CompositeProducts;
 use Phil\CommerceCatalogBundle\Application\Contract\CommunityCopyLedger;
 use Phil\CommerceCatalogBundle\Application\Contract\ProductClassification;
+use Phil\CommerceCatalogBundle\Application\Contract\ProductCosts;
 use Phil\CommerceCatalogBundle\Application\Contract\ProductListing;
+use Phil\CommerceCatalogBundle\Application\Contract\UnitCosts;
 use Phil\CommerceCatalogBundle\Application\PriceBookPrices;
 use Phil\CommerceCatalogBundle\Application\PriceRuleSellables;
 use Phil\CommerceCatalogBundle\Application\ProductAvailability;
@@ -26,6 +29,7 @@ use Phil\CommerceCatalogBundle\Infrastructure\Doctrine\DoctrineCommunityCopyLedg
 use Phil\CommerceCatalogBundle\Infrastructure\Doctrine\DoctrinePriceBookRepository;
 use Phil\CommerceCatalogBundle\Infrastructure\Doctrine\DoctrineProductRepository;
 use Phil\CommerceCatalogBundle\Infrastructure\Http\ProductFeedController;
+use Phil\CommerceCatalogBundle\Infrastructure\Logistics\LogisticsUnitCosts;
 use Phil\CommerceCatalogBundle\Infrastructure\ProductFeeds\FeedDefinition;
 use Phil\CommerceCatalogBundle\Infrastructure\ProductFeeds\ProductFeeds;
 use Phil\CommerceCatalogBundle\Infrastructure\ProductFeeds\PublishProductFeed;
@@ -33,6 +37,8 @@ use Phil\CommerceCatalogBundle\Infrastructure\ProductFeeds\PublishProductFeedCom
 use Phil\CommerceCatalogBundle\Infrastructure\ProductFeeds\PublishProductFeedHandler;
 use Phil\CommerceCatalogBundle\Infrastructure\Taxonomy\TaxonomyProductClassification;
 use Phil\CommerceCatalogBundle\PhilCommerceCatalogBundle;
+use Phil\CommerceLogisticsBundle\Application\Contract\InventoryValuation;
+use Phil\CommerceLogisticsBundle\PhilCommerceLogisticsBundle;
 use Phil\DoctrineBehaviours\Translations;
 use Phil\LocaleDimensions\DeclaredLocales;
 use Phil\LocaleDimensions\Exception\InvalidLocaleDimension;
@@ -97,6 +103,30 @@ final class PhilCommerceCatalogBundleTest extends TestCase
         self::assertSame([['event' => OrderPurchased::class, 'method' => '__invoke']], $copies->getTag('kernel.event_listener'));
         self::assertSame(DoctrineCommunityCopyLedger::class, (string) $container->getAlias(CommunityCopyLedger::class));
         self::assertTrue($container->getAlias(CommunityCopyLedger::class)->isPublic());
+    }
+
+    public function testTheCostOfProductsIsReadFromTheApplicationsUnitCostsWithoutTheLogistics(): void
+    {
+        $container = $this->load([]);
+        $arguments = $container->getDefinition(CompositeCosts::class)->getArguments();
+
+        self::assertSame(CompositeCosts::class, (string) $container->getAlias(ProductCosts::class));
+        self::assertTrue($container->getAlias(ProductCosts::class)->isPublic());
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertInstanceOf(Reference::class, $arguments[1]);
+        self::assertSame([ProductRepository::class, UnitCosts::class, ContainerInterface::NULL_ON_INVALID_REFERENCE], [(string) $arguments[0], (string) $arguments[1], $arguments[1]->getInvalidBehavior()]);
+        self::assertFalse($container->hasDefinition(LogisticsUnitCosts::class));
+        self::assertFalse($container->hasAlias(UnitCosts::class));
+    }
+
+    public function testTheCostOfProductsIsReadFromTheLogisticsWhenItIsRegistered(): void
+    {
+        $container = $this->load([], ['DoctrineBundle' => DoctrineBundle::class, 'PhilCommerceLogisticsBundle' => PhilCommerceLogisticsBundle::class]);
+        $valuation = $container->getDefinition(LogisticsUnitCosts::class)->getArgument(0);
+
+        self::assertSame(LogisticsUnitCosts::class, (string) $container->getAlias(UnitCosts::class));
+        self::assertInstanceOf(Reference::class, $valuation);
+        self::assertSame([InventoryValuation::class, ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE], [(string) $valuation, $valuation->getInvalidBehavior()]);
     }
 
     public function testTheSiteGivesTheDefaultMaximumOfAChosenPrice(): void

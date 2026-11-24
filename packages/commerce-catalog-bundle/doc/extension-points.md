@@ -36,6 +36,8 @@ its own under the same contract.
 | `Application\Contract\ProductClassification` | `TaxonomyProductClassification`, on `phil/taxonomy-bundle`, registered when its taxonomy is; an application aliases the port to its own service otherwise |
 | `Application\Contract\ProductListing` | `DbalProductListing`, a public alias; an application that stores its products otherwise points it at its own service — the feeds read it too |
 | `ProductSource` of `phil/product-feeds` | `CatalogProductSource`, one per feed, built by `ProductFeeds` |
+| `Application\Contract\ProductCosts` | `CompositeCosts`, a public alias: the cost of one unit of a product, a composite's the sum of its parts' — see [Variants and composites](variants-and-composites.md#the-cost-of-a-composite) |
+| `Application\Contract\UnitCosts` | `LogisticsUnitCosts`, on the costing of `phil/commerce-logistics-bundle`, registered when its bundle is; an application aliases the port to its own service otherwise |
 
 ## Services
 
