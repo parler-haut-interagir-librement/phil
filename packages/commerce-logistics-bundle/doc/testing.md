@@ -71,7 +71,8 @@ vendor/bin/phpunit --no-configuration tests
 
 ## Benchmarks
 
-The phpbench benchmarks in `tests/Benchmark` measure the hot paths at several sizes. From the root of the monorepo:
+The phpbench benchmarks in `tests/Benchmark` measure the hot paths at several sizes. `CostingBench` measures a shipment
+emptying 1 to 100 cost layers under both methods, and a landed cost shared over 1 to 100 lines. From the root of the monorepo:
 
 ```sh
 composer bench -- packages/commerce-logistics-bundle/tests/Benchmark
