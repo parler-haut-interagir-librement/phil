@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7bf676a7f2d1a9bceb814a80443b34c02f94461317a55b36f81d9feb12cccb4a -->
+<!-- phil-dev source-sha256=ff4f73b722a2d34a21263d8a6af34bfb3158aea85c86fa8d9a0987659f810662 -->
 # phil/ux-easyadmin-bundle
 
 **L'administration EasyAdmin aux couleurs de PHIL UX, en clair et en sombre, sans restyler EasyAdmin.**
@@ -58,7 +58,7 @@ valeur dans sa propre feuille de style, écrite hors de toute couche :
 ## Prérequis
 
 PHP 8.5 ou plus récent ; EasyAdmin 5.10 ; AssetMapper, la configuration, l'injection de dépendances et le noyau HTTP de
-Symfony 8.2 ; phil/ux-css 0.5.
+Symfony 8.2 ; phil/ux-css 0.5 ou plus récent.
 
 ## Contribuer
 
