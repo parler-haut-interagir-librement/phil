@@ -111,6 +111,7 @@ final class PasswordSemaphoreTest extends TestCase
         $locks = new SpyLockFactory(new InMemoryStore());
         $held = $locks->createLock('phil_identity_provider.password_check.0');
         $held->acquire();
+
         $clock = new StepClock();
         $locks->forget();
 
@@ -130,6 +131,7 @@ final class PasswordSemaphoreTest extends TestCase
         $locks = new SpyLockFactory(new InMemoryStore());
         $held = $locks->createLock('phil_identity_provider.password_check.0');
         $held->acquire();
+
         $clock = new StepClock();
 
         try {
@@ -157,6 +159,7 @@ final class PasswordSemaphoreTest extends TestCase
         $locks = new SpyLockFactory(new InMemoryStore());
         $held = $locks->createLock('phil_identity_provider.password_check.0');
         $held->acquire();
+
         $clock = new StepClock();
 
         try {
