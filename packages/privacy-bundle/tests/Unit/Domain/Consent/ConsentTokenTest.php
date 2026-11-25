@@ -113,7 +113,7 @@ final class ConsentTokenTest extends TestCase
         $token = new ConsentToken('secret');
 
         self::assertInstanceOf(ConsentChoice::class, $token->decode($this->signed($payload)));
-        self::assertNull($token->decode(self::signedWith($payload, hash_hmac('sha256', 'phil_privacy.consent', 'secret', true))));
+        self::assertNull($token->decode($this->signedWith($payload, hash_hmac('sha256', 'phil_privacy.consent', 'secret', true))));
     }
 
     #[DataProvider('shapes')]
@@ -129,10 +129,10 @@ final class ConsentTokenTest extends TestCase
 
     private function signed(string $payload): string
     {
-        return self::signedWith($payload, hash_hkdf('sha256', 'secret', 32, 'phil_privacy.consent'));
+        return $this->signedWith($payload, hash_hkdf('sha256', 'secret', 32, 'phil_privacy.consent'));
     }
 
-    private static function signedWith(string $payload, string $key): string
+    private function signedWith(string $payload, string $key): string
     {
         return $payload.'.'.rtrim(strtr(base64_encode(hash_hmac('sha256', $payload, $key, true)), '+/', '-_'), '=');
     }

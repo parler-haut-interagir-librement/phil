@@ -20,9 +20,13 @@ final class KeyDerivation
     public const int LENGTH = 32;
 
     public const string GUEST_REQUESTS_CLIENT = 'phil_privacy.guest_requests.client';
+
     public const string GUEST_REQUESTS_ADDRESS = 'phil_privacy.guest_requests.address';
+
     public const string GUEST_REQUEST_STORE = 'phil_privacy.guest_request_store';
+
     public const string EXPORT_ARCHIVE = 'phil_privacy.export_archive';
+
     public const string CONSENT = 'phil_privacy.consent';
 
     private function __construct()
