@@ -102,7 +102,8 @@ final class PhilErrorTrackingBundle extends AbstractBundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new RateLimitGuard());
-        $container->addCompilerPass(new AlertsPass());
+        // Priority 1: before the MessengerPass of symfony/messenger (priority 0, from a bundle registered before this one), which wires the handlers and middleware this pass may remove or add.
+        $container->addCompilerPass(new AlertsPass(), priority: 1);
     }
 
     #[Override]

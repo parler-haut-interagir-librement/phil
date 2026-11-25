@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Rector\Doctrine\CodeQuality\Rector\Property\ColumnTypeToTypesConstantRector;
 use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 
 /*
@@ -25,8 +26,11 @@ return [
         // contracts, the polyfills and the PSR interfaces —, the Doctrine mapping attributes, which the domain models
         // of the bundles carry, the rest of Doctrine staying outside the domain, the URI extension of PHP 8.5, whose
         // WHATWG parser reads an address as a browser does, as phil/url does on it, and `\SortDirection`, an enum of
-        // PHP 8.6 that symfony/polyfill-php86 brings to PHP 8.5 and Doctrine Collections orders by.
+        // PHP 8.6 that symfony/polyfill-php86 brings to PHP 8.5 and Doctrine Collections orders by. The PSR-3 logger
+        // is named on its own as well: phil/dev-tools allows it by that exact expression, which would otherwise make
+        // it a layer of its own, outside the default every package may use.
         'default' => [
+            '^Psr\\\\Log\\\\LoggerInterface$',
             '^SortDirection$',
             '^Uri\\\\.*',
             '^Symfony\\\\Component\\\\.*',
@@ -44,6 +48,12 @@ return [
             // make the test require it.
             StringClassNameToClassConstantRector::class => [
                 'packages/commerce-bundle/tests/Unit/PhilCommerceBundleLifeTest.php',
+            ],
+            // Replacing a column type's name by a constant of `Doctrine\DBAL\Types\Types` would bring DBAL into a
+            // `Domain` layer, where only the mapping attributes are admitted: the shared configuration skips the rule
+            // under its former name, and this skips it under the name the current Rector gives it.
+            ColumnTypeToTypesConstantRector::class => [
+                'packages/*/src/Domain/*',
             ],
         ],
     ],

@@ -155,7 +155,8 @@ final class PhilAudioBundle extends AbstractBundle
     {
         parent::build($container);
         $container->addCompilerPass(new KitSubdirectoryPass());
-        $container->addCompilerPass(new JobsPass());
+        // Priority 1: before the MessengerPass of symfony/messenger (priority 0, from a bundle registered before this one), which wires the handlers and middleware this pass may remove or add.
+        $container->addCompilerPass(new JobsPass(), priority: 1);
     }
 
     /**

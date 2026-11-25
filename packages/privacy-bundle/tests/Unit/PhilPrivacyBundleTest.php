@@ -13,15 +13,21 @@ use Phil\PrivacyBundle\Domain\Exception\InvalidPrivacyValue;
 use Phil\PrivacyBundle\Infrastructure\Console\EraseSubjectCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\ExportSubjectCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\ProcessingRegisterCommand;
+use Phil\PrivacyBundle\Infrastructure\DependencyInjection\DatabaseServicesPass;
+use Phil\PrivacyBundle\Infrastructure\DependencyInjection\PrivacyServicesPass;
 use Phil\PrivacyBundle\Infrastructure\Monolog\RedactingProcessor;
 use Phil\PrivacyBundle\PhilPrivacyBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
+use Symfony\Component\Messenger\MessengerBundle;
 
 /**
  * The wiring the bundle declares, read on an uncompiled `ContainerBuilder`: no kernel, no Monolog handler.
@@ -186,5 +192,47 @@ final class PhilPrivacyBundleTest extends TestCase
         $extension->load([$config], $container);
 
         return $container;
+    }
+
+    public function testTheHandlersAreRemovedBeforeMessengerWiresThem(): void
+    {
+        $container = new ContainerBuilder();
+        new MessengerBundle()->build($container);
+        new PhilPrivacyBundle()->build($container);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $messenger = array_search(MessengerPass::class, $passes, true);
+        self::assertIsInt($messenger);
+
+        $removal = array_search(DatabaseServicesPass::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertLessThan($messenger, $removal);
+
+        $removal = array_search(PrivacyServicesPass::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertLessThan($messenger, $removal);
+    }
+
+    public function testThePassesRunAtPriorityOneNotHigher(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilPrivacyBundle()->build($container);
+        $container->addCompilerPass(new class implements CompilerPassInterface {
+            public function process(ContainerBuilder $container): void
+            {
+            }
+        }, PassConfig::TYPE_BEFORE_OPTIMIZATION, 2);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $marker = array_search(true, array_map(static fn (string $class): bool => str_contains($class, '@anonymous'), $passes), true);
+        self::assertIsInt($marker);
+
+        $removal = array_search(DatabaseServicesPass::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertGreaterThan($marker, $removal, 'DatabaseServicesPass must run at priority 1, after a pass of priority 2.');
+
+        $removal = array_search(PrivacyServicesPass::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertGreaterThan($marker, $removal, 'PrivacyServicesPass must run at priority 1, after a pass of priority 2.');
     }
 }

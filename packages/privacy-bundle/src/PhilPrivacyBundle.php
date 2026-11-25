@@ -305,8 +305,9 @@ final class PhilPrivacyBundle extends AbstractBundle
     #[Override]
     public function build(ContainerBuilder $container): void
     {
-        $container->addCompilerPass(new DatabaseServicesPass());
-        $container->addCompilerPass(new PrivacyServicesPass());
+        // Priority 1: before the MessengerPass of symfony/messenger (priority 0, from a bundle registered before this one), which wires the handlers and middleware these passes may remove or add.
+        $container->addCompilerPass(new DatabaseServicesPass(), priority: 1);
+        $container->addCompilerPass(new PrivacyServicesPass(), priority: 1);
     }
 
     #[Override]

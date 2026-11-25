@@ -19,6 +19,12 @@ The next version is 0.3.2-alpha.
 - The development requirements ask for the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
   `doctrine/doctrine-bundle` 3.4, `symfony/http-client-contracts` 3.8).
 
+### Fixed
+
+- The compiler pass that adds the tenant scope of the idempotency keys to the middleware of each bus runs before the
+  one of `symfony/messenger`, which Symfony 8.2.0-RC1 registers in its own bundle at the default priority, so the
+  buses keep that middleware.
+
 ## 0.3.1-alpha - 2026-11-18
 
 Anonymous callers can be accepted per endpoint, and the keys of Messenger messages can

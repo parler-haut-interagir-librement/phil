@@ -217,7 +217,7 @@ final class JSContactReaderTest extends TestCase
         yield 'texts only' => [['number' => '+15145550123', 'features' => ['text' => true]], PhoneRole::Text, []];
         yield 'a voice line with video' => [['number' => '+15145550123', 'features' => ['voice' => true, 'video' => true, 'main-number' => true]], PhoneRole::Voice, ['/phones/p/features/video' => 'the line keeps its role, voice', '/phones/p/features/main-number' => 'the line keeps its role, voice']];
         yield 'a mobile with a textphone' => [['number' => '+15145550123', 'features' => ['mobile' => true, 'textphone' => true, 'a/b~c' => true]], PhoneRole::Mobile, ['/phones/p/features/textphone' => 'the line keeps its role, mobile', '/phones/p/features/a~1b~0c' => 'the line keeps its role, mobile']];
-        yield 'a number no plan reads' => [['number' => 'call me', 'label' => 'home'], null, ['/phones/p/label' => 'the card does not keep this property', '/phones/p/number' => '"call me" is not a phone number.']];
+        yield 'a number no plan reads' => [['number' => 'call me', 'label' => 'home'], null, ['/phones/p/label' => 'the card does not keep this property', '/phones/p/number' => 'The text is not a phone number.']];
     }
 
     /**
