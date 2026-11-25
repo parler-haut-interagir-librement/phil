@@ -22,9 +22,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
 final class InteractiveRecipesTest extends BrowserTestCase
 {
     /**
-     * Whether a pixel of the canvas of the celebration has been drawn.
+     * Whether a pixel of the canvas of the celebration has been drawn: the canvas copied on another, so that a canvas
+     * handed to a worker, which no longer gives a context of its own, is read through what it shows.
      */
-    private const string DRAWN = '(() => { const canvas = document.querySelector("#victory canvas"); if (!canvas) { return false; } const pixels = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data; for (let alpha = 3; alpha < pixels.length; alpha += 4) { if (pixels[alpha] > 0) { return true; } } return false; })()';
+    private const string DRAWN = '(() => { const canvas = document.querySelector("#victory canvas"); if (!canvas || 0 === canvas.width || 0 === canvas.height) { return false; } const copy = document.createElement("canvas"); copy.width = canvas.width; copy.height = canvas.height; const context = copy.getContext("2d"); try { context.drawImage(canvas, 0, 0); } catch { return false; } const pixels = context.getImageData(0, 0, copy.width, copy.height).data; for (let alpha = 3; alpha < pixels.length; alpha += 4) { if (pixels[alpha] > 0) { return true; } } return false; })()';
 
     /**
      * Counts, in `window.drawn`, the canvases that come into the celebration.
@@ -1068,6 +1069,31 @@ final class InteractiveRecipesTest extends BrowserTestCase
         usleep(300_000);
 
         self::assertSame(0, $this->read('window.drawn'));
+    }
+
+    /**
+     * Under reduced motion, every effect says its message and draws nothing, as the default one does.
+     */
+    #[DataProvider('plainAndStrict')]
+    public function testEveryEffectSaysItsMessageAndDrawsNothingUnderReducedMotion(string $page): void
+    {
+        $this->emulate([['name' => 'prefers-reduced-motion', 'value' => 'reduce']]);
+
+        try {
+            $this->open($page);
+            $this->perform(self::WATCH);
+
+            foreach (['confetti', 'fireworks', 'lasers', 'balloons', 'shooting-stars', 'streamers', 'coins', 'bubbles', 'aurora', 'spotlight', 'trophy'] as $effect) {
+                $this->perform(\sprintf('window.dispatchEvent(new CustomEvent("celebrate", {detail: {message: "Won with %1$s", effect: "%1$s"}}))', $effect));
+                $this->waitUntil(\sprintf('document.querySelector("#victory .isCelebrationMessage").textContent === "Won with %s"', $effect));
+            }
+
+            usleep(300_000);
+
+            self::assertSame(0, $this->read('window.drawn'));
+        } finally {
+            $this->emulate([]);
+        }
     }
 
     /**

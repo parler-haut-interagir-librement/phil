@@ -1361,20 +1361,33 @@ action `copy`, the event `copy-button:copied`.
 
 `<twig:Celebration>`: a `div` of class `isCelebration`: what plays it, in its block `content`, the paragraph of class
 `isCelebrationMessage`, a polite live region, and the `template` of its canvas, of class `isCelebrationCanvas`, hidden
-from screen readers. Controller `celebration`: the action `play`, whose params `message` and `effect` stand in for the
-props; the DOM event `celebrate`, dispatched on any element or on the window, whose `detail` may give a `message` and an
-`effect`; the events `celebration:start` and `celebration:end`. Where motion is reduced, by the system or by
-`data-motion="reduce"` on an ancestor, the message alone. One animation at a time on the page; the canvas set over the
-page through the CSSOM, without taking a click, and removed at the end or when the element leaves the page; the colours
-those of `--phil-color-brand-fill-loud`, `--phil-color-success-fill-loud`, `--phil-color-warning-fill-loud`,
-`--phil-color-danger-fill-loud` and `--phil-color-info-fill-loud`, resolved where the canvas stands.
+from screen readers. Controller `celebration`: the action `play`, whose params `message`, `effect` and `focus` stand in
+for the props; the DOM event `celebrate`, dispatched on any element or on the window, whose `detail` may give a
+`message`, an `effect` and a `focus`, a selector or an element; a `<turbo-stream action="celebrate">`, which
+`celebrate()` writes; the events `celebration:start` and `celebration:end`. Where motion is reduced, by the system or
+by `data-motion="reduce"` on an ancestor, or where the person chose `data-celebrations="none"`, the message alone;
+`data-celebrations="discreet"` draws 30 % of the pieces for 60 % of the run, and so do the celebrations of a session
+after the sixth, those after the third drawing half the pieces for 80 % of the run. A device of four cores or fewer, of
+two gigabytes or less, or saving data draws fewer pieces. One animation at a time on the page; the canvas set over the
+page through the CSSOM, without taking a click, painted in a worker on an `OffscreenCanvas` where the browser allows it,
+on the page otherwise, held while the tab is hidden, and removed at the end or when the element leaves the page; the
+colours those of `--phil-color-brand-fill-loud`, `--phil-color-success-fill-loud`, `--phil-color-warning-fill-loud`,
+`--phil-color-danger-fill-loud` and `--phil-color-info-fill-loud`, resolved where the canvas stands, and resolved again
+when the colour scheme or an attribute of the root changes while it plays.
 
 | Prop | Default | |
 |---|---|---|
 | `message` | `''` | The words of the victory, said when it plays, and shown where motion is reduced |
-| `effect` | `confetti` | What is drawn, `confetti` or `fireworks`; `confetti` for any other name |
-| `autoplay` | `false` | Whether it plays as soon as the page shows it, the message written in the page from the start |
+| `messages` | `[]` | Words said in turn when there is no `message`, one at random each time, another than the last; `celebration_messages()` gives a set in English or French |
+| `effect` | `confetti` | What is drawn: `confetti`, `fireworks`, `lasers`, `balloons`, `shooting-stars`, `streamers`, `coins`, `bubbles`, `aurora`, `spotlight` or `trophy`; `confetti` for any other name |
+| `autoplay` | `false` | Whether it plays as soon as the page shows it, the message, or the first of the messages, written in the page from the start |
 | `duration` | `2500` | How long the animation runs, in milliseconds, kept by the controller between 600 and 4000 |
+| `focus` | `''` | The selector of what `spotlight` lights and where `trophy` lands; the middle of the screen without one |
+
+| Twig function | |
+|---|---|
+| `celebrate(message, effect, focus)` | A `<turbo-stream action="celebrate">` with the values given, each escaped, an unknown effect written as `confetti`; in a Turbo Stream response, on a Mercure topic or in the page, it plays the `Celebration` of the page |
+| `celebration_messages(locale)` | The words of praise of a locale, or of the request, in English or in French, English for any other language |
 
 ## AnimatedButton
 

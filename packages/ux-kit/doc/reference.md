@@ -16,10 +16,13 @@
 | `src/Infrastructure/LiipImagine/ImageFilters.php` | `Phil\UxKit\Infrastructure\LiipImagine\ImageFilters`: the props of a `Picture` from the filter sets of LiipImagine applied to one image |
 | `src/Infrastructure/DependencyInjection/ImageFiltersPass.php` | Leaves `ImageFilters` out when the services of LiipImagine are not registered |
 | `src/Infrastructure/StructuredData/ImageJsonLd.php` | `Phil\UxKit\Infrastructure\StructuredData\ImageJsonLd`: the `ImageObject` of an image, added to the graph of the page or written in its own JSON-LD script |
+| `src/Application/CelebrationStream.php` | `Phil\UxKit\Application\CelebrationStream`: the `<turbo-stream action="celebrate">` that plays a celebration from the server, and the list of the effects, `EFFECTS` |
+| `src/Application/CelebrationMessages.php` | `Phil\UxKit\Application\CelebrationMessages`: the words of praise a celebration says in turn, in English and in French, by the language of a locale |
+| `src/Infrastructure/Twig/CelebrationExtension.php` | `celebrate()` and `celebration_messages()` |
 | `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()`, `image_filters()`, `picture_props()`, `image_json_ld()` and `image_check()`, which logs the problems of `ImageTextCheck` as warnings when `phil_ux_kit.image.check` is on |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase`: one headless Chrome on the page of the recipes of a kit, its modes plain and under the strict policy, which fails a test on anything the browser refused, and the helpers of a browser test |
 | `src/Test/Screenshots.php` | `Phil\UxKit\Test\Screenshots`: the screenshot of a part of a page compared with its reference, both at a scale of its CSS width, within a tolerance, on GD |
-| `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage`: the web root of every recipe of a kit, in each mode plain and under a strict Content Security Policy, with its stylesheet, that of its page, its controllers, Stimulus and the files of its `media` directory |
+| `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage`: the web root of every recipe of a kit, in each mode plain and under a strict Content Security Policy, with its stylesheet, that of its page, its controllers and the modules beside them, Stimulus and the files of its `media` directory |
 | `logo/manifest.json`, `logo/README.md` | The `Logo` recipe |
 | `logo/templates/components/Logo.html.twig` | The `Logo` component |
 | `animated-headline/manifest.json`, `animated-headline/README.md` | The `AnimatedHeadline` recipe |
@@ -127,7 +130,9 @@
 | `copy-button/assets/controllers/` | The Stimulus controller of the recipe |
 | `celebration/manifest.json`, `celebration/README.md` | The `Celebration` recipe |
 | `celebration/templates/components/` | The `Celebration` component |
-| `celebration/assets/controllers/` | The Stimulus controller of the recipe, which draws on the canvas |
+| `celebration/assets/controllers/celebration_controller.js` | The Stimulus controller `celebration`: the message, the choice of the person, the fatigue of the session, the budget of the device, the Turbo Streams, the canvas and the worker |
+| `celebration/assets/controllers/celebration_effects.js` | The pieces of each effect, `EFFECTS`, and the rhythms of the lasers and the fireworks |
+| `celebration/assets/controllers/celebration_worker.js` | The painter, `Painter`: the motion and the drawing of the pieces frame by frame, in a worker on an `OffscreenCanvas` or on the page |
 | `animated-button/manifest.json`, `animated-button/README.md` | The `AnimatedButton` recipe |
 | `animated-button/templates/components/` | The `AnimatedButton` component |
 | `stepper/manifest.json`, `stepper/README.md` | The `Stepper` recipe |

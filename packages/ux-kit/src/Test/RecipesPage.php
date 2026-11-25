@@ -11,9 +11,9 @@ use Twig\Environment;
 
 /**
  * Writes the web root the browser opens: every recipe of a kit rendered through TwigComponent, in clear, in dark and
- * right to left, beside its stylesheet, its Stimulus controllers, the build of Stimulus the suite pins, the `page.css`
- * of its resources, when it has one, and the files of the `media` directory of its resources, the videos and text tracks
- * the page plays, under `media/`.
+ * right to left, beside its stylesheet, its Stimulus controllers and the modules they import, the build of Stimulus the
+ * suite pins, the `page.css` of its resources, when it has one, and the files of the `media` directory of its
+ * resources, the videos and text tracks the page plays, under `media/`.
  *
  * Each mode is also written under a strict Content Security Policy, `strict.html`, `strict-dark.html` and
  * `strict-rtl.html`: the policy first in the head, in a `meta` element, with nothing inline allowed but the inline
@@ -101,7 +101,7 @@ final readonly class RecipesPage
 
         file_put_contents($this->root.'/strict.js', self::WATCHER);
 
-        $sources = glob($this->kit.'/*/assets/controllers/*_controller.js');
+        $sources = glob($this->kit.'/*/assets/controllers/*.js');
 
         foreach (false === $sources ? [] : $sources as $source) {
             $this->copy($source, $controllers.'/'.basename($source));

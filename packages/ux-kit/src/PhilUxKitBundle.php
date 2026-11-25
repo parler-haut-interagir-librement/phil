@@ -8,6 +8,8 @@ use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Override;
 use Phil\StructuredData\Contract\NodeCollector;
 use Phil\StructuredData\Type\ImageObject;
+use Phil\UxKit\Application\CelebrationMessages;
+use Phil\UxKit\Application\CelebrationStream;
 use Phil\UxKit\Application\Contract\PicturePropsProvider;
 use Phil\UxKit\Application\ImageMigration;
 use Phil\UxKit\Application\ImageOrigin;
@@ -17,6 +19,7 @@ use Phil\UxKit\Infrastructure\Console\MigrateImagesCommand;
 use Phil\UxKit\Infrastructure\DependencyInjection\ImageFiltersPass;
 use Phil\UxKit\Infrastructure\LiipImagine\ImageFilters;
 use Phil\UxKit\Infrastructure\StructuredData\ImageJsonLd;
+use Phil\UxKit\Infrastructure\Twig\CelebrationExtension;
 use Phil\UxKit\Infrastructure\Twig\ImageExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Console\Command\Command;
@@ -31,8 +34,10 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigura
  * unless their host is listed, `image_sources()`, which reads the files of an image among the assets, `image_check()`,
  * which warns in development of a text alternative or a size left wrong, and the bridges of the images:
  * `image_filters()` to the filter sets of LiipImagine, `picture_props()` to the services tagged
- * `phil_ux_kit.picture_props`, and `image_json_ld()` to phil/structured-data, each when it is installed. With the
- * Console component, `phil:ux-kit:migrate-images` proposes these recipes in place of the images written by hand.
+ * `phil_ux_kit.picture_props`, and `image_json_ld()` to phil/structured-data, each when it is installed; and
+ * `celebrate()`, the Turbo Stream that plays a celebration from the server, with `celebration_messages()`, the words it
+ * says in turn. With the Console component, `phil:ux-kit:migrate-images` proposes the image recipes in place of the
+ * images written by hand.
  */
 final class PhilUxKitBundle extends AbstractBundle
 {
@@ -131,5 +136,16 @@ final class PhilUxKitBundle extends AbstractBundle
             ->tag('twig.attribute_extension')
             ->tag('twig.runtime')
             ->tag('monolog.logger', ['channel' => 'phil_ux_kit']);
+
+        $services->set(CelebrationStream::class);
+        $services->set(CelebrationMessages::class);
+        $services->set(CelebrationExtension::class)
+            ->args([
+                new ReferenceConfigurator(CelebrationStream::class),
+                new ReferenceConfigurator(CelebrationMessages::class),
+                new ReferenceConfigurator('request_stack')->nullOnInvalid(),
+            ])
+            ->tag('twig.attribute_extension')
+            ->tag('twig.runtime');
     }
 }

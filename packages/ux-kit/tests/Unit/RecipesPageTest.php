@@ -37,6 +37,7 @@ final class RecipesPageTest extends TestCase
         $this->put('resources/app.js', 'app');
         $this->put('resources/page.html.twig', '<p>{{ dir }} {{ theme }} {{ strict }}</p>');
         $this->put('kit/one/assets/controllers/one_controller.js', 'one');
+        $this->put('kit/one/assets/controllers/one_worker.js', 'worker');
         $this->put('kit/one/assets/controllers/notes.txt', 'left out');
         $this->put('sheet.css', 'sheet');
         $this->put('stimulus.js', 'stimulus');
@@ -72,6 +73,7 @@ final class RecipesPageTest extends TestCase
         self::assertStringEqualsFile($root.'/stimulus.js', 'stimulus');
         self::assertStringEqualsFile($root.'/app.js', 'app');
         self::assertStringEqualsFile($root.'/controllers/one_controller.js', 'one');
+        self::assertStringEqualsFile($root.'/controllers/one_worker.js', 'worker', 'the modules a controller imports beside it');
         self::assertFileDoesNotExist($root.'/controllers/notes.txt');
         self::assertStringEqualsFile($root.'/media/clip.webm', 'webm');
         self::assertStringEqualsFile($root.'/media/clip.vtt', 'WEBVTT');

@@ -21,7 +21,7 @@
 | `color-picker/templates/components/` | The `ColorPicker` component |
 | `copy-button/templates/components/` | The `CopyButton` component |
 | `celebration/templates/components/` | The `Celebration` component |
-| `celebration/assets/controllers/` | The Stimulus controller `celebration`, the same file as in the PHIL UX kit |
+| `celebration/assets/controllers/` | The Stimulus controller `celebration`, its effects and its painter, the same files as in the PHIL UX kit |
 | `animated-button/templates/components/` | The `AnimatedButton` component |
 | `stepper/templates/components/` | The `Stepper` component |
 | `activity-calendar/templates/components/` | The `ActivityCalendar` component |
