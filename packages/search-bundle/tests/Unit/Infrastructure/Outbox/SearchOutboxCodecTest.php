@@ -58,8 +58,8 @@ final class SearchOutboxCodecTest extends TestCase
         try {
             $this->codec(true)->decode(...$this->record(IndexEntity::TYPE, ['class' => $class, 'id_id' => 'a-1']));
             self::fail('A class that does not exist was decoded.');
-        } catch (ForgottenRecord $forgotten) {
-            self::assertSame('No entity manager maps App\\'.str_repeat('a', 115).'… any more.', $forgotten->getMessage());
+        } catch (ForgottenRecord $forgottenRecord) {
+            self::assertSame('No entity manager maps App\\'.str_repeat('a', 115).'… any more.', $forgottenRecord->getMessage());
         }
     }
 

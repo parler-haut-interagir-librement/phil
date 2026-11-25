@@ -365,13 +365,6 @@ final class MappingTest extends TestCase
     }
 
     /**
-     * @template T of object
-     *
-     * @param class-string<T> $class
-     *
-     * @return ClassMetadata<T>
-     */
-    /**
      * The indexes, or the unique constraints, of an entity's table, each as the mapping writes it.
      *
      * @param class-string                  $class
@@ -384,16 +377,18 @@ final class MappingTest extends TestCase
         $indexes = [];
 
         foreach ($this->metadata($class)->table[$kind] ?? [] as $index) {
-            $indexes[] = (array) $index;
+            $indexes[] = $index;
         }
 
         return $indexes;
     }
 
     /**
-     * @param class-string $class
+     * @template T of object
      *
-     * @return ClassMetadata<object>
+     * @param class-string<T> $class
+     *
+     * @return ClassMetadata<T>
      */
     private function metadata(string $class): ClassMetadata
     {
