@@ -8,6 +8,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.4.1-alpha.
 
+### Changed
+
+- The first parameter of `Totp::__construct()` and `Totp::fromBase32()` is named `$seed`, the seed of the one-time
+  passwords: a call that names it `secret:` names it `seed:`.
+
 ### Security
 
 - Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.

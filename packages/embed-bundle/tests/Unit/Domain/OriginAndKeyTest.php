@@ -78,9 +78,9 @@ final class OriginAndKeyTest extends TestCase
     {
         $key = SigningKey::of('2026-11_a', str_repeat('s', 32));
 
-        self::assertSame(['2026-11_a', str_repeat('s', 32)], [$key->id, $key->secret]);
+        self::assertSame(['2026-11_a', str_repeat('s', 32)], [$key->id, $key->bytes]);
         self::assertSame(32, \strlen(SigningKey::of(str_repeat('k', 32), str_repeat('s', 64))->id));
-        self::assertSame('x-change-me-'.str_repeat('s', 32), SigningKey::of('k', 'x-change-me-'.str_repeat('s', 32))->secret, 'Only a secret that begins as a placeholder is one.');
+        self::assertSame('x-change-me-'.str_repeat('s', 32), SigningKey::of('k', 'x-change-me-'.str_repeat('s', 32))->bytes, 'Only a secret that begins as a placeholder is one.');
     }
 
     /**

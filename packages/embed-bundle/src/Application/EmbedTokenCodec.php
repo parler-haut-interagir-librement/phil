@@ -153,7 +153,7 @@ final readonly class EmbedTokenCodec
 
     private function mac(SigningKey $key, string $signed): string
     {
-        return hash_hmac('sha256', $signed, $key->secret, true);
+        return hash_hmac('sha256', $signed, $key->bytes, true);
     }
 
     private function base64(string $bytes): string

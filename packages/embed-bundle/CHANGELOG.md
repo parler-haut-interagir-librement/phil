@@ -8,6 +8,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.2-alpha.
 
+### Changed
+
+- `SigningKey` holds its key in `$bytes`, and `SigningKey::of()` names its second parameter `$bytes`: code that
+  reads `$key->secret` reads `$key->bytes`. The configuration keeps `keys[].secret`.
+
 ### Security
 
 - Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.

@@ -20,18 +20,18 @@ final readonly class Totp
 
     public const int PERIOD = 30;
 
-    /** The fewest bytes of a secret: RFC 4226 asks for 128 bits, and 160 is what applications expect. */
+    /** The fewest bytes of a seed: RFC 4226 asks for 128 bits, and 160 is what applications expect. */
     public const int MIN_SECRET_BYTES = 16;
 
     public const int SECRET_BYTES = 20;
 
     public function __construct(
         #[SensitiveParameter]
-        private string $secret,
+        private string $seed,
         private int $window = 1,
     ) {
-        if (\strlen($secret) < self::MIN_SECRET_BYTES) {
-            throw InvalidValue::because(\sprintf('A TOTP secret holds at least %d bytes.', self::MIN_SECRET_BYTES));
+        if (\strlen($seed) < self::MIN_SECRET_BYTES) {
+            throw InvalidValue::because(\sprintf('A TOTP seed holds at least %d bytes.', self::MIN_SECRET_BYTES));
         }
 
         if ($window < 0 || $window > 10) {
@@ -44,9 +44,9 @@ final readonly class Totp
         return random_bytes(self::SECRET_BYTES);
     }
 
-    public static function fromBase32(#[SensitiveParameter] string $secret, int $window = 1): self
+    public static function fromBase32(#[SensitiveParameter] string $seed, int $window = 1): self
     {
-        return new self(Base32::decode($secret), $window);
+        return new self(Base32::decode($seed), $window);
     }
 
     public function counter(int $timestamp): int
@@ -93,18 +93,18 @@ final readonly class Totp
             'otpauth://totp/%s:%s?%s',
             rawurlencode($issuer),
             rawurlencode($accountName),
-            http_build_query(['secret' => Base32::encode($this->secret), 'issuer' => $issuer, 'algorithm' => 'SHA1', 'digits' => self::DIGITS, 'period' => self::PERIOD], '', '&', \PHP_QUERY_RFC3986),
+            http_build_query(['secret' => Base32::encode($this->seed), 'issuer' => $issuer, 'algorithm' => 'SHA1', 'digits' => self::DIGITS, 'period' => self::PERIOD], '', '&', \PHP_QUERY_RFC3986),
         );
     }
 
     public function base32Secret(): string
     {
-        return Base32::encode($this->secret);
+        return Base32::encode($this->seed);
     }
 
     private function code(int $counter): string
     {
-        $hash = hash_hmac('sha1', pack('J', $counter), $this->secret, true);
+        $hash = hash_hmac('sha1', pack('J', $counter), $this->seed, true);
         $offset = \ord($hash[19]) & 0x0F;
         $value = ((\ord($hash[$offset]) & 0x7F) << 24)
             | (\ord($hash[$offset + 1]) << 16)

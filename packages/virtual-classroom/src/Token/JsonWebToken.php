@@ -43,7 +43,7 @@ final readonly class JsonWebToken
     }
 
     /**
-     * The claims of a token signed under the secret with one of the algorithms accepted.
+     * The claims of a token signed under the signing key with one of the algorithms accepted.
      *
      * @param non-empty-list<string> $algorithms among HS256, HS384 and HS512
      *
@@ -51,7 +51,7 @@ final readonly class JsonWebToken
      *
      * @throws InvalidWebhook when the token is malformed, signed otherwise, expired or not yet valid
      */
-    public static function verify(string $token, string $secret, array $algorithms, DateTimeImmutable $now): array
+    public static function verify(string $token, string $signingKey, array $algorithms, DateTimeImmutable $now): array
     {
         $parts = explode('.', $token);
 
@@ -67,7 +67,7 @@ final readonly class JsonWebToken
             throw InvalidWebhook::because('The token is signed with an algorithm that is not accepted.');
         }
 
-        $expected = self::base64url(hash_hmac(self::HMAC[$algorithm], $header.'.'.$claims, $secret, true));
+        $expected = self::base64url(hash_hmac(self::HMAC[$algorithm], $header.'.'.$claims, $signingKey, true));
 
         if (!hash_equals($expected, $signature)) {
             throw InvalidWebhook::because('The signature of the token does not match.');
