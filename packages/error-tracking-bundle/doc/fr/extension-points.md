@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=15cd15758af5e89cdaf774428b6f05404f5106308db5b89a3c7aafca047877fe -->
+<!-- phil-dev source-sha256=bfdb203fe8e3a617b0b5565d60047929b20bdd9927fbe25bb6f67b37e5cd736e -->
 # Points d'extension
 
 ## Le magasin
@@ -37,10 +37,11 @@ envoie.
 
 ## La vérification de santé
 
-Avec phil/monitoring-bundle, `ErrorStoreCheck` est un `HealthCheck` nommé `error_tracking`, autoconfiguré. Il lit
-`ErrorGroupReader::groups()`, 200 groupes au plus, et il est dégradé quand le magasin ne répond pas ou quand
-`health_check.new_groups` groupes sont apparus en `health_check.window` secondes ; seuls des comptes parviennent à son
-résumé.
+Avec phil/monitoring-bundle installé et activé, `ErrorStoreCheck` est un `HealthCheck` nommé `error_tracking`,
+autoconfiguré. Il lit `ErrorGroupReader::groups()`, `NewGroupsThreshold::MAX` (200) groupes au plus, et il est dégradé
+quand le magasin ne répond pas ou quand `health_check.new_groups` groupes sont apparus en `health_check.window`
+secondes ; seuls des comptes parviennent à son résumé. Sans ce bundle, la vérification n'est pas enregistrée et rien
+d'autre n'en est chargé : les options `health_check` sont toujours lues, et le bundle s'installe et se compile seul.
 
 ## Exceptions ignorées
 

@@ -7,6 +7,7 @@ namespace Phil\ErrorTrackingBundle\Infrastructure\DependencyInjection;
 use Override;
 use Phil\ErrorTracking\ErrorTracker;
 use Phil\ErrorTrackingBundle\Application\AlertDestination;
+use Phil\ErrorTrackingBundle\Application\Message\AlertErrorGroup;
 use Phil\ErrorTrackingBundle\Application\UndeliveredAlerter;
 use Phil\ErrorTrackingBundle\Infrastructure\Messenger\AlertErrorGroupHandler;
 use Phil\ErrorTrackingBundle\Infrastructure\Messenger\MessengerAlerter;
@@ -19,7 +20,8 @@ use Symfony\Component\DependencyInjection\Reference;
 /**
  * Lets the alerts, on by default, go without a destination: without a chatter they reach no one — the degraded state,
  * where `UndeliveredAlerter` logs each alert and `AlertDestination` says so —, and without a Messenger bus they are sent
- * in the request that failed.
+ * in the request that failed. The handler of the queued alerts is tied to the default bus, the one `MessengerAlerter`
+ * dispatches on: without a bus named on its tag, Messenger would give it to every bus, a query bus among them.
  */
 final class AlertsPass implements CompilerPassInterface
 {
@@ -47,7 +49,17 @@ final class AlertsPass implements CompilerPassInterface
         } elseif ($container->hasDefinition(MessengerAlerter::class) && !$container->has('messenger.default_bus')) {
             $tracker->replaceArgument(self::ALERTER_ARGUMENT, new Reference(ChatterAlerter::class));
             $this->removeQueue($container);
+        } elseif ($container->hasDefinition(AlertErrorGroupHandler::class)) {
+            $this->tieToTheDefaultBus($container);
         }
+    }
+
+    private function tieToTheDefaultBus(ContainerBuilder $container): void
+    {
+        $bus = $container->hasAlias('messenger.default_bus') ? (string) $container->getAlias('messenger.default_bus') : 'messenger.default_bus';
+        $container->getDefinition(AlertErrorGroupHandler::class)
+            ->clearTag('messenger.message_handler')
+            ->addTag('messenger.message_handler', ['handles' => AlertErrorGroup::class, 'bus' => $bus]);
     }
 
     private function removeQueue(ContainerBuilder $container): void

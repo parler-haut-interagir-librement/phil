@@ -7,6 +7,7 @@ namespace Phil\ErrorTrackingBundle\Infrastructure\Monitoring;
 use Override;
 use Phil\ErrorTracking\ErrorGroup;
 use Phil\ErrorTrackingBundle\Application\Contract\ErrorGroupReader;
+use Phil\ErrorTrackingBundle\Application\NewGroupsThreshold;
 use Phil\MonitoringBundle\Domain\Contract\HealthCheck;
 use Phil\MonitoringBundle\Domain\ValueObject\CheckOutcome;
 use Psr\Clock\ClockInterface;
@@ -24,7 +25,7 @@ final readonly class ErrorStoreCheck implements HealthCheck
     public const string NAME = 'error_tracking';
 
     /** The groups read at most, which is also the highest threshold. */
-    public const int MAX_NEW_GROUPS = 200;
+    public const int MAX_NEW_GROUPS = NewGroupsThreshold::MAX;
 
     /**
      * @param int $newGroups the new groups within the window that make the check degraded; 0 to ignore them

@@ -18,6 +18,14 @@ The next version is 0.1.1-alpha.
 - The development requirements take `twig/html-extra` 3.31.1 or later, which fixes the advisories of its sandbox
   published on 2026-11-24.
 
+### Fixed
+
+- An application with TwigExtraBundle and its intl part enabled no longer fails with "Unable to register extension
+  IntlExtension as it is already registered": the bundle registers its extension of twig/intl-extra, and the compiler
+  pass `IntlExtensionPass` removes it when another Twig extension of that class is registered, before TwigBundle adds
+  the extensions to Twig. The check of `twig_extra` among the extensions, which never saw it while the bundle loaded,
+  is gone.
+
 ### Security
 
 - Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=35829724762ee49eec9cacc06afd24f57aa1b0a30dac828bac4c0435f648d892 -->
+<!-- phil-dev source-sha256=2bb2b0edafb7972b84e29078d7c820f86ba7f2a5f78caa8880aa1ffff43ec23b -->
 # Alertes
 
 Les alertes sont activées par défaut : `alerts: false` les désactive. Le premier événement d'un groupe et une
@@ -64,8 +64,10 @@ dans le magasin. Il est coupé à 1 800 caractères.
 ## En file d'attente ou tout de suite
 
 Avec `alerts.async` (la valeur par défaut) et un bus Messenger, le traqueur répartit un message `AlertErrorGroup`
-(l'empreinte et l'occurrence, rien d'autre), et `AlertErrorGroupHandler` lit le groupe et envoie le message. Routez le
-message vers un transport asynchrone, pour qu'un clavardage lent ne ralentisse jamais la requête qui a échoué :
+(l'empreinte et l'occurrence, rien d'autre) sur le bus par défaut, et `AlertErrorGroupHandler`, gestionnaire de ce seul
+bus, lit le groupe et envoie le message. Une application qui a d'autres bus à côté, un bus de requêtes par exemple, ne
+trouve pas le gestionnaire sur eux. Routez le message vers un transport asynchrone, pour qu'un clavardage lent ne
+ralentisse jamais la requête qui a échoué :
 
 ```yaml
 framework:

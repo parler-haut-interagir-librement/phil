@@ -53,8 +53,9 @@ as production often is, repeat it in the option `pages.kit_subdirectory`. A temp
 recipe the same way: `{% component (phil_legal_notices_kit('Badge')) with {variant: 'secondary'} %}`.
 
 The cookies of a consent category are written as a list in the language of the page — `_pk_id.*, _pk_ses.*, and
-_pk_ref.*`, `_pk_id.*, _pk_ses.* et _pk_ref.*` — by the `format_list` filter of twig/intl-extra. TwigExtraBundle
-registers its extension when the application has it; otherwise the bundle registers it.
+_pk_ref.*`, `_pk_id.*, _pk_ses.* et _pk_ref.*` — by the `format_list` filter of twig/intl-extra. The bundle registers
+that extension, and `IntlExtensionPass` removes it when the application registers its own: TwigExtraBundle with its
+intl part enabled, or a Twig extension of the class `Twig\Extra\Intl\IntlExtension`. Twig always holds one.
 
 ## Templates
 

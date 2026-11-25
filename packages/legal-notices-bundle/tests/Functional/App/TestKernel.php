@@ -27,7 +27,8 @@ use Twig\Extra\Html\HtmlExtension;
  * under a prefix per locale.
  *
  * The recipes are those of the PHIL UX kit, or of the Shadcn kit of the Symfony UX Toolkit with Twig's HTML extension
- * for their variants and the filter of Tailwind's classes returning the classes as they come.
+ * for their variants and the filter of Tailwind's classes returning the classes as they come. With `$twigExtra`, the
+ * application has TwigExtraBundle too, its intl part enabled.
  */
 final class TestKernel extends Kernel
 {
@@ -40,9 +41,17 @@ final class TestKernel extends Kernel
     /**
      * @param self::PHIL|self::SHADCN $kit
      */
-    public function __construct(string $environment, bool $debug, private readonly string $subdirectory = 'ui', private readonly string $kit = self::PHIL)
+    public function __construct(string $environment, bool $debug, private readonly string $subdirectory = 'ui', private readonly string $kit = self::PHIL, private readonly bool $twigExtra = false)
     {
         parent::__construct($environment, $debug);
+    }
+
+    /**
+     * The bundles of the application, TwigExtraBundle among them with `$twigExtra`.
+     */
+    private function getBundlesPath(): string
+    {
+        return __DIR__.'/config/bundles'.($this->twigExtra ? '_extra' : '').'.php';
     }
 
     /**
@@ -81,7 +90,7 @@ final class TestKernel extends Kernel
 
     private function root(): string
     {
-        return sys_get_temp_dir().'/phil-legal-notices-bundle-test/'.hash('xxh128', __DIR__.$this->kit.'/'.$this->subdirectory);
+        return sys_get_temp_dir().'/phil-legal-notices-bundle-test/'.hash('xxh128', __DIR__.$this->kit.'/'.$this->subdirectory.($this->twigExtra ? '/extra' : ''));
     }
 
     /**
@@ -155,6 +164,10 @@ final class TestKernel extends Kernel
 
         $container->services()->set('logger', NullLogger::class);
         $container->services()->set(FixedSchedule::class);
+
+        if ($this->twigExtra) {
+            $container->extension('twig_extra', ['intl' => ['enabled' => true]]);
+        }
 
         if (self::SHADCN === $this->kit) {
             $container->services()->set(HtmlExtension::class)->tag('twig.extension');

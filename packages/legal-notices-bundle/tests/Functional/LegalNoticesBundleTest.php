@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Phil\LegalNoticesBundle\Tests\Functional;
 
 use Override;
+use Phil\LegalNoticesBundle\Infrastructure\DependencyInjection\IntlExtensionPass;
 use Phil\LegalNoticesBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
+use Phil\LegalNoticesBundle\Infrastructure\DependencyInjection\LegalNoticesServices;
 use Phil\LegalNoticesBundle\Infrastructure\Twig\KitComponents;
 use Phil\LegalNoticesBundle\Infrastructure\Twig\LegalNoticesExtension;
 use Phil\LegalNoticesBundle\PhilLegalNoticesBundle;
@@ -24,6 +26,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
  */
 #[CoversClass(PhilLegalNoticesBundle::class)]
 #[CoversClass(KitSubdirectoryPass::class)]
+#[CoversClass(IntlExtensionPass::class)]
 #[CoversClass(KitComponents::class)]
 #[CoversClass(LegalNoticesExtension::class)]
 final class LegalNoticesBundleTest extends WebTestCase
@@ -33,11 +36,14 @@ final class LegalNoticesBundleTest extends WebTestCase
     /** @var TestKernel::PHIL|TestKernel::SHADCN */
     private static string $kit = TestKernel::PHIL;
 
+    private static bool $twigExtra = false;
+
     #[Override]
     protected function setUp(): void
     {
         self::$subdirectory = 'ui';
         self::$kit = TestKernel::PHIL;
+        self::$twigExtra = false;
     }
 
     #[Override]
@@ -52,7 +58,9 @@ final class LegalNoticesBundleTest extends WebTestCase
     #[Override]
     protected static function createKernel(array $options = []): KernelInterface
     {
-        return new TestKernel(TestKernel::SHADCN === self::$kit ? 'test_shadcn' : 'test', true, self::$subdirectory, self::$kit);
+        $environment = (TestKernel::SHADCN === self::$kit ? 'test_shadcn' : 'test').(self::$twigExtra ? '_extra' : '');
+
+        return new TestKernel($environment, true, self::$subdirectory, self::$kit, self::$twigExtra);
     }
 
     /**
@@ -116,6 +124,31 @@ final class LegalNoticesBundleTest extends WebTestCase
         $client->request('GET', '/fr/privacy');
         self::assertSelectorTextSame('[data-slot="badge"][data-variant="default"]', 'En vigueur depuis le 2026-01-01');
         self::assertSelectorTextSame('tbody [data-slot="table-row"]:first-child [data-slot="table-cell"]:first-child', 'Votre compte');
+    }
+
+    /**
+     * @return iterable<string, array{bool}>
+     */
+    public static function twigExtra(): iterable
+    {
+        yield 'an application with TwigExtraBundle, its intl part enabled' => [true];
+        yield 'an application without TwigExtraBundle' => [false];
+    }
+
+    /**
+     * Twig holds one extension of twig/intl-extra, TwigExtraBundle's when the application has it, else the bundle's.
+     */
+    #[DataProvider('twigExtra')]
+    public function testTheListsOfThePagesAreWrittenWithOrWithoutTwigExtraBundle(bool $twigExtra): void
+    {
+        self::$twigExtra = $twigExtra;
+        $client = self::createClient();
+
+        $client->request('GET', '/privacy');
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString('Cookies: _pk_id.*, _pk_ses.*, and _pk_ref.*', (string) $client->getResponse()->getContent());
+        self::assertSame($twigExtra, self::getContainer()->has('twig.extension.intl'));
+        self::assertSame(!$twigExtra, self::getContainer()->has(LegalNoticesServices::INTL_EXTENSION));
     }
 
     public function testThePagesInEachLocale(): void

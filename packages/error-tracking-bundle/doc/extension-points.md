@@ -35,9 +35,11 @@ alerter that sends.
 
 ## The health check
 
-With phil/monitoring-bundle, `ErrorStoreCheck` is a `HealthCheck` named `error_tracking`, autoconfigured. It reads
-`ErrorGroupReader::groups()`, 200 groups at most, and is degraded when the store does not answer or when
-`health_check.new_groups` groups appeared within `health_check.window` seconds; only counts reach its summary.
+With phil/monitoring-bundle installed and enabled, `ErrorStoreCheck` is a `HealthCheck` named `error_tracking`,
+autoconfigured. It reads `ErrorGroupReader::groups()`, `NewGroupsThreshold::MAX` (200) groups at most, and is degraded
+when the store does not answer or when `health_check.new_groups` groups appeared within `health_check.window` seconds;
+only counts reach its summary. Without that bundle, the check is not registered and nothing else of it is loaded: the
+`health_check` options are still read, and the bundle installs and compiles on its own.
 
 ## Ignored exceptions
 

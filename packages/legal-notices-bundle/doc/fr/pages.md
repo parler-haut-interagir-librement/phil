@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a7c33fd51d614817cee2ee183575ab986815fd4b6e86a0f80da8b94a0f1b5f4b -->
+<!-- phil-dev source-sha256=c182ff24f859d26b6ed6165714b0fff9f38b0e670c3019d39be98a72aae1a127 -->
 # Pages
 
 ## Les routes
@@ -56,8 +56,9 @@ activé, comme l'est souvent la production, répétez-le dans l'option `pages.ki
 l'application appelle une recette de la même façon : `{% component (phil_legal_notices_kit('Badge')) with {variant: 'secondary'} %}`.
 
 Les témoins d'une catégorie de consentement s'écrivent comme une liste dans la langue de la page — `_pk_id.*, _pk_ses.*, and
-_pk_ref.*`, `_pk_id.*, _pk_ses.* et _pk_ref.*` — par le filtre `format_list` de twig/intl-extra. TwigExtraBundle
-enregistre son extension quand l'application l'a ; sinon, le bundle l'enregistre.
+_pk_ref.*`, `_pk_id.*, _pk_ses.* et _pk_ref.*` — par le filtre `format_list` de twig/intl-extra. Le bundle enregistre
+cette extension, et `IntlExtensionPass` la retire quand l'application enregistre la sienne : TwigExtraBundle avec sa
+partie intl activée, ou une extension Twig de la classe `Twig\Extra\Intl\IntlExtension`. Twig en a toujours une.
 
 ## Gabarits
 
