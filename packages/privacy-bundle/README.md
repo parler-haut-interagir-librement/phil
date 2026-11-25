@@ -32,7 +32,9 @@ time, respects the Global Privacy Control, and leaves a dated proof of the versi
 declared in a YAML inventory from which the banner and the cookie policy are drawn, and a functional test fails on a
 cookie it does not declare. A video or a map of another site waits for its consent behind a preview the site serves
 itself. Once turned on, each member chooses on the same page whether the emails sent to them may count their opens or
-follow their clicks, each purpose refused until they tick it.
+follow their clicks, each purpose refused until they tick it. The schema gets only the tables of the features in use:
+the account deletions where symfony/security-bundle gives the site accounts, none for a feature kept by a store of the
+application.
 
 It exists because privacy laws such as Québec's Law 25 give a person the right to see and erase what a business holds
 about them, and expect the business to know what it keeps and for how long. Keeping that knowledge in the code keeps

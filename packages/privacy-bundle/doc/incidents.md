@@ -141,7 +141,9 @@ and a table of the journal; or JSON with every field, `pending_notifications`, `
 ## Keeping it
 
 The register is the table `phil_privacy_incident`, added to the schema the ORM generates; another store is an
-`IncidentRegister` named under `phil_privacy.incidents.store`. Keep it with a retention rule on its store, which
+`IncidentRegister` named under `phil_privacy.incidents.store`, and the tables of the register are then not added. The
+register is on by default; `phil_privacy.incidents.enabled: false` takes it out, with its commands, when the
+application keeps its register elsewhere. Keep it with a retention rule on its store, which
 removes the closed incidents known since before the cutoff, never an open one, with their corrections and their
 journal:
 

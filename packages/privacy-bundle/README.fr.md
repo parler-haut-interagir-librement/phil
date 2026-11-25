@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a3481f40bde57db91be91baa7dc97118fd77ccc5b0e764bb8620e79b3145ce5e -->
+<!-- phil-dev source-sha256=a88a51f28b24c53396ac7c86ccfba8895d054c8d3fb6ba7e818d0d25544c5868 -->
 # phil/privacy-bundle
 
 **Déclarer les champs personnels, caviarder les journaux, respecter les droits des membres et des personnes sans compte,
@@ -36,7 +36,9 @@ la version du texte. Chaque témoin est déclaré dans un inventaire YAML dont s
 témoins, et un test fonctionnel échoue sur un témoin qu'il ne déclare pas. Une vidéo ou une carte d'un autre site attend
 son consentement derrière un aperçu que sert le site lui-même. Une fois activé, chaque membre choisit sur la même page si
 les courriels qui lui sont envoyés peuvent compter leurs ouvertures ou suivre leurs clics, chaque fin étant refusée
-tant qu'il ne la coche pas.
+tant qu'il ne la coche pas. Le schéma ne reçoit que les tables des fonctionnalités utilisées : les suppressions de compte
+là où symfony/security-bundle donne des comptes au site, aucune pour une fonctionnalité gardée par un stockage de
+l'application.
 
 Il existe parce que des lois sur la vie privée comme la Loi 25 du Québec donnent à une personne le droit de voir et
 d'effacer ce qu'une entreprise détient à son sujet, et attendent de l'entreprise qu'elle sache ce qu'elle garde et pour

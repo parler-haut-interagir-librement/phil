@@ -59,10 +59,35 @@ return [
 Register it in every environment: log redaction matters in `dev` and `test` as much as in `prod`, because
 those logs are copied into tickets and CI artefacts.
 
+## The tables
+
+`doctrine:migrations:diff` writes the tables of the features the application uses with the table of the bundle as
+their store, and only those:
+
+| Table | Feature | Added when |
+|---|---|---|
+| `phil_privacy_account_deletion` | [The account deletions](account-deletion.md) | `account_deletion.enabled` is true, or null with `symfony/security-bundle` in the kernel; `account_deletion.store` is null; the lock and the clock are there. |
+| `phil_privacy_consent_proof` | [The proofs of consent](consent.md) | The consent page is there (Twig, CSRF tokens, the router and the clock) and `consent.proofs` is null. |
+| `phil_privacy_guest_request` | [The requests without an account](requests-without-an-account.md) | `guest_requests.enabled` is true and `guest_requests.store` is null. |
+| `phil_privacy_incident`, `phil_privacy_incident_revision`, `phil_privacy_incident_journal` | [The register of incidents](incidents.md) | `incidents.enabled` is true, its default, and `incidents.store` is null. |
+| `phil_privacy_email_tracking` | [The consent to tracked emails](email-tracking.md) | `email_tracking.enabled` is true and `email_tracking.store` is null. |
+| `phil_privacy_erasure_request`, `phil_privacy_erasure_step` | [Erasure as a workflow](erasure-workflow.md) | `erasure_workflow.enabled` is true and `erasure_workflow.store` is null. |
+
+An application with a firewall and the defaults thus gets the account deletions, the proofs of consent and the
+register of incidents; one without `symfony/security-bundle` gets the proofs and the register. Without Doctrine DBAL,
+none: the proofs of consent become log lines, and the other features need a store of the application.
+
 ## Upgrading to 0.4
 
-Every key the bundle derives from the application secret (`kernel.secret`) is now its HKDF-SHA-256 under a label of
-its own (see [Threat model](threat-model.md#the-keys)). What was sealed or signed under the keys of 0.3 no longer opens:
+**The tables follow the features.** A table of a feature that is off, or kept by a store of the application, is no
+longer in the schema of the ORM: the next `doctrine:migrations:diff` writes a `DROP TABLE` for it. Read that migration
+before running it. An application without `symfony/security-bundle` that used the account deletions keeps them, and
+`phil_privacy_account_deletion`, with `account_deletion.enabled: true`; a table the application wants to keep without
+its feature leaves the comparison with the `schema_filter` of DoctrineBundle.
+
+**The keys.** Every key the bundle derives from the application secret (`kernel.secret`) is now its HKDF-SHA-256
+under a label of its own (see [Threat model](threat-model.md#the-keys)). What was sealed or signed under the keys of
+0.3 no longer opens:
 
 - **Requests without an account** in `phil_privacy_guest_request` read as absent: their links no longer open them.
   Empty the table, or let `link_lifetime` and the purge at each new request remove them, and ask the people who were
