@@ -1128,6 +1128,9 @@ final class InteractiveRecipesTest extends BrowserTestCase
 
         self::assertSame([], $this->axe('#celebrations'));
 
+        // Six seconds of play rather than one and a half, so that a busy machine still finds the canvas and the
+        // message together.
+        $this->perform('document.querySelector("#victory").dataset.celebrationDurationValue = "6000"');
         $this->click('#celebrate');
         $this->waitUntil('document.querySelector("#victory canvas") && document.querySelector("#victory .isCelebrationMessage").textContent !== ""');
 
@@ -1238,7 +1241,9 @@ final class InteractiveRecipesTest extends BrowserTestCase
     }
 
     /**
-     * The violations axe-core finds in a part of the page, each rule with the parts it found it in.
+     * The violations axe-core finds in a part of the page, each rule with the parts it found it in, once the transitions
+     * of that part have ended, two seconds at most: a colour read halfway through its transition is neither the one
+     * before nor the one after.
      *
      * @return list<string>
      */
@@ -1246,7 +1251,7 @@ final class InteractiveRecipesTest extends BrowserTestCase
     {
         $this->browser()->manage()->timeouts()->setScriptTimeout(30);
         $violations = $this->browser()->executeAsyncScript(\sprintf(
-            'const done = arguments[arguments.length - 1]; axe.run(document.querySelector(%s), {runOnly: {type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}).then((result) => done(result.violations.map((violation) => violation.id + ": " + violation.nodes.map((node) => node.target.join(" ")).join(", "))), (error) => done(["axe: " + error]));',
+            'const done = arguments[arguments.length - 1], root = document.querySelector(%s); Promise.race([Promise.all(root.getAnimations({subtree: true}).filter((animation) => "running" === animation.playState && Number.isFinite(animation.effect?.getComputedTiming().endTime)).map((animation) => animation.finished.catch(() => null))), new Promise((resolve) => setTimeout(resolve, 2000))]).then(() => axe.run(root, {runOnly: {type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}).then((result) => done(result.violations.map((violation) => violation.id + ": " + violation.nodes.map((node) => node.target.join(" ")).join(", "))), (error) => done(["axe: " + error])));',
             json_encode($selector, \JSON_THROW_ON_ERROR),
         ));
         self::assertIsArray($violations);

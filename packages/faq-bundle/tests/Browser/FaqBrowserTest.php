@@ -148,10 +148,14 @@ final class FaqBrowserTest extends TestCase
     private function open(string $path, bool $javascript = true): void
     {
         $options = new ChromeOptions();
+        // The page answers in the language the browser asks for: English, whatever the language of the system.
+        $preferences = ['intl.accept_languages' => 'en'];
 
         if (!$javascript) {
-            $options->setExperimentalOption('prefs', ['profile.managed_default_content_settings.javascript' => 2]);
+            $preferences['profile.managed_default_content_settings.javascript'] = 2;
         }
+
+        $options->setExperimentalOption('prefs', $preferences);
 
         $this->browser = Client::createChromeClient(null, null, ['port' => self::DRIVER_PORT, 'capabilities' => [ChromeOptions::CAPABILITY => $options]], 'http://'.self::HOST.':'.self::PORT);
         $this->browser->request('GET', $path);
