@@ -15,6 +15,9 @@
 | `symfony/uid` | ^8.2 | Receivable identifiers |
 | `symfony/validator` | ^8.2 | The constraint `AllowedQuantity`, checked by the validator in forms and in the cart |
 
+Optional: `phil/commerce-logistics-bundle` 0.3 or later, whose shipments a buyer on credit then receives before paying
+them ([Sales on credit](credit.md#shipping-before-the-payment)).
+
 ## Installing
 
 ```sh

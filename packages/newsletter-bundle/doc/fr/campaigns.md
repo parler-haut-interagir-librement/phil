@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=827bd992329f1a2d1849d0f452063240cbd07ca33e6fc27669a1253b6b0fb348 -->
+<!-- phil-dev source-sha256=e24a11d998d7c15325fe52a3c8af479618b5f657a29ce8ed9b04753b3eba74e5 -->
 # Campagnes
 
 Une `Campaign` est un message à une liste, ou à un segment de celle-ci : un sujet, un préentête — la ligne que les
@@ -78,6 +78,11 @@ refusé quand un gabarit se compile, pour qu'aucun gabarit ne boucle plus de foi
 sortie est coupée à un mégaoctet ; une source contient 64 Kio au plus. Un gabarit qui enfreint la politique lève
 `InvalidNewsletterValue` ; `check()` avertit un éditeur avant la sauvegarde du gabarit. Les gabarits compilés sont gardés
 pour le message suivant, jusqu'à 64, et oubliés à `reset()`.
+
+Le bundle exige Twig 3.31.1 ou plus récent : avant cette version, `join`, `first` et `last` pouvaient lire les
+propriétés publiques d'un objet du contexte qui n'est pas itérable, et une affectation, un test ou un argument étalé
+pouvait appeler `__toString()` sans consulter la politique. Un test fait le rendu de chacun de ces cas contre un objet
+du contexte et vérifie que rien de l'objet n'en sort.
 
 ## L'éditeur Markdown
 

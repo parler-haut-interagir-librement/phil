@@ -17,6 +17,47 @@ $shipments->ship($order, $clock->now());   // everything left
 - Shipping more of a SKU than its reservations still hold is refused; releasing the order afterwards gives back only
   what is still held.
 
+## Authorized to ship
+
+An order leaves once it is authorized. `Shipments::ship()` asks the `ShipmentAuthorization` services, tagged
+`phil_commerce_logistics.shipment_authorization`, and ships when one of them says yes; otherwise it throws
+`StockRefused` and nothing leaves the shelf.
+
+- **By default, the payments cover what is due.** `PaidShipmentAuthorization` reads the core's `Payments::summary()`:
+  what the processors captured, less what went back, must be the order's total or more. An unpaid order, a deposit
+  alone, a payment still pending or a refund that leaves less than the total keeps the order; an order of nothing is
+  covered.
+- **Another authorization may let it leave.** `phil/commerce-wholesale-bundle` adds one for a buyer on credit, within the
+  credit of the account; an application adds its own by implementing the port
+  ([extension-points.md](extension-points.md#shipmentauthorization)). An authorization only answers.
+- **`isAuthorized()`** tells a page whether to offer the button, without shipping.
+
+```php
+if (!$shipments->isAuthorized($order)) {
+    // waiting for the payment
+}
+```
+
+## Forcing a shipment
+
+An order no authorization lets leave — paid at the door, an exchange agreed by phone — is shipped by someone allowed to
+force it, for a reason:
+
+```php
+$shipments->force($order, 'manager-2', 'Paid in cash at the counter', $clock->now(), carrier: 'Canada Post');
+```
+
+- **Nobody forces by default**: the `ShipmentForcing` port answers, and `DenyShipmentForcing`, the bundle's alias,
+  refuses everyone until the application aliases its own, usually on its security voters
+  ([extension-points.md](extension-points.md#shipmentforcing)). A refusal throws `StockRefused`.
+- **The shipment is its own journal**: it keeps who forced it, `forcedBy`, a stable identifier of 1 to 255 visible
+  ASCII characters without `@`, and why, `forceReason`, 1 to 255 characters on one line; `wasForced()` tells a forced
+  shipment from another. The columns `forced_by` and `force_reason` are those of the table of shipments.
+- **It is announced** by `ShipmentForced`, through the application's event dispatcher, once the shipment is kept: the
+  shipment's identifier, the order's number and who forced it, never the reason, so the event may cross a Messenger
+  transport as it is.
+- What a forced shipment cannot change: only a placed order ships, and no line ships more than is left of it.
+
 ## Units shipped
 
 When units leave the shelf, `Stock` dispatches `UnitsShipped` through the application's event dispatcher, by its class:

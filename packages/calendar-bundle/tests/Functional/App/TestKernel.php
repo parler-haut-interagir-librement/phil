@@ -72,6 +72,7 @@ final class TestKernel extends Kernel
 
         // The form factory, for the tests to build forms with.
         $container->services()->alias('test.form.factory', 'form.factory')->public();
+        $container->services()->set(LiveRequestSwitches::class)->autoconfigure()->public();
     }
 
     /**

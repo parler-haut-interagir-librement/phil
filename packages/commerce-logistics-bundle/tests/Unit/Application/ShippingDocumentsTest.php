@@ -26,6 +26,7 @@ use Phil\CommerceLogisticsBundle\Domain\Model\Shipment;
 use Phil\CommerceLogisticsBundle\Domain\Model\ShippingDocument;
 use Phil\CommerceLogisticsBundle\Tests\Unit\Support\InMemoryDocumentSeries;
 use Phil\CommerceLogisticsBundle\Tests\Unit\Support\InMemoryLogistics;
+use Phil\CommerceLogisticsBundle\Tests\Unit\Support\SwitchableAuthorization;
 use Phil\Money\Currency;
 use Phil\Money\Money;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -97,7 +98,7 @@ final class ShippingDocumentsTest extends TestCase
     {
         $order = $this->order(GiftOptions::of(wrapped: true, message: 'Bonne fête!'));
         $this->stock->reserve($order, $this->at);
-        $shipment = new Shipments($this->stock, $this->repository)->ship($order, $this->at, ['product:DICE' => 2, 'product:MAP' => 1], 'Canada Post', 'TRACK-1');
+        $shipment = new Shipments($this->stock, $this->repository, new SwitchableAuthorization())->ship($order, $this->at, ['product:DICE' => 2, 'product:MAP' => 1], 'Canada Post', 'TRACK-1');
 
         $note = $this->documents->deliveryNote($order, $shipment, $this->at);
 
@@ -108,7 +109,7 @@ final class ShippingDocumentsTest extends TestCase
         );
         self::assertSame($shipment->id, $this->repository->documents[0]->shipment());
 
-        $second = new Shipments($this->stock, $this->repository)->ship($order, $this->at);
+        $second = new Shipments($this->stock, $this->repository, new SwitchableAuthorization())->ship($order, $this->at);
         self::assertSame('DN-00000002', $this->documents->deliveryNote($order, $second, $this->at)->number);
         self::assertSame('DN-00000001', $this->documents->deliveryNote($order, $shipment, $this->at)->number);
     }
@@ -117,7 +118,7 @@ final class ShippingDocumentsTest extends TestCase
     {
         $order = $this->order(GiftOptions::of(pricesHidden: true));
         $this->stock->reserve($order, $this->at);
-        $note = $this->documents->deliveryNote($order, new Shipments($this->stock, $this->repository)->ship($order, $this->at), $this->at);
+        $note = $this->documents->deliveryNote($order, new Shipments($this->stock, $this->repository, new SwitchableAuthorization())->ship($order, $this->at), $this->at);
 
         self::assertTrue($note->pricesHidden);
         self::assertSame([null, null, null], array_map(static fn (DeliveryNoteLine $line): ?Money => $line->unitPrice, $note->lines));
@@ -127,7 +128,7 @@ final class ShippingDocumentsTest extends TestCase
     {
         $order = $this->order(null);
         $this->stock->reserve($order, $this->at);
-        $note = $this->documents->deliveryNote($order, new Shipments($this->stock, $this->repository)->ship($order, $this->at), $this->at);
+        $note = $this->documents->deliveryNote($order, new Shipments($this->stock, $this->repository, new SwitchableAuthorization())->ship($order, $this->at), $this->at);
         $slip = $this->documents->pickingSlip($order, $this->at);
 
         self::assertSame([false, false, null, false, false, false], [$note->giftWrapped, $note->recycledWrap, $note->giftMessage, $note->pricesHidden, $slip->giftWrapped, $slip->recycledWrap]);

@@ -15,7 +15,7 @@ Each of these is used when it is installed:
 | Package | For |
 |---|---|
 | `symfony/ux-twig-component` | The components `Dashboard`, `Metric` and `Chart`. |
-| `symfony/ux-live-component` | The component `LiveDashboard`, whose period changes without reloading the page. |
+| `symfony/ux-live-component` | The component `LiveDashboard`, whose period changes without reloading the page; 3.8.1 or later. |
 | `symfony/messenger` | `ReportQueue` and the handlers of `RunReport` and `RunScheduledReport`. |
 | `symfony/scheduler` | The `phil_reporting` schedule. |
 | `symfony/mailer`, `symfony/mime` | The `mail` delivery. |

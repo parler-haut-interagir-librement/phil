@@ -74,6 +74,11 @@ source holds at most 64 KiB. A template that breaks the policy throws `InvalidNe
 editor before the template is saved. The compiled templates are kept for the next message, up to 64, and forgotten on
 `reset()`.
 
+The bundle requires Twig 3.31.1 or later: before it, `join`, `first` and `last` could read the public properties of an
+object of the context that is not iterable, and an assignment, a test or a spread argument could call `__toString()`
+without asking the policy. A test renders each of these against an object of the context and checks that nothing of
+it comes out.
+
 ## The Markdown editor
 
 `@PhilNewsletter/editor/markdown.html.twig` is a text area with a toolbar — heading, bold, italic, link, list, quote

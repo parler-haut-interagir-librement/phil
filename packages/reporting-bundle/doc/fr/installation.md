@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d32b49c90c2c0d9fcc81d445b0ffaa262ac70f06d6e740deeb3e3267788dc63b -->
+<!-- phil-dev source-sha256=b2728a4a29de690c874e0644a89644b67ab7ed6a76678fb0d21b71774eb4159a -->
 # Installation
 
 ## Prérequis
@@ -16,7 +16,7 @@ Chacun de ces paquets est utilisé quand il est installé :
 | Paquet | Pour |
 |---|---|
 | `symfony/ux-twig-component` | Les composants `Dashboard`, `Metric` et `Chart`. |
-| `symfony/ux-live-component` | Le composant `LiveDashboard`, dont la période change sans recharger la page. |
+| `symfony/ux-live-component` | Le composant `LiveDashboard`, dont la période change sans recharger la page ; 3.8.1 ou plus récent. |
 | `symfony/messenger` | `ReportQueue` et les *handlers* de `RunReport` et `RunScheduledReport`. |
 | `symfony/scheduler` | Le calendrier `phil_reporting`. |
 | `symfony/mailer`, `symfony/mime` | La livraison `mail`. |

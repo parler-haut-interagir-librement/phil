@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0ea0a761a34419be6451f036517e0ed970e6b32c3d3b5372e200138460f32912 -->
+<!-- phil-dev source-sha256=811e7ea0f633fded80aef61bd8ff4218b77c6d930bc9a0efe204fa4e7cf37f18 -->
 # Tests
 
 ## Comment le bundle est testé
@@ -16,9 +16,9 @@ chaque heure est passée en argument.
 | `Visibility`, `Offer`, `SellableOffers` | Les trois niveaux et le plus strict de deux, une offre commandable refusée sans son prix, une offre cachée jamais commandable ni avec prix, la réponse la plus stricte de chaque sélection, l'interrogation arrêtée à la première réponse cachée |
 | `OptionDefinition`, `AmountRange`, `LineOptions` | Chaque nature déclarée, vérifiée et décrite ; un montant dans sa plage, écrit en unités mineures, refusé hors d'elle ou écrit autrement, facturé et taxé sur sa ligne, un autre montant une autre ligne ; la cible de fuzzing `chosen-amount` sur des montants que personne n'a écrits |
 | `Payment` | La création, les modes refusés, chaque passage que permet chaque événement et chacun qu'il refuse, une notification appliquée une seule fois et une notification refusée non enregistrée, les remboursements qui s'additionnent, ce que tient un paiement selon son état ; son mappage |
-| `OrderPayments`, `PaymentNotification`, `PaymentStart` | Les paiements fractionnés qui réservent ce qui est en cours, les remboursements et les contestations perdues rendus, le montant à payer jamais négatif, les cinq états ; les refus de chaque objet-valeur |
+| `OrderPayments`, `PaymentNotification`, `PaymentStart` | Les paiements fractionnés qui réservent ce qui est en cours, les remboursements et les contestations perdues rendus, le montant à payer jamais négatif, les cinq états ; les refus de chaque objet-valeur, une notification ignorée qui ne nomme aucun paiement |
 | `Payments` | Le début de tout ou partie de ce qui reste, les montants et les devises refusés, les paniers et les modes inconnus refusés, les notifications appliquées une seule fois, refusées ou pour un paiement inconnu, les remboursements demandés et enregistrés seulement à la confirmation |
-| `PaymentWebhookController` | 204, 400 et 404 pour chaque issue, un commit seulement pour une notification dont la réception est confirmée, les en-têtes remis sous forme de listes de chaînes |
+| `PaymentWebhookController` | 204, 400 et 404 pour chaque issue, un commit seulement pour une notification dont la réception est confirmée, une notification ignorée journalisée et non validée, les en-têtes remis sous forme de listes de chaînes |
 | `Receipt`, `Issuer` | Une copie de la commande passée gardée telle qu'émise, les taxes additionnées par code, les notes de crédit totales et partielles, les ajustements de la commande avec la dernière ligne, chaque refus ; son mappage et celui des séquences |
 | `Receipts` | Un reçu par commande, numéroté dans sa série ; les notes de crédit dans la leur ; aucun numéro pris par un document refusé |
 | `DocumentType`, `DocumentRegister`, `CoreDocumentTypes` | Les bornes d'un type, ses numéros, un code ou un préfixe déclaré deux fois, la série demandée dans la transaction, la visibilité de chaque type et les types que montre la liste d'un acheteur, cachés par défaut |

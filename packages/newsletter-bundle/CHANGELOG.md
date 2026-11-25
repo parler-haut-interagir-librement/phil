@@ -4,6 +4,18 @@ All notable changes to `phil/newsletter-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.4.1-alpha.
+
+### Security
+
+- Requires `twig/twig` 3.31.1 or later. Before it, the sandbox in which `SandboxedTemplates` renders the templates of
+  administrators and members let `join`, `first` and `last` read the public properties of an object of the context, and
+  an assignment, a test or a spread argument call `__toString()` without asking the policy (advisories of 2026-11-24).
+  The allowlist is unchanged; a test renders each of these against an object of the context and checks that nothing of
+  it comes out.
+
 ## 0.4.0-alpha - 2026-11-24
 
 A campaign is sent once approved, by default, and the tables gain a table, columns and

@@ -12,12 +12,14 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  * `AbstractBundle` of `symfony/dependency-injection` implements an interface from `symfony/config`, which
  * `symfony/dependency-injection` only requires in development; without the declaration, the module installed on its
  * own fails to load its own class. The functions of the container configurator that the bundle class calls are
- * defined by `symfony/dependency-injection`, which the analyser does not see as declaring them.
+ * defined by `symfony/dependency-injection`, which the analyser does not see as declaring them. phil/commerce-logistics-bundle
+ * is optional: the authorization on credit is registered only when its port is installed.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
     ->addPathToScan(__DIR__.'/tests', isDev: true)
     ->ignoreErrorsOnPackage('symfony/config', [ErrorType::PROD_DEPENDENCY_ONLY_IN_DEV])
+    ->ignoreErrorsOnPackage('phil/commerce-logistics-bundle', [ErrorType::DEV_DEPENDENCY_IN_PROD])
     ->ignoreUnknownFunctions([
         'Symfony\Component\DependencyInjection\Loader\Configurator\service',
     ]);

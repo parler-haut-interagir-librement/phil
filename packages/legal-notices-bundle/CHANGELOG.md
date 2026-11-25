@@ -15,6 +15,12 @@ The next version is 0.1.1-alpha.
 - Requires the latest minor of each dependency (`twig/twig` 3.31, `symfony/ux-twig-component` 3.8,
   `symfony/translation-contracts` 3.8, `twig/intl-extra` 3.31), and of each development requirement
   (`symfony/ux-toolkit` 3.8, `twig/extra-bundle` 3.31, `twig/html-extra` 3.31).
+- The development requirements take `twig/html-extra` 3.31.1 or later, which fixes the advisories of its sandbox
+  published on 2026-11-24.
+
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
 
 ## 0.1.0-alpha - 2026-11-15
 

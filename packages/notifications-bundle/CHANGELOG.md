@@ -4,6 +4,17 @@ All notable changes to `phil/notifications-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.4.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
+
 ## 0.4.0-alpha - 2026-11-24
 
 Each digest carries a signed link that stops it, whose route the application imports,

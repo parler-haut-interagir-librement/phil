@@ -68,6 +68,7 @@ final class TestKernel extends Kernel
 
         $services = $container->services()->defaults()->autowire()->autoconfigure();
         $services->set(Shelf::class)->public();
+        $services->set(LiveRequestSwitches::class)->public();
         $services->set(RecordingAccess::class)->public();
         $services->set(BooksTable::class);
         $services->set(BenchTable::class);

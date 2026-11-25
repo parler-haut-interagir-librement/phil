@@ -52,6 +52,16 @@ final class StockRefused extends DomainException implements DomainError
         return new self(\sprintf('The order %s is not placed: nothing of it ships.', $orderNumber));
     }
 
+    public static function notAuthorized(string $orderNumber): self
+    {
+        return new self(\sprintf('The order %s is not authorized to ship: its payments do not cover what it is due.', $orderNumber));
+    }
+
+    public static function forcingRefused(string $orderNumber): self
+    {
+        return new self(\sprintf('The shipment of the order %s cannot be forced by this person.', $orderNumber));
+    }
+
     public static function notInOrder(string $orderNumber, string $line): self
     {
         return new self(\sprintf('The order %s has no line %s.', $orderNumber, $line));

@@ -14,6 +14,10 @@ The next version is 0.2.2-alpha.
   3.8), and of each development requirement (`doctrine/orm` 3.8, `easycorp/easyadmin-bundle` 5.10, `phil/ux-kit` 0.5,
   `symfony/dom-crawler` 8.2).
 
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.2.1-alpha - 2026-11-18
 
 Every tenant can be purged in one run.

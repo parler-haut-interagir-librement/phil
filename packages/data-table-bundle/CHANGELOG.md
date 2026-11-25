@@ -4,6 +4,22 @@ All notable changes to `phil/data-table-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Added
+
+- `LiveRequestsTest`: the component through the requests of LiveComponent 3.8.1, which serves it under its name only,
+  renders nothing of it on a 422 raised before its action, and answers a redirection without `X-Live-Url`.
+
+### Security
+
+- Requires `symfony/ux-live-component` 3.8.1 or later, which fixes the advisories of 2026-11-24: a batched request
+  without an action that rendered a component past its `#[IsGranted]`, and a component of its own route still reached
+  through `/_components`; `symfony/ux-twig-component` 3.8 or later beside it.
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.1.1-alpha - 2026-11-24
 
 ### Changed

@@ -14,6 +14,8 @@ Development only.
 
 - The development requirements ask for the latest minor of each dependency (`doctrine/dbal` 4.6, `twig/twig` 3.31,
   `league/flysystem` 3.36, `league/flysystem-memory` 3.31).
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
 
 ## 0.1.1-alpha - 2026-11-18
 

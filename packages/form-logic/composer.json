@@ -35,7 +35,7 @@
         "symfony/routing": "^8.2",
         "symfony/stimulus-bundle": "^3.8",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "phil/forms-bundle": "To read the conditions of its forms as the whole subset, with JsonLogicConditions",

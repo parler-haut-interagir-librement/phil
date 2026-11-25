@@ -36,7 +36,7 @@
         "symfony/security-core": "^8.2",
         "symfony/security-http": "^8.2",
         "symfony/service-contracts": "^3.8",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "ext-dom": "*",

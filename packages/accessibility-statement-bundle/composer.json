@@ -33,7 +33,7 @@
         "symfony/routing": "^8.2",
         "symfony/translation-contracts": "^3.8",
         "symfony/ux-twig-component": "^3.8",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "doctrine/dbal": "^4.6",
@@ -57,7 +57,7 @@
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-toolkit": "^3.8",
         "symfony/yaml": "^8.2",
-        "twig/html-extra": "^3.31"
+        "twig/html-extra": "^3.31.1"
     },
     "suggest": {
         "doctrine/orm": "For the \"doctrine\" source, the versions kept in a table",

@@ -51,7 +51,7 @@
         "symfony/translation-contracts": "^3.8",
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "easycorp/easyadmin-bundle": "For the links of the administration in an EasyAdmin back office",

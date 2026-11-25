@@ -12,6 +12,7 @@ use Phil\CommerceWholesaleBundle\Application\CustomerGroups;
 use Phil\CommerceWholesaleBundle\Application\GroupPrices;
 use Phil\CommerceWholesaleBundle\Application\QuantityRules;
 use Phil\CommerceWholesaleBundle\Infrastructure\Doctrine\DoctrineWholesaleRepository;
+use Phil\CommerceWholesaleBundle\Infrastructure\Logistics\CreditShipmentAuthorization;
 use Phil\CommerceWholesaleBundle\Infrastructure\Validator\AllowedQuantityValidator;
 use Phil\CommerceWholesaleBundle\Infrastructure\Validator\QuantityGuard;
 use ReflectionClass;
@@ -34,6 +35,11 @@ final class PhilCommerceWholesaleBundle extends AbstractBundle
 {
     /** The catalogue's unit price resolver for price books, which the group prices are asked after. */
     private const string PRICE_BOOK_PRICES = 'Phil\\CommerceCatalogBundle\\Application\\PriceBookPrices';
+
+    /** The port of the logistics, named by its interface without depending on the logistics. */
+    private const string SHIPMENT_AUTHORIZATION = 'Phil\\CommerceLogisticsBundle\\Application\\Contract\\ShipmentAuthorization';
+
+    private const string SHIPMENT_AUTHORIZATION_TAG = 'phil_commerce_logistics.shipment_authorization';
 
     #[Override]
     protected string $extensionAlias = 'phil_commerce_wholesale';
@@ -86,6 +92,11 @@ final class PhilCommerceWholesaleBundle extends AbstractBundle
         $services->set(CustomerGroups::class)->autowire()->public();
         $services->set(CreditSales::class)->autowire()->public();
         $services->set(AccountGateway::class)->autowire()->tag('phil_commerce.payment_gateway');
+
+        // With the logistics, a buyer on credit may receive an order before paying it, within the account's credit.
+        if (interface_exists(self::SHIPMENT_AUTHORIZATION)) {
+            $services->set(CreditShipmentAuthorization::class)->autowire()->tag(self::SHIPMENT_AUTHORIZATION_TAG);
+        }
 
         // The ports by reflection: the bundle class wires adapters, and names no class of the domain.
         foreach ([DoctrineWholesaleRepository::class] as $adapter) {

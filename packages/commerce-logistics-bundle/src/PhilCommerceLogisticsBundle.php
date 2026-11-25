@@ -7,14 +7,19 @@ namespace Phil\CommerceLogisticsBundle;
 use LogicException;
 use Override;
 use Phil\CommerceBundle\Application\TaxOrderProcessor;
+use Phil\CommerceLogisticsBundle\Application\AnyShipmentAuthorization;
 use Phil\CommerceLogisticsBundle\Application\Contract\InventoryValuation;
+use Phil\CommerceLogisticsBundle\Application\Contract\ShipmentAuthorization;
+use Phil\CommerceLogisticsBundle\Application\Contract\ShipmentForcing;
 use Phil\CommerceLogisticsBundle\Application\Contract\StockOwnership;
 use Phil\CommerceLogisticsBundle\Application\ConventionStock;
 use Phil\CommerceLogisticsBundle\Application\Costing;
 use Phil\CommerceLogisticsBundle\Application\DeferredStock;
 use Phil\CommerceLogisticsBundle\Application\DeliveryOptions;
+use Phil\CommerceLogisticsBundle\Application\DenyShipmentForcing;
 use Phil\CommerceLogisticsBundle\Application\InventoryValue;
 use Phil\CommerceLogisticsBundle\Application\LogisticsDocumentTypes;
+use Phil\CommerceLogisticsBundle\Application\PaidShipmentAuthorization;
 use Phil\CommerceLogisticsBundle\Application\Port\CarrierGateway;
 use Phil\CommerceLogisticsBundle\Application\Port\PrintOnDemand;
 use Phil\CommerceLogisticsBundle\Application\Purchasing;
@@ -62,6 +67,9 @@ final class PhilCommerceLogisticsBundle extends AbstractBundle
     public const string CARRIER_TAG = 'phil_commerce_logistics.carrier';
 
     public const string PRINT_ON_DEMAND_TAG = 'phil_commerce_logistics.print_on_demand';
+
+    /** The authorizations `Shipments::ship()` asks; one that says yes lets the order leave. */
+    public const string SHIPMENT_AUTHORIZATION_TAG = 'phil_commerce_logistics.shipment_authorization';
 
     /** The core's tags, by their values: a module names them without reading the core's bundle class. */
     private const string DOCUMENT_TYPES_TAG = 'phil_commerce.document_types';
@@ -170,6 +178,7 @@ final class PhilCommerceLogisticsBundle extends AbstractBundle
         $services = $container->services();
         $builder->registerForAutoconfiguration(CarrierGateway::class)->addTag(self::CARRIER_TAG);
         $builder->registerForAutoconfiguration(PrintOnDemand::class)->addTag(self::PRINT_ON_DEMAND_TAG);
+        $builder->registerForAutoconfiguration(ShipmentAuthorization::class)->addTag(self::SHIPMENT_AUTHORIZATION_TAG);
         $this->loadCarriers($config, $container);
 
         /** @var array{delivery_note_prefix: string, picking_slip_prefix: string, digits: int} $documents */
@@ -205,7 +214,15 @@ final class PhilCommerceLogisticsBundle extends AbstractBundle
             ->arg('$dispatcher', service('event_dispatcher')->nullOnInvalid())
             ->arg('$costing', service(Costing::class)->nullOnInvalid())
             ->public();
-        $services->set(Shipments::class)->autowire()->public();
+        // An order leaves once its payments cover it, or once one of the application's authorizations says so; nobody
+        // forces a shipment until the application aliases its own ShipmentForcing. A forced shipment is announced.
+        $services->set(PaidShipmentAuthorization::class)->autowire()->tag(self::SHIPMENT_AUTHORIZATION_TAG);
+        $services->set(DenyShipmentForcing::class);
+        $services->alias(ShipmentForcing::class, DenyShipmentForcing::class);
+        $services->set(Shipments::class)->autowire()
+            ->arg('$authorization', inline_service(AnyShipmentAuthorization::class)->args([tagged_iterator(self::SHIPMENT_AUTHORIZATION_TAG)]))
+            ->arg('$dispatcher', service('event_dispatcher')->nullOnInvalid())
+            ->public();
         $services->set(Purchasing::class)->autowire()->arg('$costing', service(Costing::class)->nullOnInvalid())->public();
         $services->set(SerialNumbers::class)->autowire()->public();
         $services->set(ShippingWaves::class)->autowire()->public();

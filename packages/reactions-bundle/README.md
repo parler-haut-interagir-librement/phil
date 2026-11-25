@@ -92,7 +92,7 @@ final class ReactionVoter extends Voter
 
 ## Requirements
 
-PHP 8.5 or later with `ext-intl`, Symfony 8.2 or later, Symfony UX Live Component 3.7 or later, twig/intl-extra,
+PHP 8.5 or later with `ext-intl`, Symfony 8.2 or later, Symfony UX Live Component 3.8.1 or later, twig/intl-extra,
 Doctrine DBAL 4.5 and ORM 3.7. Symfony Security, Messenger, AssetMapper, `phil/media-bundle`, `phil/settings-bundle`
 and `phil/privacy-bundle` are optional.
 

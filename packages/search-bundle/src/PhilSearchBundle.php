@@ -6,6 +6,7 @@ namespace Phil\SearchBundle;
 
 use Loupe\Loupe\LoupeFactory;
 use Override;
+use Phil\Outbox\Contract\Outbox;
 use Phil\SearchBundle\Application\Contract\SynonymProvider;
 use Phil\SearchBundle\Application\DocumentProvider;
 use Phil\SearchBundle\Application\RejectedFormSynonyms;
@@ -19,6 +20,11 @@ use Phil\SearchBundle\Infrastructure\Doctrine\DbalSearchIndex;
 use Phil\SearchBundle\Infrastructure\Doctrine\IndexOnFlushListener;
 use Phil\SearchBundle\Infrastructure\Doctrine\SearchSchemaListener;
 use Phil\SearchBundle\Infrastructure\Meilisearch\MeilisearchIndex;
+use Phil\SearchBundle\Infrastructure\Outbox\IndexEntity;
+use Phil\SearchBundle\Infrastructure\Outbox\OutboxIndexer;
+use Phil\SearchBundle\Infrastructure\Outbox\OutboxIndexingListener;
+use Phil\SearchBundle\Infrastructure\Outbox\RemoveDocument;
+use Phil\SearchBundle\Infrastructure\Outbox\SearchOutboxCodec;
 use Phil\SearchBundle\Infrastructure\SearchSynonyms\SynonymStoreProvider;
 use Phil\SearchBundle\Infrastructure\Twig\Components\SearchFiltersComponent;
 use Phil\SearchBundle\Infrastructure\Twig\KitComponents;
@@ -39,6 +45,9 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
  * Meilisearch, or Loupe with `phil/search-loupe` — up to date at each Doctrine flush, searched with facets and the
  * synonyms of each language, and rebuilt by a command; the filters of a results page as a Twig component, with its
  * Stimulus controller, when Symfony UX Twig Component is installed.
+ *
+ * An index outside the database, Meilisearch or Loupe, learns of each flush through `phil/outbox-bundle`, recorded in
+ * the flush's transaction and relayed once it commits; the table of the database is written after each flush.
  */
 final class PhilSearchBundle extends AbstractBundle
 {
@@ -53,10 +62,21 @@ final class PhilSearchBundle extends AbstractBundle
 
     private const string CONTROLLERS_DIR = __DIR__.'/../assets/src';
 
+    /** The entities of a flush recorded in the outbox, in its transaction, and indexed once it is relayed. */
+    public const string INDEX_OUTBOX = 'outbox';
+
+    /** The entities of a flush indexed after it, in the same request. */
+    public const string INDEX_DIRECT = 'direct';
+
+    public const string INDEX_NONE = 'none';
+
     /** The adapter of `phil/search-loupe`, named and not imported: the bundle does not require the package. */
     public const string LOUPE_INDEX = LoupeIndex::class;
 
     public const string LOUPE_FACTORY = LoupeFactory::class;
+
+    /** The outbox of `phil/outbox`, named and not imported: the bundle does not require the package. */
+    public const string OUTBOX = Outbox::class;
 
     #[Override]
     protected string $extensionAlias = 'phil_search';
@@ -65,10 +85,12 @@ final class PhilSearchBundle extends AbstractBundle
      * @param string $loupeIndex       the class of the Loupe adapter, which `adapter: loupe` needs installed
      * @param string $fileSynonymStore the class of the file store of `phil/search-synonyms`, which
      *                                 `synonyms.directory` needs installed
+     * @param string $outbox           the interface of the outbox, which `index_entities: outbox` needs installed
      */
     public function __construct(
         private readonly string $loupeIndex = self::LOUPE_INDEX,
         private readonly string $fileSynonymStore = self::FILE_SYNONYM_STORE,
+        private readonly string $outbox = self::OUTBOX,
     ) {
     }
 
@@ -119,9 +141,14 @@ final class PhilSearchBundle extends AbstractBundle
                         ->end()
                     ->end()
                 ->end()
-                ->booleanNode('index_entities')
-                    ->info('Whether the entities a Doctrine flush changes are indexed.')
-                    ->defaultTrue()
+                ->enumNode('index_entities')
+                    ->info('How the entities a Doctrine flush changes are indexed: outbox, recorded in the transaction of the flush and relayed by phil/outbox-bundle, the default with Meilisearch and Loupe; direct, after the flush, the default with the table of the database; none. true is the default of the adapter, false none.')
+                    ->values([null, self::INDEX_OUTBOX, self::INDEX_DIRECT, self::INDEX_NONE])
+                    ->beforeNormalization()
+                        ->ifTrue(static fn (mixed $value): bool => \is_bool($value))
+                        ->then(static fn (bool $value): ?string => $value ? null : self::INDEX_NONE)
+                    ->end()
+                    ->defaultNull()
                 ->end()
                 ->integerNode('batch')
                     ->info('How many documents a rebuild sends at once.')
@@ -163,6 +190,17 @@ final class PhilSearchBundle extends AbstractBundle
                 ->thenInvalid('The Loupe adapter is phil/search-loupe: composer require phil/search-loupe.')
             ->end()
             ->validate()
+                ->always(static function (array $config): array {
+                    $config['index_entities'] ??= 'dbal' === $config['adapter'] ? self::INDEX_DIRECT : self::INDEX_OUTBOX;
+
+                    return $config;
+                })
+            ->end()
+            ->validate()
+                ->ifTrue(fn (array $config): bool => self::INDEX_OUTBOX === $config['index_entities'] && !interface_exists($this->outbox))
+                ->thenInvalid('phil_search.index_entities is "outbox", the default with Meilisearch and Loupe: the outbox is phil/outbox-bundle (composer require phil/outbox-bundle); or index after each flush with index_entities: direct.')
+            ->end()
+            ->validate()
                 ->ifTrue($this->lacksSynonymsPackage(...))
                 ->thenInvalid('A directory of synonyms is read by phil/search-synonyms: composer require phil/search-synonyms.')
             ->end();
@@ -174,7 +212,7 @@ final class PhilSearchBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{adapter: string, connection: string, meilisearch: array{url: ?string, key: ?string}, loupe: array{directory: string}, index_entities: bool, batch: int, synonyms: array{languages: list<string>, directory: ?string, store: ?string, rejected_forms: list<string>}, kit_subdirectory: ?string} $config */
+        /** @var array{adapter: string, connection: string, meilisearch: array{url: ?string, key: ?string}, loupe: array{directory: string}, index_entities: string, batch: int, synonyms: array{languages: list<string>, directory: ?string, store: ?string, rejected_forms: list<string>}, kit_subdirectory: ?string} $config */
         $builder->registerForAutoconfiguration(DocumentProvider::class)->addTag(self::PROVIDER_TAG);
         $builder->registerForAutoconfiguration(SynonymProvider::class)->addTag(self::SYNONYM_PROVIDER_TAG);
         $services = $container->services();
@@ -200,7 +238,9 @@ final class PhilSearchBundle extends AbstractBundle
             ->args([new Reference(SearchIndex::class), new TaggedIteratorArgument(self::PROVIDER_TAG), $config['batch'], new Reference(SynonymExpander::class), $config['synonyms']['languages']])
             ->public();
 
-        if ($config['index_entities']) {
+        if (self::INDEX_OUTBOX === $config['index_entities']) {
+            $this->loadOutbox($config['connection'], $container);
+        } elseif (self::INDEX_DIRECT === $config['index_entities']) {
             $services->set(IndexOnFlushListener::class)
                 ->args([new Reference(Search::class)])
                 ->tag('doctrine.event_listener', ['event' => 'onFlush', 'connection' => $config['connection']])
@@ -218,6 +258,28 @@ final class PhilSearchBundle extends AbstractBundle
             $services->set(KitComponents::class)->args([$config['kit_subdirectory']]);
             $services->set(SearchFiltersComponent::class)->args([new Reference(KitComponents::class)])->autoconfigure();
         }
+    }
+
+    /**
+     * The entities of each flush recorded in the outbox, in the flush's transaction; the codec of their records, and
+     * the listener that indexes them once the relay dispatches them.
+     */
+    private function loadOutbox(string $connection, ContainerConfigurator $container): void
+    {
+        $services = $container->services();
+        $listener = $services->set(OutboxIndexingListener::class)
+            ->args([new Reference(Search::class), new Reference($this->outbox)])
+            ->tag('kernel.reset', ['method' => 'reset']);
+
+        foreach (['onFlush', 'postPersist', 'postUpdate', 'postRemove', 'onClear'] as $event) {
+            $listener->tag('doctrine.event_listener', ['event' => $event, 'connection' => $connection]);
+        }
+
+        $services->set(SearchOutboxCodec::class)->args([new Reference('doctrine')])->tag('phil_outbox.codec');
+        $services->set(OutboxIndexer::class)
+            ->args([new Reference(Search::class), new Reference('doctrine')])
+            ->tag('kernel.event_listener', ['event' => IndexEntity::class, 'method' => 'index'])
+            ->tag('kernel.event_listener', ['event' => RemoveDocument::class, 'method' => 'remove']);
     }
 
     /**

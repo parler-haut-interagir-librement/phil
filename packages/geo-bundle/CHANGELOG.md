@@ -8,8 +8,6 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Development only.
-
 ### Changed
 
 - A test of a directory that cannot be written is skipped when the tests run as a user who writes there anyway, such as
@@ -18,6 +16,8 @@ Development only.
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
 - The development requirements ask for the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
   `doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, …).
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
 
 ## 0.1.0-alpha - 2026-11-11
 

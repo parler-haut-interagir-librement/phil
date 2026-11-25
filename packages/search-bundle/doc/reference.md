@@ -14,7 +14,11 @@
 | `Application\SearchRequest` | `final readonly class` | What a visitor asked a results page; the query strings that remove filters |
 | `Application\SearchActionSchema` | `final class` | The site's search as a schema.org `WebSite` with its `SearchAction` |
 | `Infrastructure\Doctrine\DbalSearchIndex`, `SearchTable`, `SearchSchemaListener` | adapter | A table of the database |
-| `Infrastructure\Doctrine\IndexOnFlushListener` | Doctrine listener, `kernel.reset` | Entities indexed at each flush |
+| `Infrastructure\Doctrine\IndexOnFlushListener` | Doctrine listener, `kernel.reset` | Entities indexed after each flush, with `index_entities: direct` |
+| `Infrastructure\Outbox\OutboxIndexingListener` | Doctrine listener, `kernel.reset` | The changes of each flush recorded in the outbox, in its transaction, with `index_entities: outbox` |
+| `Infrastructure\Outbox\SearchOutboxCodec` | `EventCodec` of `phil/outbox`, tagged `phil_outbox.codec` | Rebuilds the records of `phil_search.index_entity` and `phil_search.remove_document` |
+| `Infrastructure\Outbox\IndexEntity`, `RemoveDocument` | `final readonly class` | An entity to index again, by its class and identifier; a document to remove, by its index and identifier |
+| `Infrastructure\Outbox\OutboxIndexer` | event listener | Indexes or removes what the relay of the outbox dispatches |
 | `Infrastructure\Meilisearch\MeilisearchIndex`, `SearchFailed` | adapter | Meilisearch's HTTP API; `REBUILD_SUFFIX` |
 | `Infrastructure\Console\ReindexCommand`, `SynonymsCommand` | console commands | `phil:search:reindex`, `phil:search:synonyms` |
 | `Infrastructure\SearchSynonyms\SynonymStoreProvider` | adapter | The store of `phil/search-synonyms` as a `SynonymProvider` |

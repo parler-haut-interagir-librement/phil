@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0bc2f103351a6b294ca546528e1673b23d1f37194791cb98a4ce1c5edd5c7514 -->
+<!-- phil-dev source-sha256=d68a2671f67f9d47d49f67f279b500fa15e812799e8a282567d66a941ebff6a4 -->
 <!-- phil-dev source-sha256=0 -->
 # Référence
 
@@ -12,7 +12,7 @@ Chaque type public du module.
 | `Domain\Model\StockMovement` | `final class`, entité Doctrine | Une ligne du journal du stock |
 | `Domain\Model\Reservation` | `final class`, entité Doctrine | Des unités mises de côté pour une commande ; de celles qui sont parties, combien sont revenues |
 | `Domain\Model\DeliveryMethod` | `final class`, entité Doctrine | Une façon dont une commande parvient à son acheteur |
-| `Domain\Model\Shipment` | `final class`, entité Doctrine | Un colis parti : les lignes, le transporteur, le suivi |
+| `Domain\Model\Shipment` | `final class`, entité Doctrine | Un colis parti : les lignes, le transporteur, le suivi ; qui l'a forcé et pourquoi, pour une expédition forcée |
 | `Domain\Model\ShippingCost` | `final class`, entité Doctrine | Ce qu'une expédition a vraiment coûté : le transporteur, le service, le suivi, le montant |
 | `Domain\Model\StockPolicy` | `final class`, entité Doctrine | Si un *SKU* se vend sans stock |
 | `Domain\Model\Convention`, `ConventionQuantity` | `final class`, entités Doctrine | Une convention et ses jours ; les unités d'un *SKU* préparées pour elle |
@@ -24,6 +24,7 @@ Chaque type public du module.
 | `Domain\Cost\CostingMethod`, `CostEntryKind`, `VarianceReason` | énumérations à valeur chaîne | `weighted_average` ou `fifo` ; pourquoi une valeur a bougé ; pourquoi les unités en main diffèrent |
 | `Domain\Cost\CostShare` | `final class` | Une part d'une valeur à son taux unitaire, arrondie à la hausse à la moitié ; un coût d'approche réparti sur des lignes par `Money::allocate()` |
 | `Domain\ValueObject\ValuedStock`, `SaleCost` | `final readonly class` | Les unités avec coût de la boutique pour un *SKU* à un emplacement et leur valeur ; le coût des unités d'une vente pour un *SKU* |
+| `Domain\Event\ShipmentForced` | `final readonly class`, un `DomainEvent` | Une expédition forcée malgré les autorisations : l'expédition, la commande et qui l'a forcée |
 | `Domain\Event\UnitsShipped`, `ShippedLine` | `final readonly class`, la première un `DomainEvent` | Les unités d'une commande qui ont quitté la tablette, par UGS et par emplacement |
 | `Domain\Model\SerialNumber` | `final class`, entité Doctrine | Une unité connue par son numéro de série, où elle est, la commande avec laquelle elle est partie |
 | `Domain\Model\ShippingDocument` | `final class`, entité Doctrine | Le numéro sous lequel un bordereau de livraison ou une liste de prélèvement a été émis |
@@ -34,7 +35,7 @@ Chaque type public du module.
 | `Domain\Delivery\FulfilmentState` | énumération adossée à une chaîne | `Unshipped`, `Partial`, `Shipped` |
 | `Domain\Stock\MovementKind`, `Domain\Stock\ReservationState`, `Domain\Delivery\DeliveryKind` | énumérations adossées à une chaîne | Pourquoi le stock a bougé, `adjusted`, `backordered` et `returned` compris ; où en est une réservation ; comment une commande est livrée |
 | `Domain\Purchasing\PurchaseState`, `Domain\Serial\SerialState`, `Domain\Document\ShippingDocumentKind` | énumérations adossées à une chaîne | Où en est un bon de commande ; où est une unité sérialisée ; un bordereau de livraison ou une liste de prélèvement |
-| `Domain\Exception\StockRefused` | `final class`, `DomainError` | Un mouvement, un numéro de série, une vague ou une convention qui ne peut pas être comme demandé |
+| `Domain\Exception\StockRefused` | `final class`, `DomainError` | Un mouvement, un numéro de série, une vague ou une convention qui ne peut pas être comme demandé ; une expédition non autorisée, ou forcée par quelqu'un qui n'en a pas le droit |
 | `Domain\Exception\PurchaseRefused` | `final class`, `DomainError` | Un bon de commande, ou une réception contre lui, qui ne peut pas avoir lieu |
 | `Domain\Exception\CarrierRefused` | `final class`, `DomainError` | Un transporteur inconnu, qui refuse ou ne répond pas ; un coût noté deux fois ou dans une autre devise |
 | `Domain\Exception\CostRefused` | `final class`, `DomainError` | Un coût, une couche, un coût d'approche ou une part de propriétaires qui ne peut pas être enregistré |
@@ -45,7 +46,12 @@ Chaque type public du module.
 | `Application\Port\CarrierGateway` | interface | Les tarifs et les étiquettes d'un transporteur ; étiquette `phil_commerce_logistics.carrier` |
 | `Application\Port\PrintOnDemand` | interface | Les unités envoyées à l'impression ; étiquette `phil_commerce_logistics.print_on_demand` |
 | `Application\Stock` | `final readonly class` | La réception, les comptages, les ajustements avec un motif, les transferts, les réservations, leur expédition en entier ou en partie, les retours de clients ; annonce `UnitsShipped` |
-| `Application\Shipments` | `final readonly class` | L'expédition d'une commande en colis, ce qui reste, son exécution |
+| `Application\Shipments` | `final readonly class` | L'expédition d'une commande en colis une fois autorisée, le forçage d'une expédition, ce qui reste, son exécution |
+| `Application\Contract\ShipmentAuthorization` | interface | Si une commande passée peut partir maintenant |
+| `Application\Contract\ShipmentForcing` | interface | Qui peut forcer l'expédition d'une commande qu'aucune autorisation ne laisse partir |
+| `Application\PaidShipmentAuthorization` | `final readonly class` | Laisse partir une commande dont les paiements couvrent ce qui est dû |
+| `Application\AnyShipmentAuthorization` | `final readonly class` | Laisse partir une commande quand une des autorisations étiquetées le fait |
+| `Application\DenyShipmentForcing` | `final readonly class` | Personne ne force une expédition : l'alias par défaut de `ShipmentForcing` |
 | `Application\DeliveryOptions` | `final readonly class` | Les modes qui desservent une commande, celui qui est choisi, son coût |
 | `Application\ShippingProcessor` | `final readonly class`, l'`OrderProcessor` du noyau | Les frais de livraison, après les promotions et avant les taxes |
 | `Application\ShippingLabels` | `final readonly class` | Les tarifs des transporteurs, les étiquettes, le coût de chaque expédition, la marge d'une commande |

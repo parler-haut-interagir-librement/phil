@@ -92,7 +92,7 @@ final class MappingTest extends TestCase
             'reason' => ['reason', 'string', 16, true, null],
         ]], $this->table(StockMovement::class));
         self::assertSame(VarianceReason::class, $this->metadata(StockMovement::class)->fieldMappings['reason']->enumType);
-        self::assertSame([['columns' => ['sku', 'location', 'moved_at']], ['columns' => ['reference']]], array_values($this->metadata(StockMovement::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['sku', 'location', 'moved_at']], ['columns' => ['reference']]], $this->indexes(StockMovement::class));
         self::assertSame(MovementKind::class, $this->metadata(StockMovement::class)->fieldMappings['kind']->enumType);
 
         self::assertSame(['phil_commerce_logistics_reservation', ['id'], [
@@ -105,7 +105,7 @@ final class MappingTest extends TestCase
             'location' => ['location', 'string', 64, false, null],
             'quantity' => ['quantity', 'integer', null, false, null],
         ]], $this->table(Reservation::class));
-        self::assertSame([['columns' => ['order_number']]], array_values($this->metadata(Reservation::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['order_number']]], $this->indexes(Reservation::class));
         self::assertSame(['default' => 0], $this->metadata(Reservation::class)->fieldMappings['returned']->options);
         self::assertSame(ReservationState::class, $this->metadata(Reservation::class)->fieldMappings['state']->enumType);
 
@@ -158,14 +158,20 @@ final class MappingTest extends TestCase
             'shippedAt' => ['shipped_at', 'datetime_immutable', null, false, null],
             'carrier' => ['carrier', 'string', 64, true, null],
             'tracking' => ['tracking', 'string', 128, true, null],
+            'forcedBy' => ['forced_by', 'string', 255, true, null],
+            'forceReason' => ['force_reason', 'string', 255, true, null],
         ]], $this->table(Shipment::class));
-        self::assertSame([['columns' => ['order_number']]], array_values($this->metadata(Shipment::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['order_number']]], $this->indexes(Shipment::class));
 
         $shipment = Shipment::of(str_repeat('o', 64), ['product:A' => 1], new DateTimeImmutable(), str_repeat('c', 64), str_repeat('t', 128));
         self::assertSame($this->metadata(Shipment::class)->fieldMappings['id']->length, \strlen($shipment->id));
         self::assertSame($this->metadata(Shipment::class)->fieldMappings['orderNumber']->length, \strlen($shipment->orderNumber));
         self::assertSame($this->metadata(Shipment::class)->fieldMappings['carrier']->length, \strlen((string) $shipment->carrier));
         self::assertSame($this->metadata(Shipment::class)->fieldMappings['tracking']->length, \strlen((string) $shipment->tracking));
+
+        $forced = Shipment::forced('1', ['product:A' => 1], new DateTimeImmutable(), str_repeat('a', 255), str_repeat('é', 255));
+        self::assertSame($this->metadata(Shipment::class)->fieldMappings['forcedBy']->length, \strlen((string) $forced->forcedBy));
+        self::assertSame($this->metadata(Shipment::class)->fieldMappings['forceReason']->length, mb_strlen((string) $forced->forceReason));
     }
 
     public function testTheCostsOfShipments(): void
@@ -180,7 +186,7 @@ final class MappingTest extends TestCase
             'currencyCode' => ['currency', 'string', 3, false, true],
             'recordedAt' => ['recorded_at', 'datetime_immutable', null, false, null],
         ]], $this->table(ShippingCost::class));
-        self::assertSame([['columns' => ['order_number']]], array_values($this->metadata(ShippingCost::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['order_number']]], $this->indexes(ShippingCost::class));
 
         $cost = ShippingCost::of(Shipment::of(str_repeat('o', 64), ['product:A' => 1], new DateTimeImmutable()), str_repeat('c', 64), str_repeat('s', 32), Money::of(1, Currency::of('CAD')), new DateTimeImmutable(), str_repeat('t', 128));
         foreach (['shipment' => $cost->shipment, 'orderNumber' => $cost->orderNumber, 'carrier' => $cost->carrier, 'service' => $cost->service, 'tracking' => (string) $cost->tracking] as $field => $value) {
@@ -201,14 +207,14 @@ final class MappingTest extends TestCase
             'startsOn' => ['starts_on', 'date_immutable', null, false, null],
             'endsOn' => ['ends_on', 'date_immutable', null, false, null],
         ]], $this->table(Convention::class));
-        self::assertSame([['columns' => ['ends_on']]], array_values($this->metadata(Convention::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['ends_on']]], $this->indexes(Convention::class));
 
         self::assertSame(['phil_commerce_logistics_convention_quantity', ['convention', 'sku'], [
             'convention' => ['convention', 'string', 64, false, null],
             'sku' => ['sku', 'string', 64, false, null],
             'quantity' => ['quantity', 'integer', null, false, null],
         ]], $this->table(ConventionQuantity::class));
-        self::assertSame([['columns' => ['sku']]], array_values($this->metadata(ConventionQuantity::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['sku']]], $this->indexes(ConventionQuantity::class));
 
         self::assertSame(['phil_commerce_logistics_print_job', ['id'], [
             'id' => ['id', 'string', 36, false, true],
@@ -217,7 +223,7 @@ final class MappingTest extends TestCase
             'quantity' => ['quantity', 'integer', null, false, null],
             'sentAt' => ['sent_at', 'datetime_immutable', null, false, null],
         ]], $this->table(PrintJob::class));
-        self::assertSame([['columns' => ['order_number', 'sku']]], array_values($this->metadata(PrintJob::class)->table['uniqueConstraints'] ?? []));
+        self::assertSame([['columns' => ['order_number', 'sku']]], $this->indexes(PrintJob::class, 'uniqueConstraints'));
 
         self::assertSame(['phil_commerce_logistics_purchase_order', ['number'], [
             'state' => ['state', 'string', 16, false, null],
@@ -230,7 +236,7 @@ final class MappingTest extends TestCase
             'orderedAt' => ['ordered_at', 'datetime_immutable', null, false, null],
             'expectedOn' => ['expected_on', 'date_immutable', null, true, null],
         ]], $this->table(PurchaseOrder::class));
-        self::assertSame([['columns' => ['state']]], array_values($this->metadata(PurchaseOrder::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['state']]], $this->indexes(PurchaseOrder::class));
         self::assertSame(PurchaseState::class, $this->metadata(PurchaseOrder::class)->fieldMappings['state']->enumType);
 
         $convention = Convention::of(str_repeat('c', 64), str_repeat('n', 255), new DateTimeImmutable('2026-12-20'), new DateTimeImmutable('2026-12-21'));
@@ -254,7 +260,7 @@ final class MappingTest extends TestCase
             'location' => ['location', 'string', 64, false, null],
             'receivedAt' => ['received_at', 'datetime_immutable', null, false, null],
         ]], $this->table(SerialNumber::class));
-        self::assertSame([['columns' => ['sku', 'location', 'state']], ['columns' => ['order_number']]], array_values($this->metadata(SerialNumber::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['sku', 'location', 'state']], ['columns' => ['order_number']]], $this->indexes(SerialNumber::class));
         self::assertSame(SerialState::class, $this->metadata(SerialNumber::class)->fieldMappings['state']->enumType);
 
         self::assertSame(['phil_commerce_logistics_document', ['number'], [
@@ -264,8 +270,8 @@ final class MappingTest extends TestCase
             'shipmentId' => ['shipment', 'string', 36, false, null],
             'issuedAt' => ['issued_at', 'datetime_immutable', null, false, null],
         ]], $this->table(ShippingDocument::class));
-        self::assertSame([['columns' => ['order_number']]], array_values($this->metadata(ShippingDocument::class)->table['indexes'] ?? []));
-        self::assertSame([['columns' => ['kind', 'order_number', 'shipment']]], array_values($this->metadata(ShippingDocument::class)->table['uniqueConstraints'] ?? []));
+        self::assertSame([['columns' => ['order_number']]], $this->indexes(ShippingDocument::class));
+        self::assertSame([['columns' => ['kind', 'order_number', 'shipment']]], $this->indexes(ShippingDocument::class, 'uniqueConstraints'));
         self::assertSame(ShippingDocumentKind::class, $this->metadata(ShippingDocument::class)->fieldMappings['kind']->enumType);
 
         self::assertSame(['phil_commerce_logistics_wave', ['code'], [
@@ -274,13 +280,13 @@ final class MappingTest extends TestCase
             'name' => ['name', 'string', 255, false, null],
             'estimatedOn' => ['estimated_on', 'date_immutable', null, false, null],
         ]], $this->table(ShippingWave::class));
-        self::assertSame([['columns' => ['released_at', 'estimated_on']]], array_values($this->metadata(ShippingWave::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['released_at', 'estimated_on']]], $this->indexes(ShippingWave::class));
 
         self::assertSame(['phil_commerce_logistics_wave_order', ['orderNumber'], [
             'orderNumber' => ['order_number', 'string', 64, false, null],
             'wave' => ['wave', 'string', 64, false, null],
         ]], $this->table(WaveAssignment::class));
-        self::assertSame([['columns' => ['wave']]], array_values($this->metadata(WaveAssignment::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['wave']]], $this->indexes(WaveAssignment::class));
 
         $level = StockLevel::of(str_repeat('S', 64), Location::of(str_repeat('l', 64), 'L'));
         $serial = SerialNumber::of($level, str_repeat('x', 128), new DateTimeImmutable());
@@ -316,7 +322,7 @@ final class MappingTest extends TestCase
             'receivedAt' => ['received_at', 'datetime_immutable', null, false, null],
             'reference' => ['reference', 'string', 64, true, null],
         ]], $this->table(CostLayer::class));
-        self::assertSame([['columns' => ['sku', 'location']]], array_values($this->metadata(CostLayer::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['sku', 'location']]], $this->indexes(CostLayer::class));
 
         self::assertSame(['phil_commerce_logistics_cost_entry', ['id'], [
             'id' => ['id', 'string', 36, false, true],
@@ -332,7 +338,7 @@ final class MappingTest extends TestCase
             'reference' => ['reference', 'string', 64, true, null],
             'movedAt' => ['moved_at', 'datetime_immutable', null, false, null],
         ]], $this->table(CostEntry::class));
-        self::assertSame([['columns' => ['sku', 'location', 'moved_at']], ['columns' => ['reference']], ['columns' => ['moved_at']]], array_values($this->metadata(CostEntry::class)->table['indexes'] ?? []));
+        self::assertSame([['columns' => ['sku', 'location', 'moved_at']], ['columns' => ['reference']], ['columns' => ['moved_at']]], $this->indexes(CostEntry::class));
         self::assertSame([CostEntryKind::class, VarianceReason::class], [$this->metadata(CostEntry::class)->fieldMappings['kind']->enumType, $this->metadata(CostEntry::class)->fieldMappings['reason']->enumType]);
 
         // Every value of the enumerations fits its column.
@@ -356,6 +362,25 @@ final class MappingTest extends TestCase
         }
 
         return [$metadata->getTableName(), $metadata->getIdentifierFieldNames(), $columns];
+    }
+
+    /**
+     * The indexes, or the unique constraints, of an entity's table, each as the mapping writes it.
+     *
+     * @param class-string                  $class
+     * @param 'indexes'|'uniqueConstraints' $kind
+     *
+     * @return list<array<array-key, mixed>>
+     */
+    private function indexes(string $class, string $kind = 'indexes'): array
+    {
+        $indexes = [];
+
+        foreach ($this->metadata($class)->table[$kind] ?? [] as $index) {
+            $indexes[] = $index;
+        }
+
+        return $indexes;
     }
 
     /**

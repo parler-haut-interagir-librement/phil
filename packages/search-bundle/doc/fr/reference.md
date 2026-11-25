@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5bc52d2d6b868bdbb219ee8f1ddea493ef5e73155030a79a6ce2c49f669bbad2 -->
+<!-- phil-dev source-sha256=d63722a084876a0e95604d8a0e093515f81651a6f46b67f4f9f797a63efc9ad0 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -15,7 +15,11 @@
 | `Application\SearchRequest` | `final readonly class` | Ce qu'un visiteur a demandé à une page de résultats ; les chaînes de requête qui retirent des filtres |
 | `Application\SearchActionSchema` | `final class` | La recherche du site sous forme de `WebSite` schema.org avec sa `SearchAction` |
 | `Infrastructure\Doctrine\DbalSearchIndex`, `SearchTable`, `SearchSchemaListener` | adaptateur | Une table de la base de données |
-| `Infrastructure\Doctrine\IndexOnFlushListener` | écouteur Doctrine, `kernel.reset` | Les entités indexées à chaque `flush` |
+| `Infrastructure\Doctrine\IndexOnFlushListener` | écouteur Doctrine, `kernel.reset` | Les entités indexées après chaque `flush`, avec `index_entities: direct` |
+| `Infrastructure\Outbox\OutboxIndexingListener` | écouteur Doctrine, `kernel.reset` | Les changements de chaque `flush` notés dans l'outbox, dans sa transaction, avec `index_entities: outbox` |
+| `Infrastructure\Outbox\SearchOutboxCodec` | `EventCodec` de `phil/outbox`, étiqueté `phil_outbox.codec` | Reconstruit les enregistrements de `phil_search.index_entity` et de `phil_search.remove_document` |
+| `Infrastructure\Outbox\IndexEntity`, `RemoveDocument` | `final readonly class` | Une entité à indexer de nouveau, par sa classe et son identifiant ; un document à retirer, par son index et son identifiant |
+| `Infrastructure\Outbox\OutboxIndexer` | écouteur d'événements | Indexe ou retire ce que le relais de l'outbox envoie |
 | `Infrastructure\Meilisearch\MeilisearchIndex`, `SearchFailed` | adaptateur | L'API HTTP de Meilisearch ; `REBUILD_SUFFIX` |
 | `Infrastructure\Console\ReindexCommand`, `SynonymsCommand` | commandes de console | `phil:search:reindex`, `phil:search:synonyms` |
 | `Infrastructure\SearchSynonyms\SynonymStoreProvider` | adaptateur | Le magasin de `phil/search-synonyms` sous forme de `SynonymProvider` |

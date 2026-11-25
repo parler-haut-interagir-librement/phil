@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8ad17ac3bf2d6da19b0d62b6875b0592111a12fbb3cda2d33910ef868e9fdf1f -->
+<!-- phil-dev source-sha256=6e0b7981f3cd8b53616b1d6f1ff3a29d375e12afbbb9ea473f91e46758bc320f -->
 <!-- phil-dev source-sha256=0 -->
 # phil/commerce-logistics-bundle
 
@@ -47,6 +47,7 @@ une colonne de version, qui refuse deux mouvements faits sur la même copie.
 | Les bons de commande, le coût unitaire et le propriétaire de leurs lignes, leurs réceptions ; les numéros de série | Implémenté et testé |
 | Le calcul des coûts : coût moyen pondéré ou premier entré, premier sorti, coûts d'approche, écarts par motif, retours à leur coût, unités en consignation exclues, `InventoryValuation` | Implémenté et testé |
 | Les expéditions : une commande en un colis ou en plusieurs, le transporteur et le suivi ; `UnitsShipped` | Implémenté et testé |
+| Une expédition autorisée une fois les paiements à hauteur de la commande, d'autres autorisations par un port, une expédition forcée par permission, gardée avec qui et pourquoi, `ShipmentForced` | Implémenté et testé |
 | Les bordereaux de livraison, les listes de prélèvement, les vagues d'expédition | Implémenté et testé |
 | Les modes de livraison par zone, le seuil de gratuité, les frais de livraison | Implémenté et testé |
 | Les tarifs et les étiquettes des transporteurs, le coût de chaque expédition, Postes Canada | Implémenté et testé ; les noms de champs de Postes Canada ne sont pas encore comparés à son document OpenAPI |
@@ -61,7 +62,7 @@ une colonne de version, qui refuse deux mouvements faits sur la même copie.
 | [Achats](doc/fr/purchasing.md) | Les bons de commande et leurs réceptions ; le numéro de série de chaque unité. |
 | [Coûts](doc/fr/costing.md) | La valeur du stock au coût : les méthodes, les coûts d'approche, les écarts, les retours, les propriétaires, la lecture de la valeur, le stockage. |
 | [Livraison](doc/fr/delivery.md) | Les modes de livraison, ce que paie une commande, le stockage. |
-| [Expéditions](doc/fr/shipments.md) | Expédier une commande en un colis ou en plusieurs, ce qui reste, les bordereaux de livraison, les listes de prélèvement, les vagues, le stockage. |
+| [Expéditions](doc/fr/shipments.md) | Expédier une commande en un colis ou en plusieurs une fois autorisée, forcer une expédition, ce qui reste, les bordereaux de livraison, les listes de prélèvement, les vagues, le stockage. |
 | [Transporteurs](doc/fr/carriers.md) | Les tarifs et les étiquettes, le coût de chaque expédition contre la livraison facturée, Postes Canada. |
 | [Portée](doc/fr/scope.md) | Ce que le module tient, ce qui reste hors de lui, et les ports du noyau qu'il implémente. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application implémente, configure, remplace ou utilise. |

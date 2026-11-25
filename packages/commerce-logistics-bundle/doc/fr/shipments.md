@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=119e6ac1552a04b7e0b700b89868503e88bab6f79243b7da40e85e6a58fb47fd -->
+<!-- phil-dev source-sha256=3a60dd5b5d5ec5ff0fe57bdba5dbd274d88887962992c662fa4b3f27c0eb92b5 -->
 <!-- phil-dev source-sha256=0 -->
 # Expéditions
 
@@ -18,6 +18,49 @@ $shipments->ship($order, $clock->now());   // everything left
   une ligne d'un autre type, ou un produit non suivi, part sans toucher au stock.
 - Expédier plus d'un *SKU* que n'en tiennent encore ses réservations est refusé ; libérer la commande ensuite ne rend
   que ce qui est encore réservé.
+
+## Expédition autorisée
+
+Une commande part une fois autorisée. `Shipments::ship()` interroge les services `ShipmentAuthorization`, étiquetés
+`phil_commerce_logistics.shipment_authorization`, et expédie quand l'un d'eux répond oui ; sinon il lève
+`StockRefused` et rien ne quitte la tablette.
+
+- **Par défaut, les paiements couvrent ce qui est dû.** `PaidShipmentAuthorization` lit le `Payments::summary()` du
+  noyau : ce que les processeurs ont capturé, moins ce qui a été rendu, doit être le total de la commande ou plus. Une
+  commande impayée, un acompte seul, un paiement encore en attente ou un remboursement qui laisse moins que le total
+  retient la commande ; une commande de rien est couverte.
+- **Une autre autorisation peut la laisser partir.** `phil/commerce-wholesale-bundle` en ajoute une pour un acheteur à
+  crédit, dans la limite du crédit du compte ; une application ajoute la sienne en implémentant le port
+  ([extension-points.md](extension-points.md#shipmentauthorization)). Une autorisation ne fait que répondre.
+- **`isAuthorized()`** dit à une page s'il faut offrir le bouton, sans expédier.
+
+```php
+if (!$shipments->isAuthorized($order)) {
+    // waiting for the payment
+}
+```
+
+## Forcer une expédition
+
+Une commande qu'aucune autorisation ne laisse partir — payée à la porte, un échange convenu par téléphone — est
+expédiée par quelqu'un qui a le droit de la forcer, pour une raison :
+
+```php
+$shipments->force($order, 'manager-2', 'Paid in cash at the counter', $clock->now(), carrier: 'Canada Post');
+```
+
+- **Personne ne force par défaut** : le port `ShipmentForcing` répond, et `DenyShipmentForcing`, l'alias du bundle,
+  refuse tout le monde jusqu'à ce que l'application aliase le sien, d'ordinaire sur ses *voters* de sécurité
+  ([extension-points.md](extension-points.md#shipmentforcing)). Un refus lève `StockRefused`.
+- **L'expédition est son propre journal** : elle garde qui l'a forcée, `forcedBy`, un identifiant stable de 1 à 255
+  caractères ASCII visibles sans `@`, et pourquoi, `forceReason`, de 1 à 255 caractères sur une seule ligne ;
+  `wasForced()` distingue une expédition forcée d'une autre. Les colonnes `forced_by` et `force_reason` sont celles de
+  la table des expéditions.
+- **Elle est annoncée** par `ShipmentForced`, par le répartiteur d'événements de l'application, une fois l'expédition
+  gardée : l'identifiant de l'expédition, le numéro de la commande et qui l'a forcée, jamais la raison, pour que
+  l'événement puisse traverser un transport de Messenger tel quel.
+- Ce qu'une expédition forcée ne peut pas changer : seule une commande passée part, et aucune ligne ne part au-delà de
+  ce qu'il en reste.
 
 ## Les unités expédiées
 

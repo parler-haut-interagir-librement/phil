@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1e2c0120724c5de735ca0d56b366338e9be27d78662480435c89dad901e859df -->
+<!-- phil-dev source-sha256=c92229e2ade5a5f53385acb3edb36341145f0818c01d72ae6ea6ec0825683775 -->
 # Installation
 
 ## Prérequis
@@ -15,6 +15,9 @@
 | `symfony/config` | ^8.2 | Exigé par `AbstractBundle` quand le module est installé seul |
 | `symfony/uid` | ^8.2 | Les identifiants de créances |
 | `symfony/validator` | ^8.2 | La contrainte `AllowedQuantity`, vérifiée par le validateur dans les formulaires et le panier |
+
+Facultatif : `phil/commerce-logistics-bundle` 0.3 ou plus récent, dont l'acheteur à crédit reçoit alors les
+expéditions avant de les payer ([Ventes à crédit](credit.md#expédier-avant-le-paiement)).
 
 ## Installer
 

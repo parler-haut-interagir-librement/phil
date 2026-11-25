@@ -4,6 +4,17 @@ All notable changes to `phil/commerce-wholesale-bundle` will be documented in th
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Added
+
+- `CreditShipmentAuthorization`: with `phil/commerce-logistics-bundle`, an order whose buyer — its customer — has an
+  active credit account in its currency, whose available credit covers what is left to pay, may leave before it is paid;
+  registered as an authorization of the logistics, and only an answer: the purchase is owed once `CreditSales::charge()`
+  puts it on the account.
+
 ## 0.1.1-alpha - 2026-11-24
 
 ### Changed

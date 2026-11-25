@@ -44,8 +44,8 @@
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-twig-component": "^3.8",
         "twig/extra-bundle": "^3.31",
-        "twig/html-extra": "^3.31",
-        "twig/twig": "^3.31"
+        "twig/html-extra": "^3.31.1",
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "phil/ux-kit": "For the recipes Video and Button, and image_origin(), which the player draws with",

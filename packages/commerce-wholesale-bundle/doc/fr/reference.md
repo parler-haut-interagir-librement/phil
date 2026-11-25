@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=194f2c4fb2443f43308b4cfc90ae3ec3fe831fd9180a2df9e7c4a71e177bbad1 -->
+<!-- phil-dev source-sha256=1194c931b71cd74bf9bde5860d923196d943b433a0e86b900cb61e5baf28b4e8 -->
 # Référence
 
 Chaque type public du module.
@@ -18,6 +18,7 @@ Chaque type public du module.
 | `Domain\Repository\CreditRepository` | interface | Les comptes et les créances |
 | `Domain\Repository\QuantityRuleRepository` | interface | Les règles de quantité |
 | `Application\CreditSales` | `final readonly class` | Les comptes, les achats à crédit, les paiements de l'acheteur, les créances en souffrance |
+| `Infrastructure\Logistics\CreditShipmentAuthorization` | `final readonly class`, une `ShipmentAuthorization` de `phil/commerce-logistics-bundle` | Laisse un acheteur à crédit recevoir une commande avant de la payer, dans la limite du crédit disponible |
 | `Application\AccountGateway` | `final readonly class`, `PaymentGateway` du noyau | La méthode `on_account` ; les remboursements créditent la créance |
 | `Application\CustomerGroups` | `final readonly class` | Adhérer, quitter, le groupe d'un acheteur, le manque d'une commande |
 | `Application\GroupPrices` | `final readonly class`, `UnitPriceResolver` du noyau | Le prix du groupe, interrogé après les carnets de prix du catalogue |

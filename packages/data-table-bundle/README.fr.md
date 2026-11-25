@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1ad86965bf4900106ed6fd45d9ea8ab5fd30c5106b6e5faeef24de8b622d885d -->
+<!-- phil-dev source-sha256=1b9c8820f51e1352fd5924a5fd1331f13c462c5fd5fa046fa759942f67c3839d -->
 # phil/data-table-bundle
 
 **Des tableaux de données qui trient, filtrent, paginent, agissent et modifient sur place, avec ou sans JavaScript.**
@@ -101,8 +101,8 @@ final readonly class BooksTable implements DataTable
 ## Prérequis
 
 PHP 8.5 ou plus récent avec `ext-intl` et `ext-mbstring` ; config, injection de dépendances, HTTP foundation, HTTP
-kernel, property access, routing, CSRF, translation et validator de Symfony 8.2 ; Live Component et Twig Component de
-Symfony UX 3.7 ; Twig 3.29 ; la recette Button du kit PHIL UX, ou du kit Shadcn. Doctrine ORM, Symfony Security,
+kernel, property access, routing, CSRF, translation et validator de Symfony 8.2 ; Live Component 3.8.1 et Twig Component 3.8 de
+Symfony UX ; Twig 3.31.1 ; la recette Button du kit PHIL UX, ou du kit Shadcn. Doctrine ORM, Symfony Security,
 AssetMapper, `phil/settings-bundle` et `phil/data-table-export` sont facultatifs.
 
 ## Contribuer

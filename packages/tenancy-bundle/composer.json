@@ -43,7 +43,7 @@
         "symfony/security-bundle": "^8.2",
         "symfony/security-core": "^8.2",
         "symfony/security-http": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "symfony/cache": "To scope cache.app, and the pools built on it, to the active tenant",

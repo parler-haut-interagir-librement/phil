@@ -4,6 +4,16 @@ All notable changes to `phil/commerce-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.5.1-alpha.
+
+### Changed
+
+- `Order::force()` is internal, not part of the public API: `OrderLifecycle::force()` is its one caller, which asks
+  `TransitionForcing`, journals the move with its reason and announces it; a test keeps any other caller out of the
+  bundle.
+
 ## 0.5.0-alpha - 2026-11-24
 
 A gateway acknowledges a verified event the store does not act on instead of refusing it, so that the processor

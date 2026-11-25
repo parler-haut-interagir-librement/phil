@@ -4,6 +4,26 @@ All notable changes to `phil/reporting-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+### Added
+
+- `LiveRequestsTest`: the component through the requests of LiveComponent 3.8.1, which serves it under its name only,
+  renders nothing of it on a 422 raised before its action, and answers a redirection without `X-Live-Url`.
+
+### Changed
+
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
+
+### Security
+
+- Conflicts with `symfony/ux-live-component` before 3.8.1, which fixes the advisories of 2026-11-24: a batched request
+  without an action that rendered a component past its `#[IsGranted]`, and a component of its own route still reached
+  through `/_components`. The development requirements take it at 3.8.1 and `symfony/ux-twig-component` at 3.8.
+
 ## 0.2.0-alpha - 2026-11-24
 
 Two reports for a learning system, the training hours and costs by period and

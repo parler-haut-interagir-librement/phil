@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=57d6a7da9cb0dd74fb9116965f406f054b05efed885e79aed4386a557eb1ee04 -->
+<!-- phil-dev source-sha256=aa0daaa774fcad659bd6c4e760c6a2ff23ee56b9bb437cda9b639e0b29cbd3f8 -->
 # Installation
 
 | Prérequis | Version | Pourquoi |
@@ -21,7 +21,7 @@
 | `psr/log` | ^3.0 | L'avertissement d'une requête arrêtée à son budget ; le service `logger` du conteneur quand il y en a un |
 | `psr/clock` | ^1.0 | L'heure du fichier iCalendar et la date du jour dans les vues ; le service `clock` du conteneur, que FrameworkBundle enregistre dès que `symfony/clock` est installé |
 | `twig/twig` | facultatif | `calendar_occurrences`, `occurrence_when` et les filtres des vues |
-| `symfony/ux-live-component`, `symfony/ux-twig-component` | facultatif | Le calendrier dans une page, `<twig:PhilCalendar:Calendar>` |
+| `symfony/ux-live-component`, `symfony/ux-twig-component` | facultatif, 3.8.1 et 3.8 ou plus récent | Le calendrier dans une page, `<twig:PhilCalendar:Calendar>` |
 | `symfony/stimulus-bundle` | facultatif | Le clavier dans la grille du mois ; et le contrôleur propre au composant |
 | `symfony/asset-mapper` | facultatif | Avec AssetMapperBundle enregistré, le contrôleur servi sous `@phil/calendar-bundle/` et la feuille de style sous `phil-calendar/calendar.css` |
 | `phil/privacy-bundle` | facultatif | Les choix, le flux, les participations et les propositions d'un membre dans l'exportation et l'effacement de ses données |

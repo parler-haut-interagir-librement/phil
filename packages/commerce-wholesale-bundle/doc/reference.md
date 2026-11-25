@@ -17,6 +17,7 @@ Every public type of the module.
 | `Domain\Repository\CreditRepository` | interface | Accounts and receivables |
 | `Domain\Repository\QuantityRuleRepository` | interface | Quantity rules |
 | `Application\CreditSales` | `final readonly class` | Accounts, purchases on account, the buyer's payments, overdue receivables |
+| `Infrastructure\Logistics\CreditShipmentAuthorization` | `final readonly class`, a `ShipmentAuthorization` of `phil/commerce-logistics-bundle` | Lets a buyer on credit receive an order before paying it, within the available credit |
 | `Application\AccountGateway` | `final readonly class`, the core's `PaymentGateway` | The method `on_account`; refunds credit the receivable |
 | `Application\CustomerGroups` | `final readonly class` | Joining, leaving, a buyer's group, an order's shortfall |
 | `Application\GroupPrices` | `final readonly class`, the core's `UnitPriceResolver` | The group's price, asked after the catalogue's price books |

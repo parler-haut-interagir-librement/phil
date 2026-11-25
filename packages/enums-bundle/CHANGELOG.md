@@ -16,6 +16,10 @@ The next version is 0.1.3-alpha.
   provides, which the type provider of each connection falls back to, instead of the static `Type::addType()`, which
   DBAL 4.6 deprecates.
 
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.1.2-alpha - 2026-11-15
 
 ### Changed

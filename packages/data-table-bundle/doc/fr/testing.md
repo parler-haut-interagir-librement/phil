@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1a99e17833266b7c21e591ef1e2f5ec6770a4a5fee6fd6328559a184da37aa31 -->
+<!-- phil-dev source-sha256=9db775974900f97cdad97e2fa4a02912f6229b5da72be82eab9a188705a5ba30 -->
 # Tests
 
 ```sh
@@ -29,3 +29,11 @@ ignorée plutôt qu'en échec.
 
 Dans les tests propres à une application, `InMemoryDataSource` tient lieu de requête, et un `TableAccess` du test répond
 aux attributs de *voter*.
+
+## Les requêtes de LiveComponent
+
+`tests/Functional/LiveRequestsTest.php` envoie au composant les requêtes que le navigateur envoie, et le tient à ce que
+LiveComponent 3.8.1 impose : sous le nom de sa classe plutôt que sous son nom, le composant répond 404 ; un 422 levé
+avant son action, par un résolveur d'arguments ou un attribut de contrôleur, n'en produit aucun rendu ; et une
+redirection répond 204 avec `X-Live-Redirect` et son `Location`, sans `X-Live-Url`, tandis qu'une réponse ordinaire
+porte l'adresse que ses propriétés d'URL écrivent.

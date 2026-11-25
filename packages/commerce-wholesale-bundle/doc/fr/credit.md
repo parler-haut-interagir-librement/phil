@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=69427cd5fce83205f4093fbf6c0fecf74b3311f1b8cb23c1d1080a9003a45570 -->
+<!-- phil-dev source-sha256=0cf7d017fde4e4a3677d8acc72dbc082b3a9b49065826d4c47405a5798870b00 -->
 # Ventes à crédit
 
 Un acheteur — un compte, un locataire — achète à crédit : sur compte, jusqu'à une limite, chaque achat exigible après le
@@ -49,6 +49,22 @@ $creditSales->settleRefund($receivable->id, Money::of(1_500, $cad));    // given
 
 `settleRefund()` prend jusqu'à concurrence de ce qui est dû et retourne la part prise. La façon dont l'argent est rendu
 — un virement, un chèque, une note de crédit — est le choix de l'application.
+
+## Expédier avant le paiement
+
+Avec `phil/commerce-logistics-bundle`, une commande part une fois que ses paiements couvrent ce qui est dû.
+`CreditShipmentAuthorization`, enregistrée comme une autorisation de plus de la logistique, laisse un acheteur à
+crédit recevoir une commande d'abord : le client de la commande a un compte de crédit actif, dans la devise de la
+commande, dont le crédit disponible couvre ce qu'il reste à payer.
+
+```php
+$shipments->ship($order, $clock->now());                            // a buyer within the credit receives the order
+$creditSales->charge($order, $order->customer(), $clock->now());    // owed on account when the application invoices
+```
+
+L'autorisation ne fait que répondre : ce que l'acheteur doit change quand `charge()` porte l'achat au compte. La
+commande d'un invité, d'un acheteur sans compte ou dont le compte est suspendu, ou au-delà du crédit disponible,
+attend ses paiements, ou est forcée par la logistique par quelqu'un qui en a le droit.
 
 ## Stockage
 

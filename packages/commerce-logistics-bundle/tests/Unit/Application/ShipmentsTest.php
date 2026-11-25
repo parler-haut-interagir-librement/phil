@@ -20,6 +20,7 @@ use Phil\CommerceLogisticsBundle\Domain\Model\StockMovement;
 use Phil\CommerceLogisticsBundle\Domain\Stock\MovementKind;
 use Phil\CommerceLogisticsBundle\Domain\Stock\ReservationState;
 use Phil\CommerceLogisticsBundle\Tests\Unit\Support\InMemoryLogistics;
+use Phil\CommerceLogisticsBundle\Tests\Unit\Support\SwitchableAuthorization;
 use Phil\DddBundle\Domain\Exception\InvalidValue;
 use Phil\Money\Currency;
 use Phil\Money\Money;
@@ -49,7 +50,7 @@ final class ShipmentsTest extends TestCase
         $this->repository->addLocation(Location::of('store', 'Store', 0));
 
         $this->stock = new Stock($this->repository, $this->repository);
-        $this->shipments = new Shipments($this->stock, $this->repository);
+        $this->shipments = new Shipments($this->stock, $this->repository, new SwitchableAuthorization());
         $this->at = new DateTimeImmutable('2026-11-03T10:00:00Z');
     }
 

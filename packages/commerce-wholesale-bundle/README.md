@@ -33,6 +33,7 @@ like any other.
 | Quantity rules per SKU and group: minimum, maximum, increment | Implemented and tested |
 | Price lists per group | Through the catalogue's price books |
 | Sales on credit: accounts, limits, terms, receivables, overdue | Implemented and tested |
+| A buyer on credit receiving an order before paying it, with `phil/commerce-logistics-bundle` | Implemented and tested |
 
 ## Documentation
 

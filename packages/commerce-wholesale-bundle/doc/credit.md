@@ -49,6 +49,21 @@ $creditSales->settleRefund($receivable->id, Money::of(1_500, $cad));    // given
 `settleRefund()` takes up to what is due and returns the part taken. How the money goes back — a transfer, a
 cheque, a credit note — is the application's choice.
 
+## Shipping before the payment
+
+With `phil/commerce-logistics-bundle`, an order ships once its payments cover what it is due. `CreditShipmentAuthorization`,
+registered as one more authorization of the logistics, lets a buyer on credit receive an order first: the order's
+customer has an active credit account, in the order's currency, whose available credit covers what is left to pay.
+
+```php
+$shipments->ship($order, $clock->now());                            // a buyer within the credit receives the order
+$creditSales->charge($order, $order->customer(), $clock->now());    // owed on account when the application invoices
+```
+
+The authorization only answers: what the buyer owes changes once `charge()` puts the purchase on the account. An order
+of a guest, of a buyer without an account or with a suspended one, or beyond the available credit waits for its
+payments, or is forced through the logistics by someone allowed to.
+
 ## Storage
 
 | Table | Holds |

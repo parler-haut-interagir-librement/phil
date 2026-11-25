@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e7649ea5699fd226e992dec4df3ec2aeb0a75b98cad45ffa2caa97f169734f06 -->
+<!-- phil-dev source-sha256=5aa90328f1614585642e40c6d14ba3c1cb2977e00654911885a6cfd3f5617c71 -->
 # Paiements
 
 Une commande passée est payée par un ou plusieurs paiements, chacun par un mode dont la passerelle parle à un
@@ -9,8 +9,8 @@ notification vérifiée par sa passerelle le dit, jamais quand l'acheteur revien
 |---|---|
 | `Domain\Model\Payment` | Un paiement : la commande, le mode, le montant, le montant remboursé, l'état, la référence du processeur |
 | `Domain\Payment\PaymentState` | `New`, `Processing`, `Authorized`, `Completed`, `Failed`, `Cancelled`, `Abandoned`, `Refunded`, `Disputed`, `ChargedBack` |
-| `Domain\Payment\PaymentEvent` | Ce que dit une notification : `Processing`, `Authorized`, `Captured`, `Failed`, `Cancelled`, `Refunded`, `DisputeOpened`, `DisputeWon`, `DisputeLost` |
-| `Domain\ValueObject\PaymentNotification` | Une notification vérifiée : son identifiant, la référence du processeur, l'événement, le montant d'un remboursement |
+| `Domain\Payment\PaymentEvent` | Ce que dit une notification : `Processing`, `Authorized`, `Captured`, `Failed`, `Cancelled`, `Refunded`, `DisputeOpened`, `DisputeWon`, `DisputeLost`, et `Ignored` pour un événement sur lequel la boutique n'agit pas |
+| `Domain\ValueObject\PaymentNotification` | Une notification vérifiée : son identifiant, la référence du processeur, l'événement, le montant d'un remboursement ; ou, faite par `ignored()`, son identifiant et le type du processeur d'un événement sur lequel la boutique n'agit pas |
 | `Domain\ValueObject\PaymentStart` | Ce avec quoi l'acheteur continue : la référence du processeur, une page ou un secret client |
 | `Domain\ValueObject\OrderPayments` | Les paiements d'une commande additionnés : capturé, rendu, net, à payer, état |
 | `Domain\Payment\OrderPaymentState` | `Unpaid`, `PartiallyPaid`, `Paid`, `PartiallyRefunded`, `Refunded` |
@@ -72,7 +72,8 @@ $payments->abandonStale($order, $clock->now()->modify('-1 hour'));  // every new
 ## Notifications
 
 `Payments::notify(string $method, string $payload, array $headers)` demande à la passerelle du mode de vérifier et
-de lire la notification, trouve le paiement par la référence du processeur, et applique l'événement.
+de lire la notification, trouve le paiement par la référence du processeur, et applique l'événement. Elle retourne l'issue, le paiement, si
+un a été trouvé, et la notification telle que la passerelle l'a lue.
 
 | Issue | Quand |
 |---|---|
@@ -80,8 +81,12 @@ de lire la notification, trouve le paiement par la référence du processeur, et
 | `AlreadyApplied` | L'identifiant de la notification a déjà été appliqué : une répétition ne change rien |
 | `Refused` | L'événement ne s'applique pas au paiement dans son état actuel ; rien ne change |
 | `UnknownPayment` | Aucun paiement du mode sous cette référence, pas encore ou pas du tout |
+| `Ignored` | La passerelle a lu un événement sur lequel la boutique n'agit pas : aucun paiement n'est cherché, rien ne change |
 
-Une passerelle qui ne peut pas vérifier ou lire une notification lève `InvalidNotification`.
+Une passerelle qui ne peut pas vérifier ou lire une notification lève `InvalidNotification`. Une passerelle qui
+vérifie la notification d'un événement sur lequel la boutique n'agit pas — un client créé, un virement envoyé —
+retourne `PaymentNotification::ignored($id, $type)`, pour que le processeur sache qu'elle a été reçue et cesse de
+l'envoyer.
 
 | Événement | De | Vers |
 |---|---|---|
@@ -93,6 +98,7 @@ Une passerelle qui ne peut pas vérifier ou lire une notification lève `Invalid
 | `DisputeOpened` | `Completed` | `Disputed` |
 | `DisputeWon` | `Disputed` | `Completed` |
 | `DisputeLost` | `Disputed` | `ChargedBack` |
+| `Ignored` | aucun : `Payment::apply()` la refuse | |
 
 Un remboursement de plus que ce qui reste, de zéro, d'un montant négatif ou dans une autre devise que celle du
 paiement est refusé comme un passage que la table ne liste pas : l'issue est `Refused`, et le *webhook* répond 204.
@@ -113,11 +119,13 @@ phil_commerce_payment_webhook:
 
 | Réponse | Quand | Ce que fait un processeur |
 |---|---|---|
-| 204 | Appliquée, déjà appliquée, ou refusée par l'état du paiement | Cesse de l'envoyer |
+| 204 | Appliquée, déjà appliquée, refusée par l'état du paiement, ou ignorée | Cesse de l'envoyer |
 | 400 | La passerelle ne la vérifie pas ou ne la lit pas | Réessaie, puis abandonne |
 | 404 | Aucune passerelle pour le mode, ou pas encore de paiement sous la référence du processeur | Réessaie |
 
-Le changement est validé avant le 204 : une notification dont la réception est confirmée n'est jamais perdue. Excluez
+Le changement est validé avant le 204 : une notification dont la réception est confirmée n'est jamais perdue. Une notification ignorée
+ne valide rien et est journalisée au niveau `info` du service `logger`, s'il y en a un, avec son identifiant, le type
+de l'événement chez le processeur et le mode : rien de la charge utile, donc aucun renseignement personnel. Excluez
 la route de la protection CSRF et de l'authentification : la vérification de la signature par la passerelle est ce
 qui admet une notification.
 

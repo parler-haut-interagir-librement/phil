@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=78746f567e8e20ee8e460f79bc9fb293fbbab43f68802ef26fda879ec47ec206 -->
+<!-- phil-dev source-sha256=eef225dcf645646a21a6c073be9866816087daef32e1d3e43d965657288ccbd0 -->
 <!-- phil-dev source-sha256=0 -->
 # Tests
 
@@ -22,6 +22,7 @@
 | `ShippingWaves`, `ShippingWave` | Les commandes planifiées, déplacées et retirées, les vagues reportées et énumérées par jour, une vague libérée laissée telle quelle |
 | `DeliveryOptions`, `ShippingProcessor` | Les modes offerts par priorité, les frais par un vrai `OrderModifier`, la gratuité après les promotions, les modes qui ne desservent plus |
 | `Shipments`, `Shipment`, les réservations partielles | Plusieurs colis, ce qui reste, l'état d'exécution, les lignes non suivies, les refus, la libération après une partie |
+| `PaidShipmentAuthorization`, `AnyShipmentAuthorization`, `DenyShipmentForcing`, `ShipmentForced` | Une commande impayée, avec un acompte seulement, un paiement non capturé, payée en une ou deux parties, payée en trop, remboursée sous son total ou jusqu'à lui, de rien ; la première autorisation qui dit oui qui met fin à la recherche ; personne qui force par défaut ; une expédition forcée gardée avec qui et pourquoi, ses unités sorties de la tablette, annoncée en UTC ; son auteur et sa raison vérifiés, une commande passée et ce qui reste toujours exigés |
 | `Parcel`, `ShippingAddress`, `LabelRequest`, `ShippingCost`, `ShippingMargin` | Chaque borne, les adresses incomplètes refusées pour une étiquette, les champs d'une ligne, une marge qui est une perte |
 | `ShippingLabels` | Chaque transporteur interrogé, ceux qui ne répondent pas laissés de côté, le moins cher d'abord, l'échec d'un transporteur montré, un coût noté une seule fois, la marge dans la devise de la commande |
 | `CanadaPostCarrier`, `CanadaPostCredentials` | Les requêtes envoyées — le jeton, les en-têtes, les corps JSON, les délais — et les réponses lues, par le `MockHttpClient` de Symfony sur des réponses gardées dans `tests/Fixtures/CanadaPost` ; le jeton gardé, renouvelé et oublié ; chaque réponse non fiable refusée, les liens vers d'autres hôtes refusés, les réponses trop grandes coupées |

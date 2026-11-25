@@ -14,6 +14,12 @@ The next version is 0.1.1-alpha.
   `symfony/translation-contracts` 3.8), and of each development requirement (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
   `doctrine/doctrine-bundle` 3.4, `symfony/service-contracts` 3.8, …). The publication dates are read through the type
   provider of the connection, as DBAL 4.6 asks, instead of the static `Type::getType()`.
+- The development requirements take `twig/html-extra` 3.31.1 or later, which fixes the advisories of its sandbox
+  published on 2026-11-24.
+
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
 
 ## 0.1.0-alpha - 2026-11-15
 

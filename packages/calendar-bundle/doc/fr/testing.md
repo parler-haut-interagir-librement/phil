@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8b2b77d0bc2026ab3f8173ef7678bbf7c3619f88805acdb19fc4e6255af9b7ed -->
+<!-- phil-dev source-sha256=778b92d5f9bb5479901bfa9272a46642c821c8e37ae4aee74c55bc42d4f9ebf0 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -58,3 +58,11 @@ budget tient au même temps. Depuis la racine du monodépôt :
 ```sh
 composer bench -- packages/calendar-bundle/tests/Benchmark
 ```
+
+## Les requêtes de LiveComponent
+
+`tests/Functional/LiveRequestsTest.php` envoie au composant les requêtes que le navigateur envoie, et le tient à ce que
+LiveComponent 3.8.1 impose : sous le nom de sa classe plutôt que sous son nom, le composant répond 404 ; un 422 levé
+avant son action, par un résolveur d'arguments ou un attribut de contrôleur, n'en produit aucun rendu ; et une
+redirection répond 204 avec `X-Live-Redirect` et son `Location`, sans `X-Live-Url`, tandis qu'une réponse ordinaire
+porte l'adresse que ses propriétés d'URL écrivent.

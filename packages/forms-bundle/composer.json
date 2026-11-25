@@ -37,7 +37,7 @@
         "symfony/http-kernel": "^8.2",
         "symfony/options-resolver": "^8.2",
         "symfony/uid": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "ext-intl": "*",

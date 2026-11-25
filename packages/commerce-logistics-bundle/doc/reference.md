@@ -10,7 +10,7 @@ Every public type of the module.
 | `Domain\Model\StockMovement` | `final class`, Doctrine entity | A line of the stock journal |
 | `Domain\Model\Reservation` | `final class`, Doctrine entity | Units set aside for an order; of those shipped, how many came back |
 | `Domain\Model\DeliveryMethod` | `final class`, Doctrine entity | A way an order reaches its buyer |
-| `Domain\Model\Shipment` | `final class`, Doctrine entity | A parcel that left: lines, carrier, tracking |
+| `Domain\Model\Shipment` | `final class`, Doctrine entity | A parcel that left: lines, carrier, tracking; who forced it and why, for a forced shipment |
 | `Domain\Model\ShippingCost` | `final class`, Doctrine entity | What a shipment really cost: carrier, service, tracking, amount |
 | `Domain\Model\StockPolicy` | `final class`, Doctrine entity | Whether a SKU sells without stock |
 | `Domain\Model\Convention`, `ConventionQuantity` | `final class`, Doctrine entities | A convention and its days; the units of a SKU prepared for it |
@@ -23,6 +23,7 @@ Every public type of the module.
 | `Domain\Cost\CostShare` | `final class` | A part of a value at its unit rate, rounded half up; a landed cost shared over lines by `Money::allocate()` |
 | `Domain\ValueObject\ValuedStock`, `SaleCost` | `final readonly class` | The shop's costed units of a SKU at a location and their value; the cost of one sale's units of a SKU |
 | `Domain\Event\UnitsShipped`, `ShippedLine` | `final readonly class`, the first a `DomainEvent` | Units of an order that left the shelf, per SKU and location |
+| `Domain\Event\ShipmentForced` | `final readonly class`, a `DomainEvent` | A shipment forced past the authorizations: the shipment, the order and who forced it |
 | `Domain\Model\SerialNumber` | `final class`, Doctrine entity | A unit known by its serial number, where it is, the order it left with |
 | `Domain\Model\ShippingDocument` | `final class`, Doctrine entity | The number a delivery note or a picking slip was issued under |
 | `Domain\Model\ShippingWave`, `WaveAssignment` | `final class`, Doctrine entities | Orders planned to ship on an estimated day; an order in a wave |
@@ -32,7 +33,7 @@ Every public type of the module.
 | `Domain\Delivery\FulfilmentState` | string-backed enum | `Unshipped`, `Partial`, `Shipped` |
 | `Domain\Stock\MovementKind`, `Domain\Stock\ReservationState`, `Domain\Delivery\DeliveryKind` | string-backed enums | Why stock moved, `adjusted`, `backordered` and `returned` included; where a reservation stands; how an order is delivered |
 | `Domain\Purchasing\PurchaseState`, `Domain\Serial\SerialState`, `Domain\Document\ShippingDocumentKind` | string-backed enums | Where a purchase order stands; where a serialised unit is; a delivery note or a picking slip |
-| `Domain\Exception\StockRefused` | `final class`, `DomainError` | A movement, a serial number, a wave or a convention that cannot be as asked |
+| `Domain\Exception\StockRefused` | `final class`, `DomainError` | A movement, a serial number, a wave or a convention that cannot be as asked; a shipment not authorized, or forced by someone not allowed to |
 | `Domain\Exception\PurchaseRefused` | `final class`, `DomainError` | A purchase order, or a receipt against it, that cannot happen |
 | `Domain\Exception\CarrierRefused` | `final class`, `DomainError` | A carrier unknown, refusing or silent; a cost recorded twice or in another currency |
 | `Domain\Exception\CostRefused` | `final class`, `DomainError` | A cost, a layer, a landed cost or an owners' share that cannot be recorded |
@@ -43,7 +44,12 @@ Every public type of the module.
 | `Application\Port\CarrierGateway` | interface | A carrier's rates and labels; tagged `phil_commerce_logistics.carrier` |
 | `Application\Port\PrintOnDemand` | interface | Units sent to print; tagged `phil_commerce_logistics.print_on_demand` |
 | `Application\Stock` | `final readonly class` | Receiving, counts, adjustments with a reason, transfers, reservations, shipping them whole or in part, customer returns; announces `UnitsShipped` |
-| `Application\Shipments` | `final readonly class` | Shipping an order in parcels, what is left, its fulfilment |
+| `Application\Shipments` | `final readonly class` | Shipping an order in parcels once authorized, forcing a shipment, what is left, its fulfilment |
+| `Application\Contract\ShipmentAuthorization` | interface | Whether a placed order may leave now |
+| `Application\Contract\ShipmentForcing` | interface | Who may force the shipment of an order no authorization lets leave |
+| `Application\PaidShipmentAuthorization` | `final readonly class` | Lets an order leave once its payments cover what it is due |
+| `Application\AnyShipmentAuthorization` | `final readonly class` | Lets an order leave when one of the tagged authorizations does |
+| `Application\DenyShipmentForcing` | `final readonly class` | Nobody forces a shipment: the default alias of `ShipmentForcing` |
 | `Application\DeliveryOptions` | `final readonly class` | The methods serving an order, the chosen one, its cost |
 | `Application\ShippingProcessor` | `final readonly class`, the core's `OrderProcessor` | The delivery charge, after the promotions and before the taxes |
 | `Application\ShippingLabels` | `final readonly class` | Rates of the carriers, labels, the cost of each shipment, an order's margin |

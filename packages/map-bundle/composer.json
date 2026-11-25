@@ -40,7 +40,7 @@
         "symfony/translation-contracts": "^3.8",
         "symfony/ux-leaflet-map": "^3.8",
         "symfony/ux-map": "^3.8",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "ext-gd": "*",

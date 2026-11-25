@@ -67,6 +67,57 @@ final class ContentTest extends TestCase
         yield 'an object printed' => ['{{ date }}', ['date' => new DateTimeImmutable()], 'The template cannot be rendered'];
     }
 
+    /**
+     * The advisories of Twig 3.31.1: `join` on an object that is not iterable, `__toString()` reached through an
+     * assignment, a test, a spread argument or a captured block, none of which the policy allows.
+     */
+    #[DataProvider('leaks')]
+    public function testASandboxedTemplateNeverRevealsAnObjectOfTheContext(string $source): void
+    {
+        $object = new class {
+            public string $secret = 'S3CRET-PROPERTY';
+
+            public function __toString(): string
+            {
+                return 'S3CRET-STRING';
+            }
+        };
+        $plain = new class {
+            public string $secret = 'S3CRET-PROPERTY';
+        };
+
+        try {
+            $output = new SandboxedTemplates()->render($source, ['object' => $object, 'plain' => $plain]);
+        } catch (InvalidNewsletterValue $invalidNewsletterValue) {
+            self::assertStringStartsWith('The template cannot be rendered: ', $invalidNewsletterValue->getMessage());
+            self::assertStringNotContainsString('S3CRET', $invalidNewsletterValue->getMessage());
+
+            return;
+        }
+
+        self::assertStringNotContainsString('S3CRET', $output);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function leaks(): iterable
+    {
+        yield 'join on an object' => ['{{ plain|join(",") }}'];
+        yield 'join on a stringable object' => ['{{ object|join(",") }}'];
+        yield 'join on a list of objects' => ['{{ [object]|join }}'];
+        yield 'first of an object' => ['{{ plain|first }}'];
+        yield 'last of an object' => ['{{ plain|last }}'];
+        yield 'a loop over an object' => ['{% for value in plain %}{{ value }}{% endfor %}'];
+        yield 'an assignment' => ['{% set copy = object %}{{ copy }}'];
+        yield 'an assignment expression' => ['{{ (copy = object) }}'];
+        yield 'a captured block' => ['{% set copy %}{{ object }}{% endset %}{{ copy }}'];
+        yield 'a test input' => ['{{ object is empty ? "e" : "f" }}'];
+        yield 'a concatenation' => ['{{ object ~ "" }}'];
+        yield 'a filter input' => ['{{ object|upper }}'];
+        yield 'a spread argument' => ['{{ "%s"|format(...[object]) }}'];
+    }
+
     public function testCheckRefusesWhatDoesNotCompile(): void
     {
         $this->expectException(InvalidNewsletterValue::class);

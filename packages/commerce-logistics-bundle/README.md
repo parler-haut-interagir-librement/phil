@@ -40,6 +40,7 @@ movements made over the same copy.
 | Purchase orders, the unit cost and owner of their lines, their receipts; serial numbers | Implemented and tested |
 | Costing: weighted average or first in, first out, landed costs, variances by reason, returns at their cost, consigned units kept out, `InventoryValuation` | Implemented and tested |
 | Shipments: an order in one parcel or several, carrier and tracking; `UnitsShipped` | Implemented and tested |
+| A shipment authorized once the payments cover the order, other authorizations by a port, a forced shipment by permission, kept with who and why, `ShipmentForced` | Implemented and tested |
 | Delivery notes, picking slips, shipping waves | Implemented and tested |
 | Delivery methods per zone, free threshold, delivery charges | Implemented and tested |
 | Carriers' rates and labels, the cost of each shipment, Canada Post | Implemented and tested; Canada Post's field names not yet compared with its OpenAPI document |
@@ -54,7 +55,7 @@ movements made over the same copy.
 | [Purchasing](doc/purchasing.md) | Purchase orders and their receipts; the serial number of each unit. |
 | [Costing](doc/costing.md) | The value of the stock at cost: methods, landed costs, variances, returns, owners, reading the value, storage. |
 | [Delivery](doc/delivery.md) | Delivery methods, what an order pays, storage. |
-| [Shipments](doc/shipments.md) | Shipping an order in one parcel or several, what is left, delivery notes, picking slips, waves, storage. |
+| [Shipments](doc/shipments.md) | Shipping an order in one parcel or several once authorized, forcing a shipment, what is left, delivery notes, picking slips, waves, storage. |
 | [Carriers](doc/carriers.md) | Rates and labels, the cost of each shipment against the delivery charged, Canada Post. |
 | [Scope](doc/scope.md) | What the module holds, what lies outside it, and the ports of the core it implements. |
 | [Extension points](doc/extension-points.md) | What an application implements, configures, replaces or relies on. |

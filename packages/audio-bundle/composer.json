@@ -43,7 +43,7 @@
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-twig-component": "^3.8",
         "symfony/yaml": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "conflict": {
         "phil/media-bundle": "<0.1.1"

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1d9f8d7444c4e91a5493c10518c7163d6bd1d2064066aa3a353db0f37dbc3d1d -->
+<!-- phil-dev source-sha256=61cc069e1d1c0c4cce3906718110b04ca13d8be4649de07b9b07005a7b866bf5 -->
 # phil/commerce-wholesale-bundle
 
 **Des groupes de clients avec leurs propres prix, leur commande minimale et leurs règles de quantité, et des ventes à
@@ -36,6 +36,7 @@ sa règle ne permet pas. Un achat à crédit est un paiement du noyau avec la m�
 | Règles de quantité par *SKU* et par groupe : minimum, maximum, incrément | Implémenté et testé |
 | Listes de prix par groupe | Par les carnets de prix du catalogue |
 | Ventes à crédit : comptes, limites, modalités, créances, souffrances | Implémenté et testé |
+| Un acheteur à crédit qui reçoit une commande avant de la payer, avec `phil/commerce-logistics-bundle` | Implémenté et testé |
 
 ## Documentation
 

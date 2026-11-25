@@ -14,6 +14,8 @@ The next version is 0.1.1-alpha.
   earlier one, so that the package installs on its own beside that bundle.
 - Requires the latest minor of each dependency (`symfony/service-contracts` 3.8), and of each development requirement
   (`twig/twig` 3.31, `symfony/http-client-contracts` 3.8).
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
 
 ## 0.1.0-alpha - 2026-11-12
 

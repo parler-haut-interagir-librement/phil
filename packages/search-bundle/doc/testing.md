@@ -8,13 +8,19 @@
 | `DbalSearchIndex`, its table and listener | Words and filters, escaping, ranking, pages, replacing, removing, clearing, a rebuild in one transaction, index names, alternatives and phrases, lists of values, facets counted without their own filter |
 | `MeilisearchIndex` | The requests sent, filterable attributes merged with the index's, filter values with accents, slashes and quotes, lists with `IN`, facets in one search or in `/multi-search`, synonyms, a rebuild by swap, the answers read, refusals, index names |
 | `Search`, `IndexOnFlushListener`, `ReindexCommand`, `SynonymsCommand` | Indexing, several resources in one call and their removals one call per index, drafts, several providers, rebuilds in batches and their failure, index names, flushes, their entities indexed together in the order of the changes, deletions under the identifier read before the flush, failed and cleared flushes, the commands, the synonyms read or given to the engine |
-| `PhilSearchBundle` | The three adapters, the synonyms, the component, the controller's directory, settings refused |
+| `SearchOutboxCodec`, `OutboxIndexingListener` | Both records rebuilt, the identifier read back by field, a class no longer mapped skipped, an index refused, the ordering key of one entity |
+| `PhilSearchBundle` | The three adapters, the modes of `index_entities` and their defaults, the outbox required, the synonyms, the component, the controller's directory, settings refused |
 
 A functional suite boots a kernel with FrameworkBundle, DoctrineBundle on SQLite, pages and notes and their providers:
 pages are found as they are flushed, renamed and deleted, and rebuilt; a note, whose identifier the database
 generates, leaves the index when it is deleted. The same kernel draws a results page of games with the recipes of the
 PHIL UX kit copied where the Toolkit would put them: its filters are ticked and removed by plain forms and links, and
 its words read the synonyms of a directory.
+
+A second kernel indexes through `phil/outbox-bundle`, whose records share the SQLite database: a flush is found once
+the outbox is relayed, renamed and deleted; a note's indexing and removal go in their order; a flush the caller rolls
+back leaves no record and no document; and with the index taken down, the page is saved, the delivery tried again, and
+the index caught up once it is back.
 
 ```sh
 vendor/bin/phpunit packages/search-bundle/tests

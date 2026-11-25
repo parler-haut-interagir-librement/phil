@@ -2,7 +2,7 @@
 
 ## Requirements
 
-PHP 8.5 or later with `ext-intl`, Symfony 8.2 or later, Symfony UX Live Component and Twig Component 3.7 or later,
+PHP 8.5 or later with `ext-intl`, Symfony 8.2 or later, Symfony UX Live Component 3.8.1 and Twig Component 3.8 or later,
 Doctrine DBAL 4.5 and ORM 3.7, and twig/intl-extra, whose `format_list` writes the names of those who reacted in the
 language of the page. The bundle registers the extension of twig/intl-extra itself, unless TwigExtraBundle is there to
 register it. FrameworkBundle's CSRF protection has to be on: the container stops with a message that says so

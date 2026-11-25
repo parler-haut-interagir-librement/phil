@@ -8,6 +8,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
+### Added
+
+- `LiveRequestsTest`: the component through the requests of LiveComponent 3.8.1, which serves it under its name only,
+  renders nothing of it on a 422 raised before its action, and answers a redirection without `X-Live-Url`.
+
 ### Changed
 
 - The development requirements accept `phil/privacy-bundle` 0.3, the minor version of its main branch and no earlier
@@ -16,6 +21,14 @@ The next version is 0.1.1-alpha.
   0.3, `symfony/event-dispatcher-contracts` 3.8, …), and of each development requirement (`symfony/ux-live-component`
   3.8.1, `doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, `symfony/ux-twig-component` 3.8, …):
   `symfony/ux-live-component` 3.8.1 fixes CVE-2026-133774 and CVE-2026-133778.
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
+
+### Security
+
+- Conflicts with `symfony/ux-live-component` before 3.8.1, which fixes the advisories of 2026-11-24: a batched request
+  without an action that rendered a component past its `#[IsGranted]`, and a component of its own route still reached
+  through `/_components`. The development requirements take it at 3.8.1 and `symfony/ux-twig-component` at 3.8.
 
 ## 0.1.0-alpha - 2026-11-20
 

@@ -41,6 +41,68 @@ one, once per order and SKU — see [Conventions](conventions.md).
 | `conventions.window_days` | How many days ahead a convention counts as near, 0 to 366; 30 by default |
 | `conventions.online_channels` | The channels whose orders are placed online, beside orders without a channel |
 
+## `ShipmentAuthorization`
+
+`Application\Contract\ShipmentAuthorization` says whether a placed order may leave now. A service implementing it is
+tagged `phil_commerce_logistics.shipment_authorization` by autoconfiguration; `Shipments::ship()` asks them through
+`AnyShipmentAuthorization` and ships when one says yes. `PaidShipmentAuthorization`, the bundle's own, says yes once the
+payments cover what the order is due — see [Shipments](shipments.md#authorized-to-ship).
+
+| Method | Contract |
+|---|---|
+| `authorizes(Order $order): bool` | Whether the order may leave; it changes, charges and records nothing |
+
+```php
+use Phil\CommerceBundle\Domain\Model\Order;
+use Phil\CommerceLogisticsBundle\Application\Contract\ShipmentAuthorization;
+
+/** The customers the application invoices at the end of the month, whose orders leave before they are paid. */
+final readonly class InvoicedCustomers implements ShipmentAuthorization
+{
+    /** @param list<string> $customers stable identifiers */
+    public function __construct(private array $customers)
+    {
+    }
+
+    public function authorizes(Order $order): bool
+    {
+        return \in_array($order->customer(), $this->customers, true);
+    }
+}
+```
+
+## `ShipmentForcing`
+
+`Application\Contract\ShipmentForcing` says who may ship an order no authorization lets leave, through `Shipments::force()`.
+`DenyShipmentForcing`, the bundle's alias, refuses everyone — see [Shipments](shipments.md#forcing-a-shipment).
+
+| Method | Contract |
+|---|---|
+| `allows(Order $order, string $actor): bool` | Whether the actor, by their stable identifier, may force the shipment of the order |
+
+```php
+use Phil\CommerceBundle\Domain\Model\Order;
+use Phil\CommerceLogisticsBundle\Application\Contract\ShipmentForcing;
+use Symfony\Bundle\SecurityBundle\Security;
+
+final readonly class VoterShipmentForcing implements ShipmentForcing
+{
+    public function __construct(private Security $security)
+    {
+    }
+
+    public function allows(Order $order, string $actor): bool
+    {
+        return $this->security->isGranted('ROLE_SHIPMENT_FORCE', $order);
+    }
+}
+```
+
+```yaml
+services:
+    Phil\CommerceLogisticsBundle\Application\Contract\ShipmentForcing: '@App\Logistics\VoterShipmentForcing'
+```
+
 ## Costing
 
 `Application\Contract\StockOwnership` says whose units leave a stock level that the shop's own units and units left on
@@ -60,8 +122,9 @@ with or without costing. See [Costing](costing.md).
 | Event | Dispatched by | When |
 |---|---|---|
 | `Domain\Event\UnitsShipped` | `Stock`, through the service `event_dispatcher` when there is one | Units left the shelf: once per `ship()` or `shipPart()` that moved units, a line per SKU and location |
+| `Domain\Event\ShipmentForced` | `Shipments`, through the service `event_dispatcher` when there is one | Someone forced a shipment no authorization let leave, once it is kept |
 
-The event carries identifiers and counts only — see [Shipments](shipments.md#units-shipped).
+The events carry identifiers and counts only — see [Shipments](shipments.md#units-shipped).
 
 ## Repositories
 

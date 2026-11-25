@@ -50,7 +50,7 @@
         "symfony/service-contracts": "^3.8",
         "symfony/translation": "^8.2",
         "symfony/uid": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.4",

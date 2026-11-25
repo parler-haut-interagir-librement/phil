@@ -35,7 +35,7 @@
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2",
         "symfony/ux-twig-component": "^3.8",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "phil/paged-media-bundle": "^0.1@dev",
@@ -56,7 +56,7 @@
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-toolkit": "^3.8",
         "symfony/yaml": "^8.2",
-        "twig/html-extra": "^3.31"
+        "twig/html-extra": "^3.31.1"
     },
     "suggest": {
         "phil/paged-media-bundle": "For DeckPdf, the PDF of a deck through the configured print engine",

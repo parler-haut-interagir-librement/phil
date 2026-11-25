@@ -42,3 +42,11 @@ self::assertStringStartsWith("Order,Date,Total,Paid\r\n", array_values($exports-
 
 `InMemoryJobStore::ids()` and `InMemoryExportStore::contents()` show what the stores hold. A source or a report is
 tested on its own with a `Period` built by hand.
+
+## The requests of LiveComponent
+
+`tests/Functional/LiveRequestsTest.php` sends the component the requests the browser sends, and holds it to what
+LiveComponent 3.8.1 enforces: under its class name instead of its name, the component answers 404; a 422 raised before
+its action, by an argument resolver or a controller attribute, renders nothing of it; and a redirection answers 204 with
+`X-Live-Redirect` and its `Location`, without `X-Live-Url`, while an ordinary answer carries the address its URL props
+write.

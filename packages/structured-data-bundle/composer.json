@@ -48,7 +48,7 @@
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "phil/browser-security-bundle": "For the script nonce of its content security policy, when the site wants one on the script element",

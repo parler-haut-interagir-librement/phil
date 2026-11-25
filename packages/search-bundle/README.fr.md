@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2054fc6068c1863d8ff851e10e3e34b30659e61acfec077854712e59f2c20ef1 -->
+<!-- phil-dev source-sha256=54f180b48824a63564dd5eaf2c32f8b4c091c735484cce3c9401206f5d74af48 -->
 # phil/search-bundle
 
 **La recherche plein texte dans vos propres ressources, tenue à jour à chaque `flush` de Doctrine.**
@@ -40,7 +40,7 @@ configuration et une réindexation, puisque les fournisseurs ne changent pas.
 | `Search` : indexer, retirer, chercher, reconstruire ; `SearchIndex`, `DocumentProvider` | Implémentés et testés |
 | `DbalSearchIndex`, sa table et son écouteur de schéma | Implémentés et testés |
 | `MeilisearchIndex` | Implémenté et testé |
-| L'indexation à chaque `flush` ; `phil:search:reindex` | Implémentées et testées |
+| L'indexation à chaque `flush`, par `phil/outbox-bundle` par défaut avec Meilisearch et Loupe ; `phil:search:reindex` | Implémentées et testées |
 | Les facettes : listes de valeurs, compte par valeur, chaque facette comptée sans son propre filtre | Implémentées et testées |
 | Les synonymes par langue : le port, l'expanseur, le magasin de `phil/search-synonyms`, les formes rejetées ; `phil:search:synonyms` | Implémentés et testés |
 | `SearchRequest` ; le composant `PhilSearchFilters` ; le contrôleur Stimulus `filters` | Implémentés et testés, aussi dans un navigateur |

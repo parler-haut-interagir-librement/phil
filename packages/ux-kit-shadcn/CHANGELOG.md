@@ -4,6 +4,17 @@ All notable changes to `phil/ux-kit-shadcn` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements take `twig/twig` and `twig/html-extra` 3.31.1 or later, which fixes the advisories of its
+  sandbox published on 2026-11-24.
+
 ## 0.2.0-alpha - 2026-11-24
 
 ### Added

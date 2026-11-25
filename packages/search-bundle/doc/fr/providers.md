@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ec98571c0f41437036ac64303013225c0cb34777f103a39dcfea08d8f316ab43 -->
+<!-- phil-dev source-sha256=f20c2b1abbc2e9d8b8137dbb5aef4e8bc701db77c14f5e3665862b349fff9055 -->
 # Fournisseurs
 
 Un `DocumentProvider` change une sorte de ressource en documents d'un index ; avec l'autoconfiguration, le bundle le
@@ -29,8 +29,54 @@ filtre, chacun un scalaire ou une liste de scalaires. Un document `null` retire 
 
 ## Ce que fait un `flush`
 
-Avec `index_entities`, `IndexOnFlushListener` indexe chaque entité qu'un `flush` insère ou met à jour, et retire
-chaque entité qu'il supprime, une fois le `flush` réussi. La place d'une entité supprimée dans les index,
+`index_entities` dit comment les index apprennent un `flush` :
+
+| Mode | Valeur par défaut avec | Ce qui se passe |
+|---|---|---|
+| `outbox` | `meilisearch`, `loupe` | Les changements du `flush` sont notés dans la table de `phil/outbox-bundle`, dans la transaction du `flush`, et indexés une fois que le relais les livre |
+| `direct` | `dbal` | `IndexOnFlushListener` indexe les changements du `flush` une fois qu'il réussit, dans la même requête |
+| `none` | — | Rien n'est indexé à un `flush` ; l'application appelle `Search` elle-même |
+
+`true` est la valeur par défaut de l'adaptateur, `false` vaut `none`.
+
+### Par l'outbox
+
+Un index hors de la base de données ne peut pas se joindre à la transaction de la base de données. Écrit après le
+commit, comme le fait `direct`, il manque ce qu'un `flush` a validé pendant que le moteur était arrêté, et un `flush`
+dans une transaction que l'appelant annule ensuite l'a déjà atteint. `OutboxIndexingListener` note plutôt, dans la
+transaction du `flush`, sur la connexion des entités :
+
+- chaque entité qu'un fournisseur connaît et que le `flush` insère ou met à jour, par sa classe et son identifiant ;
+- chaque document d'une entité que le `flush` supprime, par son index et son identifiant dans celui-ci, lu avant que la
+  ligne soit supprimée.
+
+Les enregistrements sont validés avec les lignes, ou pas du tout. Le relais de `phil/outbox-bundle` —
+`phil:outbox:relay`, son horaire ou le pont de Messenger — les reconstruit par `SearchOutboxCodec` et les envoie ;
+`OutboxIndexer` relit l'entité et l'indexe telle qu'elle est alors, ne fait rien si elle a disparu, ou retire le
+document. Un moteur arrêté fait échouer la livraison, que le relais réessaie après son délai, le contenu étant
+sauvegardé entre-temps. Les enregistrements d'une même entité partagent une clé d'ordre : son indexation et son retrait
+vont donc dans l'ordre où ils ont eu lieu, un par lot du relais.
+
+```yaml
+# config/packages/phil_outbox.yaml
+phil_outbox:
+    connection: default      # the connection of the entities phil_search indexes
+```
+
+- **L'outbox sur la même connexion.** `phil_outbox.connection` est la connexion de `phil_search.connection` : les
+  enregistrements ne se joignent à la transaction du `flush` que là.
+- **Des identifiants seulement.** Un enregistrement porte la classe et l'identifiant de l'entité, jamais un champ de son
+  document. Un identifiant est une chaîne ou un entier, une énumération ou une valeur *stringable*, sans `@` ni espace ;
+  un autre refuse le `flush`, et cette entité est indexée avec `index_entities: direct`.
+- **Un document par livraison.** Chaque enregistrement va à l'index seul : un gros import s'indexe plus vite avec
+  `phil:search:reindex` ensuite.
+- Sans `phil/outbox-bundle`, `outbox` — la valeur par défaut avec Meilisearch et Loupe — est refusé à la construction
+  du conteneur ; installez-le, ou choisissez `direct`.
+
+### Après le `flush`
+
+Avec `index_entities: direct`, `IndexOnFlushListener` indexe chaque entité qu'un `flush` insère ou met à jour, et
+retire chaque entité qu'il supprime, une fois le `flush` réussi. La place d'une entité supprimée dans les index,
 `Search::addressesOf()`, est lue avant le `flush`, pendant que son identifiant est connu : Doctrine vide un
 identifiant généré une fois la ligne supprimée. Un `flush` qui échoue ferme son gestionnaire d'entités, et ce qu'il
 aurait indexé disparaît avec lui ; vider le gestionnaire d'entités, ou le `kernel.reset` du conteneur entre les
