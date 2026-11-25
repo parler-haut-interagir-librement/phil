@@ -19,6 +19,8 @@ The next version is 0.1.1-alpha.
 - The vote tokens were signed with the HMAC under `%kernel.secret%` itself, which other bundles keyed their own hashes
   with. `VoteTokens` derives its key by HKDF-SHA256 under `phil_faq.vote_token` (`VoteTokens::USAGE`). A page served
   before the update votes no more: it is served again with a new token.
+- Conflicts with `easycorp/easyadmin-bundle` below 5.10.4, the release that fixes GHSA-f7rw-7wx5-3c54: an application
+  cannot install this bundle next to a vulnerable EasyAdmin, which stays optional.
 
 ## 0.1.0-alpha - 2026-11-24
 

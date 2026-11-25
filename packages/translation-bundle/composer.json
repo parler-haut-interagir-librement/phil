@@ -50,6 +50,9 @@
         "symfony/framework-bundle": "^8.2",
         "symfony/twig-bundle": "^8.2"
     },
+    "conflict": {
+        "easycorp/easyadmin-bundle": "<5.10.4"
+    },
     "suggest": {
         "easycorp/easyadmin-bundle": "For the menu links to the glossary pages in an EasyAdmin back office",
         "symfony/asset-mapper": "To serve the screen's Stimulus controller without a build step",

@@ -54,6 +54,9 @@
         "symfony/translation": "^8.2",
         "symfony/twig-bundle": "^8.2"
     },
+    "conflict": {
+        "easycorp/easyadmin-bundle": "<5.10.4"
+    },
     "suggest": {
         "doctrine/orm": "To add the tuple table to the schema the ORM generates",
         "easycorp/easyadmin-bundle": "For the voter on EA_ACCESS_ENTITY and EA_EXECUTE_ACTION",

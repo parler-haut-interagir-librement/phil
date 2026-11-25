@@ -65,6 +65,9 @@
         "symfony/twig-bundle": "^8.2",
         "symfony/yaml": "^8.2"
     },
+    "conflict": {
+        "easycorp/easyadmin-bundle": "<5.10.4"
+    },
     "suggest": {
         "easycorp/easyadmin-bundle": "For the links of the administration in an EasyAdmin back office",
         "phil/ux-kit": "For the recipes the component draws — Button, Input, CopyButton —, through the Symfony UX Toolkit",

@@ -22,6 +22,8 @@ The next version is 0.2.2-alpha.
 ### Security
 
 - Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+- Conflicts with `easycorp/easyadmin-bundle` below 5.10.4, the release that fixes GHSA-rrpv-c5fp-ppxr and
+  GHSA-jqfc-9phg-ghr7: an application cannot install this bundle next to a vulnerable EasyAdmin, which stays optional.
 
 ## 0.2.1-alpha - 2026-11-18
 

@@ -40,6 +40,8 @@ The next version is 0.1.1-alpha.
 - The throttle of the browser errors counted each client by the HMAC of its address under the secret itself,
   `%kernel.secret%` by default, the same hash other bundles kept for the same address. `BrowserErrorReceiver` derives
   its key by HKDF-SHA256 under `phil_error_tracking.browser_throttle` (`BrowserErrorReceiver::USAGE`).
+- Conflicts with `easycorp/easyadmin-bundle` below 5.10.4, the release that fixes GHSA-f7rw-7wx5-3c54: an application
+  cannot install this bundle next to a vulnerable EasyAdmin, which stays optional.
 
 ## 0.1.0-alpha - 2026-11-20
 

@@ -53,6 +53,9 @@
         "symfony/twig-bundle": "^8.2",
         "twig/twig": "^3.31.1"
     },
+    "conflict": {
+        "easycorp/easyadmin-bundle": "<5.10.4"
+    },
     "suggest": {
         "easycorp/easyadmin-bundle": "For the links of the administration in an EasyAdmin back office",
         "phil/bot-detection-bundle": "For the robot verdict that keeps a robot's 404 out of the log",

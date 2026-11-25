@@ -20,6 +20,11 @@ Development only.
   GHSA-f7rw-7wx5-3c54: a link to a route, like the menu links of this bundle, passed its `routeParams` to the controller
   of that route as arguments.
 
+### Security
+
+- Conflicts with `easycorp/easyadmin-bundle` below 5.10.4, the release that fixes GHSA-f7rw-7wx5-3c54: an application
+  cannot install this bundle next to a vulnerable EasyAdmin, which stays optional.
+
 ## 0.1.2-alpha - 2026-11-20
 
 A quarantine that reaches `public/` through a symbolic link is refused like one

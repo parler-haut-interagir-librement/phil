@@ -73,6 +73,9 @@
         "symfony/web-link": "^8.2",
         "twig/twig": "^3.31.1"
     },
+    "conflict": {
+        "easycorp/easyadmin-bundle": "<5.10.4"
+    },
     "suggest": {
         "easycorp/easyadmin-bundle": "For MediaField, the field of a medium in EasyAdmin",
         "league/flysystem-aws-s3-v3": "To keep files in an S3 bucket",

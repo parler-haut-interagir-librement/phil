@@ -60,6 +60,7 @@
         "twig/twig": "^3.31.1"
     },
     "conflict": {
+        "easycorp/easyadmin-bundle": "<5.10.4",
         "symfony/ux-live-component": "<3.8.1"
     },
     "suggest": {
