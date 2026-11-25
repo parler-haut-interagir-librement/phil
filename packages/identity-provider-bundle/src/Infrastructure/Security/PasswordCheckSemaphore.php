@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Infrastructure\Security;
 
+use Symfony\Component\Clock\ClockInterface;
+use Symfony\Component\Clock\MonotonicClock;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
@@ -27,13 +29,15 @@ final readonly class PasswordCheckSemaphore
     private const int PAUSE = 5_000;
 
     /**
-     * @param positive-int $slots how many hashes run at once
-     * @param float        $wait  how long a hash waits for a slot, in seconds
+     * @param positive-int   $slots how many hashes run at once
+     * @param float          $wait  how long a hash waits for a slot, in seconds
+     * @param ClockInterface $clock the clock of the wait, which is monotonic unless a test gives another
      */
     public function __construct(
         private LockFactory $locks,
         private int $slots,
         private float $wait,
+        private ClockInterface $clock = new MonotonicClock(),
     ) {
     }
 
@@ -48,8 +52,9 @@ final readonly class PasswordCheckSemaphore
      */
     public function run(callable $hash): mixed
     {
-        $deadline = $this->now() + (int) round($this->wait * 1_000_000);
-        $first = random_int(0, $this->slots - 1);
+        $deadline = $this->microseconds() + round($this->wait * 1_000_000);
+        // Where the round over the slots starts: the load spreads over the slots; the remainder of a negative draw is made positive, which keeps the draw even.
+        $first = abs(random_int(\PHP_INT_MIN, \PHP_INT_MAX) % $this->slots);
 
         do {
             for ($i = 0; $i < $this->slots; ++$i) {
@@ -66,10 +71,10 @@ final readonly class PasswordCheckSemaphore
                 }
             }
 
-            $remaining = $deadline - $this->now();
+            $remaining = $deadline - $this->microseconds();
 
             if ($remaining > 0) {
-                usleep(min(self::PAUSE, $remaining));
+                $this->clock->sleep(min(self::PAUSE, $remaining) / 1_000_000);
             }
         } while ($remaining > 0);
 
@@ -77,12 +82,10 @@ final readonly class PasswordCheckSemaphore
     }
 
     /**
-     * The monotonic clock, in microseconds.
+     * The clock, in microseconds.
      */
-    private function now(): int
+    private function microseconds(): int
     {
-        [$seconds, $nanoseconds] = hrtime();
-
-        return $seconds * 1_000_000 + intdiv($nanoseconds, 1000);
+        return (int) $this->clock->now()->format('Uu');
     }
 }

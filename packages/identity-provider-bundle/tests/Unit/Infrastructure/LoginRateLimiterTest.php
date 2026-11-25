@@ -134,6 +134,21 @@ final class LoginRateLimiterTest extends TestCase
         self::assertFalse($limiter->consume($request)->isAccepted());
     }
 
+    public function testTheKeysAreDerivedFromTheSecretForThisUsageOnly(): void
+    {
+        $limiter = $this->limiter(network: 5, local: 5, account: 5);
+        $limiter->consume($this->request('Ada@example.com ', '192.0.2.1'));
+
+        $key = hash_hkdf('sha256', 'a-secret-of-at-least-32-characters-long', 32, 'phil_identity_provider.login_limiter');
+        $hashed = static fn (string ...$parts): string => sodium_bin2base64(hash_hmac('sha256', implode("\0", $parts), $key, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        $keys = array_keys((array) new ReflectionProperty(InMemoryStorage::class, 'buckets')->getValue($this->storage));
+        sort($keys);
+        $expected = ['account-'.$hashed('ada@example.com'), 'local-'.$hashed('ada@example.com', '192.0.2.1'), 'network-'.$hashed('192.0.2.1')];
+        sort($expected);
+
+        self::assertSame($expected, $keys);
+    }
+
     private function limiter(int $network, int $local, int $account): LoginRateLimiter
     {
         $factory = fn (string $id, int $limit): RateLimiterFactory => new RateLimiterFactory(['id' => $id, 'policy' => 'fixed_window', 'limit' => $limit, 'interval' => '15 minutes'], $this->storage);

@@ -390,7 +390,7 @@ final class MaxMindTest extends TestCase
 
     public function testACityBecomesAPlace(): void
     {
-        $path = $this->write(['81.2.69.0/24' => $this->london(), '81.2.70.0/24' => ['country' => ['iso_code' => 'GB', 'names' => ['en' => 'United Kingdom']]], '81.2.71.0/24' => ['location' => ['latitude' => 46.8, 'longitude' => -71.2], 'city' => ['names' => ['en' => ' ']], 'subdivisions' => [], 'postal' => ['code' => '']], '81.2.72.0/24' => ['location' => ['latitude' => 46, 'longitude' => -71.2]], '81.2.73.0/24' => ['location' => ['latitude' => 95.0, 'longitude' => 0.0]], '81.2.74.0/24' => 'not a map', '81.2.75.0/24' => ['location' => 'here', 'city' => 'Québec']]);
+        $path = $this->write(['81.2.69.0/24' => $this->london(), '81.2.70.0/24' => ['country' => ['iso_code' => 'GB', 'names' => ['en' => 'United Kingdom']]], '81.2.71.0/24' => ['location' => ['latitude' => 46.8, 'longitude' => -71.2], 'city' => ['names' => ['en' => ' ']], 'subdivisions' => [], 'postal' => ['code' => '']], '81.2.72.0/24' => ['location' => ['latitude' => 46, 'longitude' => -71.2]], '81.2.73.0/24' => ['location' => ['latitude' => 95.0, 'longitude' => 0.0]], '81.2.74.0/24' => 'not a map', '81.2.75.0/24' => ['location' => 'here', 'city' => 'Québec'], '10.0.0.0/8' => $this->london(), '192.168.0.0/16' => $this->london(), '127.0.0.0/8' => $this->london(), '240.0.0.0/4' => $this->london(), '81.2.76.0/24' => ['location' => ['latitude' => 46.8, 'longitude' => -71.2], 'city' => ['names' => ['en' => '  Québec ']], 'country' => ['iso_code' => ' CA ']]]);
         $french = new MaxMindLocator(new Database($path), 'fr');
         $place = $french->locate('81.2.69.142');
 
@@ -406,7 +406,12 @@ final class MaxMindTest extends TestCase
         self::assertNull($french->locate('81.2.75.1'));
         self::assertNull($french->locate('9.9.9.9'));
         self::assertNull($french->locate('10.0.0.1'));
+        self::assertNull($french->locate('192.168.1.1'));
+        self::assertNull($french->locate('127.0.0.1'));
+        self::assertNull($french->locate('240.0.0.1'));
         self::assertNull($french->locate('::1'));
+        $padded = $french->locate('81.2.76.1');
+        self::assertSame(['Québec', 'Québec', 'CA'], [$padded?->label, $padded?->locality, $padded?->countryCode]);
         self::assertSame('maxmind', MaxMindLocator::NAME);
 
         $this->expectException(GeocodingFailed::class);

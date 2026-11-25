@@ -28,10 +28,11 @@ final readonly class Timeouts
         public float $timeout = self::TIMEOUT,
         public float $maxDuration = self::MAX_DURATION,
     ) {
-        if ($timeout <= 0.0 || $timeout > self::MAX || $maxDuration <= 0.0 || $maxDuration > self::MAX) {
+        if ($timeout <= 0.0 || $timeout > self::MAX || $maxDuration > self::MAX) {
             throw InvalidPlace::timeouts($timeout, $maxDuration);
         }
 
+        // The whole call is never shorter than the wait, which is above zero: a duration of zero or less is refused here.
         if ($maxDuration < $timeout) {
             throw InvalidPlace::timeouts($timeout, $maxDuration);
         }

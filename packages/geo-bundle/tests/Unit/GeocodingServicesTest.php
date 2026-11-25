@@ -171,6 +171,13 @@ final class GeocodingServicesTest extends TestCase
         self::assertEquals(new Reference('app.geo_client'), $container->getDefinition('phil_geo.maxmind.updater')->getArgument(0));
     }
 
+    public function testTheTimeoutsMayBeEqual(): void
+    {
+        $container = $this->load(['http' => ['timeout' => 2.0, 'max_duration' => 2.0], 'geocoding' => ['providers' => ['nominatim'], 'nominatim' => ['user_agent' => 'ua']]]);
+
+        self::assertEquals($this->timeouts(2.0, 2.0), $container->getDefinition('phil_geo.geocoder.nominatim')->getArgument('$timeouts'));
+    }
+
     public function testTheTimeoutsAreBounded(): void
     {
         foreach ([['timeout' => 0.0], ['max_duration' => 121.0], ['timeout' => 4.0, 'max_duration' => 3.0]] as $http) {

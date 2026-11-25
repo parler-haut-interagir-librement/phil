@@ -108,6 +108,22 @@ final class RegistrationRateLimiterTest extends TestCase
         self::assertTrue($this->limiter(perAddress: 1, secret: 'another secret, long enough to sign')->allowsRegistration($this->request('192.0.2.2'), 'ada@example.com'));
     }
 
+    public function testTheKeysAreDerivedFromTheSecretForThisUsageOnly(): void
+    {
+        $limiter = $this->limiter();
+        $limiter->allowsRegistration($this->request('192.0.2.1'), ' Ada@example.com');
+        $limiter->allowsVerificationEmail('ada@example.com');
+
+        $key = hash_hkdf('sha256', 'a secret of the tests, long enough', 32, 'phil_identity_provider.registration_limiter');
+        $hashed = static fn (string $part): string => sodium_bin2base64(hash_hmac('sha256', $part, $key, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        $keys = array_keys((array) new ReflectionProperty(InMemoryStorage::class, 'buckets')->getValue($this->storage));
+        sort($keys);
+        $expected = ['registration.address-'.$hashed('ada@example.com'), 'registration.ip-'.$hashed('192.0.2.1'), 'registration.resend-'.$hashed('ada@example.com')];
+        sort($expected);
+
+        self::assertSame($expected, $keys);
+    }
+
     private function limiter(int $perIp = 10, int $perAddress = 10, string $secret = 'a secret of the tests, long enough'): RegistrationRateLimiter
     {
         $factory = fn (string $id, array $config): RateLimiterFactory => new RateLimiterFactory(['id' => 'registration.'.$id] + $config, $this->storage);

@@ -41,6 +41,13 @@ final class MeilisearchIndexTest extends TestCase
         self::assertSame([5.0, 10.0], [MeilisearchIndex::TIMEOUT, MeilisearchIndex::MAX_DURATION]);
     }
 
+    public function testEveryReadHasItsTimeouts(): void
+    {
+        new MeilisearchIndex($this->client(), 'http://meili:7700', 'k', 1.5, 2.5)->index(Document::of('pages', 'a', ['title' => 'Accueil'], ['year' => 2020]));
+
+        self::assertSame([[1.5, 2.5], [1.5, 2.5], [1.5, 2.5]], $this->timeouts);
+    }
+
     public function testDocumentsGoToTheirIndexes(): void
     {
         $index = new MeilisearchIndex($this->client(), 'http://meili:7700/', 'secret');

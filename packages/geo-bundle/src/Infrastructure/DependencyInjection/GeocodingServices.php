@@ -85,7 +85,7 @@ final class GeocodingServices
      * @param IpConfig        $ip
      * @param HttpConfig      $http
      */
-    public static function register(ContainerBuilder $container, array $geocoding, array $ip, array $http = ['client' => 'http_client', 'timeout' => Timeouts::TIMEOUT, 'max_duration' => Timeouts::MAX_DURATION]): void
+    public static function register(ContainerBuilder $container, array $geocoding, array $ip, array $http): void
     {
         $geocoders = [];
         $client = new Reference($http['client']);
