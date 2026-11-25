@@ -51,7 +51,7 @@
         "symfony/security-http": "^8.2",
         "symfony/service-contracts": "^3.8",
         "symfony/uid": "^8.2",
-        "twig/twig": "^3.31",
+        "twig/twig": "^3.31.1",
         "web-token/jwt-library": "^4.2"
     },
     "require-dev": {

@@ -16,6 +16,10 @@ The next version is 0.3.1-alpha.
   3.8, `symfony/translation-contracts` 3.8), and of each development requirement (`doctrine/orm` 3.8,
   `doctrine/doctrine-bundle` 3.4, `easycorp/easyadmin-bundle` 5.10, `symfony/dom-crawler` 8.2, …).
 
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.3.0-alpha - 2026-11-20
 
 The incident mode is that of `phil/incident-mode-bundle`, which the queue offers when

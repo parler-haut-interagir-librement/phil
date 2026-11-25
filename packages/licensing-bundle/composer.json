@@ -32,7 +32,7 @@
         "symfony/event-dispatcher": "^8.2",
         "symfony/translation-contracts": "^3.8",
         "symfony/uid": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "doctrine/dbal": "^4.6",

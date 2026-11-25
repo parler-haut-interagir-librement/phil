@@ -13,6 +13,10 @@ The next version is 0.2.1-alpha.
 - Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `twig/twig` 3.31), and of
   each development requirement (`doctrine/doctrine-bundle` 3.4, `easycorp/easyadmin-bundle` 5.10).
 
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.2.0-alpha - 2026-11-18
 
 The keys of the segments, memory, terms and comments compare byte by byte on MySQL and

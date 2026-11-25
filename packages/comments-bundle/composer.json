@@ -55,7 +55,7 @@
         "symfony/translation-contracts": "^3.8",
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-twig-component": "^3.8",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "phil/block-editor-bundle": "For the block editor whose selection the controller comments on",

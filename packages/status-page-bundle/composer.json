@@ -34,7 +34,7 @@
         "symfony/http-foundation": "^8.2",
         "symfony/routing": "^8.2",
         "symfony/ux-twig-component": "^3.8",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "league/flysystem": "^3.36",

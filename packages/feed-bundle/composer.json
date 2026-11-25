@@ -34,7 +34,7 @@
         "symfony/http-kernel": "^8.2",
         "symfony/messenger": "^8.2",
         "symfony/routing": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "ext-dom": "*",

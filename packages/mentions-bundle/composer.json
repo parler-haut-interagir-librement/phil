@@ -52,7 +52,7 @@
         "symfony/messenger": "^8.2",
         "symfony/panther": "^2.4",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "phil/block-editor-bundle": "For the editor's @ menu on the members of the directory, and the endpoint the autocomplete controller calls",

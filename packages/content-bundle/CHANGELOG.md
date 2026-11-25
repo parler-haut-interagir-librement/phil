@@ -16,6 +16,10 @@ The next version is 0.3.1-alpha.
   connection, as DBAL 4.6 asks, instead of the static `Type::getType()`. The unique constraint the listener looks for
   is read as the index shape of `doctrine/orm` 3.8.
 
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.3.0-alpha - 2026-11-18
 
 The keys of the routes, single roots, working copies and rows compare byte by byte on

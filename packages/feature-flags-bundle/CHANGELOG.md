@@ -18,6 +18,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - `phil/circuit-breaker-bundle` 0.2 is accepted beside 0.1: the package did not install beside the version published on
   2026-11-20.
 
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

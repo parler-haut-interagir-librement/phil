@@ -4,6 +4,19 @@ All notable changes to `phil/terms-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+### Changed
+
+- The development requirements take `twig/html-extra` 3.31.1 or later, which fixes the advisories of its sandbox
+  published on 2026-11-24.
+
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.3.0-alpha - 2026-11-24
 
 Each acceptance proves the text accepted, with two nullable columns of `phil_terms_acceptance`. See [Upgrading from

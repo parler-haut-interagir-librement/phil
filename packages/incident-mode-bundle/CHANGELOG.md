@@ -15,6 +15,12 @@ The next version is 0.1.2-alpha.
 - Requires the latest minor of each dependency (`doctrine/dbal` 4.6, `twig/twig` 3.31, `symfony/ux-twig-component`
   3.8, `symfony/translation-contracts` 3.8, …), and of each development requirement (`doctrine/orm` 3.8,
   `doctrine/doctrine-bundle` 3.4, `symfony/ux-toolkit` 3.8, `twig/html-extra` 3.31).
+- The development requirements take `twig/html-extra` 3.31.1 or later, which fixes the advisories of its sandbox
+  published on 2026-11-24.
+
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
 
 ## 0.1.1-alpha - 2026-11-20
 

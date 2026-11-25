@@ -55,7 +55,7 @@
         "symfony/translation": "^8.2",
         "symfony/translation-contracts": "^3.8",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "ext-intl": "For the normalization of the identifiers of the user keys at native speed; symfony/string uses its polyfill without it",

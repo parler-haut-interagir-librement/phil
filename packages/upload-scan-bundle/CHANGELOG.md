@@ -14,6 +14,8 @@ Development only.
 
 - The development requirements ask for the latest minor of each dependency (`twig/twig` 3.31,
   `easycorp/easyadmin-bundle` 5.10, `symfony/event-dispatcher-contracts` 3.8, `symfony/translation-contracts` 3.8).
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
 
 ## 0.1.2-alpha - 2026-11-20
 

@@ -35,7 +35,7 @@
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2",
         "symfony/security-csrf": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.4",

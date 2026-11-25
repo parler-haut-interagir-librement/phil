@@ -39,7 +39,7 @@
         "symfony/translation": "^8.2",
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "twig/twig": "For messenger_display, messenger_link and messenger_label"

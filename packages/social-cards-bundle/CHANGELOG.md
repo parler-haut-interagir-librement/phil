@@ -14,6 +14,10 @@ The next version is 0.1.2-alpha.
   `symfony/service-contracts` 3.8), and of each development requirement (`symfony/ux-twig-component` 3.8,
   `symfony/http-client-contracts` 3.8).
 
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.1.1-alpha - 2026-11-20
 
 The cards can be drawn by ImageMagick, a message keeps the link preview its author

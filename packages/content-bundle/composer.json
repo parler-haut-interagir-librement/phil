@@ -36,7 +36,7 @@
         "symfony/string": "^8.2",
         "symfony/workflow": "^8.2",
         "symfony/yaml": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "ext-intl": "*",

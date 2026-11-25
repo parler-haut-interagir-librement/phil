@@ -63,7 +63,7 @@
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-twig-component": "^3.8",
         "symfony/yaml": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "doctrine/orm": "To add the tables to the schema the ORM generates, for doctrine:migrations:diff",

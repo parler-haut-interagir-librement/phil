@@ -84,7 +84,7 @@
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-turbo": "^3.8",
         "symfony/ux-twig-component": "^3.8",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "conflict": {
         "symfony/mailer": "<8.2"

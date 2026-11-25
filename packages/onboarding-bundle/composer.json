@@ -57,7 +57,7 @@
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-twig-component": "^3.8",
         "symfony/yaml": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "doctrine/doctrine-bundle": "To keep the progress of each user in the application's database",

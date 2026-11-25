@@ -14,6 +14,10 @@ The next version is 0.2.1-alpha.
   3.8), and of each development requirement (`doctrine/orm` 3.8, `doctrine/doctrine-bundle` 3.4,
   `symfony/ux-twig-component` 3.8, `symfony/dom-crawler` 8.2).
 
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.2.0-alpha - 2026-11-17
 
 The ports `PendingScores` and `DeepLinkingReturns` change or appear, the schema gains a

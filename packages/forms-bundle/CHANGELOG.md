@@ -27,6 +27,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   application routed it: the unrendered email, with the entry, its form and every value — a sealed value in clear with
   `allow_unsealed_sensitive` — in its context, kept by the Messenger transport and its failure transport. The email is
   rendered and sent in the request, through the Mailer transports.
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
 
 ## 0.2.0-alpha - 2026-11-18
 
