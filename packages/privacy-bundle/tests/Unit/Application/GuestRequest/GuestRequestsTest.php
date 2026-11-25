@@ -196,6 +196,21 @@ final class GuestRequestsTest extends TestCase
         self::assertNotNull($this->store->find($request->id));
     }
 
+    public function testALockTheStoreCannotReleaseLeavesTheAnsweredRequestAnswered(): void
+    {
+        $locks = new ScriptedLockStore();
+        $locks->releases = false;
+
+        $this->locks = new LockFactory($locks);
+        $guests = $this->guests();
+        $guests->submit(GuestRequestKind::Access, 'a@example.org', 'client');
+        [$request, $token] = $this->sender->sent[0];
+
+        // The lock expires on its own: nothing tries to release it again once the request is answered.
+        self::assertNotNull($guests->access($request->id, $token));
+        self::assertNull($this->store->find($request->id));
+    }
+
     public function testAnAccessWhoseLockWasTakenOverStopsAndKeepsTheRequest(): void
     {
         $this->locks = new LockFactory(new ExpiringLockStore($this->clock));
