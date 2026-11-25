@@ -8,7 +8,6 @@ use DateTimeImmutable;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Override;
 use Phil\NewsletterArchive\Domain\Contract\ArchiveRepository;
@@ -209,7 +208,7 @@ final readonly class DbalArchiveRepository implements ArchiveRepository
 
     private function instant(mixed $value): ?DateTimeImmutable
     {
-        $instant = Type::getType(Types::DATETIME_UTC_IMMUTABLE)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
+        $instant = $this->connection->getConfiguration()->getTypeProvider()->get(Types::DATETIME_UTC_IMMUTABLE)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
 
         return $instant instanceof DateTimeImmutable ? $instant : null;
     }

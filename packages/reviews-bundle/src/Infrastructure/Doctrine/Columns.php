@@ -6,7 +6,6 @@ namespace Phil\ReviewsBundle\Infrastructure\Doctrine;
 
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 
 /**
@@ -37,14 +36,14 @@ final readonly class Columns
 
     public function moment(mixed $value): ?DateTimeImmutable
     {
-        $moment = null === $value ? null : Type::getType(Types::DATETIME_UTC_IMMUTABLE)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
+        $moment = null === $value ? null : $this->connection->getConfiguration()->getTypeProvider()->get(Types::DATETIME_UTC_IMMUTABLE)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
 
         return $moment instanceof DateTimeImmutable ? $moment : null;
     }
 
     public function bool(mixed $value): bool
     {
-        return true === Type::getType(Types::BOOLEAN)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
+        return true === $this->connection->getConfiguration()->getTypeProvider()->get(Types::BOOLEAN)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
     }
 
     /**
@@ -52,7 +51,7 @@ final readonly class Columns
      */
     public function json(mixed $value): array
     {
-        $decoded = null === $value ? null : Type::getType(Types::JSON)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
+        $decoded = null === $value ? null : $this->connection->getConfiguration()->getTypeProvider()->get(Types::JSON)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
 
         return \is_array($decoded) ? $decoded : [];
     }

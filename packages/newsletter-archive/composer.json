@@ -26,7 +26,7 @@
         "ext-libxml": "*",
         "ext-mbstring": "*",
         "ext-sodium": "*",
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "phil/markup": "^0.3@dev",
         "phil/newsletter-bundle": "^0.3@dev || ^0.4@dev",
         "phil/slug": "^0.1@dev",
