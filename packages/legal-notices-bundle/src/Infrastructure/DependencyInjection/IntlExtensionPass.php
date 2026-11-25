@@ -21,16 +21,13 @@ final readonly class IntlExtensionPass implements CompilerPassInterface
     #[Override]
     public function process(ContainerBuilder $container): void
     {
-        if (!$container->hasDefinition(LegalNoticesServices::INTL_EXTENSION)) {
-            return;
-        }
+        $others = array_filter(
+            array_keys($container->findTaggedServiceIds('twig.extension')),
+            fn (string $id): bool => LegalNoticesServices::INTL_EXTENSION !== $id && $this->isIntl($container, $id),
+        );
 
-        foreach (array_keys($container->findTaggedServiceIds('twig.extension')) as $id) {
-            if (LegalNoticesServices::INTL_EXTENSION !== $id && $this->isIntl($container, $id)) {
-                $container->removeDefinition(LegalNoticesServices::INTL_EXTENSION);
-
-                return;
-            }
+        if ([] !== $others) {
+            $container->removeDefinition(LegalNoticesServices::INTL_EXTENSION);
         }
     }
 
