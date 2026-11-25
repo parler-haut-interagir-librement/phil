@@ -119,10 +119,14 @@ the application secret by HKDF, for `account_deletion.export_retention`. Each sw
 
 ## The tables
 
-`phil_privacy_account_deletion` holds the requests. `PrivacySchemaListener` adds it, with the tables of the consent
-proofs, of the requests without an account and of the incidents, to the schema the ORM generates, so
-`doctrine:migrations:diff` writes the migration. An application without Doctrine creates them from
-`PrivacyTables::configure()`, or names its own `account_deletion.store`.
+`phil_privacy_account_deletion` holds the requests. `PrivacySchemaListener` adds it, with the tables of the other
+features in use, to the schema the ORM generates, so `doctrine:migrations:diff` writes the migration. An application
+without Doctrine creates them from `PrivacyTables::configure()`, whose third argument lists the tables, or names its
+own `account_deletion.store`, and then gets no table.
+
+The account deletions are on when `symfony/security-bundle` is among the bundles of the kernel: the application then
+has accounts. `account_deletion.enabled` forces them on or off; on without the lock, the clock or a store, the build
+fails. Off, nothing of them is registered and the table is not added; see [Installation](installation.md#the-tables).
 
 Identifiers, people, export references and token hashes compare byte for byte. On MySQL and MariaDB, whose default
 collations fold case and accents, those columns take `utf8mb4_bin`: `PrivacySchemaListener` gives

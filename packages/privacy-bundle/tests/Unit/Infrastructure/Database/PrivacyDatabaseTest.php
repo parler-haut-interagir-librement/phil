@@ -11,7 +11,10 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\MariaDBPlatform;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 use Override;
@@ -58,6 +61,50 @@ final class PrivacyDatabaseTest extends TestCase
         $schema = PrivacyTables::configure(Schema::editor()->create());
 
         self::assertCount(9, PrivacyTables::configure($schema)->getTables());
+    }
+
+    public function testOnlyTheTablesGivenAreAdded(): void
+    {
+        $schema = PrivacyTables::configure(Schema::editor()->create(), null, [PrivacyTables::PROOFS, PrivacyTables::INCIDENTS]);
+
+        self::assertTrue($schema->hasTable(PrivacyTables::PROOFS));
+        self::assertTrue($schema->hasTable(PrivacyTables::INCIDENTS));
+        self::assertCount(2, $schema->getTables());
+        self::assertSame([], PrivacyTables::configure(Schema::editor()->create(), null, [])->getTables());
+        self::assertCount(\count(PrivacyTables::ALL), PrivacyTables::configure(Schema::editor()->create(), null, PrivacyTables::ALL)->getTables());
+    }
+
+    public function testEachTableIsAddedOnItsOwn(): void
+    {
+        foreach (PrivacyTables::ALL as $table) {
+            $schema = PrivacyTables::configure(Schema::editor()->create(), null, [$table]);
+
+            self::assertCount(1, $schema->getTables(), $table);
+            self::assertTrue($schema->hasTable($table), $table);
+        }
+    }
+
+    public function testARegisterNotGivenIsNotChanged(): void
+    {
+        $old = Schema::editor()->addTable(Table::editor()
+            ->setUnquotedName(PrivacyTables::INCIDENTS)
+            ->addColumn(Column::editor()->setUnquotedName('id')->setTypeName(Types::STRING)->setLength(32)->create())
+            ->create())->create();
+
+        self::assertFalse(PrivacyTables::configure($old, null, [PrivacyTables::PROOFS])->getTable(PrivacyTables::INCIDENTS)->hasColumn('information'));
+        self::assertTrue(PrivacyTables::configure($old, null, [PrivacyTables::INCIDENTS])->getTable(PrivacyTables::INCIDENTS)->hasColumn('information'));
+    }
+
+    public function testTheListenerAddsTheTablesItIsGivenOnly(): void
+    {
+        $manager = self::createStub(EntityManagerInterface::class);
+        $manager->method('getConnection')->willReturn($this->connection);
+
+        $event = new GenerateSchemaEventArgs($manager, Schema::editor()->create());
+        new PrivacySchemaListener($this->connection, [PrivacyTables::PROOFS])->postGenerateSchema($event);
+
+        self::assertCount(1, $event->getSchema()->getTables());
+        self::assertTrue($event->getSchema()->hasTable(PrivacyTables::PROOFS));
     }
 
     public function testIdentifiersPeopleAndHashesCompareByteForByteOnMySqlAndMariaDb(): void

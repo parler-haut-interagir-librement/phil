@@ -6,7 +6,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 
 | Type | Role | State |
 |---|---|---|
-| `PhilPrivacyBundle` | `AbstractBundle`, alias `phil_privacy`; registers `RedactingProcessor`, autoconfigures the exporter and eraser ports, registers `SubjectExport`, `SubjectErasure`, `ProcessingRegister` and their three commands, the anonymization services through `AnonymizationServices`, and the rights, the consent, the cookie inventory, the requests without an account, the incidents and the retention job through `RightsServices`; `ANONYMIZER_TAG`, `LOCALE_PACK_TAG`, `DATABASE_IDENTITY` | Implemented |
+| `PhilPrivacyBundle` | `AbstractBundle`, alias `phil_privacy`; registers `RedactingProcessor`, autoconfigures the exporter and eraser ports, registers `SubjectExport`, `SubjectErasure`, `ProcessingRegister` and their three commands, the anonymization services through `AnonymizationServices`, and the rights, the consent, the cookie inventory, the requests without an account, the incidents and the retention job through `RightsServices`; `ANONYMIZER_TAG`, `LOCALE_PACK_TAG`, `DATABASE_IDENTITY`, `TABLES` | Implemented |
 
 ## Domain
 
@@ -253,13 +253,13 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `Infrastructure\Doctrine\AnonymizationPlanReader` | `plan()`: from the ORM mapping, the categories and the configured tables | Implemented |
 | `Infrastructure\DependencyInjection\AnonymizationServices` | Declares the `database` and `anonymization` services | Implemented |
 | `Infrastructure\DependencyInjection\DatabaseServicesPass` | Removes the database services when the connection is not a service | Implemented |
-| `Infrastructure\DependencyInjection\RightsConfiguration`, `RightsServices` | The configuration and the services of the rights, the consent and the retention job | Implemented |
+| `Infrastructure\DependencyInjection\RightsConfiguration`, `RightsServices` | The configuration and the services of the rights, the consent and the retention job; the account deletions on by default with `RightsServices::SECURITY_BUNDLE` in `kernel.bundles` | Implemented |
 | `Infrastructure\DependencyInjection\CookieServices` | The consent policy and the cookie inventory, read at the build | Implemented |
 | `Infrastructure\DependencyInjection\GuestRequestServices` | The requests without an account and their limits | Implemented |
-| `Infrastructure\DependencyInjection\PrivacyServicesPass` | Removes what the application cannot run | Implemented |
+| `Infrastructure\DependencyInjection\PrivacyServicesPass` | Removes what the application cannot run, then the stores of the bundle no feature uses, and writes the tables of the others in `TABLES_PARAMETER`; `PROOFS_PARAMETER`, `DELETIONS_REQUIRED` | Implemented |
 | `Infrastructure\Console\RunRetentionCommand`, `ProcessDeletionsCommand` | `phil:privacy:retention`, `phil:privacy:deletions` | Implemented; wired with Symfony Console |
 | `Infrastructure\Console\DisabledRightsWarning` | The warning before every command when a right is off | Implemented |
-| `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | The tables, their keys in `utf8mb4_bin` on MySQL and MariaDB when the platform is given; the store, the proofs; the last two also purge | Implemented |
+| `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | The tables, every one in `ALL`, `configure()` adding those it is given, their keys in `utf8mb4_bin` on MySQL and MariaDB when the platform is given; the store, the proofs; the last two also purge | Implemented |
 | `Infrastructure\Database\DbalGuestRequests` | The requests without an account, the address sealed | Implemented |
 | `Infrastructure\Database\DbalIncidentRegister` | The register of incidents and its corrections; also purges, never below five years from the discovery | Implemented |
 | `Infrastructure\Database\DbalErasureRequests` | The erasure requests and their steps; also purges the closed requests | Implemented; wired when enabled |
@@ -272,7 +272,7 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `Infrastructure\Database\UtcMoments` | The instants of the tables, in UTC and the platform's format only; `text()`, `read()` | Implemented |
 | `Infrastructure\Mailer\MailerGuestLinkSender` | The link sent at once through the mailer's transports | Implemented; wired when enabled |
 | `Infrastructure\Routing\GuestLinkOrigin` | The link generated on `public_origin`, and the boot refused in `prod` without it or `framework.trusted_hosts` | Implemented; wired with the mailer sender |
-| `Infrastructure\Doctrine\PrivacySchemaListener` | Adds the tables to the generated schema | Implemented |
+| `Infrastructure\Doctrine\PrivacySchemaListener` | Adds the tables it is given, those of the parameter `phil_privacy.tables`, to the generated schema | Implemented |
 | `Infrastructure\Filesystem\EncryptedExportArchive` | Sealed files, private, removed at expiry | Implemented |
 | `Infrastructure\Log\LoggedConsentProofs` | The proofs as log lines | Implemented |
 | `Infrastructure\Security\SecurityCurrentDataSubject` | The signed-in user, through `DataSubjectUser` | Implemented |

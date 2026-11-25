@@ -13,9 +13,13 @@ use Phil\PrivacyBundle\Application\Contract\AccountDeletionStore;
 use Phil\PrivacyBundle\Application\Contract\ConsentProofs;
 use Phil\PrivacyBundle\Application\Contract\CurrentDataSubject;
 use Phil\PrivacyBundle\Application\Contract\ExportArchive;
+use Phil\PrivacyBundle\Application\Contract\IncidentRegister;
 use Phil\PrivacyBundle\Application\Contract\RetentionPurger;
+use Phil\PrivacyBundle\Application\Handler\AdvanceAccountDeletionHandler;
 use Phil\PrivacyBundle\Application\Handler\ProcessDueAccountDeletionsHandler;
 use Phil\PrivacyBundle\Application\Handler\RunRetentionHandler;
+use Phil\PrivacyBundle\Application\Incident\IncidentJournalRecorder;
+use Phil\PrivacyBundle\Application\Incident\IncidentNotices;
 use Phil\PrivacyBundle\Application\Message\ProcessDueAccountDeletions;
 use Phil\PrivacyBundle\Application\Message\RunRetention;
 use Phil\PrivacyBundle\Application\PersonalDataDownload;
@@ -26,10 +30,16 @@ use Phil\PrivacyBundle\Application\RetentionRun;
 use Phil\PrivacyBundle\Domain\AccountDeletion\AccountDeletion;
 use Phil\PrivacyBundle\Domain\Consent\ConsentPolicy;
 use Phil\PrivacyBundle\Infrastructure\Console\DisabledRightsWarning;
+use Phil\PrivacyBundle\Infrastructure\Console\IncidentCommand;
+use Phil\PrivacyBundle\Infrastructure\Console\IncidentJournalCommand;
+use Phil\PrivacyBundle\Infrastructure\Console\IncidentNoticeCommand;
+use Phil\PrivacyBundle\Infrastructure\Console\IncidentsCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\ProcessDeletionsCommand;
 use Phil\PrivacyBundle\Infrastructure\Console\RunRetentionCommand;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalAccountDeletions;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalConsentProofs;
+use Phil\PrivacyBundle\Infrastructure\Database\DbalIncidentRegister;
+use Phil\PrivacyBundle\Infrastructure\Database\PrivacyTables;
 use Phil\PrivacyBundle\Infrastructure\DependencyInjection\AnonymizationServices;
 use Phil\PrivacyBundle\Infrastructure\DependencyInjection\PrivacyServicesPass;
 use Phil\PrivacyBundle\Infrastructure\DependencyInjection\RightsConfiguration;
@@ -47,11 +57,14 @@ use Phil\PrivacyBundle\Infrastructure\Routing\MountingRouteLoader;
 use Phil\PrivacyBundle\Infrastructure\Scheduler\PrivacySchedule;
 use Phil\PrivacyBundle\Infrastructure\Security\SecurityCurrentDataSubject;
 use Phil\PrivacyBundle\Infrastructure\Twig\ConsentExtension;
+use Phil\PrivacyBundle\Infrastructure\Twig\TwigIncidentNotice;
 use Phil\PrivacyBundle\PhilPrivacyBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -175,6 +188,74 @@ final class RightsWiringTest extends TestCase
         $container = $this->load(['retention' => ['rules' => ['R-1' => $line]]]);
 
         self::assertSame(['R-1' => $line], $container->getDefinition(ConfiguredRetentionSchedule::class)->getArgument(0));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, string>|string|null}>
+     */
+    public static function withoutAccounts(): iterable
+    {
+        yield 'no kernel.bundles' => [null];
+        yield 'other bundles' => [['FrameworkBundle' => FrameworkBundle::class]];
+        yield 'not a list' => [RightsServices::SECURITY_BUNDLE];
+    }
+
+    /**
+     * @param array<string, string>|string|null $bundles
+     */
+    #[DataProvider('withoutAccounts')]
+    public function testWithoutAccountsThereIsNoAccountDeletion(array|string|null $bundles): void
+    {
+        $container = $this->load([], $bundles);
+
+        foreach ([DbalAccountDeletions::class, AccountDeletions::class, DeletionWorkflow::SERVICE, AdvanceAccountDeletionHandler::class, ProcessDueAccountDeletionsHandler::class, ProcessDeletionsCommand::class, EncryptedExportArchive::class, PrivacySchedule::class] as $id) {
+            self::assertFalse($container->hasDefinition($id), $id);
+        }
+
+        self::assertFalse($container->hasAlias(AccountDeletionStore::class));
+        self::assertTrue($container->hasDefinition(PersonalDataDownload::class));
+        self::assertFalse($container->getParameter(PrivacyServicesPass::DELETIONS_REQUIRED));
+    }
+
+    public function testTheAccountDeletionsCanBeTurnedOnWithoutAccounts(): void
+    {
+        $container = $this->load(['account_deletion' => ['enabled' => true]], null);
+
+        self::assertTrue($container->hasDefinition(AccountDeletions::class));
+        self::assertTrue($container->hasDefinition(DbalAccountDeletions::class));
+        self::assertTrue($container->getParameter(PrivacyServicesPass::DELETIONS_REQUIRED));
+        self::assertSame(['15 minutes', null], $container->getDefinition(PrivacySchedule::class)->getArguments());
+    }
+
+    public function testTheAccountDeletionsCanBeTurnedOffWithAccounts(): void
+    {
+        $container = $this->load(['account_deletion' => ['enabled' => false], 'retention' => ['rules' => ['R-1' => ['store' => 'trash', 'period' => 'P30D']]]]);
+
+        self::assertFalse($container->hasDefinition(AccountDeletions::class));
+        self::assertFalse($container->getParameter(PrivacyServicesPass::DELETIONS_REQUIRED));
+        self::assertSame([null, '1 day'], $container->getDefinition(PrivacySchedule::class)->getArguments());
+    }
+
+    public function testTheRegisterOfIncidentsIsOnByDefaultAndCanBeTurnedOff(): void
+    {
+        $ids = [DbalIncidentRegister::class, IncidentJournalRecorder::class, IncidentNotices::class, TwigIncidentNotice::class, IncidentCommand::class, IncidentsCommand::class, IncidentJournalCommand::class, IncidentNoticeCommand::class];
+        $on = $this->load([]);
+
+        foreach ($ids as $id) {
+            self::assertTrue($on->hasDefinition($id), $id);
+        }
+
+        self::assertSame(DbalIncidentRegister::class, (string) $on->getAlias(IncidentRegister::class));
+        self::assertSame(PrivacyTables::ALL, $on->getParameter(PrivacyServicesPass::TABLES_PARAMETER));
+
+        $off = $this->load(['incidents' => ['enabled' => false]]);
+
+        foreach ($ids as $id) {
+            self::assertFalse($off->hasDefinition($id), $id);
+        }
+
+        self::assertFalse($off->hasAlias(IncidentRegister::class));
+        self::assertSame(['%'.PrivacyServicesPass::TABLES_PARAMETER.'%'], \array_slice($off->getDefinition(PrivacySchemaListener::class)->getArguments(), 1));
     }
 
     public function testTheAccountDeletionDefaults(): void
@@ -427,11 +508,14 @@ final class RightsWiringTest extends TestCase
         $this->services($container, ['database_connection', 'clock', 'lock.factory', 'messenger.default_bus']);
         new PrivacyServicesPass()->process($container);
 
-        foreach ([DbalAccountDeletions::class, DbalConsentProofs::class, PrivacySchemaListener::class, AccountDeletions::class, ProcessDueAccountDeletionsHandler::class, ProcessDeletionsCommand::class, PrivacySchedule::class, PersonalDataDownload::class, RetentionJob::class, RunRetentionCommand::class] as $id) {
+        foreach ([DbalAccountDeletions::class, PrivacySchemaListener::class, AccountDeletions::class, ProcessDueAccountDeletionsHandler::class, ProcessDeletionsCommand::class, PrivacySchedule::class, PersonalDataDownload::class, RetentionJob::class, RunRetentionCommand::class] as $id) {
             self::assertTrue($container->hasDefinition($id), $id);
         }
 
-        self::assertSame(DbalConsentProofs::class, (string) $container->getAlias(ConsentProofs::class));
+        // Without the pages, no consent is recorded: its store and its table go.
+        self::assertFalse($container->hasDefinition(DbalConsentProofs::class));
+        self::assertFalse($container->hasAlias(ConsentProofs::class));
+        self::assertSame([PrivacyTables::DELETIONS, PrivacyTables::INCIDENTS, PrivacyTables::INCIDENT_REVISIONS, PrivacyTables::INCIDENT_JOURNAL], $container->getParameter(PrivacyServicesPass::TABLES_PARAMETER));
     }
 
     public function testWithoutABusTheSweepIsLeftToTheCommand(): void
@@ -545,12 +629,19 @@ final class RightsWiringTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param array<string, mixed>              $config
+     * @param array<string, string>|string|null $bundles the parameter kernel.bundles, null for none
      */
-    private function load(array $config): ContainerBuilder
+    private function load(array $config, array|string|null $bundles = [RightsServices::SECURITY_BUNDLE => SecurityBundle::class]): ContainerBuilder
     {
         $bundle = new PhilPrivacyBundle($this->warnings);
         $container = new ContainerBuilder();
+
+        // An application with accounts, as most are, unless the test says otherwise: the account deletions are on by default.
+        if (null !== $bundles) {
+            $container->setParameter('kernel.bundles', $bundles);
+        }
+
         $instanceof = [];
         $extension = $bundle->getContainerExtension();
         self::assertInstanceOf(ConfigurationExtensionInterface::class, $extension);

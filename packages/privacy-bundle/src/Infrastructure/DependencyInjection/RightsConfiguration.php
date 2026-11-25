@@ -60,6 +60,7 @@ final class RightsConfiguration
         return new ArrayNodeDefinition('account_deletion')
             ->addDefaultsIfNotSet()
             ->children()
+                ->booleanNode('enabled')->info('Whether members can ask for the deletion of their account; null, on when symfony/security-bundle is enabled, the application then having accounts. True needs the lock and the clock components and a store, and fails the build without them.')->defaultNull()->end()
                 ->scalarNode('delay')->info('ISO 8601 duration during which a request can be cancelled.')->defaultValue('P30D')->cannotBeEmpty()->end()
                 ->scalarNode('frequency')->info('How often the schedule phil_privacy looks for requests whose delay is over.')->defaultValue('15 minutes')->cannotBeEmpty()->end()
                 ->scalarNode('store')->info('Service id of an AccountDeletionStore; null, the table of the bundle.')->defaultNull()->end()
@@ -143,6 +144,7 @@ final class RightsConfiguration
         return new ArrayNodeDefinition('incidents')
             ->addDefaultsIfNotSet()
             ->children()
+                ->booleanNode('enabled')->info('The register of confidentiality incidents and its commands; false when the application keeps its register elsewhere.')->defaultTrue()->end()
                 ->scalarNode('store')->info('Service id of an IncidentRegister; null, the table of the bundle.')->defaultNull()->end()
             ->end();
     }

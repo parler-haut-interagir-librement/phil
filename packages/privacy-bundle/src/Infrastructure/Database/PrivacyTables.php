@@ -12,6 +12,7 @@ use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Index\IndexType;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaEditor;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableEditor;
 use Doctrine\DBAL\Types\Types;
@@ -33,6 +34,9 @@ use Phil\PrivacyBundle\Domain\Subject\DataSubject;
  *   request made without an account it came from, never by an address;
  * - `phil_privacy_erasure_step`: one row per module of an erasure request, unique for the pair, with its lease and its
  *   idempotency key.
+ *
+ * {@see self::configure()} adds those it is given, every one by default: the bundle gives those of the features the
+ * application uses with the table of the bundle as their store, the others being off or kept by a store of its own.
  *
  * Every instant is a `datetime_utc_immutable` column, written and read through {@see UtcMoments}.
  *
@@ -60,6 +64,21 @@ final class PrivacyTables
 
     public const string ERASURE_STEPS = 'phil_privacy_erasure_step';
 
+    /**
+     * Every table of the bundle, in the order {@see self::configure()} adds them.
+     */
+    public const array ALL = [
+        self::DELETIONS,
+        self::PROOFS,
+        self::GUEST_REQUESTS,
+        self::INCIDENTS,
+        self::INCIDENT_REVISIONS,
+        self::INCIDENT_JOURNAL,
+        self::EMAIL_TRACKING,
+        self::ERASURE_REQUESTS,
+        self::ERASURE_STEPS,
+    ];
+
     private function __construct()
     {
     }
@@ -67,14 +86,18 @@ final class PrivacyTables
     /**
      * The schema with the tables added, those it already has left as they are but for the register of incidents, which
      * gets the columns it lacks. Give the platform of the connection, so that MySQL and MariaDB compare identifiers,
-     * people and hashes byte for byte.
+     * people and hashes byte for byte, and the tables to add, among {@see self::ALL}: null adds them all, and a table
+     * not in the list is neither added nor changed.
+     *
+     * @param list<string>|null $tables
      */
-    public static function configure(Schema $schema, ?AbstractPlatform $platform = null): Schema
+    public static function configure(Schema $schema, ?AbstractPlatform $platform = null, ?array $tables = null): Schema
     {
         $editor = $schema->edit();
         $binary = $platform instanceof AbstractMySQLPlatform;
+        $tables ??= self::ALL;
 
-        if (!$schema->hasTable(self::DELETIONS)) {
+        if (\in_array(self::DELETIONS, $tables, true) && !$schema->hasTable(self::DELETIONS)) {
             $editor->addTable(Table::editor()
                 ->setUnquotedName(self::DELETIONS)
                 ->addColumn(self::string('id', 32, $binary))
@@ -90,7 +113,7 @@ final class PrivacyTables
                 ->create());
         }
 
-        if (!$schema->hasTable(self::PROOFS)) {
+        if (\in_array(self::PROOFS, $tables, true) && !$schema->hasTable(self::PROOFS)) {
             $editor->addTable(Table::editor()
                 ->setUnquotedName(self::PROOFS)
                 ->addColumn(self::string('id', 32, $binary))
@@ -103,7 +126,7 @@ final class PrivacyTables
                 ->create());
         }
 
-        if (!$schema->hasTable(self::GUEST_REQUESTS)) {
+        if (\in_array(self::GUEST_REQUESTS, $tables, true) && !$schema->hasTable(self::GUEST_REQUESTS)) {
             $editor->addTable(Table::editor()
                 ->setUnquotedName(self::GUEST_REQUESTS)
                 ->addColumn(self::string('id', 32, $binary))
@@ -117,6 +140,93 @@ final class PrivacyTables
                 ->create());
         }
 
+        if (\in_array(self::INCIDENTS, $tables, true)) {
+            self::incidents($schema, $editor, $binary);
+        }
+
+        if (\in_array(self::INCIDENT_REVISIONS, $tables, true) && !$schema->hasTable(self::INCIDENT_REVISIONS)) {
+            $editor->addTable(Table::editor()
+                ->setUnquotedName(self::INCIDENT_REVISIONS)
+                ->addColumn(self::string('incident_id', 32, $binary))
+                ->addColumn(Column::editor()->setUnquotedName('sequence')->setTypeName(Types::INTEGER)->setNotNull(true)->create())
+                ->addColumn(self::string('field', 32, $binary))
+                ->addColumn(self::maybeText('previous'))
+                ->addColumn(self::moment('revised_at'))
+                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('incident_id', 'sequence', 'field')->create())
+                ->create());
+        }
+
+        if (\in_array(self::INCIDENT_JOURNAL, $tables, true) && !$schema->hasTable(self::INCIDENT_JOURNAL)) {
+            $editor->addTable(Table::editor()
+                ->setUnquotedName(self::INCIDENT_JOURNAL)
+                ->addColumn(self::string('incident_id', 32, $binary))
+                ->addColumn(Column::editor()->setUnquotedName('sequence')->setTypeName(Types::INTEGER)->setNotNull(true)->create())
+                ->addColumn(self::string('kind', 32))
+                ->addColumn(self::moment('done_at'))
+                ->addColumn(self::string('party', 255))
+                ->addColumn(self::text('details'))
+                ->addColumn(self::maybeMoment('until_at'))
+                ->addColumn(self::moment('recorded_at'))
+                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('incident_id', 'sequence')->create())
+                ->create());
+        }
+
+        if (\in_array(self::EMAIL_TRACKING, $tables, true) && !$schema->hasTable(self::EMAIL_TRACKING)) {
+            $editor->addTable(Table::editor()
+                ->setUnquotedName(self::EMAIL_TRACKING)
+                ->addColumn(self::string('subject', DataSubject::MAX_LENGTH, $binary))
+                ->addColumn(self::string('version', 32))
+                ->addColumn(Column::editor()->setUnquotedName('opens')->setTypeName(Types::BOOLEAN)->setNotNull(true)->create())
+                ->addColumn(Column::editor()->setUnquotedName('clicks')->setTypeName(Types::BOOLEAN)->setNotNull(true)->create())
+                ->addColumn(self::moment('decided_at'))
+                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('subject')->create())
+                ->create());
+        }
+
+        if (\in_array(self::ERASURE_REQUESTS, $tables, true) && !$schema->hasTable(self::ERASURE_REQUESTS)) {
+            $editor->addTable(Table::editor()
+                ->setUnquotedName(self::ERASURE_REQUESTS)
+                ->addColumn(self::string('id', 32, $binary))
+                ->addColumn(self::nullableString('subject', DataSubject::MAX_LENGTH, $binary))
+                ->addColumn(self::nullableString('guest_request', 32, $binary))
+                ->addColumn(self::string('inventory_version', 16, $binary))
+                ->addColumn(self::string('state', 16))
+                ->addColumn(self::moment('requested_at'))
+                ->addColumn(self::maybeMoment('closed_at'))
+                ->addColumn(self::nullableString('access_hash', 64, $binary))
+                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('id')->create())
+                ->addIndex(Index::editor()->setUnquotedName('idx_phil_privacy_erasure_subject')->setUnquotedColumnNames('subject')->create())
+                ->addIndex(Index::editor()->setUnquotedName('idx_phil_privacy_erasure_state')->setUnquotedColumnNames('state', 'requested_at')->create())
+                ->create());
+        }
+
+        if (\in_array(self::ERASURE_STEPS, $tables, true) && !$schema->hasTable(self::ERASURE_STEPS)) {
+            $editor->addTable(Table::editor()
+                ->setUnquotedName(self::ERASURE_STEPS)
+                ->addColumn(self::string('request_id', 32, $binary))
+                ->addColumn(self::string('module', 64, $binary))
+                ->addColumn(self::string('state', 16))
+                ->addColumn(Column::editor()->setUnquotedName('attempts')->setTypeName(Types::INTEGER)->setNotNull(true)->setDefaultValue(0)->create())
+                ->addColumn(self::nullableString('lease', 32, $binary))
+                ->addColumn(self::maybeMoment('lease_until'))
+                ->addColumn(self::string('idempotency_key', 97, $binary))
+                ->addColumn(Column::editor()->setUnquotedName('effects')->setTypeName(Types::TEXT)->setNotNull(false)->create())
+                ->addColumn(self::nullableString('reason', 32))
+                ->addColumn(self::moment('updated_at'))
+                ->addColumn(self::maybeMoment('completed_at'))
+                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('request_id', 'module')->create())
+                ->addIndex(Index::editor()->setUnquotedName('uniq_phil_privacy_erasure_step_key')->setUnquotedColumnNames('idempotency_key')->setType(IndexType::UNIQUE)->create())
+                ->create());
+        }
+
+        return $editor->create();
+    }
+
+    /**
+     * The register of incidents added, or given the columns it lacks.
+     */
+    private static function incidents(Schema $schema, SchemaEditor $editor, bool $binary): void
+    {
         $added = self::incidentColumns();
 
         if (!$schema->hasTable(self::INCIDENTS)) {
@@ -154,83 +264,6 @@ final class PrivacyTables
                 });
             }
         }
-
-        if (!$schema->hasTable(self::INCIDENT_REVISIONS)) {
-            $editor->addTable(Table::editor()
-                ->setUnquotedName(self::INCIDENT_REVISIONS)
-                ->addColumn(self::string('incident_id', 32, $binary))
-                ->addColumn(Column::editor()->setUnquotedName('sequence')->setTypeName(Types::INTEGER)->setNotNull(true)->create())
-                ->addColumn(self::string('field', 32, $binary))
-                ->addColumn(self::maybeText('previous'))
-                ->addColumn(self::moment('revised_at'))
-                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('incident_id', 'sequence', 'field')->create())
-                ->create());
-        }
-
-        if (!$schema->hasTable(self::INCIDENT_JOURNAL)) {
-            $editor->addTable(Table::editor()
-                ->setUnquotedName(self::INCIDENT_JOURNAL)
-                ->addColumn(self::string('incident_id', 32, $binary))
-                ->addColumn(Column::editor()->setUnquotedName('sequence')->setTypeName(Types::INTEGER)->setNotNull(true)->create())
-                ->addColumn(self::string('kind', 32))
-                ->addColumn(self::moment('done_at'))
-                ->addColumn(self::string('party', 255))
-                ->addColumn(self::text('details'))
-                ->addColumn(self::maybeMoment('until_at'))
-                ->addColumn(self::moment('recorded_at'))
-                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('incident_id', 'sequence')->create())
-                ->create());
-        }
-
-        if (!$schema->hasTable(self::EMAIL_TRACKING)) {
-            $editor->addTable(Table::editor()
-                ->setUnquotedName(self::EMAIL_TRACKING)
-                ->addColumn(self::string('subject', DataSubject::MAX_LENGTH, $binary))
-                ->addColumn(self::string('version', 32))
-                ->addColumn(Column::editor()->setUnquotedName('opens')->setTypeName(Types::BOOLEAN)->setNotNull(true)->create())
-                ->addColumn(Column::editor()->setUnquotedName('clicks')->setTypeName(Types::BOOLEAN)->setNotNull(true)->create())
-                ->addColumn(self::moment('decided_at'))
-                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('subject')->create())
-                ->create());
-        }
-
-        if (!$schema->hasTable(self::ERASURE_REQUESTS)) {
-            $editor->addTable(Table::editor()
-                ->setUnquotedName(self::ERASURE_REQUESTS)
-                ->addColumn(self::string('id', 32, $binary))
-                ->addColumn(self::nullableString('subject', DataSubject::MAX_LENGTH, $binary))
-                ->addColumn(self::nullableString('guest_request', 32, $binary))
-                ->addColumn(self::string('inventory_version', 16, $binary))
-                ->addColumn(self::string('state', 16))
-                ->addColumn(self::moment('requested_at'))
-                ->addColumn(self::maybeMoment('closed_at'))
-                ->addColumn(self::nullableString('access_hash', 64, $binary))
-                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('id')->create())
-                ->addIndex(Index::editor()->setUnquotedName('idx_phil_privacy_erasure_subject')->setUnquotedColumnNames('subject')->create())
-                ->addIndex(Index::editor()->setUnquotedName('idx_phil_privacy_erasure_state')->setUnquotedColumnNames('state', 'requested_at')->create())
-                ->create());
-        }
-
-        if (!$schema->hasTable(self::ERASURE_STEPS)) {
-            $editor->addTable(Table::editor()
-                ->setUnquotedName(self::ERASURE_STEPS)
-                ->addColumn(self::string('request_id', 32, $binary))
-                ->addColumn(self::string('module', 64, $binary))
-                ->addColumn(self::string('state', 16))
-                ->addColumn(Column::editor()->setUnquotedName('attempts')->setTypeName(Types::INTEGER)->setNotNull(true)->setDefaultValue(0)->create())
-                ->addColumn(self::nullableString('lease', 32, $binary))
-                ->addColumn(self::maybeMoment('lease_until'))
-                ->addColumn(self::string('idempotency_key', 97, $binary))
-                ->addColumn(Column::editor()->setUnquotedName('effects')->setTypeName(Types::TEXT)->setNotNull(false)->create())
-                ->addColumn(self::nullableString('reason', 32))
-                ->addColumn(self::moment('updated_at'))
-                ->addColumn(self::maybeMoment('completed_at'))
-                ->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('request_id', 'module')->create())
-                ->addIndex(Index::editor()->setUnquotedName('uniq_phil_privacy_erasure_step_key')->setUnquotedColumnNames('idempotency_key')->setType(IndexType::UNIQUE)->create())
-                ->create());
-        }
-
-        return $editor->create();
     }
 
     /**

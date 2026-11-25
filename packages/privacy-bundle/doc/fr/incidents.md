@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=cce2202b3ffea8167853549caa8d7294f4aa708bdd42715e701216cb0d0b5d7b -->
+<!-- phil-dev source-sha256=17e82b77e945d32168a481ff8fded3b2d199956856d5823b300577c4df2c46d9 -->
 # Le registre des incidents de confidentialité
 
 La loi demande à une entreprise de tenir un registre de **chaque** incident de confidentialité — un renseignement
@@ -142,9 +142,10 @@ puis un tableau des corrections et un tableau du journal ; ou du JSON avec chaqu
 ## Le garder
 
 Le registre est la table `phil_privacy_incident`, ajoutée au schéma que génère l'ORM ; un autre stockage est un
-`IncidentRegister` nommé sous `phil_privacy.incidents.store`. Gardez-le avec une règle de conservation sur son
-stockage, qui retire les incidents fermés connus depuis avant la date limite, jamais un incident ouvert, avec leurs
-corrections et leur journal :
+`IncidentRegister` nommé sous `phil_privacy.incidents.store`, et les tables du registre ne sont alors pas ajoutées. Le
+registre est actif par défaut ; `phil_privacy.incidents.enabled: false` le retire, avec ses commandes, quand
+l'application tient son registre ailleurs. Gardez-le avec une règle de conservation sur son stockage, qui retire les
+incidents fermés connus depuis avant la date limite, jamais un incident ouvert, avec leurs corrections et leur journal :
 
 ```yaml
 phil_privacy:

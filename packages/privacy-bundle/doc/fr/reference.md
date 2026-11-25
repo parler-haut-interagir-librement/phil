@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=087e86af219cf07b6a5916d63c1a01b4be4e1c09059fa8470d368a0f800e9a97 -->
+<!-- phil-dev source-sha256=8ec97b607d3ddb14ad650b1585bed8b94dfbaf15cad1bb2fc8b701a6c9a7dbc0 -->
 # Référence de l'API
 
 Chaque type sous `Phil\PrivacyBundle\`, par couche. « Implémenté » veut dire implémenté et couvert par des tests
@@ -8,7 +8,7 @@ unitaires.
 
 | Type | Rôle | État |
 |---|---|---|
-| `PhilPrivacyBundle` | `AbstractBundle`, alias `phil_privacy` ; enregistre `RedactingProcessor`, autoconfigure les ports d'exportateur et d'effaceur, enregistre `SubjectExport`, `SubjectErasure`, `ProcessingRegister` et leurs trois commandes, les services d'anonymisation par `AnonymizationServices`, et les droits, le consentement, l'inventaire des témoins, les demandes sans compte, les incidents et la tâche de conservation par `RightsServices` ; `ANONYMIZER_TAG`, `LOCALE_PACK_TAG`, `DATABASE_IDENTITY` | Implémenté |
+| `PhilPrivacyBundle` | `AbstractBundle`, alias `phil_privacy` ; enregistre `RedactingProcessor`, autoconfigure les ports d'exportateur et d'effaceur, enregistre `SubjectExport`, `SubjectErasure`, `ProcessingRegister` et leurs trois commandes, les services d'anonymisation par `AnonymizationServices`, et les droits, le consentement, l'inventaire des témoins, les demandes sans compte, les incidents et la tâche de conservation par `RightsServices` ; `ANONYMIZER_TAG`, `LOCALE_PACK_TAG`, `DATABASE_IDENTITY`, `TABLES` | Implémenté |
 
 ## Domaine
 
@@ -255,13 +255,13 @@ unitaires.
 | `Infrastructure\Doctrine\AnonymizationPlanReader` | `plan()` : à partir du mappage ORM, des catégories et des tables configurées | Implémenté |
 | `Infrastructure\DependencyInjection\AnonymizationServices` | Déclare les services `database` et `anonymization` | Implémenté |
 | `Infrastructure\DependencyInjection\DatabaseServicesPass` | Retire les services de base de données quand la connexion n'est pas un service | Implémenté |
-| `Infrastructure\DependencyInjection\RightsConfiguration`, `RightsServices` | La configuration et les services des droits, du consentement et de la tâche de conservation | Implémenté |
+| `Infrastructure\DependencyInjection\RightsConfiguration`, `RightsServices` | La configuration et les services des droits, du consentement et de la tâche de conservation ; les suppressions de compte actives par défaut avec `RightsServices::SECURITY_BUNDLE` dans `kernel.bundles` | Implémenté |
 | `Infrastructure\DependencyInjection\CookieServices` | La politique de consentement et l'inventaire des témoins, lus à la construction | Implémenté |
 | `Infrastructure\DependencyInjection\GuestRequestServices` | Les demandes sans compte et leurs limites | Implémenté |
-| `Infrastructure\DependencyInjection\PrivacyServicesPass` | Retire ce que l'application ne peut pas faire tourner | Implémenté |
+| `Infrastructure\DependencyInjection\PrivacyServicesPass` | Retire ce que l'application ne peut pas faire tourner, puis les stockages du bundle qu'aucune fonctionnalité n'utilise, et écrit les tables des autres dans `TABLES_PARAMETER` ; `PROOFS_PARAMETER`, `DELETIONS_REQUIRED` | Implémenté |
 | `Infrastructure\Console\RunRetentionCommand`, `ProcessDeletionsCommand` | `phil:privacy:retention`, `phil:privacy:deletions` | Implémenté ; branché avec Symfony Console |
 | `Infrastructure\Console\DisabledRightsWarning` | L'avertissement avant chaque commande quand un droit est désactivé | Implémenté |
-| `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | Les tables, leurs clés en `utf8mb4_bin` sur MySQL et MariaDB quand la plateforme est donnée ; le stockage, les preuves ; les deux derniers purgent aussi | Implémenté |
+| `Infrastructure\Database\PrivacyTables`, `DbalAccountDeletions`, `DbalConsentProofs` | Les tables, chacune dans `ALL`, `configure()` ajoutant celles qu'on lui donne, leurs clés en `utf8mb4_bin` sur MySQL et MariaDB quand la plateforme est donnée ; le stockage, les preuves ; les deux derniers purgent aussi | Implémenté |
 | `Infrastructure\Database\DbalGuestRequests` | Les demandes sans compte, l'adresse scellée | Implémenté |
 | `Infrastructure\Database\DbalIncidentRegister` | Le registre des incidents et ses corrections ; purge aussi, jamais sous cinq ans à compter de la découverte | Implémenté |
 | `Infrastructure\Database\DbalErasureRequests` | Les demandes d'effacement et leurs étapes ; purge aussi les demandes fermées | Implémenté ; branché une fois activé |
@@ -274,7 +274,7 @@ unitaires.
 | `Infrastructure\Database\UtcMoments` | Les instants des tables, en UTC et au seul format de la plateforme ; `text()`, `read()` | Implémenté |
 | `Infrastructure\Mailer\MailerGuestLinkSender` | Le lien envoyé tout de suite par les transports du service de courriel | Implémenté ; branché une fois activé |
 | `Infrastructure\Routing\GuestLinkOrigin` | Le lien généré sur `public_origin`, et le démarrage refusé en `prod` sans lui ni `framework.trusted_hosts` | Implémenté ; branché avec l'expéditeur par courriel |
-| `Infrastructure\Doctrine\PrivacySchemaListener` | Ajoute les tables au schéma généré | Implémenté |
+| `Infrastructure\Doctrine\PrivacySchemaListener` | Ajoute les tables qu'on lui donne, celles du paramètre `phil_privacy.tables`, au schéma généré | Implémenté |
 | `Infrastructure\Filesystem\EncryptedExportArchive` | Des fichiers scellés, privés, retirés à leur expiration | Implémenté |
 | `Infrastructure\Log\LoggedConsentProofs` | Les preuves en lignes de journal | Implémenté |
 | `Infrastructure\Security\SecurityCurrentDataSubject` | L'utilisateur connecté, par `DataSubjectUser` | Implémenté |

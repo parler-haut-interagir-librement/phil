@@ -98,12 +98,12 @@ use Symfony\Component\Workflow\StateMachine;
  * @phpstan-type Config array{
  *     retention_schedule_source: string|null,
  *     retention: array{frequency: string, rules: array<array-key, RuleConfig>},
- *     account_deletion: array{delay: string, frequency: string, store: string|null, export_archive: string|null, export_directory: string, export_retention: string},
+ *     account_deletion: array{enabled: bool|null, delay: string, frequency: string, store: string|null, export_archive: string|null, export_directory: string, export_retention: string},
  *     consent: ConsentConfig,
  *     cookies: array{inventory: string|null, watch: bool|null},
  *     guest_requests: GuestConfig,
  *     erasure_workflow: WorkflowConfig,
- *     incidents: array{store: string|null},
+ *     incidents: array{enabled: bool, store: string|null},
  *     email_tracking: array{enabled: bool, version: string, store: string|null},
  *     rights: array{export: array{disable: scalar|null}, erasure: array{disable: scalar|null}},
  *     pages: array{auto_mount: bool, prefix: string, layout: string, current_subject: string|null, clock: string},
@@ -123,6 +123,11 @@ final class RightsServices
      */
     public const string ERASER_TAG = 'phil_privacy.eraser';
 
+    /**
+     * The name, in `kernel.bundles`, of symfony/security-bundle, whose presence turns the account deletions on by default.
+     */
+    public const string SECURITY_BUNDLE = 'SecurityBundle';
+
     private function __construct()
     {
     }
@@ -135,31 +140,70 @@ final class RightsServices
         $builder->registerForAutoconfiguration(RetentionPurger::class)->addTag(self::PURGER_TAG);
         $clock = new Reference($config['pages']['clock']);
 
-        self::database($services, $connection, $config['incidents']['store'], $clock);
+        $deletions = $config['account_deletion']['enabled'] ?? self::hasAccounts($builder);
+        $builder->setParameter(PrivacyServicesPass::DELETIONS_REQUIRED, true === $config['account_deletion']['enabled']);
+        $builder->setParameter(PrivacyServicesPass::TABLES_PARAMETER, PrivacyTables::ALL);
+
+        self::database($services, $connection, $config['incidents'], $clock, $deletions);
         self::emailTracking($config['email_tracking'], $services, $clock);
         $rights = self::rights($config['rights'], $services);
         self::export($services);
-        self::deletions($config['account_deletion'], $services, $clock);
+
+        if ($deletions) {
+            self::deletions($config['account_deletion'], $services, $clock);
+        }
         self::consent($config['consent'], $services, $builder, $clock);
         CookieServices::load($config['consent'], $config['cookies'], $services, $builder);
         GuestRequestServices::load($config['guest_requests'], $services, $clock);
         ErasureWorkflowServices::load($config['erasure_workflow'], $services, $builder, $connection, $clock);
         self::pages($config['pages'], $services);
         $source = self::retention($config, $services, $clock);
-        self::schedule($config, $services, $source instanceof Reference);
+        self::schedule($config, $services, $deletions, $source instanceof Reference);
         self::warning($rights, $services);
 
         return $source;
     }
 
-    private static function database(ServicesConfigurator $services, Reference $connection, ?string $incidents, Reference $clock): void
+    /**
+     * Whether the application has accounts: symfony/security-bundle is among the bundles of its kernel, by its name in
+     * `kernel.bundles`, read there since an extension loads in a container of its own, without the extensions of the
+     * others.
+     */
+    private static function hasAccounts(ContainerBuilder $builder): bool
     {
-        $services->set(DbalAccountDeletions::class)->args([$connection])->tag(self::PURGER_TAG);
+        $bundles = $builder->hasParameter('kernel.bundles') ? $builder->getParameter('kernel.bundles') : [];
+
+        return \is_array($bundles) && \array_key_exists(self::SECURITY_BUNDLE, $bundles);
+    }
+
+    /**
+     * The stores of the bundle on the connection, and the listener that adds their tables to the schema of the ORM.
+     * `PrivacyServicesPass` takes out those of the features off or kept by a store of the application, and gives the
+     * listener the tables of the others.
+     *
+     * @param array{enabled: bool, store: string|null} $incidents
+     */
+    private static function database(ServicesConfigurator $services, Reference $connection, array $incidents, Reference $clock, bool $deletions): void
+    {
+        if ($deletions) {
+            $services->set(DbalAccountDeletions::class)->args([$connection])->tag(self::PURGER_TAG);
+        }
+
         $services->set(DbalConsentProofs::class)->args([$connection])->tag(self::PURGER_TAG);
         $services->set(DbalGuestRequests::class)->args([$connection, '%kernel.secret%']);
-        $services->set(DbalIncidentRegister::class)->args([$connection, new Reference((string) $clock, ContainerInterface::NULL_ON_INVALID_REFERENCE)])->tag(self::PURGER_TAG);
         $services->set(DbalEmailTrackingConsents::class)->args([$connection]);
-        $services->set(PrivacySchemaListener::class)->args([$connection])->tag('doctrine.event_listener', ['event' => 'postGenerateSchema']);
+        $services->set(PrivacySchemaListener::class)
+            ->args([$connection, '%'.PrivacyServicesPass::TABLES_PARAMETER.'%'])
+            ->tag('doctrine.event_listener', ['event' => 'postGenerateSchema']);
+
+        if ($incidents['enabled']) {
+            self::incidents($services, $connection, $incidents['store'], $clock);
+        }
+    }
+
+    private static function incidents(ServicesConfigurator $services, Reference $connection, ?string $incidents, Reference $clock): void
+    {
+        $services->set(DbalIncidentRegister::class)->args([$connection, new Reference((string) $clock, ContainerInterface::NULL_ON_INVALID_REFERENCE)])->tag(self::PURGER_TAG);
         $services->alias(IncidentRegister::class, $incidents ?? DbalIncidentRegister::class)->public();
         $services->set(IncidentJournalRecorder::class)->args([new Reference(IncidentRegister::class), new Reference('clock')])->public();
         self::notices($services);
@@ -216,6 +260,7 @@ final class RightsServices
         $services->set(TwigExportReadme::class)->args([new Reference('twig')]);
         $services->alias(ExportReadme::class, TwigExportReadme::class);
         $services->set(ExportPackage::class)->args([new Reference(ExportReadme::class), new Reference('clock')])->public();
+        $services->set(PersonalDataDownload::class)->args([new Reference(SubjectExport::class), new Reference('lock.factory'), new Reference(ExportPackage::class)]);
     }
 
     /**
@@ -247,7 +292,7 @@ final class RightsServices
     }
 
     /**
-     * @param array{delay: string, frequency: string, store: string|null, export_archive: string|null, export_directory: string, export_retention: string} $config
+     * @param array{enabled: bool|null, delay: string, frequency: string, store: string|null, export_archive: string|null, export_directory: string, export_retention: string} $config
      */
     private static function deletions(array $config, ServicesConfigurator $services, Reference $clock): void
     {
@@ -283,7 +328,6 @@ final class RightsServices
             new Reference(ExportPackage::class),
         ])->public();
 
-        $services->set(PersonalDataDownload::class)->args([new Reference(SubjectExport::class), new Reference('lock.factory'), new Reference(ExportPackage::class)]);
         $services->set(AdvanceAccountDeletionHandler::class)
             ->args([new Reference(AccountDeletions::class)])
             ->tag('messenger.message_handler', ['handles' => AdvanceAccountDeletion::class]);
@@ -430,14 +474,14 @@ final class RightsServices
     /**
      * @param Config $config
      */
-    private static function schedule(array $config, ServicesConfigurator $services, bool $retention): void
+    private static function schedule(array $config, ServicesConfigurator $services, bool $deletions, bool $retention): void
     {
-        if (!interface_exists(ScheduleProviderInterface::class)) {
+        if (!interface_exists(ScheduleProviderInterface::class) || (!$deletions && !$retention)) {
             return;
         }
 
         $services->set(PrivacySchedule::class)
-            ->args([$config['account_deletion']['frequency'], $retention ? $config['retention']['frequency'] : null])
+            ->args([$deletions ? $config['account_deletion']['frequency'] : null, $retention ? $config['retention']['frequency'] : null])
             ->tag('scheduler.schedule_provider', ['name' => PrivacySchedule::NAME]);
     }
 

@@ -12,7 +12,20 @@ Every key the bundle derives from the application secret is its HKDF-SHA-256 und
 without an account, the export archives and the consent cookies of 0.3 no longer open. See
 [Upgrading to 0.4](doc/installation.md#upgrading-to-04) and the [Threat model](doc/threat-model.md).
 
+The schema gets only the tables of the features the application uses with the table of the bundle as their store, and
+the account deletions are on by default only with `symfony/security-bundle`: read the next migration
+`doctrine:migrations:diff` writes, which drops the tables of the features that are off. See
+[The tables](doc/installation.md#the-tables).
+
 ### Added
+
+- `account_deletion.enabled`: null by default, the account deletions on when `symfony/security-bundle` is among the
+  bundles of the kernel; true or false forces them, and true without the lock, the clock or a store fails the build
+  with a `LogicException`.
+- `incidents.enabled`: true by default; false takes out the register of incidents, its journal, the drafts of its
+  notices and its commands.
+- The parameter `phil_privacy.tables` (`PhilPrivacyBundle::TABLES`), the tables the schema listener adds, and
+  `PrivacyTables::ALL`, every table of the bundle.
 
 - `Domain\Secret\KeyDerivation`: the keys of the bundle, each the HKDF-SHA-256 (RFC 5869) of the application secret
   under the label of its usage, `phil_privacy.guest_request_store`, `phil_privacy.guest_requests.client`,
@@ -22,6 +35,14 @@ without an account, the export archives and the consent cookies of 0.3 no longer
 
 ### Changed
 
+- `PrivacySchemaListener` adds only the tables of the features in use whose store is the table of the bundle: the
+  account deletions, the proofs of consent while the consent page is there, the requests without an account, the
+  register of incidents, the consent to tracked emails and the erasure workflow. `PrivacyTables::configure()` takes
+  the tables to add as a third argument, all of them when it is null. The stores of the bundle that no feature uses
+  are no longer registered.
+- Without `symfony/security-bundle`, the account deletions, their workflow, handlers and command, and the table
+  `phil_privacy_account_deletion` are absent unless `account_deletion.enabled` is true.
+- The schedule `phil_privacy` keeps the retention when the account deletions are absent, and goes once it has neither.
 - `GuestRequests`, `DbalGuestRequests`, `EncryptedExportArchive` and `ConsentToken` take their keys from
   `KeyDerivation` instead of an HMAC of a label keyed with the secret. The addresses of the requests without an account
   and the export archives sealed by 0.3 read as absent, a consent cookie signed by 0.3 reads as no choice, and the rate

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8d6e60d6499b8ce7c6331d0a0c8db2111f59a4bc4f806cda8af69e806a1af416 -->
+<!-- phil-dev source-sha256=0d63b39c31a109011fa2091bac070f60e64391ef84ccd94db09f419fe286cea5 -->
 # Installation
 
 ## Prérequis
@@ -61,9 +61,35 @@ return [
 Enregistrez-le dans chaque environnement : le caviardage des journaux compte autant en `dev` et en `test` qu'en `prod`,
 parce que ces journaux sont copiés dans des billets et des artefacts de CI.
 
+## Les tables
+
+`doctrine:migrations:diff` écrit les tables des fonctionnalités que l'application utilise avec la table du bundle pour
+stockage, et elles seules :
+
+| Table | Fonctionnalité | Ajoutée quand |
+|---|---|---|
+| `phil_privacy_account_deletion` | [Les suppressions de compte](account-deletion.md) | `account_deletion.enabled` vaut true, ou null avec `symfony/security-bundle` dans le noyau ; `account_deletion.store` vaut null ; le verrou et l'horloge sont là. |
+| `phil_privacy_consent_proof` | [Les preuves de consentement](consent.md) | La page de consentement est là (Twig, les jetons CSRF, le routeur et l'horloge) et `consent.proofs` vaut null. |
+| `phil_privacy_guest_request` | [Les demandes sans compte](requests-without-an-account.md) | `guest_requests.enabled` vaut true et `guest_requests.store` vaut null. |
+| `phil_privacy_incident`, `phil_privacy_incident_revision`, `phil_privacy_incident_journal` | [Le registre des incidents](incidents.md) | `incidents.enabled` vaut true, sa valeur par défaut, et `incidents.store` vaut null. |
+| `phil_privacy_email_tracking` | [Le consentement aux courriels suivis](email-tracking.md) | `email_tracking.enabled` vaut true et `email_tracking.store` vaut null. |
+| `phil_privacy_erasure_request`, `phil_privacy_erasure_step` | [L'effacement en flux de travail](erasure-workflow.md) | `erasure_workflow.enabled` vaut true et `erasure_workflow.store` vaut null. |
+
+Une application avec un pare-feu et les valeurs par défaut reçoit donc les suppressions de compte, les preuves de
+consentement et le registre des incidents ; une application sans `symfony/security-bundle` reçoit les preuves et le
+registre. Sans Doctrine DBAL, aucune : les preuves de consentement deviennent des lignes de journal, et les autres
+fonctionnalités demandent un stockage de l'application.
+
 ## Passer à la version 0.4
 
-Chaque clé que le bundle dérive du secret de l'application (`kernel.secret`) est désormais son HKDF-SHA-256 sous une
+**Les tables suivent les fonctionnalités.** La table d'une fonctionnalité éteinte, ou gardée par un stockage de
+l'application, n'est plus dans le schéma de l'ORM : le prochain `doctrine:migrations:diff` écrit un `DROP TABLE` pour
+elle. Lisez cette migration avant de l'exécuter. Une application sans `symfony/security-bundle` qui utilisait les
+suppressions de compte les garde, avec `phil_privacy_account_deletion`, par `account_deletion.enabled: true` ; une
+table que l'application veut garder sans sa fonctionnalité sort de la comparaison par le `schema_filter` de
+DoctrineBundle.
+
+**Les clés.** Chaque clé que le bundle dérive du secret de l'application (`kernel.secret`) est désormais son HKDF-SHA-256 sous une
 étiquette à elle (voir [Modèle de menaces](threat-model.md#les-clés)). Ce qui a été scellé ou signé sous les clés de la
 version 0.3 ne s'ouvre plus :
 
