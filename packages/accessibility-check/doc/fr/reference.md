@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6b00b9fc7880649e326c7021fcb533a9d62859c4d58b22f02e4a9be56b0780dd -->
+<!-- phil-dev source-sha256=9211abf981ad07e0136fb818a93732a76cc5984c59dc987821a0ba670640f4b4 -->
 # Référence
 
 ## Vérification
@@ -31,9 +31,9 @@
 | `Contract\Rule` | Identifiant, critère de succès et sévérité d'une règle |
 | `Contract\HtmlRule` | Une règle qui lit du HTML |
 | `Contract\UjoRule` | Une règle qui lit des documents UJO |
-| `Rule\DefaultRules` | Les quinze règles de la bibliothèque, dans leur ordre d'exécution |
+| `Rule\DefaultRules` | Les dix-sept règles de la bibliothèque, dans leur ordre d'exécution |
 | `Rule\FragmentRule` | La base d'une règle qui lit les données de chaque bloc, puis chacun de ses champs HTML |
-| `Rule\ImageAlt`, `HeadingOrder`, `HeadingH1`, `EmptyHeading`, `LinkName`, `ButtonName`, `LinkText`, `ColorContrast`, `TableHeaders`, `HtmlLang`, `LangChange`, `FrameTitle`, `VideoCaptions`, `DuplicateId`, `SvgName` | Les règles : voir [Règles](rules.md) |
+| `Rule\ImageAlt`, `HeadingOrder`, `HeadingH1`, `EmptyHeading`, `LinkName`, `ButtonName`, `TabName`, `LinkText`, `ColorContrast`, `TableHeaders`, `TableHeaderLevels`, `HtmlLang`, `LangChange`, `FrameTitle`, `VideoCaptions`, `DuplicateId`, `SvgName` | Les règles : voir [Règles](rules.md) |
 | `Rule\Heading` | Un titre d'un contenu, en HTML ou en UJO |
 | `Rule\FileName` | Si un texte de remplacement est un nom de fichier |
 | `Rule\GenericLinkText` | Les textes de lien génériques de six langues, et la façon d'y comparer un nom de lien |

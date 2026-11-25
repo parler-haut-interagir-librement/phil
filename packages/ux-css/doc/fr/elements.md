@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=464c88be5fba7e3f8667439a3d06ac2f6b0f49e824779cfa6dabb8e07129bb0d -->
+<!-- phil-dev source-sha256=be4730ecb2eeccdc092c5face6ed8b20cf4080da9636a0b732faeff96387084a -->
 # Éléments
 
 La couche de base, `phil.base`, habille les éléments HTML sans classe.
@@ -69,6 +69,38 @@ du texte. Voir [Composants](components.md) pour les autres apparences.
 | `figure:has(> table)` | Fait défiler un tableau trop large pour la page |
 
 Les rangées rayées sont la classe `isStriped`.
+
+### Tableaux de données
+
+Les styles ci-dessus supposent un seul niveau d'en-têtes de colonne, la forme qu'un lecteur d'écran annonce de façon
+fiable :
+
+- une rangée d'en-têtes de colonne dans le `thead`, chacun un `th` avec `scope="col"` ;
+- un en-tête de rangée, un `th` avec `scope="row"`, au début de chaque rangée qui en a un ;
+- aucune cellule d'en-tête sur plusieurs colonnes ou rangées — ni `colspan` ni `rowspan` sur un `th` — et aucun attribut
+  `headers` : les lecteurs d'écran annoncent de façon inégale les en-têtes fusionnés ou à plusieurs niveaux, certains
+  ne lisant que la première partie d'un en-tête composé, les téléphones souvent aucun, et `headers` n'y remédie pas ;
+- les colonnes qui vont ensemble deviennent un tableau à part, avec son `caption`, ou une colonne de plus ;
+- une rangée de totaux dans le `tfoot` met son en-tête dans la première colonne seule, les autres cellules vides ou
+  contenant leurs totaux.
+
+```html
+<table>
+  <caption>Credits by course</caption>
+  <thead>
+    <tr><th scope="col">Course</th><th scope="col">Completed</th><th scope="col">Credits</th></tr>
+  </thead>
+  <tbody>
+    <tr><th scope="row">Fire safety</th><td>2026-11-22</td><td>1.5</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><th scope="row">Total</th><td></td><td>1.5</td></tr>
+  </tfoot>
+</table>
+```
+
+La règle `table-header-levels` de `phil/accessibility-check` avertit d'une cellule d'en-tête fusionnée et d'un `thead`
+de plusieurs rangées d'en-têtes.
 
 ## Dialogues et bulles
 

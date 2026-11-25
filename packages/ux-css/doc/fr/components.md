@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4ce5893b4e094b4f5bad86385b151be0e469559b05b2aa0ce82213ccc8e01e82 -->
+<!-- phil-dev source-sha256=45a80ff0731178aeb8b6e22e5df4f077f5b90dd148edd2f437761dba7a70c757 -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -153,7 +153,9 @@ premier ; `hasActivityCalendar` contient le calendrier et `isActivityLegend`, le
 ## Tableaux
 
 `isStriped` raye les rangées d'un tableau, `hasHover` éclaire celle qui est sous le pointeur, et `isScrollable` est la
-boîte qui fait défiler un tableau trop large pour la page, quand un `figure` ne convient pas.
+boîte qui fait défiler un tableau trop large pour la page, quand un `figure` ne convient pas. Les classes supposent un
+tableau de données à un seul niveau d'en-têtes de colonne, aucun fusionné : voir
+[Tableaux de données](elements.md#tableaux-de-données).
 
 ## Codes QR et code coloré
 

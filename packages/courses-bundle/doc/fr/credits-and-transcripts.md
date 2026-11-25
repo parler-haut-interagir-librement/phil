@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=aa9f92472207cec70c67d237771ddf7196f76d66bc93df19a992783c55b945c8 -->
+<!-- phil-dev source-sha256=905b224a7e514344a564cd2828f3dbaa4cb81a20ababf3ccb78ed81c77b5b26a -->
 # Crédits et relevés
 
 Un cours peut accorder des crédits — des unités de formation continue ou des heures — à son achèvement. Chaque
@@ -42,6 +42,11 @@ dans le relevé sans crédits. Un achèvement qui remplit le cycle suivant d'une
 | `phil_courses_transcript` | `/courses/transcript.json` | l'apprenant connecté | Le même en JSON |
 | `phil_courses_transcript` | `/courses/transcript.csv` | l'apprenant connecté | Le même en CSV, en pièce jointe |
 | `phil_courses_admin_transcript` | `/admin/courses/transcripts/{learner}`, `/json`, `/csv` | un gestionnaire | Le relevé de n'importe quel apprenant |
+
+La page est un tableau à une rangée d'en-têtes de colonne — cours, date d'achèvement, crédits — et un en-tête de rangée,
+le cours, au début de chaque rangée. Chaque total est une rangée du pied de tableau, coiffée du mot « Total » dans la
+première colonne, la deuxième cellule vide et le montant sous les crédits, de sorte qu'aucune cellule d'en-tête ne couvre
+deux colonnes et qu'un lecteur d'écran annonce le montant avec sa colonne.
 
 Le JSON contient l'apprenant, les entrées et les totaux :
 
