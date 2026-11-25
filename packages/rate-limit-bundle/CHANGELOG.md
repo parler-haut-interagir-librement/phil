@@ -4,6 +4,17 @@ All notable changes to `phil/rate-limit-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`twig/twig` 3.31,
+  `symfony/polyfill-intl-normalizer` 1.43, `symfony/polyfill-mbstring` 1.43, `symfony/translation-contracts` 3.8).
+
 ## 0.1.2-alpha - 2026-11-20
 
 One person, or one client, counts once whatever the form of their identifier or of

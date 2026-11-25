@@ -54,7 +54,7 @@ final readonly class DoctrineDataSource implements DataSource
             $builder->addOrderBy($this->field($sort->field), SortDirection::Desc === $sort->direction ? 'DESC' : 'ASC');
         }
 
-        $page = new OffsetPaginator($this->fetchJoinCollection)->paginate($builder->getQuery(), new Window($query->offset(), $query->pageSize));
+        $page = new OffsetPaginator($this->fetchJoinCollection)->paginate($builder->getQuery(), new Window(max(0, $query->offset()), max(1, $query->pageSize)));
         /** @var list<array<string, mixed>|object> $rows */
         $rows = $page->getItems();
 

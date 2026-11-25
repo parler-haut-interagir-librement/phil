@@ -4,6 +4,16 @@ All notable changes to `phil/ujo-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`twig/twig` 3.31).
+
 ## 0.1.2-alpha - 2026-11-18
 
 `max_bytes` bounds inline HTML too, on `phil/ujo` 0.1.3.

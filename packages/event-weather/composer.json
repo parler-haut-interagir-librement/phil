@@ -21,7 +21,7 @@
         "phil/url": "^0.1@dev",
         "psr/clock": "^1.0",
         "psr/log": "^3.0",
-        "symfony/http-client-contracts": "^3.6"
+        "symfony/http-client-contracts": "^3.8"
     },
     "require-dev": {
         "phpunit/phpunit": "^13.4",

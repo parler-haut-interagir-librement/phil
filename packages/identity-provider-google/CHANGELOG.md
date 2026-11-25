@@ -36,3 +36,8 @@ The next version is 0.1.0-alpha.
 - The documentation in `doc/`: installation, configuration, linking accounts, Cross-Account Protection, extension
   points, testing and reference.
 - `CONTRIBUTING.md`, `SECURITY.md` and `CODE_OF_CONDUCT.md`.
+
+### Changed
+
+- Requires the latest minor of each dependency (`symfony/http-client-contracts` 3.8, `symfony/service-contracts` 3.8).
+

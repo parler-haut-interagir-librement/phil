@@ -25,6 +25,11 @@ The next version is 0.2.0-alpha.
   `PurgeDeliveryAddresses` to `PurgeDeliveryAddressesHandler`; both under the `lock.factory` service when it exists.
 - `DeliveryAddressPrivacy`, the delivery addresses in the access and erasure requests of `phil/privacy-bundle`.
 
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8), and of each development requirement
+  (`doctrine/dbal` 4.6, `doctrine/doctrine-bundle` 3.4, `doctrine/persistence` 4.2).
+
 ### Fixed
 
 - It requires `phil/commerce-bundle` 0.4, the version published on 2026-11-20, beside which its requirement of 0.2 or

@@ -57,6 +57,16 @@ final class DoctrineDataSourceTest extends TestCase
         self::assertSame([[3, 2], 5], [$this->ids($page), $page->total]);
     }
 
+    public function testThePageStaysInsideTheRows(): void
+    {
+        $sorts = [new Sort('id')];
+
+        self::assertSame([1], $this->ids($this->source()->fetch(new TableQuery([], $sorts, 1, 1))), 'a page of one row');
+        self::assertSame([1], $this->ids($this->source()->fetch(new TableQuery([], $sorts, 1, 0))), 'a page of no row holds one');
+        self::assertSame([1, 2], $this->ids($this->source()->fetch(new TableQuery([], $sorts, 0, 2))), 'a page before the first starts at the first row');
+        self::assertSame([1], $this->ids($this->source()->fetch(new TableQuery([], $sorts, 0, 1))), 'a page before the first, of one row');
+    }
+
     public function testSortsAreAppliedInOrder(): void
     {
         self::assertSame([2, 4, 1, 3, 5], $this->ids($this->source()->fetch(new TableQuery([], [new Sort('status'), new Sort('id')], 1, 10))));

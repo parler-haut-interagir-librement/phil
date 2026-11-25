@@ -4,6 +4,15 @@ All notable changes to `phil/typography-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`symfony/translation-contracts` 3.8), and of each development
+  requirement (`twig/twig` 3.31).
+
 ## 0.1.2-alpha - 2026-11-18
 
 An optional key, on `phil/typography` 0.2.

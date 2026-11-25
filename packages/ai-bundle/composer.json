@@ -27,8 +27,8 @@
     "require": {
         "php": ">=8.5",
         "ext-sodium": "*",
-        "doctrine/collections": "^3.0",
-        "doctrine/orm": "^3.7",
+        "doctrine/collections": "^3.1",
+        "doctrine/orm": "^3.8",
         "phil/creation-disclosure": "^0.1@dev",
         "phil/url": "^0.1@dev",
         "phil/usage-meter": "^0.1@dev",
@@ -36,13 +36,13 @@
         "symfony/ai-platform": "^0.15",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
-        "symfony/http-client-contracts": "^3.6",
-        "symfony/translation-contracts": "^3.6",
+        "symfony/http-client-contracts": "^3.8",
+        "symfony/translation-contracts": "^3.8",
         "symfony/uid": "^8.2"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.5",
-        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/dbal": "^4.6",
+        "doctrine/doctrine-bundle": "^3.4",
         "phil/privacy-bundle": "^0.3@dev",
         "phil/user-secrets-bundle": "^0.1@dev",
         "phpunit/phpunit": "^13.4",

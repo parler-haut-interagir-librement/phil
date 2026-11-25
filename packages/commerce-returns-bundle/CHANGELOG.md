@@ -23,6 +23,9 @@ The next version is 0.1.1-alpha.
 ### Changed
 
 - It requires `phil/commerce-bundle` 0.5, the minor released the same evening.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
+  `symfony/event-dispatcher-contracts` 3.8, `symfony/translation-contracts` 3.8), and of each development requirement
+  (`doctrine/doctrine-bundle` 3.4, `doctrine/persistence` 4.2).
 
 ## 0.1.0-alpha - 2026-11-20
 

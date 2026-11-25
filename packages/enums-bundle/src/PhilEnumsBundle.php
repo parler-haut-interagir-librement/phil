@@ -6,7 +6,8 @@ namespace Phil\EnumsBundle;
 
 use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use BackedEnum;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Configuration as DbalConfiguration;
+use Doctrine\DBAL\Types\TypeRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 use MessageFormatter;
 use Nelmio\ApiDocBundle\ModelDescriber\ModelDescriberInterface;
@@ -274,12 +275,12 @@ final class PhilEnumsBundle extends AbstractBundle
 
     /**
      * Registers the `EnumSet` column types the configuration declares, once per process: DBAL keeps its types in a
-     * static registry, which a type name enters only once.
+     * static registry, which a type name enters only once, and the type provider of each connection falls back to it.
      */
     #[Override]
     public function boot(): void
     {
-        if (!class_exists(Type::class)) {
+        if (!class_exists(TypeRegistry::class)) {
             return;
         }
 
@@ -289,9 +290,13 @@ final class PhilEnumsBundle extends AbstractBundle
         /** @var array<string, array{enum: class-string<UnitEnum>, storage: string}> $sets */
         $sets = $this->container->getParameter('phil_enums.doctrine.sets');
 
+        // A configuration without a type provider of its own gives the static registry of DBAL.
+        $types = new DbalConfiguration()->getTypeProvider();
+        \assert($types instanceof TypeRegistry);
+
         foreach ($sets as $name => $set) {
-            if (!Type::hasType($name)) {
-                Type::addType($name, new EnumSetType($set['enum'], EnumSetStorage::from($set['storage'])));
+            if (!$types->has($name)) {
+                $types->register($name, new EnumSetType($set['enum'], EnumSetStorage::from($set['storage'])));
             }
         }
     }

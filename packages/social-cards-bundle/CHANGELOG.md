@@ -4,6 +4,16 @@ All notable changes to `phil/social-cards-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`twig/twig` 3.31, `phil/safe-http` 0.2, `symfony/cache-contracts` 3.8,
+  `symfony/service-contracts` 3.8), and of each development requirement (`symfony/ux-twig-component` 3.8,
+  `symfony/http-client-contracts` 3.8).
+
 ## 0.1.1-alpha - 2026-11-20
 
 The cards can be drawn by ImageMagick, a message keeps the link preview its author

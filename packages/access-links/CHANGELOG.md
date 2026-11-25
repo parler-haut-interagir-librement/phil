@@ -4,6 +4,16 @@ All notable changes to `phil/access-links` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`doctrine/dbal` 4.6).
+
 ## 0.2.0-alpha - 2026-11-18
 
 Campaigns, recipients and the other identifiers of the DBAL store compare byte by

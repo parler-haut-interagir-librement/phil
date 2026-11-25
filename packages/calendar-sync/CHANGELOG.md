@@ -8,12 +8,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.2-alpha.
 
-Tests only.
-
 ### Changed
 
 - The tests of an answer of the largest size allowed and of the most busy periods build their input in a fraction of the
   time.
+- Requires the latest minor of each dependency (`phil/safe-http` 0.2, `symfony/http-client-contracts` 3.8).
 
 ## 0.1.1-alpha - 2026-11-14
 

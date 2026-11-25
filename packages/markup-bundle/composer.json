@@ -27,7 +27,7 @@
         "phil/ujo": "^0.1.2@dev",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
-        "symfony/translation-contracts": "^3.6"
+        "symfony/translation-contracts": "^3.8"
     },
     "require-dev": {
         "phil/typography": "^0.2@dev",
@@ -41,7 +41,7 @@
         "symfony/translation": "^8.2",
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "phil/typography": "For smart punctuation in every format",

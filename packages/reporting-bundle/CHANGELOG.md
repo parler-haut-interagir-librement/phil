@@ -32,6 +32,9 @@ reports among its own. See [Training hours and costs](doc/training.md) and
 ### Changed
 
 - `Period::split()` declares a list that is never empty.
+- Requires the latest minor of each dependency (`symfony/service-contracts` 3.8), and of each development requirement
+  (`symfony/ux-live-component` 3.8.1, `twig/twig` 3.31, `symfony/ux-twig-component` 3.8, `easycorp/easyadmin-bundle`
+  5.10, …): `symfony/ux-live-component` 3.8.1 fixes CVE-2026-133774 and CVE-2026-133778.
 
 ## 0.1.3-alpha - 2026-11-18
 

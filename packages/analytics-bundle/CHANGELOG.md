@@ -13,6 +13,8 @@ The next version is 0.2.1-alpha: every `Sec-GPC` header of a request is read. Se
 
 - The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
+- The development requirements ask for the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
+  `doctrine/doctrine-bundle` 3.4).
 
 ### Fixed
 

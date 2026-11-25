@@ -99,6 +99,10 @@ See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
   a PKCE challenge nor a `nonce` (RFC 9700, section 2.1.1): a client registered with `--pkce-optional` sends a `nonce`.
   `oidc.require_nonce_without_pkce`, on by default, `ProviderSettings::$nonceWithoutPkce` and the second argument of
   `AuthorizationRequestParser`, both optional, lift the rule for a test suite; the conformance application does.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `twig/twig` 3.31,
+  `phil/passwords` 0.2, …), and of each development requirement (`doctrine/doctrine-bundle` 3.4,
+  `symfony/ux-twig-component` 3.8, `symfony/dom-crawler` 8.2, `symfony/http-client-contracts` 3.8, …). The lockout
+  delay is computed in integers.
 
 ### Fixed
 

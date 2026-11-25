@@ -8,12 +8,12 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Tests only.
-
 ### Changed
 
 - The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
+- Requires the latest minor of each dependency (`twig/twig` 3.31, `symfony/ux-twig-component` 3.8, `phil/markup` 0.3),
+  and of each development requirement (`symfony/ux-toolkit` 3.8, `twig/html-extra` 3.31).
 
 ## 0.1.0-alpha - 2026-11-18
 

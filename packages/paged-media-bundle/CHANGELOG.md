@@ -4,6 +4,16 @@ All notable changes to `phil/paged-media-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`symfony/http-client-contracts` 3.8).
+
 ## 0.1.1-alpha - 2026-11-18
 
 A kept job is readable by its owner alone from the moment it exists, and an open

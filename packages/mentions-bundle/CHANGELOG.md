@@ -8,6 +8,12 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.2.1-alpha.
 
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `phil/notifications-bundle`
+  0.4, `symfony/service-contracts` 3.8), and of each development requirement (`doctrine/doctrine-bundle` 3.4,
+  `twig/twig` 3.31).
+
 ### Fixed
 
 - `phil/notifications-bundle` 0.3 and 0.4 are accepted beside 0.1 and 0.2: the package did not install beside the

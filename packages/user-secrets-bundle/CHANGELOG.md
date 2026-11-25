@@ -13,6 +13,8 @@ The next version is 0.2.0-alpha: instants are written and read in UTC, whatever 
 - The development requirements accept `phil/privacy-bundle` 0.3, the minor version of its main branch and no earlier
   one, so that the package installs on its own beside that bundle.
 - `doctrine/dbal` is required, no longer for development only: the Doctrine store names the types of its parameters.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `symfony/polyfill-php86`
+  1.43), and of each development requirement (`doctrine/doctrine-bundle` 3.4).
 
 ### Security
 

@@ -48,7 +48,7 @@ final readonly class TranslationListener
         sort($wanted);
 
         foreach ($metadata->table['uniqueConstraints'] ?? [] as $constraint) {
-            $declared = \is_array($constraint) && \is_array($constraint['columns'] ?? null) ? $constraint['columns'] : [];
+            $declared = $constraint['columns'] ?? [];
             sort($declared);
 
             if ($declared === $wanted) {

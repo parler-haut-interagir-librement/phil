@@ -19,6 +19,11 @@ The next version is 0.1.1-alpha.
   of facts holding a carriage return, a NUL byte, a terminal escape or another control character, refused when written
   and not intact when stored.
 
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
+  `symfony/http-client-contracts` 3.8).
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

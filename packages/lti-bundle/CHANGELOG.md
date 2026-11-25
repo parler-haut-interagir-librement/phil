@@ -4,6 +4,16 @@ All notable changes to `phil/lti-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/dbal` 4.6, `twig/twig` 3.31, `symfony/service-contracts`
+  3.8), and of each development requirement (`doctrine/orm` 3.8, `doctrine/doctrine-bundle` 3.4,
+  `symfony/ux-twig-component` 3.8, `symfony/dom-crawler` 8.2).
+
 ## 0.2.0-alpha - 2026-11-17
 
 The ports `PendingScores` and `DeepLinkingReturns` change or appear, the schema gains a

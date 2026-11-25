@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\DoctrineBehaviours;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception as DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Phil\DoctrineBehaviours\Contract\Positionable;
 use Phil\DoctrineBehaviours\Exception\InvalidScope;
@@ -40,7 +41,8 @@ final readonly class Positions
     }
 
     /**
-     * @throws InvalidScope when the record is not stored
+     * @throws InvalidScope  when the record is not stored
+     * @throws DBALException when the database refuses the move, a lock it cannot get in time among them
      */
     public function moveFirst(Positionable $record): void
     {
@@ -56,7 +58,8 @@ final readonly class Positions
     }
 
     /**
-     * @throws InvalidScope when the record is not stored
+     * @throws InvalidScope  when the record is not stored
+     * @throws DBALException when the database refuses the move, a lock it cannot get in time among them
      */
     public function moveLast(Positionable $record): void
     {

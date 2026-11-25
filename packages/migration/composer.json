@@ -27,7 +27,7 @@
         "symfony/notifier": "^8.2"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.3",
+        "doctrine/dbal": "^4.6",
         "phpunit/phpunit": "^13.4"
     },
     "minimum-stability": "dev",

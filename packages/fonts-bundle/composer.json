@@ -37,7 +37,7 @@
         "symfony/framework-bundle": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "ext-brotli": "To read WOFF2 files; without it their WOFF, TrueType or OpenType siblings are read",

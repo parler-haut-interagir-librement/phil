@@ -4,6 +4,17 @@ All notable changes to `phil/block-editor-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`twig/twig` 3.31,
+  `symfony/stimulus-bundle` 3.8).
+
 ## 0.1.1-alpha - 2026-11-20
 
 Marks at a collapsed caret, a mark removed from a selection that ends on its edges,

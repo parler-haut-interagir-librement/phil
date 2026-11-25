@@ -147,6 +147,9 @@ finds the new fields, and its Markdown ten columns more, a table of corrections 
 - `ConsentContext::sendsGlobalPrivacyControl()` reads every occurrence of `Sec-GPC`, each split on its commas and
   trimmed: a browser that sent the signal in a second header, or in a list such as `Sec-GPC: 0, 1`, was asked for its
   consent and could have optional categories granted.
+- Requires the latest minor of each dependency (`twig/twig` 3.31, `monolog/monolog` 3.13,
+  `symfony/event-dispatcher-contracts` 3.8), and of each development requirement (`doctrine/orm` 3.8, `doctrine/dbal`
+  4.6, `doctrine/persistence` 4.2, `symfony/dom-crawler` 8.2, …).
 
 ## 0.2.0-alpha - 2026-11-20
 

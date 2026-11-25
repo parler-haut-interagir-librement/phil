@@ -4,6 +4,17 @@ All notable changes to `phil/accessibility-statement-bundle` will be documented 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`twig/twig` 3.31, `symfony/ux-twig-component` 3.8,
+  `symfony/translation-contracts` 3.8), and of each development requirement (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
+  `doctrine/doctrine-bundle` 3.4, `symfony/service-contracts` 3.8, …). The publication dates are read through the type
+  provider of the connection, as DBAL 4.6 asks, instead of the static `Type::getType()`.
+
 ## 0.1.0-alpha - 2026-11-15
 
 ### Added

@@ -4,6 +4,19 @@ All notable changes to `phil/doctrine-behaviours` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `doctrine/persistence` 4.2,
+  `symfony/polyfill-php86` 1.43). The scope of a position and the states read by `VersionEraser` are converted through
+  the type provider of the connection, as DBAL 4.6 asks, instead of the static `Type::getType()`;
+  `Positions::moveFirst()` and `moveLast()` declare the DBAL exception a refused move throws. The unique constraints
+  of a translation are read as the index shape of `doctrine/orm` 3.8. The tests that build an event manager ask for
+  `doctrine/event-manager` 2.1 in development.
+
 ## 0.3.0-alpha - 2026-11-20
 
 A privacy security fix: an erasure reaches the personal fields of the frozen versions

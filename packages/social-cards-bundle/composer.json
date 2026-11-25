@@ -22,16 +22,16 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "phil/safe-http": "^0.1@dev || ^0.2@dev",
+        "phil/safe-http": "^0.2@dev",
         "phil/social-cards": "^0.1.1@dev",
-        "symfony/cache-contracts": "^3.6",
+        "symfony/cache-contracts": "^3.8",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
         "symfony/http-foundation": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2",
-        "symfony/service-contracts": "^3.6",
-        "twig/twig": "^3.21"
+        "symfony/service-contracts": "^3.8",
+        "twig/twig": "^3.31"
     },
     "require-dev": {
         "phil/http-cache-tags-bundle": "^0.1@dev",
@@ -45,11 +45,11 @@
         "symfony/console": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-client": "^8.2",
-        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-client-contracts": "^3.8",
         "symfony/messenger": "^8.2",
         "symfony/rate-limiter": "^8.2",
         "symfony/twig-bundle": "^8.2",
-        "symfony/ux-twig-component": "^3.7"
+        "symfony/ux-twig-component": "^3.8"
     },
     "suggest": {
         "ext-imagick": "For cards.renderer: imagick, the cards drawn with ImageMagick",

@@ -4,6 +4,16 @@ All notable changes to `phil/comments-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `symfony/service-contracts`
+  3.8), and of each development requirement (`doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31,
+  `symfony/ux-twig-component` 3.8, `phil/ux-kit` 0.5, …).
+
 ## 0.3.0-alpha - 2026-11-18
 
 The subjects, authors and identifiers of the threads and comments compare byte by

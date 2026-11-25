@@ -146,7 +146,6 @@ final class PdfFilters
         $columns = max(1, min(1 << 20, \is_int($options->get('Columns')) ? $options->get('Columns') : 1));
         $pixel = intdiv($colors * $bits + 7, 8);
         // A row is never longer than the data: a declared width far beyond it would pad a few bytes into megabytes.
-        /** @var int<0, max> $row colours, bits and columns are at least one each */
         $row = min(\strlen($bytes), intdiv($colors * $bits * $columns + 7, 8));
 
         return 2 === $predictor ? $this->tiff($bytes, $row, $pixel) : $this->png($bytes, $row, $pixel);

@@ -5,6 +5,15 @@ All notable changes to `phil/console-bundle` will be documented in this file.
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles, and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`symfony/service-contracts` 3.8), and of each development requirement
+  (`monolog/monolog` 3.13).
+
 ## 0.1.0-alpha - 2026-11-11
 
 ### Added

@@ -39,7 +39,7 @@
         "symfony/filesystem": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-client": "^8.2",
-        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-client-contracts": "^3.8",
         "symfony/http-kernel": "^8.2",
         "symfony/messenger": "^8.2"
     },

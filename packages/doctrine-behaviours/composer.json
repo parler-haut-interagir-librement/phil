@@ -26,15 +26,16 @@
     "require": {
         "php": ">=8.5",
         "doctrine/collections": "^3.1",
-        "doctrine/dbal": "^4.5",
-        "doctrine/orm": "^3.7",
-        "doctrine/persistence": "^3.3.1 || ^4.0",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
+        "doctrine/persistence": "^4.2",
         "phil/locale-dimensions": "^0.1@dev",
         "psr/clock": "^1.0",
-        "symfony/polyfill-php86": "^1.36"
+        "symfony/polyfill-php86": "^1.43"
     },
     "require-dev": {
         "ext-pdo": "*",
+        "doctrine/event-manager": "^2.1",
         "phil/slug": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
         "symfony/clock": "^8.2",

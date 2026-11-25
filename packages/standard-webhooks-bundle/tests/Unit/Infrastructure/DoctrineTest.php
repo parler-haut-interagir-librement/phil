@@ -14,7 +14,6 @@ use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 use InvalidArgumentException;
@@ -176,7 +175,7 @@ final class DoctrineTest extends TestCase
 
         $schema = $event->getSchema();
         $table = $schema->getTable(ProcessedWebhookTable::NAME);
-        self::assertSame([255, true, 'datetime_immutable'], [$table->getColumn('id')->getLength(), $table->getColumn('processed_at')->getNotnull(), Type::lookupName($table->getColumn('processed_at')->getType())]);
+        self::assertSame([255, true, 'datetime_immutable'], [$table->getColumn('id')->getLength(), $table->getColumn('processed_at')->getNotnull(), $table->getColumn('processed_at')->getTypeName()]);
         self::assertSame([64, true, 'default'], [$table->getColumn('receiver')->getLength(), $table->getColumn('receiver')->getNotnull(), $table->getColumn('receiver')->getDefault()]);
         self::assertSame(['receiver', 'id'], array_map(static fn (object $name): string => $name->toString(), $table->getPrimaryKeyConstraint()?->getColumnNames() ?? []));
         self::assertTrue($table->hasIndex('phil_standard_webhooks_processed_processed_at'));

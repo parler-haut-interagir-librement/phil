@@ -4,6 +4,17 @@ All notable changes to `phil/document-import-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements ask for the latest minor of each dependency (`twig/twig` 3.31,
+  `symfony/event-dispatcher-contracts` 3.8).
+
 ## 0.1.0-alpha - 2026-11-20
 
 ### Added

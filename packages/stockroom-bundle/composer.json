@@ -22,14 +22,14 @@
     "require": {
         "php": ">=8.5",
         "ext-mbstring": "*",
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "phil/stockroom": "^0.1@dev",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/orm": "^3.7",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/orm": "^3.8",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "symfony/clock": "^8.2",

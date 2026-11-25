@@ -21,6 +21,8 @@ The next version is 0.2.0-alpha.
 - `ComingSoon` keeps its illustration at least 40 % of the screen's height in `svh`, which stays put while the bars of
   a phone's browser come and go.
 - The browser suite audits with axe-core 4.14.1.
+- The development requirements ask for the latest minor of each dependency (`twig/twig` 3.31,
+  `symfony/ux-twig-component` 3.8, `symfony/ux-toolkit` 3.8, `twig/extra-bundle` 3.31, …).
 
 ## 0.1.0-alpha - 2026-11-14
 

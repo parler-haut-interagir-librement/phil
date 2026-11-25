@@ -29,8 +29,8 @@
         "phil/safe-http": "^0.2.1@dev",
         "phil/url": "^0.1.4@dev",
         "psr/clock": "^1.0",
-        "symfony/cache-contracts": "^3.6",
-        "symfony/service-contracts": "^3.6",
+        "symfony/cache-contracts": "^3.8",
+        "symfony/service-contracts": "^3.8",
         "web-token/jwt-library": "^4.2"
     },
     "require-dev": {

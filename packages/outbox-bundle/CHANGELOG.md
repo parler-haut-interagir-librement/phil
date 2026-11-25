@@ -27,6 +27,8 @@ reads the output of `phil:outbox:relay` or `phil:outbox:dead:show` finds the ski
 - Requires phil/outbox 0.2.0-alpha, for `OutboxRecord::OWN_EXCEPTIONS`, `RecordState::Skipped` and the grace of
   unknown types.
 - `phil:outbox:purge` removes the skipped records with the delivered ones.
+- Requires the latest minor of each dependency (`doctrine/dbal` 4.6), and of each development requirement
+  (`doctrine/orm` 3.8, `doctrine/doctrine-bundle` 3.4).
 
 ## 0.1.1-alpha - 2026-11-20
 

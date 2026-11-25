@@ -123,7 +123,7 @@ final class MappingTest extends TestCase
             'table' => $metadata->getTableName(),
             'id' => $metadata->getIdentifierFieldNames(),
             'versioned' => $metadata->isVersioned,
-            'indexes' => array_map(static fn (mixed $index): mixed => \is_array($index) ? $index['columns'] ?? null : null, $metadata->table['indexes'] ?? []),
+            'indexes' => array_map(static fn (array $index): ?array => $index['columns'] ?? null, $metadata->table['indexes'] ?? []),
             'columns' => $columns,
             'joins' => $joins,
         ];

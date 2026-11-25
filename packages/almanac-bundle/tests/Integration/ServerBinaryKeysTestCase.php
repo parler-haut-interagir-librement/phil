@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Phil\AlmanacBundle\Tests\Integration;
 
+use Doctrine\DBAL\Configuration as DbalConfiguration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Tools\DsnParser;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\TypeRegistry;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\ORMSetup;
@@ -42,8 +43,12 @@ abstract class ServerBinaryKeysTestCase extends TestCase
     protected function setUp(): void
     {
         // The type DoctrineBundle registers for the identifiers of symfony/uid.
-        if (!Type::hasType(UuidType::NAME)) {
-            Type::addType(UuidType::NAME, UuidType::class);
+        // A configuration without a type provider of its own gives the static registry of DBAL.
+        $registry = new DbalConfiguration()->getTypeProvider();
+        $this->assertInstanceOf(TypeRegistry::class, $registry);
+
+        if (!$registry->has(UuidType::NAME)) {
+            $registry->register(UuidType::NAME, UuidType::class);
         }
     }
 

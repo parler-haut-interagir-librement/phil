@@ -32,9 +32,9 @@
         "symfony/http-kernel": "^8.2"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.5",
-        "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/orm": "^3.7",
+        "doctrine/dbal": "^4.6",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/orm": "^3.8",
         "phil/tenancy-bundle": "^0.2@dev",
         "phpunit/phpunit": "^13.4",
         "psr/cache": "^3.0",
@@ -45,7 +45,7 @@
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-client": "^8.2",
-        "symfony/http-client-contracts": "^3.6",
+        "symfony/http-client-contracts": "^3.8",
         "symfony/lock": "^8.2",
         "symfony/messenger": "^8.2",
         "symfony/routing": "^8.2",

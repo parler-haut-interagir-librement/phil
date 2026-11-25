@@ -8,11 +8,12 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Tests only.
-
 ### Changed
 
 - A test of the stores uses a stub instead of a mock that expects nothing, which PHPUnit reports.
+- Requires the latest minor of each dependency (`twig/twig` 3.31, `symfony/ux-twig-component` 3.8), and of each
+  development requirement (`league/flysystem` 3.36, `league/flysystem-memory` 3.31, `phil/ux-kit` 0.5,
+  `symfony/cache-contracts` 3.8).
 
 ## 0.1.0-alpha - 2026-11-13
 

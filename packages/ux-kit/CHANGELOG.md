@@ -40,6 +40,8 @@ The next version is 0.6.0-alpha.
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
 - The browser suite audits with axe-core 4.14.1, which no longer reports `target-size` where a target is spaced
   enough.
+- Requires the latest minor of each dependency (`twig/twig` 3.31), and of each development requirement
+  (`symfony/ux-twig-component` 3.8, `liip/imagine-bundle` 2.19, `twig/extra-bundle` 3.31, `twig/html-extra` 3.31).
 
 ## 0.5.0-alpha - 2026-11-12
 

@@ -14,7 +14,7 @@ return [
             [
                 'identifier' => 'method.deprecated',
                 'path' => 'tests/Unit/Infrastructure/DoctrineTest.php',
-                'count' => 4,
+                'count' => 3,
             ],
             // à corriger : API interne de Doctrine, PHPUnit à remplacer par une API publique.
             [

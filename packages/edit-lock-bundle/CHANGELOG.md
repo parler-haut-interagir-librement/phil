@@ -8,11 +8,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.2.1-alpha.
 
-Tests only.
-
 ### Changed
 
 - The test of a takeover during a save drops the table of blocks a stopped run left behind before it creates it.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6), and of each development
+  requirement (`doctrine/doctrine-bundle` 3.4, `doctrine/persistence` 4.2).
 
 ## 0.2.0-alpha - 2026-11-18
 

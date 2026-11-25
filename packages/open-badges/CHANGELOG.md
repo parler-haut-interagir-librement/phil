@@ -4,6 +4,15 @@ All notable changes to `phil/open-badges` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.4.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`phil/safe-http` 0.2, `symfony/service-contracts` 3.8), and of each
+  development requirement (`symfony/http-client-contracts` 3.8).
+
 ## 0.4.0-alpha - 2026-11-18
 
 The verifier refuses tokens whose registered claims contradict their credential and

@@ -33,6 +33,8 @@ The next version is 0.3.0-alpha: a level every sign-in has to reach, and a cold-
   provider signs in; another issuer, or a missing `iss` from a provider that announces
   `authorization_response_iss_parameter_supported`, is refused before the code is exchanged. The functional tests empty
   the `cache.security.discovery` pool when they boot their kernel.
+- The development requirements ask for the latest minor of each dependency (`phpbench/phpbench` 1.7,
+  `symfony/http-client-contracts` 3.8).
 
 ## 0.2.1-alpha - 2026-11-18
 

@@ -8,14 +8,15 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.2.1-alpha.
 
-Development only.
-
 ### Changed
 
 - The Node tests resolve `@hotwired/stimulus` to their stub with a synchronous hook given to `module.registerHooks()`,
   on the loading thread, instead of `module.register()`, which Node deprecates (DEP0205).
 - The development requirements accept `phil/privacy-bundle` 0.3 and `phil/settings-bundle` 0.2, the minor versions of
   their main branches and no earlier one, so that the package installs on its own beside those bundles.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `symfony/service-contracts`
+  3.8), and of each development requirement (`doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31,
+  `symfony/ux-twig-component` 3.8, `symfony/dom-crawler` 8.2, …).
 
 ## 0.2.0-alpha - 2026-11-18
 

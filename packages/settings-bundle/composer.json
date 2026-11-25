@@ -24,7 +24,7 @@
     "require": {
         "php": ">=8.5",
         "ext-mbstring": "*",
-        "doctrine/dbal": "^4.5",
+        "doctrine/dbal": "^4.6",
         "psr/clock": "^1.0",
         "psr/container": "^2.0",
         "psr/event-dispatcher": "^1.0",
@@ -36,14 +36,14 @@
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2",
         "symfony/security-core": "^8.2",
-        "symfony/service-contracts": "^3.6",
-        "symfony/translation-contracts": "^3.6",
-        "twig/twig": "^3.21"
+        "symfony/service-contracts": "^3.8",
+        "symfony/translation-contracts": "^3.8",
+        "twig/twig": "^3.31"
     },
     "require-dev": {
         "ext-pdo": "*",
-        "doctrine/doctrine-bundle": "^3.3",
-        "doctrine/orm": "^3.7",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/orm": "^3.8",
         "phil/notifications-bundle": "^0.3@dev",
         "phil/privacy-bundle": "^0.3@dev",
         "phpunit/phpunit": "^13.4",

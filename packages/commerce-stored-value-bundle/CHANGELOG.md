@@ -33,6 +33,8 @@ The next version is 0.2.0-alpha: the movements table gains two columns and two u
 - `DoctrineStoredValueRepository` stores an order's cards with an entity manager of their own on the same connection,
   so that a refusal leaves the application's entity manager open, and the application's listeners see them stored;
   `doctrine/dbal` and `doctrine/event-manager` are requirements.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6), and of each development
+  requirement (`doctrine/doctrine-bundle` 3.4, `doctrine/persistence` 4.2).
 
 ### Fixed
 

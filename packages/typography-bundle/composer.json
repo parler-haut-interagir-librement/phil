@@ -24,7 +24,7 @@
         "phil/typography": "^0.2@dev",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
-        "symfony/translation-contracts": "^3.6"
+        "symfony/translation-contracts": "^3.8"
     },
     "require-dev": {
         "phil/ujo": "^0.1@dev",
@@ -40,7 +40,7 @@
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
         "symfony/validator": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "phil/ujo-bundle": "For typographic fixes on the HTML of UJO documents",

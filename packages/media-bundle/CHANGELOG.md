@@ -24,6 +24,9 @@ The next version is 0.2.1-alpha.
 
 - The development requirements accept `phil/browser-security-bundle` 0.2, the minor version of its main branch and no
   earlier one, so that the package installs on its own beside that bundle.
+- Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `league/flysystem` 3.36,
+  `symfony/service-contracts` 3.8), and of each development requirement (`doctrine/doctrine-bundle` 3.4, `twig/twig`
+  3.31, `symfony/ux-twig-component` 3.8, `easycorp/easyadmin-bundle` 5.10, …).
 
 ## 0.2.0-alpha - 2026-11-18
 

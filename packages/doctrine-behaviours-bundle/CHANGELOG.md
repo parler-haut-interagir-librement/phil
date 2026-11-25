@@ -8,13 +8,13 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.3.1-alpha.
 
-Development only.
-
 ### Changed
 
 - The development requirements accept `phil/privacy-bundle` 0.3, `phil/search-bundle` 0.2 and `phil/slug-bundle` 0.2,
   the minor versions of their main branches and no earlier one, so that the package installs on its own beside those
   bundles.
+- Requires the latest minor of each dependency (`doctrine/doctrine-bundle` 3.4), and of each development requirement
+  (`doctrine/orm` 3.8, `doctrine/dbal` 4.6).
 
 ## 0.3.0-alpha - 2026-11-20
 

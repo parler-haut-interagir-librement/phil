@@ -15,6 +15,11 @@ The next version is 0.1.1-alpha.
 - The rules catalogue lists the success criteria added by WCAG 2.2 that are left to tests in a browser: 2.4.11, 2.5.7,
   2.5.8, 3.2.6, 3.3.7 and 3.3.8.
 
+### Changed
+
+- Requires the latest minor of each dependency (`symfony/translation-contracts` 3.8), and of each development
+  requirement (`symfony/event-dispatcher-contracts` 3.8).
+
 ## 0.1.0-alpha - 2026-11-12
 
 ### Added

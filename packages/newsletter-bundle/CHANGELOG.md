@@ -46,6 +46,9 @@ an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
   `mailer.transports`, instead of `MailerInterface`.
 - `ContentRenderer` draws the text part with `TextPart` instead of Mime's `DefaultHtmlToTextConverter`, and no longer
   decodes the entities of what its converter returns.
+- Requires the latest minor of each dependency (`doctrine/dbal` 4.6, `twig/twig` 3.31, `phil/markup` 0.3,
+  `symfony/event-dispatcher-contracts` 3.8, …), and of each development requirement (`doctrine/orm` 3.8,
+  `doctrine/doctrine-bundle` 3.4).
 
 ### Security
 

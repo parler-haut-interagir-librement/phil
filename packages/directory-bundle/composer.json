@@ -20,13 +20,13 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "doctrine/dbal": "^4.5",
-        "doctrine/orm": "^3.7",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
         "phil/address": "^0.1@dev",
         "phil/address-bundle": "^0.1@dev",
         "phil/contact": "^0.1@dev",
         "phil/contact-bundle": "^0.1@dev",
-        "phil/content-bundle": "^0.1@dev || ^0.2@dev || ^0.3@dev",
+        "phil/content-bundle": "^0.3@dev",
         "phil/ddd-bundle": "^0.1@dev",
         "phil/geo": "^0.1@dev",
         "phil/geo-bundle": "^0.1@dev",
@@ -41,10 +41,10 @@
         "symfony/options-resolver": "^8.2",
         "symfony/routing": "^8.2",
         "symfony/security-core": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/doctrine-bundle": "^3.4",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "symfony/browser-kit": "^8.2",

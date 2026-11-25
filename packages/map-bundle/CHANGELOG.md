@@ -4,6 +4,16 @@ All notable changes to `phil/map-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`twig/twig` 3.31, `symfony/cache-contracts` 3.8,
+  `symfony/http-client-contracts` 3.8, `symfony/translation-contracts` 3.8, …), and of each development requirement
+  (`symfony/ux-twig-component` 3.8, `symfony/stimulus-bundle` 3.8).
+
 ## 0.1.0-alpha - 2026-11-20
 
 ### Added

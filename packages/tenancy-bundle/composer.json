@@ -14,9 +14,9 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "doctrine/dbal": "^4.2",
-        "doctrine/orm": "^3.5",
-        "doctrine/persistence": "^4.1",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
+        "doctrine/persistence": "^4.2",
         "phil/ddd-bundle": "^0.1@dev",
         "phil/url": "^0.1@dev",
         "psr/event-dispatcher": "^1.0",
@@ -28,12 +28,12 @@
         "symfony/routing": "^8.2"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/doctrine-bundle": "^3.4",
         "phpunit/phpunit": "^13.4",
         "psr/cache": "^3.0",
         "symfony/browser-kit": "^8.2",
         "symfony/cache": "^8.2",
-        "symfony/cache-contracts": "^3.6",
+        "symfony/cache-contracts": "^3.8",
         "symfony/console": "^8.2",
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
@@ -43,7 +43,7 @@
         "symfony/security-bundle": "^8.2",
         "symfony/security-core": "^8.2",
         "symfony/security-http": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "symfony/cache": "To scope cache.app, and the pools built on it, to the active tenant",

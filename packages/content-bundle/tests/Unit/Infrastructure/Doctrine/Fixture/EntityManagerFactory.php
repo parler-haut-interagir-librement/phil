@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Phil\ContentBundle\Tests\Unit\Infrastructure\Doctrine\Fixture;
 
+use Doctrine\DBAL\Configuration as DbalConfiguration;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\TypeRegistry;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Events;
@@ -108,8 +109,12 @@ final class EntityManagerFactory
         ];
 
         foreach ($types as $name => $class) {
-            if (!Type::hasType($name)) {
-                Type::addType($name, $class);
+            // A configuration without a type provider of its own gives the static registry of DBAL.
+            $registry = new DbalConfiguration()->getTypeProvider();
+            \assert($registry instanceof TypeRegistry);
+
+            if (!$registry->has($name)) {
+                $registry->register($name, $class);
             }
         }
     }

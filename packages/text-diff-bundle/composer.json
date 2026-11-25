@@ -41,7 +41,7 @@
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2",
         "symfony/validator": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "phil/ujo-bundle": "To read documents and render their blocks with the application's block types",

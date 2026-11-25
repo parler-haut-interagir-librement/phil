@@ -4,6 +4,15 @@ All notable changes to `phil/ux-easyadmin-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Changed
+
+- Requires the latest minor of each dependency (`phil/ux-css` 0.5), and of each development requirement
+  (`doctrine/doctrine-bundle` 3.4, `symfony/ux-twig-component` 3.8, `twig/extra-bundle` 3.31).
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

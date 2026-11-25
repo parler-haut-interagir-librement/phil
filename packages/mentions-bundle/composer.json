@@ -24,20 +24,20 @@
     "require": {
         "php": ">=8.5",
         "ext-mbstring": "*",
-        "doctrine/dbal": "^4.5",
-        "doctrine/orm": "^3.7",
-        "phil/notifications-bundle": "^0.1@dev || ^0.2@dev || ^0.3@dev || ^0.4@dev",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
+        "phil/notifications-bundle": "^0.3@dev || ^0.4@dev",
         "phil/resource": "^0.1@dev",
         "phil/ujo": "^0.1@dev",
         "psr/clock": "^1.0",
         "psr/event-dispatcher": "^1.0",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
-        "symfony/service-contracts": "^3.6",
+        "symfony/service-contracts": "^3.8",
         "symfony/uid": "^8.2"
     },
     "require-dev": {
-        "doctrine/doctrine-bundle": "^3.3",
+        "doctrine/doctrine-bundle": "^3.4",
         "phil/block-editor-bundle": "^0.1@dev",
         "phil/comments-bundle": "^0.3@dev",
         "phil/settings-bundle": "^0.2@dev",
@@ -52,7 +52,7 @@
         "symfony/messenger": "^8.2",
         "symfony/panther": "^2.4",
         "symfony/twig-bundle": "^8.2",
-        "twig/twig": "^3.21"
+        "twig/twig": "^3.31"
     },
     "suggest": {
         "phil/block-editor-bundle": "For the editor's @ menu on the members of the directory, and the endpoint the autocomplete controller calls",
