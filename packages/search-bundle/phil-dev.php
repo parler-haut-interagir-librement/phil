@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
+
 /*
  * What phil/dev-tools reads of this package: its paths and its exceptions to the shared configurations.
  */
@@ -66,6 +68,15 @@ return [
         // store of synonyms when phil/search-synonyms is.
         'ruleset' => [
             'PhilSearchBundle' => ['PhilSearchBundleDomain', 'PhilSearchBundleApplication', 'PhilSearchBundleInfrastructure', 'DefaultAllowed', 'Forbidden', 'PhilSearchLoupe', 'PhilSearchSynonyms'],
+        ],
+    ],
+    'rector' => [
+        'skip' => [
+            // The outbox of `phil/outbox`, which the bundle does not require, is named by a string: `::class` would make
+            // the bundle depend on that package in the eyes of Deptrac and of the dependency analysis.
+            StringClassNameToClassConstantRector::class => [
+                'src/PhilSearchBundle.php',
+            ],
         ],
     ],
     'docs' => [
