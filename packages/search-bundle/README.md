@@ -36,7 +36,7 @@ adapter is a line of configuration and a reindex, since the providers do not cha
 | `Search`: index, remove, search, rebuild; `SearchIndex`, `DocumentProvider` | Implemented and tested |
 | `DbalSearchIndex`, its table and schema listener | Implemented and tested |
 | `MeilisearchIndex` | Implemented and tested |
-| Indexing at each flush; `phil:search:reindex` | Implemented and tested |
+| Indexing at each flush, through `phil/outbox-bundle` by default with Meilisearch and Loupe; `phil:search:reindex` | Implemented and tested |
 | Facets: lists of values, counts per value, each facet counted without its own filter | Implemented and tested |
 | Synonyms per language: the port, the expander, the store of `phil/search-synonyms`, rejected forms; `phil:search:synonyms` | Implemented and tested |
 | `SearchRequest`; the `PhilSearchFilters` component; the `filters` Stimulus controller | Implemented and tested, in a browser too |

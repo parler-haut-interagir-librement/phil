@@ -26,11 +26,14 @@
         "ext-mbstring": "*",
         "doctrine/dbal": "^4.6",
         "doctrine/orm": "^3.8",
+        "doctrine/persistence": "^4.2",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2"
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.4",
+        "phil/outbox": "^0.2@dev",
+        "phil/outbox-bundle": "^0.2@dev",
         "phil/search-synonyms": "^0.1@dev",
         "phil/ux-kit": "^0.5@dev",
         "php-webdriver/webdriver": "^1.16",
@@ -38,6 +41,7 @@
         "psr/log": "^3.0",
         "symfony/asset-mapper": "^8.2",
         "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
         "symfony/console": "^8.2",
         "symfony/css-selector": "^8.2",
         "symfony/dom-crawler": "^8.2",
@@ -53,9 +57,10 @@
         "symfony/translation": "^8.2",
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-twig-component": "^3.8",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
+        "phil/outbox-bundle": "For index_entities: outbox, the default with Meilisearch and Loupe: each flush recorded in its transaction and indexed once relayed",
         "phil/search-loupe": "To index in SQLite files with Loupe, without a server",
         "phil/search-synonyms": "For synonyms kept in files or in the administration",
         "phil/ux-kit": "For the recipes the filters component draws with, through the Symfony UX Toolkit",

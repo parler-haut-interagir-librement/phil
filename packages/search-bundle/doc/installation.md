@@ -36,7 +36,7 @@ phil_search:
         key: '%env(MEILISEARCH_KEY)%'
     loupe:
         directory: '%kernel.project_dir%/var/loupe'   # a directory per index
-    index_entities: true     # entities indexed at each flush
+    index_entities: ~        # outbox (Meilisearch, Loupe), direct (dbal) or none; null: the adapter's default
     batch: 500               # documents a rebuild sends at once
     synonyms:
         directory: ~         # files of synonyms, fr.txt, en.txt, with phil/search-synonyms
@@ -46,8 +46,9 @@ phil_search:
     kit_subdirectory: ~      # where the recipes of the kit are; the Toolkit's subdirectory when null
 ```
 
-`adapter: meilisearch` without a URL, `adapter: loupe` without `phil/search-loupe`, and `synonyms.directory` without
-`phil/search-synonyms`, are refused when the container is built. A `SearchIndex` service of the
+`adapter: meilisearch` without a URL, `adapter: loupe` without `phil/search-loupe`, `synonyms.directory` without
+`phil/search-synonyms`, and `index_entities: outbox` — the default with Meilisearch and Loupe — without
+`phil/outbox-bundle`, are refused when the container is built. A `SearchIndex` service of the
 application's own, aliased, replaces the configured one.
 
 ## The adapters
@@ -79,6 +80,13 @@ The tables of a 0.1 install on MySQL or MariaDB kept the connection's collation.
 migration that brings the columns above to `utf8mb4_bin`; run it with `doctrine:migrations:migrate`. The change only
 makes values more distinct, so no existing row breaks a key. Rows that a case-insensitive collation had already merged
 stay merged; values written from the migration on are kept apart. On PostgreSQL and SQLite the diff is empty.
+
+#### Upgrading to 0.3
+
+With Meilisearch or Loupe, `index_entities` is `outbox` by default: install `phil/outbox-bundle` on the connection of
+the entities, create its table, and run its relay — `phil:outbox:relay` under a process manager, or its schedule. An
+application that keeps indexing after each flush sets `index_entities: direct`; `true` stays the default of the
+adapter, `false` stays none. See [What a flush does](providers.md#what-a-flush-does).
 
 ## The filters
 

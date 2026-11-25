@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\SearchBundle\Tests\Unit;
 
 use LogicException;
+use Phil\Outbox\Contract\Outbox;
 use Phil\SearchBundle\Application\Contract\SynonymProvider;
 use Phil\SearchBundle\Application\DocumentProvider;
 use Phil\SearchBundle\Application\RejectedFormSynonyms;
@@ -18,6 +19,11 @@ use Phil\SearchBundle\Infrastructure\Doctrine\DbalSearchIndex;
 use Phil\SearchBundle\Infrastructure\Doctrine\IndexOnFlushListener;
 use Phil\SearchBundle\Infrastructure\Doctrine\SearchSchemaListener;
 use Phil\SearchBundle\Infrastructure\Meilisearch\MeilisearchIndex;
+use Phil\SearchBundle\Infrastructure\Outbox\IndexEntity;
+use Phil\SearchBundle\Infrastructure\Outbox\OutboxIndexer;
+use Phil\SearchBundle\Infrastructure\Outbox\OutboxIndexingListener;
+use Phil\SearchBundle\Infrastructure\Outbox\RemoveDocument;
+use Phil\SearchBundle\Infrastructure\Outbox\SearchOutboxCodec;
 use Phil\SearchBundle\Infrastructure\SearchSynonyms\SynonymStoreProvider;
 use Phil\SearchBundle\Infrastructure\Twig\Components\SearchFiltersComponent;
 use Phil\SearchBundle\Infrastructure\Twig\KitComponents;
@@ -97,6 +103,57 @@ final class PhilSearchBundleTest extends TestCase
         self::assertTrue($this->load([['adapter' => 'dbal']])->hasDefinition(DbalSearchIndex::class));
     }
 
+    public function testAnIndexOutsideTheDatabaseLearnsOfEachFlushThroughTheOutbox(): void
+    {
+        $meilisearch = ['adapter' => 'meilisearch', 'meilisearch' => ['url' => 'http://meili']];
+        $container = $this->load([$meilisearch + ['connection' => 'content']]);
+
+        self::assertFalse($container->hasDefinition(IndexOnFlushListener::class));
+        $listener = $container->getDefinition(OutboxIndexingListener::class);
+        self::assertEquals([new Reference(Search::class), new Reference(Outbox::class)], $listener->getArguments());
+        self::assertSame(array_map(static fn (string $event): array => ['event' => $event, 'connection' => 'content'], ['onFlush', 'postPersist', 'postUpdate', 'postRemove', 'onClear']), $listener->getTag('doctrine.event_listener'));
+        self::assertSame([['method' => 'reset']], $listener->getTag('kernel.reset'));
+        self::assertEquals([new Reference('doctrine')], $container->getDefinition(SearchOutboxCodec::class)->getArguments());
+        self::assertSame([[]], $container->getDefinition(SearchOutboxCodec::class)->getTag('phil_outbox.codec'));
+        $indexer = $container->getDefinition(OutboxIndexer::class);
+        self::assertEquals([new Reference(Search::class), new Reference('doctrine')], $indexer->getArguments());
+        self::assertSame([['event' => IndexEntity::class, 'method' => 'index'], ['event' => RemoveDocument::class, 'method' => 'remove']], $indexer->getTag('kernel.event_listener'));
+
+        self::assertTrue($this->load([['adapter' => 'loupe']], LoupeIndexStub::class)->hasDefinition(OutboxIndexingListener::class), 'Loupe too');
+        self::assertTrue($this->load([$meilisearch + ['index_entities' => true]])->hasDefinition(OutboxIndexingListener::class), 'true is the default of the adapter');
+        self::assertTrue($this->load([['index_entities' => 'outbox']])->hasDefinition(OutboxIndexingListener::class), 'the database may ask for it');
+
+        $direct = $this->load([$meilisearch + ['index_entities' => 'direct']]);
+        self::assertTrue($direct->hasDefinition(IndexOnFlushListener::class));
+        self::assertFalse($direct->hasDefinition(OutboxIndexingListener::class));
+        self::assertFalse($direct->hasDefinition(SearchOutboxCodec::class));
+
+        foreach ([[$meilisearch + ['index_entities' => 'none']], [$meilisearch + ['index_entities' => false]], [['index_entities' => 'none']]] as $configs) {
+            $none = $this->load($configs);
+            self::assertFalse($none->hasDefinition(IndexOnFlushListener::class));
+            self::assertFalse($none->hasDefinition(OutboxIndexingListener::class));
+            self::assertFalse($none->hasDefinition(OutboxIndexer::class));
+        }
+
+        self::assertFalse($this->load([])->hasDefinition(OutboxIndexingListener::class), 'the database is indexed after each flush');
+        self::assertSame('outbox', PhilSearchBundle::INDEX_OUTBOX);
+        self::assertSame(Outbox::class, PhilSearchBundle::OUTBOX);
+
+        try {
+            $this->load([['index_entities' => 'later']]);
+            self::fail('An unknown mode was accepted.');
+        } catch (InvalidConfigurationException $invalidConfigurationException) {
+            self::assertStringContainsString('The value "later" is not allowed', $invalidConfigurationException->getMessage());
+        }
+
+        self::assertTrue($this->load([$meilisearch + ['index_entities' => 'direct']], outbox: 'Missing\\Outbox')->hasDefinition(IndexOnFlushListener::class), 'direct needs no outbox');
+        self::assertTrue($this->load([[]], outbox: 'Missing\\Outbox')->hasDefinition(IndexOnFlushListener::class), 'nor does the database');
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('phil_search.index_entities is "outbox", the default with Meilisearch and Loupe: the outbox is phil/outbox-bundle (composer require phil/outbox-bundle); or index after each flush with index_entities: direct.');
+        $this->load([$meilisearch], outbox: 'Missing\\Outbox');
+    }
+
     public function testTheLoupeAdapterOfItsOwnPackage(): void
     {
         $container = $this->load([['adapter' => 'loupe', 'loupe' => ['directory' => '/srv/search']]], LoupeIndexStub::class);
@@ -174,17 +231,17 @@ final class PhilSearchBundleTest extends TestCase
     /**
      * @param list<array<string, mixed>> $configs
      */
-    private function load(array $configs, string $loupeIndex = PhilSearchBundle::LOUPE_INDEX, string $fileSynonymStore = PhilSearchBundle::FILE_SYNONYM_STORE): ContainerBuilder
+    private function load(array $configs, string $loupeIndex = PhilSearchBundle::LOUPE_INDEX, string $fileSynonymStore = PhilSearchBundle::FILE_SYNONYM_STORE, string $outbox = PhilSearchBundle::OUTBOX): ContainerBuilder
     {
         $container = new ContainerBuilder();
-        $this->extension($loupeIndex, $fileSynonymStore)->load($configs, $container);
+        $this->extension($loupeIndex, $fileSynonymStore, $outbox)->load($configs, $container);
 
         return $container;
     }
 
-    private function extension(string $loupeIndex = PhilSearchBundle::LOUPE_INDEX, string $fileSynonymStore = PhilSearchBundle::FILE_SYNONYM_STORE): ExtensionInterface
+    private function extension(string $loupeIndex = PhilSearchBundle::LOUPE_INDEX, string $fileSynonymStore = PhilSearchBundle::FILE_SYNONYM_STORE, string $outbox = PhilSearchBundle::OUTBOX): ExtensionInterface
     {
-        $extension = new PhilSearchBundle($loupeIndex, $fileSynonymStore)->getContainerExtension();
+        $extension = new PhilSearchBundle($loupeIndex, $fileSynonymStore, $outbox)->getContainerExtension();
         self::assertNotNull($extension);
 
         return $extension;

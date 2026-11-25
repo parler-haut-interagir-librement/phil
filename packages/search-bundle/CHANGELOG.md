@@ -6,13 +6,36 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.2.1-alpha.
+The next version is 0.3.0-alpha: a behaviour change in alpha, a minor bump — with Meilisearch or Loupe, the entities are
+indexed through `phil/outbox-bundle` by default, which an application installs or replaces with `index_entities:
+direct`.
+
+### Added
+
+- Indexing through the outbox, `index_entities: outbox`: `OutboxIndexingListener` records, in the transaction of the
+  flush, each entity a provider knows that was inserted or updated, by its class and identifier, and each document of an
+  entity deleted, by its index and identifier, the records of one entity under one ordering key; `SearchOutboxCodec`
+  rebuilds them as `IndexEntity` and `RemoveDocument`, skipping a class no entity manager maps any more, and
+  `OutboxIndexer` indexes the entity as it then is, or removes the document, when `phil/outbox-bundle` relays them. A
+  flush rolled back records nothing; an engine down leaves the records to the relay, which tries again.
 
 ### Changed
 
 - Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6), and of each development
   requirement (`doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, `symfony/ux-twig-component` 3.8,
   `php-webdriver/webdriver` 1.16, …).
+- `index_entities` is `outbox` by default with Meilisearch and Loupe, and needs `phil/outbox-bundle` on the connection
+  of the entities; `direct`, the indexing after each flush, stays an option and the default with the table of the
+  database; `none` indexes nothing. `true` is the default of the adapter, `false` is `none`. The bundle requires
+  `doctrine/persistence`.
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
+
+### Security
+
+- An index outside the database no longer receives the documents of a flush its transaction rolls back, nor misses those
+  of a flush committed while the engine was down: with `index_entities: outbox`, the default for Meilisearch and Loupe,
+  the index follows the database through the outbox.
 
 ## 0.2.0-alpha - 2026-11-18
 
