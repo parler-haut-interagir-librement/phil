@@ -132,6 +132,11 @@ final class AdminTest extends TestCase
         $empty = (string) $this->controller->index($this->current(Request::create('/admin/media/?collection=books')))->getContent();
         self::assertStringContainsString('<p>This collection holds no file.</p>', $empty);
         self::assertStringContainsString('<p>This collection holds no file.</p>', (string) $this->controller->index($this->current(Request::create('/admin/media/?collection=books&picker=1')))->getContent());
+
+        $fromMenu = (string) $this->controller->index($this->current(Request::create('/admin?routeName=phil_media_admin&routeParams[collection]=events')))->getContent();
+        self::assertStringContainsString('<title>Media · Événements</title>', $fromMenu);
+        self::assertStringContainsString('<title>Media · Événements</title>', (string) $this->controller->index($this->current(Request::create('/admin/media/?collection=events&routeParams[collection]=books')))->getContent());
+        self::assertStringContainsString('<title>Media</title>', (string) $this->controller->index($this->current(Request::create('/admin?routeName=phil_media_admin&routeParams[collection][]=events')))->getContent());
     }
 
     public function testThePickerIsTheListingWithoutTheLayout(): void
