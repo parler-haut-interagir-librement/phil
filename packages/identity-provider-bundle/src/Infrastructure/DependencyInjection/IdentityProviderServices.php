@@ -721,7 +721,7 @@ final class IdentityProviderServices
             ->setArguments([new Reference(ClientRepository::class), new Reference(GrantRepository::class), new Reference(ProviderSettings::class), $clock, $journal])
             ->setPublic(true);
         $container->register(Tokens::class, Tokens::class)
-            ->setArguments([new Reference(ClientRepository::class), new Reference(GrantRepository::class), new Reference(AccountRepository::class), new Reference(SigningKeySource::class), new Reference(ProviderSettings::class), $clock, $journal, new Reference(AccountSessionRepository::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
+            ->setArguments([new Reference(ClientRepository::class), new Reference(GrantRepository::class), new Reference(AccountRepository::class), new Reference(SigningKeySource::class), new Reference(ProviderSettings::class), $clock, $journal, new Reference(AccountSessionRepository::class, ContainerInterface::NULL_ON_INVALID_REFERENCE), new Reference(Sessions::class, ContainerInterface::NULL_ON_INVALID_REFERENCE)])
             ->setPublic(true);
 
         self::controller($container, MetadataController::class, [new Reference(ProviderSettings::class), new Reference(SigningKeySource::class), new Reference('router'), 300, $config['oidc']['backchannel_logout']['enabled']]);

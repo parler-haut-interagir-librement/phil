@@ -11,6 +11,12 @@ The next version is 0.4.1-alpha.
 ### Security
 
 - Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+- A refresh token bound to its session applies `sessions.max_age` and `sessions.idle_timeout`: a refresh touches the
+  session, closes it past either bound — its tokens revoked, its clients told, `identity.session.closed` written with
+  the reason — and is refused with `invalid_grant`, so a session never touched again cannot keep issuing tokens through
+  refresh. Within the bounds, a refresh counts as the activity of the session; no refresh token of a session expires
+  after `sessions.max_age`. `Tokens` takes `Sessions`, last and optional, and `Sessions::endsAt()` gives the end of a
+  session at its maximum age.
 
 ## 0.4.0-alpha - 2026-11-24
 

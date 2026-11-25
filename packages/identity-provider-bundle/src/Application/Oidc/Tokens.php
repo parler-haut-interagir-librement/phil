@@ -10,6 +10,7 @@ use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Application\Exception\OAuthError;
 use Phil\IdentityProviderBundle\Application\Jose\Jws;
 use Phil\IdentityProviderBundle\Application\Journal;
+use Phil\IdentityProviderBundle\Application\Sessions;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountSessionRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\ClientRepository;
@@ -47,10 +48,13 @@ use Symfony\Component\Uid\Ulid;
  *   the ID token carries `auth_time`, `amr`, `nonce`, `sid` and `at_hash`; a refresh token, opaque, is issued for the
  *   scope `offline_access` and rotated at each use, in one step, a rotated one presented again — even by a request
  *   that read it at the same time as the one that rotated it — revoking its whole family. The family is marked revoked
- * before its tokens are, and the request that issues tokens in it reads the mark once they are saved: the tokens of
- * the request that won are revoked too, and it is refused, whichever of the two writes first. A refresh token issued in a
- *   session lives no longer than it: once the session is closed, or older than the session bound, it is refused and
- *   its family revoked.
+ *   before its tokens are, and the request that issues tokens in it reads the mark once they are saved: the tokens of
+ *   the request that won are revoked too, and it is refused, whichever of the two writes first. A refresh token issued
+ *   in a session lives no longer than it: once the session is closed, or older than the session bound, it is refused
+ *   and its family revoked. With the sessions given, a refresh touches its session, as a request of the person does:
+ *   past `idle_timeout` or `max_age`, the session is closed there and then, with every token issued in it, and the
+ *   refresh refused; within them, the refresh counts as the session's activity, and no refresh token expires after
+ *   `max_age`.
  * - A confidential client that registered resources asks tokens for itself by the `client_credentials` grant: an
  *   access token for one of its resources, whose `sub` is the client, without an ID token nor a refresh token. Every
  *   grant may name a `resource` (RFC 8707) the client registered: the access token is for it, its `aud`, and no longer
@@ -69,6 +73,7 @@ final readonly class Tokens
         private ClockInterface $clock,
         private Journal $journal,
         private ?AccountSessionRepository $sessions = null,
+        private ?Sessions $sessionBounds = null,
     ) {
     }
 
@@ -156,7 +161,7 @@ final readonly class Tokens
             throw OAuthError::invalidGrant('The refresh token expired or was revoked.');
         }
 
-        if (!$this->sessionAllowsRefresh($token->sessionId(), $now)) {
+        if (!$this->sessionAllowsRefresh($token->sessionId(), $token->accountId(), $now)) {
             $this->revokeFamily($token->family(), null, $now);
 
             throw OAuthError::invalidGrant('The session of the refresh token ended.');
@@ -418,18 +423,23 @@ final readonly class Tokens
 
     /**
      * Whether a refresh token of the session may still be used: no session, or the provider does not bind them; else an
-     * open session younger than the session bound.
+     * open session within its own bounds — touched, so that past `idle_timeout` or `max_age` it is closed now — and
+     * younger than the session bound.
      */
-    private function sessionAllowsRefresh(?string $sessionId, DateTimeImmutable $now): bool
+    private function sessionAllowsRefresh(?string $sessionId, ?string $accountId, DateTimeImmutable $now): bool
     {
+        if ($this->settings->refreshBoundToSession && null !== $sessionId && $this->sessionBounds instanceof Sessions && !$this->sessionBounds->touch($sessionId, $accountId) instanceof AccountSession) {
+            return false;
+        }
+
         $until = $this->refreshBound($sessionId);
 
         return !$until instanceof DateTimeImmutable || $until > $now;
     }
 
     /**
-     * The moment past which a refresh token of the session is refused: now when the session is closed or gone, the
-     * session bound after it opened, or null for none.
+     * The moment past which a refresh token of the session is refused: now when the session is closed or gone, else the
+     * earlier of the session bound and the end of the session at `max_age` after it opened, or null for neither.
      */
     private function refreshBound(?string $sessionId): ?DateTimeImmutable
     {
@@ -443,7 +453,14 @@ final readonly class Tokens
             return new DateTimeImmutable('@0');
         }
 
-        return null === $this->settings->sessionMaxAge ? null : $session->createdAt()->modify(\sprintf('+%d seconds', $this->settings->sessionMaxAge));
+        $bound = null === $this->settings->sessionMaxAge ? null : $session->createdAt()->modify(\sprintf('+%d seconds', $this->settings->sessionMaxAge));
+        $end = $this->sessionBounds?->endsAt($session);
+
+        if (!$end instanceof DateTimeImmutable) {
+            return $bound;
+        }
+
+        return $bound instanceof DateTimeImmutable ? min($bound, $end) : $end;
     }
 
     private function activeAccount(string $accountId): Account
