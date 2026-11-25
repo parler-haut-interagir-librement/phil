@@ -15,6 +15,9 @@ The next version is 0.3.1-alpha.
 - Requires the latest minor of each dependency (`doctrine/dbal` 4.6, `twig/twig` 3.31, `symfony/ux-twig-component`
   3.8, `symfony/translation-contracts` 3.8), and of each development requirement (`doctrine/orm` 3.8,
   `doctrine/doctrine-bundle` 3.4, `easycorp/easyadmin-bundle` 5.10, `symfony/dom-crawler` 8.2, …).
+- The development requirements take `easycorp/easyadmin-bundle` 5.10.4 or later, the release that fixes
+  GHSA-f7rw-7wx5-3c54: a link to a route, like the menu links of this bundle, passed its `routeParams` to the controller
+  of that route as arguments.
 
 ### Security
 

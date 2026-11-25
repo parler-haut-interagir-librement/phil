@@ -3,7 +3,7 @@
 | Requirement | Version | Why |
 |---|---|---|
 | PHP | 8.5 or later | The floor the bundle declares |
-| `easycorp/easyadmin-bundle` | ^5.10 | The back-office, its cascade layers and its context |
+| `easycorp/easyadmin-bundle` | ^5.10.4 | The back-office, its cascade layers and its context |
 | `symfony/asset-mapper` | ^8.2 | The stylesheet served as `phil-ux-easyadmin/phil-ux-easyadmin.css` |
 | `symfony/config`, `symfony/dependency-injection`, `symfony/http-kernel` | ^8.2 | The bundle class, its configuration and its listener |
 | `phil/ux-css` | 0.5 or later | The tokens the theme reads; the served stylesheet carries those of 0.6 |

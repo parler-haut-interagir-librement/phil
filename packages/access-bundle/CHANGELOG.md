@@ -13,6 +13,11 @@ The next version is 0.2.2-alpha.
 - Requires the latest minor of each dependency (`doctrine/dbal` 4.6, `twig/twig` 3.31, `symfony/ux-twig-component`
   3.8), and of each development requirement (`doctrine/orm` 3.8, `easycorp/easyadmin-bundle` 5.10, `phil/ux-kit` 0.5,
   `symfony/dom-crawler` 8.2).
+- The development requirements take `easycorp/easyadmin-bundle` 5.10.4 or later, the release that fixes
+  GHSA-rrpv-c5fp-ppxr, an autocomplete that used fields and pages the user may not see, and GHSA-jqfc-9phg-ghr7, crafted
+  links that changed the target of the delete buttons and boolean toggles. EasyAdmin then checks the entity permission
+  of an autocomplete with a `null` subject on the `new` page, which `AccessVoter` does not grant:
+  [EasyAdmin](doc/easyadmin.md) shows the expression that keeps those fields.
 
 ### Security
 

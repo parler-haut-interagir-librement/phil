@@ -79,7 +79,7 @@ entity implements `Auditable` shows a "History" button to them and to the holder
 
 ## Requirements
 
-PHP 8.5 or later, `phil/audit-bundle` 0.1 on a Doctrine connection, EasyAdmin 5.8, Symfony 8.2 with SecurityBundle,
+PHP 8.5 or later, `phil/audit-bundle` 0.1 on a Doctrine connection, EasyAdmin 5.10.4, Symfony 8.2 with SecurityBundle,
 CSRF protection, the router and the translator, and Twig 3.21.
 
 ## Contributing

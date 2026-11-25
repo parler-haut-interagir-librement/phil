@@ -59,7 +59,7 @@ final readonly class MediaAdminController
 
     public function index(Request $request): Response
     {
-        $collection = $this->collection($request->query->getString('collection'));
+        $collection = $this->collection($this->listedCollection($request));
         $this->access->assertGranted($collection);
         $page = max(1, $request->query->getInt('page'));
         $view = $request->query->getString('view');
@@ -210,6 +210,24 @@ final readonly class MediaAdminController
         ];
 
         return new RedirectResponse($this->urls->generate('phil_media_admin', $query), Response::HTTP_SEE_OTHER);
+    }
+
+    /**
+     * The key of the collection a listing opens on: the `collection` of the query string or, from the menu of an
+     * EasyAdmin dashboard (`MediaAdmin::menuItem()`), the one of its `routeParams`, which EasyAdmin does not hand to
+     * the controller of a route that has no such placeholder.
+     */
+    private function listedCollection(Request $request): string
+    {
+        $key = $request->query->getString('collection');
+
+        if ('' !== $key) {
+            return $key;
+        }
+
+        $fromMenu = $request->query->all('routeParams')['collection'] ?? '';
+
+        return \is_string($fromMenu) ? $fromMenu : '';
     }
 
     private function collection(string $key): ?MediaCollection

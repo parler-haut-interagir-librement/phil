@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=017ec47ca6e8d5e753b48f60a726eeab721bd2a738d02643e795c9e5db28124d -->
+<!-- phil-dev source-sha256=182ac7906af7ffe656b28cd6ae874cc37e512a8084846415caa0d90e173e74b2 -->
 # phil/audit-viewer
 
 **Le journal d'audit de `phil/audit-bundle`, lu dans une interface d'administration EasyAdmin.**
@@ -85,7 +85,7 @@ commande dont l'entité implémente `Auditable` leur montre un bouton « Histori
 
 ## Prérequis
 
-PHP 8.5 ou plus récent, `phil/audit-bundle` 0.1 sur une connexion Doctrine, EasyAdmin 5.8, Symfony 8.2 avec
+PHP 8.5 ou plus récent, `phil/audit-bundle` 0.1 sur une connexion Doctrine, EasyAdmin 5.10.4, Symfony 8.2 avec
 SecurityBundle, la protection CSRF, le routeur et le traducteur, et Twig 3.21.
 
 ## Contribuer

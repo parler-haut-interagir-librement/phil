@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e87c0bdfa7df40dbd45c01904601c671a6b48cfa7572f45e21491c2ac8e772d9 -->
+<!-- phil-dev source-sha256=df57648c58c4043336ad060b4328530d5e81ae9a542f31131c0f9cbc99f36b43 -->
 # EasyAdmin
 
 ## Le voter
@@ -37,6 +37,17 @@ public function configureActions(Actions $actions): Actions
         ->setPermission(Action::EDIT, 'access.edit')
         ->setPermission(Action::DELETE, 'access.manage');
 }
+```
+
+EasyAdmin 5.10.4 et les versions suivantes vérifient aussi la permission d'entité pour l'autocomplétion d'un champ
+d'association, avec un sujet `null` quand il n'y a pas d'entité : sur la page `new` et dans les formulaires imbriqués.
+`AccessVoter` ne vote que sur des éléments ; rien n'accorde donc `access.view` à `null` et ces champs répondent `403`.
+Une expression les laisse passer, et demande toujours le niveau de chaque entité :
+
+```php
+use Symfony\Component\ExpressionLanguage\Expression;
+
+return $crud->setEntityPermission(new Expression('null === subject or is_granted("access.view", subject)'));
 ```
 
 ## Un contrôleur CRUD à portée déclarée

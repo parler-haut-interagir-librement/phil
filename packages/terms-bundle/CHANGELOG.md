@@ -14,6 +14,9 @@ The next version is 0.3.1-alpha.
   published on 2026-11-24.
 - The development requirements accept `phil/notifications-bundle` 0.4, the minor version of its main branch and no
   earlier one, so that the package installs on its own beside that bundle.
+- The development requirements take `easycorp/easyadmin-bundle` 5.10.4 or later, the release that fixes
+  GHSA-f7rw-7wx5-3c54: a link to a route, like the menu links of this bundle, passed its `routeParams` to the controller
+  of that route as arguments.
 
 ### Security
 

@@ -54,7 +54,7 @@ stylesheet, written outside any layer:
 
 ## Requirements
 
-PHP 8.5 or later; EasyAdmin 5.10; Symfony 8.2's AssetMapper, configuration, dependency injection and HTTP kernel;
+PHP 8.5 or later; EasyAdmin 5.10.4; Symfony 8.2's AssetMapper, configuration, dependency injection and HTTP kernel;
 phil/ux-css 0.5 or later.
 
 ## Contributing
