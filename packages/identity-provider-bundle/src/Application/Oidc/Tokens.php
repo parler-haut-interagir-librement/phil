@@ -460,7 +460,7 @@ final readonly class Tokens
             return $bound;
         }
 
-        return $bound instanceof DateTimeImmutable && $bound < $end ? $bound : $end;
+        return $bound instanceof DateTimeImmutable ? min($bound, $end) : $end;
     }
 
     private function activeAccount(string $accountId): Account
