@@ -4,9 +4,9 @@ All notable changes to `phil/privacy-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-24
 
-The next version is 0.3.0-alpha: the erasure can run as a workflow, one step per module through phil/outbox-bundle,
+The erasure can run as a workflow, one step per module through phil/outbox-bundle,
 `ErasureEffect::Anonymised` tells a skeleton judged non-identifiable from a pseudonymised record, and the register of
 confidentiality incidents holds the eight paragraphs of section 7 of the Québec *Regulation respecting confidentiality
 incidents* (chapter A-2.1, r. 3.1), keeps its corrections, is kept at least five years (section 8), and drafts in

@@ -4,9 +4,9 @@ All notable changes to `phil/identity-provider-bundle` will be documented in thi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.4.0-alpha - 2026-11-24
 
-The next version is 0.4.0-alpha: the accounts take identifiers of up to 36 characters, a canonical address, a state in
+The accounts take identifiers of up to 36 characters, a canonical address, a state in
 place of `disabled_at` and a table of addresses, to migrate with two updates; a table of revoked families to migrate;
 the instants are written in UTC, a database written in another time zone to convert once; a client assertion names
 the issuer alone in its `aud`, and a client without PKCE sends a `nonce`; sessions close after two hours without a

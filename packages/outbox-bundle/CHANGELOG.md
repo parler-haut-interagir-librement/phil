@@ -4,9 +4,9 @@ All notable changes to `phil/outbox-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-24
 
-The next version is 0.2.0-alpha, on phil/outbox 0.2.0-alpha: skipped records and the grace of unknown types.
+On phil/outbox 0.2.0-alpha: skipped records and the grace of unknown types.
 
 To update: the table keeps its columns; `state` takes the value `skipped`, which fits its 16 bytes, so no migration
 is needed. Set `relay.unknown_type_grace: 0` to keep burying the records of an unknown type at once. A script that

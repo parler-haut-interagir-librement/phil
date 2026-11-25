@@ -4,9 +4,9 @@ All notable changes to `phil/passwords` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.1-alpha - 2026-11-24
 
-The next version is 0.2.1-alpha: documentation and development only.
+Documentation and development only.
 
 ### Added
 

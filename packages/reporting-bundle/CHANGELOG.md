@@ -4,9 +4,9 @@ All notable changes to `phil/reporting-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-24
 
-The next version is 0.2.0-alpha: two reports for a learning system, the training hours and costs by period and
+Two reports for a learning system, the training hours and costs by period and
 organisational unit, and the template of Quebec's 1 % of payroll for workforce skills development. A minor version
 and not a patch: three ports join those of 0.1, and an application that connects a `TrainingSource` sees two more
 reports among its own. See [Training hours and costs](doc/training.md) and

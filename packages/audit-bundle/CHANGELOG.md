@@ -4,9 +4,7 @@ All notable changes to `phil/audit-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.1.1-alpha.
+## 0.1.1-alpha - 2026-11-24
 
 ### Added
 

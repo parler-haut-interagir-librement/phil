@@ -4,9 +4,9 @@ All notable changes to `phil/user-secrets-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-24
 
-The next version is 0.2.0-alpha: instants are written and read in UTC, whatever the time zone of the process.
+Instants are written and read in UTC, whatever the time zone of the process.
 
 ### Changed
 

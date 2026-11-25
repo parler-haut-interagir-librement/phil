@@ -4,9 +4,9 @@ All notable changes to `phil/braille-export-liblouis` will be documented in this
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-24
 
-The next version is 0.2.0-alpha: a liblouis older than 3.39.0 is refused by default.
+A liblouis older than 3.39.0 is refused by default.
 
 ### Added
 

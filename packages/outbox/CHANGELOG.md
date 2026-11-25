@@ -4,9 +4,9 @@ All notable changes to `phil/outbox` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-24
 
-The next version is 0.2.0-alpha: a record whose state was erased is skipped instead of dead, a record of an unknown
+A record whose state was erased is skipped instead of dead, a record of an unknown
 type is tried again during a grace, and `Payload::of()` refuses text.
 
 To update: a store of your own implements `OutboxStore::markSkipped()`, claims past the skipped records as past the

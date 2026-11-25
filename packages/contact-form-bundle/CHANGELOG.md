@@ -4,9 +4,7 @@ All notable changes to `phil/contact-form-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.1.2-alpha.
+## 0.1.2-alpha - 2026-11-24
 
 ### Changed
 

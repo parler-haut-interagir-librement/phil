@@ -4,9 +4,7 @@ All notable changes to `phil/commerce-wholesale-bundle` will be documented in th
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.1.1-alpha.
+## 0.1.1-alpha - 2026-11-24
 
 ### Changed
 

@@ -4,9 +4,7 @@ All notable changes to `phil/terms-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.3.0-alpha.
+## 0.3.0-alpha - 2026-11-24
 
 Each acceptance proves the text accepted, with two nullable columns of `phil_terms_acceptance`. See [Upgrading from
 0.2](doc/installation.md#upgrading-from-02).

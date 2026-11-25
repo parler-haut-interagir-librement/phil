@@ -4,9 +4,9 @@ All notable changes to `phil/identity-client-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-24
 
-The next version is 0.3.0-alpha: a level every sign-in has to reach, and a cold-start floor of the replay store. See
+A level every sign-in has to reach, and a cold-start floor of the replay store. See
 [Step-up](doc/step-up.md#the-required-level) and [Logout](doc/logout.md#the-cold-start-floor).
 
 ### Added

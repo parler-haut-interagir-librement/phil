@@ -4,9 +4,7 @@ All notable changes to `phil/commerce-subscription-bundle` will be documented in
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.2.0-alpha.
+## 0.2.0-alpha - 2026-11-24
 
 ### Added
 

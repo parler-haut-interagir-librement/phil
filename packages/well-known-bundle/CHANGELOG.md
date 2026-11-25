@@ -4,9 +4,9 @@ All notable changes to `phil/well-known-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.1.1-alpha - 2026-11-24
 
-The next version is 0.1.1-alpha: `/.well-known/gpc.json`, served while phil/privacy-bundle is registered. See
+`/.well-known/gpc.json`, served while phil/privacy-bundle is registered. See
 [gpc.json](doc/documents.md#gpcjson).
 
 ### Added

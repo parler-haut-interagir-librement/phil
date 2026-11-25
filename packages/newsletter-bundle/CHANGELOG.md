@@ -4,9 +4,9 @@ All notable changes to `phil/newsletter-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.4.0-alpha - 2026-11-24
 
-The next version is 0.4.0-alpha: a campaign is sent once approved, by default, and the tables gain a table, columns and
+A campaign is sent once approved, by default, and the tables gain a table, columns and
 an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
 
 ### Added

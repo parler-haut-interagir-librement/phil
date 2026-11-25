@@ -4,9 +4,9 @@ All notable changes to `phil/courses-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-24
 
-The next version is 0.3.0-alpha: xAPI packages are imported through the reader of phil/elearning-packages, courses
+XAPI packages are imported through the reader of phil/elearning-packages, courses
 follow each other in learning paths, and one training given in several languages forms a group of equivalent courses. A
 minor version and not a patch: five tables are added, and `Completions` answers the completion of an equivalent course
 and takes `Equivalences` as its second argument.

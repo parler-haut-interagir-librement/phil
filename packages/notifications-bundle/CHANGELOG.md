@@ -4,9 +4,9 @@ All notable changes to `phil/notifications-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.4.0-alpha - 2026-11-24
 
-The next version is 0.4.0-alpha: each digest carries a signed link that stops it, whose route the application imports,
+Each digest carries a signed link that stops it, whose route the application imports,
 and the `config` preferences with a digest for everyone need a way to record it. See
 [Upgrading from 0.3](doc/installation.md#upgrading-from-03).
 

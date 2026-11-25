@@ -4,9 +4,9 @@ All notable changes to `phil/commerce-stored-value-bundle` will be documented in
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.2.0-alpha - 2026-11-24
 
-The next version is 0.2.0-alpha: the movements table gains two columns and two unique constraints, and
+The movements table gains two columns and two unique constraints, and
 `GiftCards::issueFor()` returns a `GiftCardIssuance`. See [Upgrading from 0.1](doc/installation.md#upgrading-from-01).
 
 ### Added
