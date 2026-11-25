@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=60f6a00d614b977032a750e8bfe4380265723d940471b07784780d2aef99b95e -->
+<!-- phil-dev source-sha256=4f414977740a6cc7f4008df33eb3e6a6c71789bb304163e60d5fc6e0d25c82f6 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -22,7 +22,7 @@
 | `color-picker/templates/components/` | Le composant `ColorPicker` |
 | `copy-button/templates/components/` | Le composant `CopyButton` |
 | `celebration/templates/components/` | Le composant `Celebration` |
-| `celebration/assets/controllers/` | Le contrôleur Stimulus `celebration`, le même fichier que dans le kit PHIL UX |
+| `celebration/assets/controllers/` | Le contrôleur Stimulus `celebration`, ses effets et son peintre, les mêmes fichiers que dans le kit PHIL UX |
 | `animated-button/templates/components/` | Le composant `AnimatedButton` |
 | `stepper/templates/components/` | Le composant `Stepper` |
 | `activity-calendar/templates/components/` | Le composant `ActivityCalendar` |

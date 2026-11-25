@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=92c23a64642af4f9f52637f6732b76a82e2581acc832e6c490bfdf0e17c87c6e -->
+<!-- phil-dev source-sha256=26a4e684a0d41e5654d1a4e628dd6473c74782c074286f1da6734772d9a861d1 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -17,10 +17,13 @@
 | `src/Infrastructure/LiipImagine/ImageFilters.php` | `Phil\UxKit\Infrastructure\LiipImagine\ImageFilters` : les props d'une `Picture` à partir des jeux de filtres de LiipImagine appliqués à une image |
 | `src/Infrastructure/DependencyInjection/ImageFiltersPass.php` | Écarte `ImageFilters` quand les services de LiipImagine ne sont pas enregistrés |
 | `src/Infrastructure/StructuredData/ImageJsonLd.php` | `Phil\UxKit\Infrastructure\StructuredData\ImageJsonLd` : l'`ImageObject` d'une image, ajouté au graphe de la page ou écrit dans son propre script JSON-LD |
+| `src/Application/CelebrationStream.php` | `Phil\UxKit\Application\CelebrationStream` : le `<turbo-stream action="celebrate">` qui joue une célébration depuis le serveur, et la liste des effets, `EFFECTS` |
+| `src/Application/CelebrationMessages.php` | `Phil\UxKit\Application\CelebrationMessages` : les mots de louange qu'une célébration dit à tour de rôle, en anglais et en français, selon la langue d'une locale |
+| `src/Infrastructure/Twig/CelebrationExtension.php` | `celebrate()` et `celebration_messages()` |
 | `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()`, `image_filters()`, `picture_props()`, `image_json_ld()` et `image_check()`, qui journalise les problèmes d'`ImageTextCheck` en avertissements quand `phil_ux_kit.image.check` est actif |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase` : un Chrome sans interface sur la page des recettes d'un kit, ses modes tels quels et sous la politique stricte, qui fait échouer un test sur tout ce que le navigateur a refusé, et les aides d'un test en navigateur |
 | `src/Test/Screenshots.php` | `Phil\UxKit\Test\Screenshots` : la capture d'une partie d'une page comparée à sa référence, toutes deux à une échelle de sa largeur CSS, dans une tolérance, sur GD |
-| `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage` : la racine web de chaque recette d'un kit, dans chaque mode tel quel et sous une politique de sécurité du contenu stricte, avec sa feuille de style, celle de sa page, ses contrôleurs, Stimulus et les fichiers de son dossier `media` |
+| `src/Test/RecipesPage.php` | `Phil\UxKit\Test\RecipesPage` : la racine web de chaque recette d'un kit, dans chaque mode tel quel et sous une politique de sécurité du contenu stricte, avec sa feuille de style, celle de sa page, ses contrôleurs et les modules à côté, Stimulus et les fichiers de son dossier `media` |
 | `logo/manifest.json`, `logo/README.md` | La recette `Logo` |
 | `logo/templates/components/Logo.html.twig` | Le composant `Logo` |
 | `animated-headline/manifest.json`, `animated-headline/README.md` | La recette `AnimatedHeadline` |
@@ -128,7 +131,9 @@
 | `copy-button/assets/controllers/` | Le contrôleur Stimulus de la recette |
 | `celebration/manifest.json`, `celebration/README.md` | La recette `Celebration` |
 | `celebration/templates/components/` | Le composant `Celebration` |
-| `celebration/assets/controllers/` | Le contrôleur Stimulus de la recette, qui dessine dans le canvas |
+| `celebration/assets/controllers/celebration_controller.js` | Le contrôleur Stimulus `celebration` : le message, le choix de la personne, la lassitude de la session, le budget de l'appareil, les Turbo Streams, le canvas et le worker |
+| `celebration/assets/controllers/celebration_effects.js` | Les pièces de chaque effet, `EFFECTS`, et les rythmes des lasers et des feux d'artifice |
+| `celebration/assets/controllers/celebration_worker.js` | Le peintre, `Painter` : le mouvement et le dessin des pièces image par image, dans un worker sur un `OffscreenCanvas` ou sur la page |
 | `animated-button/manifest.json`, `animated-button/README.md` | La recette `AnimatedButton` |
 | `animated-button/templates/components/` | Le composant `AnimatedButton` |
 | `stepper/manifest.json`, `stepper/README.md` | La recette `Stepper` |

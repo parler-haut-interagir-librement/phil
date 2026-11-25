@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9bc4c0cc85b88e80b89e19fc87f4b568de433a74514775bf898928ca443bf8cd -->
+<!-- phil-dev source-sha256=6b4617b2675b8987d75799e99e039ea3e42f328cfd8483739990e4a35fa2f4b4 -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -1375,20 +1375,33 @@ l'action `copy`, l'événement `copy-button:copied`.
 `<twig:Celebration>` : un `div` de classe `isCelebration` : ce qui la joue, dans son bloc `content`, le paragraphe de
 classe `isCelebrationMessage`, une région active polie, et le `template` de son canvas, de classe
 `isCelebrationCanvas`, caché aux lecteurs d'écran. Contrôleur `celebration` : l'action `play`, dont les paramètres
-`message` et `effect` remplacent les props ; l'événement DOM `celebrate`, émis sur n'importe quel élément ou sur la
-fenêtre, dont le `detail` peut donner un `message` et un `effect` ; les événements `celebration:start` et
-`celebration:end`. Là où le mouvement est réduit, par le système ou par `data-motion="reduce"` sur un ancêtre, le
-message seul. Une seule animation à la fois sur la page ; le canvas posé sur la page par le CSSOM, sans prendre de clic,
-et retiré à la fin ou quand l'élément quitte la page ; les couleurs celles de `--phil-color-brand-fill-loud`,
-`--phil-color-success-fill-loud`, `--phil-color-warning-fill-loud`, `--phil-color-danger-fill-loud` et
-`--phil-color-info-fill-loud`, résolues là où se trouve le canvas.
+`message`, `effect` et `focus` remplacent les props ; l'événement DOM `celebrate`, émis sur n'importe quel élément ou sur
+la fenêtre, dont le `detail` peut donner un `message`, un `effect` et un `focus`, sélecteur ou élément ; un
+`<turbo-stream action="celebrate">`, qu'écrit `celebrate()` ; les événements `celebration:start` et `celebration:end`.
+Là où le mouvement est réduit, par le système ou par `data-motion="reduce"` sur un ancêtre, ou quand la personne a choisi
+`data-celebrations="none"`, le message seul ; `data-celebrations="discreet"` dessine 30 % des pièces pendant 60 % de la
+durée, tout comme les célébrations d'une session après la sixième, celles après la troisième dessinant la moitié des
+pièces pendant 80 % de la durée. Un appareil de quatre cœurs ou moins, de deux gigaoctets ou moins, ou qui économise les
+données dessine moins de pièces. Une seule animation à la fois sur la page ; le canvas posé sur la page par le CSSOM,
+sans prendre de clic, peint dans un worker sur un `OffscreenCanvas` là où le navigateur le permet, sur la page sinon,
+suspendu tant que l'onglet est caché, et retiré à la fin ou quand l'élément quitte la page ; les couleurs celles de
+`--phil-color-brand-fill-loud`, `--phil-color-success-fill-loud`, `--phil-color-warning-fill-loud`,
+`--phil-color-danger-fill-loud` et `--phil-color-info-fill-loud`, résolues là où se trouve le canvas, puis résolues de
+nouveau quand le schéma de couleurs ou un attribut de la racine change pendant qu'elle joue.
 
 | Prop | Par défaut | |
 |---|---|---|
 | `message` | `''` | Les mots de la victoire, dits quand elle joue, et affichés là où le mouvement est réduit |
-| `effect` | `confetti` | Ce qui est dessiné, `confetti` ou `fireworks` ; `confetti` pour tout autre nom |
-| `autoplay` | `false` | Si elle joue dès que la page l'affiche, le message écrit dans la page dès le départ |
+| `messages` | `[]` | Des mots dits à tour de rôle quand il n'y a pas de `message`, un au hasard chaque fois, différent du dernier ; `celebration_messages()` en donne un ensemble en anglais ou en français |
+| `effect` | `confetti` | Ce qui est dessiné : `confetti`, `fireworks`, `lasers`, `balloons`, `shooting-stars`, `streamers`, `coins`, `bubbles`, `aurora`, `spotlight` ou `trophy` ; `confetti` pour tout autre nom |
+| `autoplay` | `false` | Si elle joue dès que la page l'affiche, le message, ou le premier des messages, écrit dans la page dès le départ |
 | `duration` | `2500` | La durée de l'animation, en millisecondes, que le contrôleur garde entre 600 et 4000 |
+| `focus` | `''` | Le sélecteur de ce qu'éclaire `spotlight` et de l'endroit où se pose `trophy` ; le milieu de l'écran sans lui |
+
+| Fonction Twig | |
+|---|---|
+| `celebrate(message, effect, focus)` | Un `<turbo-stream action="celebrate">` avec les valeurs données, chacune échappée, un effet inconnu écrit `confetti` ; dans une réponse Turbo Stream, sur un sujet Mercure ou dans la page, il joue la `Celebration` de la page |
+| `celebration_messages(locale)` | Les mots de louange d'une locale, ou de la requête, en anglais ou en français, l'anglais pour toute autre langue |
 
 ## AnimatedButton
 
