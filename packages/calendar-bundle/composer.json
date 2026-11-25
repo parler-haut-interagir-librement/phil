@@ -56,8 +56,11 @@
         "phil/ux-kit": "^0.5@dev",
         "phpunit/phpunit": "^13.4",
         "symfony/asset-mapper": "^8.2",
+        "symfony/browser-kit": "^8.2",
         "symfony/clock": "^8.2",
         "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-kernel": "^8.2",
@@ -70,7 +73,10 @@
         "symfony/ux-live-component": "^3.8.1",
         "symfony/ux-twig-component": "^3.8",
         "symfony/yaml": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
+    },
+    "conflict": {
+        "symfony/ux-live-component": "<3.8.1"
     },
     "suggest": {
         "phil/almanac": "To show computed dates — holidays, phases of the Moon — among the events",

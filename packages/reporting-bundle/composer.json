@@ -57,7 +57,10 @@
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-live-component": "^3.8.1",
         "symfony/ux-twig-component": "^3.8",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
+    },
+    "conflict": {
+        "symfony/ux-live-component": "<3.8.1"
     },
     "suggest": {
         "ext-resvg": "To draw the charts as PNG images too: a download, and the image of a report's e-mail",

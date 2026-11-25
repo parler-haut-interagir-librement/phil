@@ -41,3 +41,11 @@ suite starts, and drives chromedriver on its own port, 9581, beside another suit
 
 What a screen reader says aloud — the live region, the label and the counter of a button, the disclosure of the names —
 is heard by a person, with VoiceOver and NVDA at least: the suite checks the markup they read, not their speech.
+
+## The requests of LiveComponent
+
+`tests/Functional/LiveRequestsTest.php` sends the component the requests the browser sends, and holds it to what
+LiveComponent 3.8.1 enforces: under its class name instead of its name, the component answers 404; a 422 raised before
+its action, by an argument resolver or a controller attribute, renders nothing of it; and a redirection answers 204 with
+`X-Live-Redirect` and its `Location`, without `X-Live-Url`, while an ordinary answer gives back the address of the
+page.

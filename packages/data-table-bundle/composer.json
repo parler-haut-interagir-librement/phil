@@ -37,7 +37,7 @@
         "symfony/ux-live-component": "^3.8.1",
         "symfony/ux-twig-component": "^3.8",
         "symfony/validator": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "require-dev": {
         "ext-dom": "*",

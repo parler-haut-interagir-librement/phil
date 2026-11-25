@@ -20,7 +20,7 @@
 | `psr/log` | ^3.0 | The warning of a request stopped at its budget; the container's `logger` service when there is one |
 | `psr/clock` | ^1.0 | The time of the iCalendar file and today's date in the views; the container's `clock` service, which FrameworkBundle registers once `symfony/clock` is installed |
 | `twig/twig` | optional | `calendar_occurrences`, `occurrence_when` and the views' filters |
-| `symfony/ux-live-component`, `symfony/ux-twig-component` | optional | The calendar on a page, `<twig:PhilCalendar:Calendar>` |
+| `symfony/ux-live-component`, `symfony/ux-twig-component` | optional, 3.8.1 and 3.8 or later | The calendar on a page, `<twig:PhilCalendar:Calendar>` |
 | `symfony/stimulus-bundle` | optional | The keyboard in the month's grid; and the component's own controller |
 | `symfony/asset-mapper` | optional | With AssetMapperBundle registered, the controller served under `@phil/calendar-bundle/` and the stylesheet as `phil-calendar/calendar.css` |
 | `phil/privacy-bundle` | optional | A member's choices, feed, attendances and proposals in the export and the erasure of their data |

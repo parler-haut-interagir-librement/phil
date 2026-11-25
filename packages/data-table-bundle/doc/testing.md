@@ -28,3 +28,11 @@ skipped rather than failed.
 
 In an application's own tests, `InMemoryDataSource` stands in for a query, and a `TableAccess` of the test answers the voter
 attributes.
+
+## The requests of LiveComponent
+
+`tests/Functional/LiveRequestsTest.php` sends the component the requests the browser sends, and holds it to what
+LiveComponent 3.8.1 enforces: under its class name instead of its name, the component answers 404; a 422 raised before
+its action, by an argument resolver or a controller attribute, renders nothing of it; and a redirection answers 204 with
+`X-Live-Redirect` and its `Location`, without `X-Live-Url`, while an ordinary answer carries the address its URL props
+write.

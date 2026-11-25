@@ -155,6 +155,7 @@ final class TestKernel extends Kernel implements CompilerPassInterface
 
         $services = $container->services()->defaults()->autowire()->autoconfigure();
         $services->set(HeaderMember::class);
+        $services->set(LiveRequestSwitches::class)->public();
         $services->set(PageController::class)->public();
         $services->alias('test.reactions', ReactionRepository::class)->public();
         $services->alias('test.entity_manager', 'doctrine.orm.entity_manager')->public();

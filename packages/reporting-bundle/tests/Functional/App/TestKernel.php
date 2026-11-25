@@ -85,6 +85,7 @@ final class TestKernel extends Kernel
 
         $services = $container->services()->defaults()->autowire()->autoconfigure();
         $services->set('logger', NullLogger::class);
+        $services->set(LiveRequestSwitches::class)->public();
         $services->set('clock', MockClock::class)->args(['2026-11-08 10:00:00 America/Toronto'])->public();
         $services->set(Members::class);
         $services->set(Signups::class);

@@ -97,8 +97,8 @@ final readonly class BooksTable implements DataTable
 ## Requirements
 
 PHP 8.5 or later with `ext-intl` and `ext-mbstring`; Symfony 8.2's config, dependency injection, HTTP foundation, HTTP
-kernel, property access, routing, CSRF, translation and validator; Symfony UX Live Component and Twig Component 3.7; Twig
-3.29; the Button recipe of the PHIL UX kit, or of the Shadcn kit. Doctrine ORM, Symfony Security, AssetMapper,
+kernel, property access, routing, CSRF, translation and validator; Symfony UX Live Component 3.8.1 and Twig Component 3.8;
+Twig 3.31.1; the Button recipe of the PHIL UX kit, or of the Shadcn kit. Doctrine ORM, Symfony Security, AssetMapper,
 `phil/settings-bundle` and `phil/data-table-export` are optional.
 
 ## Contributing
