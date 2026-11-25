@@ -417,7 +417,8 @@ final class InteractiveRecipesTest extends BrowserTestCase
         $this->waitUntil('document.querySelector("#victory canvas")');
 
         self::assertSame(['true', 'none', 'fixed', '50', true], $this->read('(() => { const canvas = document.querySelector("#victory canvas"), style = getComputedStyle(canvas), box = canvas.getBoundingClientRect(); return [canvas.getAttribute("aria-hidden"), style.pointerEvents, style.position, style.zIndex, Math.round(box.width) === document.documentElement.clientWidth && Math.round(box.height) === document.documentElement.clientHeight]; })()'));
-        $this->waitUntil('(() => { const canvas = document.querySelector("#victory canvas"); if (!canvas) { return false; } const pixels = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data; for (let alpha = 3; alpha < pixels.length; alpha += 4) { if (pixels[alpha] > 0) { return true; } } return false; })()');
+        // The canvas, handed to a worker, gives no context of its own: what it shows is read through a copy.
+        $this->waitUntil('(() => { const canvas = document.querySelector("#victory canvas"); if (!canvas || 0 === canvas.width || 0 === canvas.height) { return false; } const copy = document.createElement("canvas"); copy.width = canvas.width; copy.height = canvas.height; const context = copy.getContext("2d"); try { context.drawImage(canvas, 0, 0); } catch { return false; } const pixels = context.getImageData(0, 0, copy.width, copy.height).data; for (let alpha = 3; alpha < pixels.length; alpha += 4) { if (pixels[alpha] > 0) { return true; } } return false; })()');
         $this->waitUntil('document.querySelector("#victory [role=status]").textContent === "You won!"');
         $this->waitUntil('!document.querySelector("#victory canvas")');
 

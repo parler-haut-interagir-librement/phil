@@ -214,8 +214,10 @@ final class BallotBrowserTest extends TestCase
         }
 
         $this->waitUntil('document.activeElement.type === "submit"');
+        // A mark on the page left behind: the next page is the one without it, never the old one still standing.
+        $this->driver()->executeScript('window.philLeft = true');
         $this->driver()->getKeyboard()->sendKeys(WebDriverKeys::ENTER);
-        $this->waitUntil('document.readyState === "complete" && document.querySelector("form.phil-poll-ballot") !== null');
+        $this->waitUntil('window.philLeft === undefined && document.readyState === "complete" && document.querySelector("form.phil-poll-ballot") !== null');
     }
 
     private function element(string $selector): RemoteWebElement
