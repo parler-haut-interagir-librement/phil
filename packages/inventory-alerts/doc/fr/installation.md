@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dca87a68ac5bc15dcc99d9bf05e055f7e59e3efacff9905ec16e2fe6b8220688 -->
+<!-- phil-dev source-sha256=79701d91d1678153ed1201e130ade11cc12d2f8f0faeaf28fbac7d86dc7eaed5 -->
 # Installation
 
 ## Prérequis
@@ -36,9 +36,10 @@ use Phil\InventoryAlerts\Subscription\UnsubscribeTokens;
 use Phil\InventoryAlerts\Subscription\WavePolicy;
 
 $monitor = new LowStockMonitor($stockSource, $thresholds, $lowStockStates, $staffNotifier);
-$subscriptions = new Subscriptions($subscriptionStore, new UnsubscribeTokens($secretOfAtLeast32Bytes));
+$subscriptions = new Subscriptions($subscriptionStore, new UnsubscribeTokens($signingKeyOfAtLeast32Bytes));
 $alerts = new SubscriberAlerts($subscriptionStore, $subscriberNotifier, new WavePolicy(subscribersPerUnit: 2, minimum: 10, maximum: 500));
 ```
 
-Le secret de `UnsubscribeTokens` vient des secrets de l'application, jamais de son code ; le changer invalide les
-liens déjà envoyés. [Points d'extension](extension-points.md) présente chaque port.
+La clé de signature de `UnsubscribeTokens` est une clé à part, jamais le secret de l'application ; elle vient des
+secrets de l'application, jamais de son code, et la changer invalide les liens déjà envoyés.
+[Points d'extension](extension-points.md) présente chaque port.

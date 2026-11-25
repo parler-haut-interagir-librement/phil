@@ -82,5 +82,5 @@ and the unsubscription link from `Subscriptions::unsubscribeToken()`, in the bod
 ## Options
 
 - `WavePolicy`: subscribers per unit (2), minimum of a wave (10), maximum of a wave (500, at most 10,000).
-- `UnsubscribeTokens`: the secret, 32 bytes or more.
+- `UnsubscribeTokens`: the signing key, 32 bytes or more.
 - `ReplenishmentRule`: min/max or fixed quantity, pack size.

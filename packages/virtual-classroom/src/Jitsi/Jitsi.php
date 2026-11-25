@@ -271,7 +271,7 @@ final readonly class Jitsi implements VirtualClassroom
     /**
      * `t=<seconds>,v1=<base64 HMAC-SHA-256 of "<t>.<body>">`, one `v1` or more, the moment within five minutes.
      */
-    private function checkSignature(string $header, string $body, string $secret): void
+    private function checkSignature(string $header, string $body, string $webhookSecret): void
     {
         $timestamp = null;
         $signatures = [];
@@ -297,7 +297,7 @@ final readonly class Jitsi implements VirtualClassroom
             throw InvalidWebhook::because('The signature of the notification is too old, or from the future.');
         }
 
-        $expected = sodium_bin2base64(hash_hmac('sha256', $timestamp.'.'.$body, $secret, true), \SODIUM_BASE64_VARIANT_ORIGINAL);
+        $expected = sodium_bin2base64(hash_hmac('sha256', $timestamp.'.'.$body, $webhookSecret, true), \SODIUM_BASE64_VARIANT_ORIGINAL);
 
         foreach ($signatures as $signature) {
             if (hash_equals($expected, $signature)) {

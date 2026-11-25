@@ -4,6 +4,15 @@ All notable changes to `phil/inventory-alerts` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Changed
+
+- The parameter of `UnsubscribeTokens::__construct()` is named `$signingKey`, a key of its own and never the
+  application secret: a call that names it `secret:` names it `signingKey:`.
+
 ## 0.1.0-alpha - 2026-11-24
 
 ### Added

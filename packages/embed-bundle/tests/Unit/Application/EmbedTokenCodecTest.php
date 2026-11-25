@@ -83,7 +83,7 @@ final class EmbedTokenCodecTest extends TestCase
         $token = $codec->encode(EmbedClaims::of('calendar', Origin::fromString('https://partner.example'), null, null, 1000));
         [$format, $algorithm, $key, $payload, $signature] = explode('.', $token);
         $other = rtrim(strtr(base64_encode('{"e":"calendar","o":"https://evil.example","i":1000}'), '+/', '-_'), '=');
-        $sign = static fn (string $signed, string $secret = Keys::CURRENT): string => $signed.'.'.rtrim(strtr(base64_encode(hash_hmac('sha256', $signed, $secret, true)), '+/', '-_'), '=');
+        $sign = static fn (string $signed, string $signingKey = Keys::CURRENT): string => $signed.'.'.rtrim(strtr(base64_encode(hash_hmac('sha256', $signed, $signingKey, true)), '+/', '-_'), '=');
 
         yield 'too long' => [str_repeat('a', 2049), 'An embed token is 2048 bytes at most.'];
         yield 'four parts' => [implode('.', [$format, $algorithm, $key, $payload]), 'An embed token has five parts.'];

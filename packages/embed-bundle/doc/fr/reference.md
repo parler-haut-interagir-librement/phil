@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ed0a1b54b2a1ee8967ce38801410ba139362af929011fcf50bb57a44f4e167b9 -->
+<!-- phil-dev source-sha256=24a92381bfc4ac992a9d2ce6a3fdf78be6a8a063edc1629d6ec64d7323666bda -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.
@@ -7,7 +7,7 @@ Chaque type public du paquet, avec son rôle.
 |---|---|
 | `Phil\EmbedBundle\PhilEmbedBundle` | Le bundle : sa configuration `phil_embed`, ses services, sa passe du compilateur et le chemin d'AssetMapper. |
 | `Domain\ValueObject\Origin` | Une origine lue par `phil/url`. |
-| `Domain\ValueObject\SigningKey` | Une clé : son identifiant et son secret. |
+| `Domain\ValueObject\SigningKey` | Une clé : son identifiant et ses `bytes`, le secret. |
 | `Domain\ValueObject\EmbedClaims` | Ce que dit un jeton. |
 | `Domain\ValueObject\EmbedMessage` | Un message du protocole du cadre ; la référence du protocole. |
 | `Domain\Enum\MessageType` | `ready`, `resize`, `theme`. |

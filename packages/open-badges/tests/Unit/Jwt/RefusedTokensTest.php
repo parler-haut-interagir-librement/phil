@@ -78,9 +78,9 @@ final class RefusedTokensTest extends TestCase
     {
         $key = $this->rsa()->verificationKey();
         $signed = $this->part(['alg' => 'HS256']).'.'.$this->part(['iss' => self::ISSUER]);
-        $secret = json_encode($key->toJwk(), \JSON_THROW_ON_ERROR);
+        $publicJwk = json_encode($key->toJwk(), \JSON_THROW_ON_ERROR);
 
-        $this->assertRefused('The credential is not signed with RS256.', $key, $signed.'.'.Base64Url::encode(hash_hmac('sha256', $signed, $secret, true)));
+        $this->assertRefused('The credential is not signed with RS256.', $key, $signed.'.'.Base64Url::encode(hash_hmac('sha256', $signed, $publicJwk, true)));
     }
 
     public function testAnEd25519TokenIsNotVerifiedWithAnRsaKey(): void

@@ -6,7 +6,7 @@ Every public type of the package, with its role.
 |---|---|
 | `Phil\EmbedBundle\PhilEmbedBundle` | The bundle: its configuration `phil_embed`, its services, its compiler pass and the path of AssetMapper. |
 | `Domain\ValueObject\Origin` | An origin read by `phil/url`. |
-| `Domain\ValueObject\SigningKey` | A key: its identifier and its secret. |
+| `Domain\ValueObject\SigningKey` | A key: its identifier and its `bytes`, the secret. |
 | `Domain\ValueObject\EmbedClaims` | What a token says. |
 | `Domain\ValueObject\EmbedMessage` | A message of the frame protocol; the protocol's reference. |
 | `Domain\Enum\MessageType` | `ready`, `resize`, `theme`. |

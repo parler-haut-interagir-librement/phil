@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3925bb888b11a942776d7b1744f5fd05c8f915d686f8ad21f8e8e1bf934f2fad -->
+<!-- phil-dev source-sha256=78e83397fc7f38a6d6ded85c49d400670d8d6e167545ac63b9dc348cd888d3c9 -->
 # Alertes aux abonnés
 
 ## S'abonner
@@ -70,7 +70,7 @@ $token = $subscriptions->unsubscribeToken($subscription);
 $subscriptions->unsubscribe($token); // deletes the subscription; true for a token this application issued
 ```
 
-Le jeton est l'identifiant de l'abonnement signé par une empreinte SHA-256 à clé avec le secret remis à
+Le jeton est l'identifiant de l'abonnement signé par une empreinte SHA-256 à clé avec la clé de signature remise à
 `UnsubscribeTokens` : rien d'autre n'est stocké, et on ne peut pas fabriquer un jeton pour un autre abonnement. Un
 lien suivi deux fois ne trouve rien à supprimer et répond quand même vrai. La page qu'ouvre un lien `GET` montre un
 bouton qui envoie le jeton par `POST`, pour qu'un analyseur de courriels qui ouvre les liens ne désabonne personne ;

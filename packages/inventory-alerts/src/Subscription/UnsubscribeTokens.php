@@ -8,16 +8,16 @@ use Phil\InventoryAlerts\Exception\InvalidInput;
 use SensitiveParameter;
 
 /**
- * The tokens of the one-click unsubscription links: the subscription identifier signed with a secret of the
- * application (HMAC-SHA-256), so nothing more is stored and a link cannot be guessed for another subscription.
+ * The tokens of the one-click unsubscription links: the subscription identifier signed with a key of their own
+ * (HMAC-SHA-256), so nothing more is stored and a link cannot be guessed for another subscription.
  */
 final readonly class UnsubscribeTokens
 {
     private const string CONTEXT = 'phil/inventory-alerts unsubscribe ';
 
-    public function __construct(#[SensitiveParameter] private string $secret)
+    public function __construct(#[SensitiveParameter] private string $signingKey)
     {
-        if (\strlen($secret) < 32) {
+        if (\strlen($signingKey) < 32) {
             throw InvalidInput::because('unsubscription secret', 'must have at least 32 bytes');
         }
     }
@@ -41,6 +41,6 @@ final readonly class UnsubscribeTokens
 
     private function signature(string $subscriptionId): string
     {
-        return sodium_bin2base64(hash_hmac('sha256', self::CONTEXT.$subscriptionId, $this->secret, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        return sodium_bin2base64(hash_hmac('sha256', self::CONTEXT.$subscriptionId, $this->signingKey, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
     }
 }

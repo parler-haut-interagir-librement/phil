@@ -332,7 +332,7 @@ final class JitsiTest extends TestCase
     public static function refused(): iterable
     {
         $body = '{"eventType":"ROOM_DESTROYED","fqn":"'.self::APP.'/room1"}';
-        $sign = static fn (string $t, string $content, string $secret = self::HOOKS): string => sodium_bin2base64(hash_hmac('sha256', $t.'.'.$content, $secret, true), \SODIUM_BASE64_VARIANT_ORIGINAL);
+        $sign = static fn (string $t, string $content, string $webhookSecret = self::HOOKS): string => sodium_bin2base64(hash_hmac('sha256', $t.'.'.$content, $webhookSecret, true), \SODIUM_BASE64_VARIANT_ORIGINAL);
 
         yield 'a GET' => [new Webhook('GET', [], [], $body), 'A Jitsi notification is a POST of at most 256 KiB.'];
         yield 'too large' => [new Webhook('POST', [], [], str_repeat(' ', 262_145)), 'A Jitsi notification is a POST of at most 256 KiB.'];
@@ -412,10 +412,10 @@ final class JitsiTest extends TestCase
     /**
      * @param array<string, mixed> $payload
      */
-    private function webhook(array $payload, string $secret = self::HOOKS, string $padding = ''): Webhook
+    private function webhook(array $payload, string $webhookSecret = self::HOOKS, string $padding = ''): Webhook
     {
         $body = json_encode($payload, \JSON_THROW_ON_ERROR).$padding;
-        $signature = sodium_bin2base64(hash_hmac('sha256', self::NOW.'.'.$body, $secret, true), \SODIUM_BASE64_VARIANT_ORIGINAL);
+        $signature = sodium_bin2base64(hash_hmac('sha256', self::NOW.'.'.$body, $webhookSecret, true), \SODIUM_BASE64_VARIANT_ORIGINAL);
 
         return new Webhook('POST', ['X-Jaas-Signature' => 't='.self::NOW.',v1='.$signature], [], $body, Webhook::ACCOUNT);
     }

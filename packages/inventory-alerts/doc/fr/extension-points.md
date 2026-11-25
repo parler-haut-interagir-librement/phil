@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=507f06c9a35cf95434dfe1fc6889872f638d2d035cb2b95968dc23149fe2fa17 -->
+<!-- phil-dev source-sha256=2f0757cab6f3f8b6a8570b1ab8f690c0d91476b5ce77f4d4174378fe2a6ce0c3 -->
 # Points d'extension
 
 La bibliothèque en est à ses versions `0.x` : les ports, les objets-valeurs et les exceptions peuvent changer dans une
@@ -85,5 +85,5 @@ en-têtes `List-Unsubscribe` et `List-Unsubscribe-Post`. Il n'ajoute rien d'autr
 ## Options
 
 - `WavePolicy` : abonnés par unité (2), minimum d'une vague (10), maximum d'une vague (500, au plus 10 000).
-- `UnsubscribeTokens` : le secret, de 32 octets ou plus.
+- `UnsubscribeTokens` : la clé de signature, de 32 octets ou plus.
 - `ReplenishmentRule` : min/max ou quantité fixe, taille du lot.

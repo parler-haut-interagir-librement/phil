@@ -29,17 +29,18 @@ if (!is_string($autoload)) {
 require $autoload;
 
 $clock = new MockClock(new DateTimeImmutable('@1700000000'));
-$secret = 'fuzz-secret-of-the-server-012345';
+$sharedSecret = 'fuzz-secret-of-the-server-012345';
+$webhookSecret = 'fuzz-webhook-secret-of-the-server';
 $body = '';
 $client = new MockHttpClient(static function () use (&$body): MockResponse {
     return new MockResponse($body);
 });
-$bbb = new BigBlueButton($client, Url::fromString('https://bbb.example.com/bigbluebutton/api/'), $secret, $clock, signedAnalytics: false);
-$jitsi = Jitsi::selfHosted(Url::fromString('https://meet.example.com'), 'app1', $secret, $clock, webhookSecret: $secret);
+$bbb = new BigBlueButton($client, Url::fromString('https://bbb.example.com/bigbluebutton/api/'), $sharedSecret, $clock, signedAnalytics: false);
+$jitsi = Jitsi::selfHosted(Url::fromString('https://meet.example.com'), 'app1', $sharedSecret, $clock, webhookSecret: $webhookSecret);
 $room = RoomId::fromString('room1');
 
 /** @var PhpFuzzer\Config $config */
-$config->setTarget(static function (string $input) use (&$body, $bbb, $jitsi, $room, $secret): void {
+$config->setTarget(static function (string $input) use (&$body, $bbb, $jitsi, $room, $webhookSecret): void {
     $mode = '' === $input ? 0 : ord($input[0]) % 4;
     $body = substr($input, 1);
 
@@ -48,7 +49,7 @@ $config->setTarget(static function (string $input) use (&$body, $bbb, $jitsi, $r
             0 => $bbb->recordings($room),
             1 => $bbb->presences($room),
             2 => $bbb->receive(new Webhook('POST', [], [], $body)),
-            default => $jitsi->receive(new Webhook('POST', ['X-Jaas-Signature' => 't=1700000000,v1='.base64_encode(hash_hmac('sha256', '1700000000.'.$body, $secret, true))], [], $body)),
+            default => $jitsi->receive(new Webhook('POST', ['X-Jaas-Signature' => 't=1700000000,v1='.base64_encode(hash_hmac('sha256', '1700000000.'.$body, $webhookSecret, true))], [], $body)),
         };
     } catch (VirtualClassroomException) {
         // An answer or a notification refused: what the library promises.

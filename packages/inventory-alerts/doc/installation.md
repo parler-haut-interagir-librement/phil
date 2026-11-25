@@ -33,9 +33,9 @@ use Phil\InventoryAlerts\Subscription\UnsubscribeTokens;
 use Phil\InventoryAlerts\Subscription\WavePolicy;
 
 $monitor = new LowStockMonitor($stockSource, $thresholds, $lowStockStates, $staffNotifier);
-$subscriptions = new Subscriptions($subscriptionStore, new UnsubscribeTokens($secretOfAtLeast32Bytes));
+$subscriptions = new Subscriptions($subscriptionStore, new UnsubscribeTokens($signingKeyOfAtLeast32Bytes));
 $alerts = new SubscriberAlerts($subscriptionStore, $subscriberNotifier, new WavePolicy(subscribersPerUnit: 2, minimum: 10, maximum: 500));
 ```
 
-The secret of `UnsubscribeTokens` comes from the secrets of the application, never from its code; changing it makes
-the links already sent invalid. [Extension points](extension-points.md) shows each port.
+The signing key of `UnsubscribeTokens` is a key of its own, never the application secret; it comes from the secrets
+of the application, never from its code, and changing it makes the links already sent invalid. [Extension points](extension-points.md) shows each port.

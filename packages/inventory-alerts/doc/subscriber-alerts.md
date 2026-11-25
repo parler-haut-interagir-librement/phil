@@ -66,7 +66,7 @@ $token = $subscriptions->unsubscribeToken($subscription);
 $subscriptions->unsubscribe($token); // deletes the subscription; true for a token this application issued
 ```
 
-The token is the subscription identifier signed by a keyed SHA-256 hash with the secret given to `UnsubscribeTokens`:
+The token is the subscription identifier signed by a keyed SHA-256 hash with the signing key given to `UnsubscribeTokens`:
 nothing more is stored, and a token cannot be made for another subscription. A link followed twice finds nothing to
 delete and still answers true. The page that follows a `GET` link shows a button that posts the token, so that a mail
 scanner opening links does not unsubscribe anyone; RFC 8058 one-click posts go to the same action.
