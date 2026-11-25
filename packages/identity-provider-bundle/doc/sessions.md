@@ -35,9 +35,20 @@ to that many seconds before `sessions.idle_timeout`; the idle timeout is longer 
 refuses a configuration where it is not. The PHP session itself lives by the settings of the framework
 (`framework.session.gc_maxlifetime`, `cookie_lifetime`); the bounds of the bundle hold whatever those are.
 
-A refresh token of the OpenID Connect provider issued in a session is refused once that session is closed; a session
-past a bound and never touched again is closed when the account lists its sessions, and `oidc.session_max_age` bounds
-those tokens on its own (see [OpenID Connect provider](oidc-provider.md)).
+A session past a bound and never touched again by its browser is closed when the account lists its sessions, or when
+a client of the OpenID Connect provider refreshes a token issued in it. A refresh token bound to a session touches it,
+as a request does:
+
+- past `sessions.idle_timeout` or `sessions.max_age`, the session is closed there and then, with every token issued
+  in it, and the refresh is refused with `invalid_grant`; the next request of its browser goes on signed out;
+- within them, the refresh counts as the activity of the session: a person who keeps using an application signed in
+  through the provider keeps the session open without coming back to the provider, up to `sessions.max_age`, which no
+  activity extends;
+- no refresh token issued in a session expires after `sessions.max_age`, nor after `oidc.session_max_age` when it is
+  set.
+
+A refresh token of a closed session is refused, and its family revoked (see
+[OpenID Connect provider](oidc-provider.md#refresh-tokens-and-the-session)).
 
 A request without a previous session reads no token: the lazy firewall stays lazy, and the cache of a public page
 stays public.

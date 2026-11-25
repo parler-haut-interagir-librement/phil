@@ -175,8 +175,14 @@ With `oidc.refresh_token_bound_to_session`, on by default, a refresh token issue
 
 - once the session is closed — signed out, closed from another device, or purged —, the refresh token is refused with
   `invalid_grant` and its family revoked;
-- with `oidc.session_max_age`, a refresh token never expires later than that many seconds after the session opened, and
-  is refused past it; a code exchanged past it gives no refresh token.
+- a refresh touches its session, as a request of its browser does: past `sessions.idle_timeout` without activity, or
+  `sessions.max_age` after it opened, the session is closed there and then — its tokens revoked, the clients told
+  through back-channel logout, the event `identity.session.closed` written with the reason — and the refresh is
+  refused with `invalid_grant`; a session never touched again cannot go on issuing tokens through refresh;
+- within those bounds, a refresh counts as the activity of the session, so that a client in use keeps it open past
+  `sessions.idle_timeout`; nothing keeps it open past `sessions.max_age`;
+- a refresh token never expires later than `sessions.max_age` after the session opened, nor later than
+  `oidc.session_max_age` when it is set, and is refused past either; a code exchanged past them gives no refresh token.
 
 A refresh token issued without a session, and every refresh token when the option is off, keeps
 `oidc.refresh_token_lifetime`. The module `sessions` holds the sessions: without it, nothing binds the tokens.

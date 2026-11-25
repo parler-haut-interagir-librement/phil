@@ -26,8 +26,9 @@ use Psr\Clock\ClockInterface;
  *
  * A session also ends on its own: idle for `idleTimeout` seconds since it was last seen, or `maxAge` seconds after it
  * opened, whatever its activity. It is closed, as from another device, the first time it is touched or listed past
- * either bound; null leaves that bound out. Since the last sighting is written at most once every `touchInterval`
- * seconds, an idle session may close up to that many seconds early.
+ * either bound — a refresh of the provider's tokens issued in it touches it too —; null leaves that bound out. Since
+ * the last sighting is written at most once every `touchInterval` seconds, an idle session may close up to that many
+ * seconds early.
  *
  * A sign-in from a device the account never used, when it has signed in before, is risky: the session is marked, the
  * event is written, and the account is warned by email.
@@ -96,6 +97,14 @@ final readonly class Sessions
         }
 
         return $session;
+    }
+
+    /**
+     * The moment the session ends whatever its activity, `maxAge` seconds after it opened; null without that bound.
+     */
+    public function endsAt(AccountSession $session): ?DateTimeImmutable
+    {
+        return null === $this->maxAge ? null : $session->createdAt()->modify(\sprintf('+%d seconds', $this->maxAge));
     }
 
     /**

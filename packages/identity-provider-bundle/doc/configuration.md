@@ -127,8 +127,8 @@ phil_identity_provider:
 | `step_up.attribute` | `PHIL_STEP_UP` | The attribute the bundle's sensitive actions need: `PHIL_STEP_UP`, or `IS_AUTHENTICATED_RECENTLY` of Symfony Security. |
 | `step_up.lifetime` | `300` | Seconds a proof grants `PHIL_STEP_UP`. |
 | `sessions.touch_interval` | `300` | The fewest seconds between two writes of when a session was last seen. |
-| `sessions.idle_timeout` | `7200` | Seconds without a request after which a session is closed: 0 for no bound, else at least 60 and longer than `sessions.touch_interval`. |
-| `sessions.max_age` | `43200` | Seconds after it opened past which a session is closed, however active: 0 for no bound, else at least 60. |
+| `sessions.idle_timeout` | `7200` | Seconds without a request after which a session is closed: 0 for no bound, else at least 60 and longer than `sessions.touch_interval`. A refresh of an OpenID Connect token bound to the session counts as a request. |
+| `sessions.max_age` | `43200` | Seconds after it opened past which a session is closed, however active: 0 for no bound, else at least 60. A refresh token bound to the session expires by then, and a refresh past it closes the session. |
 | `external.link_verified_email` | `false` | Whether an identity whose provider verified an address links to the account that verified the same address, instead of asking the person to sign in first. |
 | `external.register` | `true` | Whether an unknown external identity creates an account. |
 | `oidc.issuer` | `null` | The https address clients know the provider by, without a trailing slash. |
@@ -152,7 +152,7 @@ phil_identity_provider:
 | `oidc.client_authentication.assertion_max_lifetime` | `300` | The furthest ahead, in seconds, the expiry of a client assertion may be, 1 to 3600; its `jti` is kept that long. |
 | `oidc.client_authentication.legacy_assertion_audiences` | `false` | Whether a client assertion may also name the token endpoint at the issuer's origin, and its audiences in an array; off, its `aud` is the issuer, as a string (draft-ietf-oauth-rfc7523bis). |
 | `oidc.require_nonce_without_pkce` | `true` | Whether an authorization request without a PKCE challenge, from a client registered with `--pkce-optional`, must carry a `nonce` (RFC 9700, section 2.1.1); `false` only for a test suite that plays such a client without one. |
-| `oidc.refresh_token_bound_to_session` | `true` | Whether a refresh token issued in a session is refused once the session is closed or older than `oidc.session_max_age`, its family revoked. |
+| `oidc.refresh_token_bound_to_session` | `true` | Whether a refresh token issued in a session is refused once the session is closed, past `sessions.idle_timeout` or `sessions.max_age` — the refresh closing it then —, or older than `oidc.session_max_age`, its family revoked; a refresh counts as the activity of the session. |
 | `oidc.session_max_age` | `null` | Seconds after a session opened past which its refresh tokens are no longer issued nor accepted; null for no bound but the end of the session. |
 | `oidc.id_token.acr` | `null` | The `acr` of every ID token; null for none. |
 | `oidc.id_token.idp` | `null` | The `idp` of every ID token; null for none. |

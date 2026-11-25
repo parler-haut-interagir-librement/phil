@@ -20,6 +20,7 @@ use Phil\IdentityProviderBundle\Infrastructure\Http\Oidc\TokenController;
 use Phil\IdentityProviderBundle\Infrastructure\Http\Oidc\UserinfoController;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Query;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Symfony\Component\Clock\MockClock;
 
 /**
  * The OpenID Connect provider seen by a client: discovery, keys, the authorization code flow with PKCE and consent,
@@ -143,6 +144,40 @@ final class OidcFlowTest extends FunctionalTestCase
 
         $this->client->request('GET', '/oidc/logout?'.http_build_query(['id_token_hint' => $tokens['id_token'], 'post_logout_redirect_uri' => 'https://app.example/bye', 'state' => 's']));
         self::assertResponseRedirects('https://app.example/bye?state=s');
+        $this->client->request('GET', '/account');
+        self::assertResponseRedirects('http://localhost/login');
+    }
+
+    public function testARefreshKeepsItsSessionActiveUntilTheSessionEnds(): void
+    {
+        [$secret, $refresh] = $this->signedInWithARefreshToken();
+        $clock = $this->service(MockClock::class, 'clock');
+
+        for ($round = 0; $round < 6; ++$round) {
+            $clock->modify('+7199 seconds');
+            $this->client->request('POST', '/oidc/token', ['grant_type' => 'refresh_token', 'refresh_token' => $refresh, 'client_id' => 'app', 'client_secret' => $secret]);
+            self::assertResponseIsSuccessful('A refresh is the activity of its session: two idle hours at the provider do not end it.');
+            $refresh = $this->json()['refresh_token'] ?? null;
+            self::assertIsString($refresh);
+        }
+
+        $clock->modify('+6 seconds');
+        $this->client->request('POST', '/oidc/token', ['grant_type' => 'refresh_token', 'refresh_token' => $refresh, 'client_id' => 'app', 'client_secret' => $secret]);
+        self::assertResponseStatusCodeSame(400);
+        self::assertSame('invalid_grant', $this->json()['error'] ?? null, 'Twelve hours after it opened, the session issues no more tokens.');
+
+        $this->client->request('GET', '/account');
+        self::assertResponseRedirects('http://localhost/login');
+    }
+
+    public function testAnIdleSessionClosedByARefreshSignsOutItsBrowser(): void
+    {
+        [$secret, $refresh] = $this->signedInWithARefreshToken();
+
+        $this->service(MockClock::class, 'clock')->modify('+7200 seconds');
+        $this->client->request('POST', '/oidc/token', ['grant_type' => 'refresh_token', 'refresh_token' => $refresh, 'client_id' => 'app', 'client_secret' => $secret]);
+        self::assertSame('invalid_grant', $this->json()['error'] ?? null);
+
         $this->client->request('GET', '/account');
         self::assertResponseRedirects('http://localhost/login');
     }
@@ -358,5 +393,28 @@ final class OidcFlowTest extends FunctionalTestCase
 
         /** @var array<string, mixed> $json */
         return $json;
+    }
+
+    /**
+     * Signs in, allows the client `app` the scope `offline_access`, and exchanges the code.
+     *
+     * @return array{string, string} the secret of the client and its refresh token
+     */
+    private function signedInWithARefreshToken(): array
+    {
+        $this->account();
+        [, $secret] = $this->service(ClientRegistry::class)->register('app', 'The App', ['https://app.example/cb'], [], ['offline_access']);
+        self::assertIsString($secret);
+        $authorize = '/oidc/authorize?'.http_build_query(['response_type' => 'code', 'client_id' => 'app', 'redirect_uri' => 'https://app.example/cb', 'scope' => 'openid offline_access', 'code_challenge' => Pkce::challengeOf(self::VERIFIER), 'code_challenge_method' => 'S256']);
+        $this->client->request('GET', $authorize);
+        $this->signIn();
+        $crawler = $this->client->request('GET', $authorize);
+        $this->client->submit($crawler->selectButton('Allow')->form());
+        $this->client->request('POST', '/oidc/token', ['grant_type' => 'authorization_code', 'code' => Query::of($this->location())['code'] ?? '', 'redirect_uri' => 'https://app.example/cb', 'code_verifier' => self::VERIFIER, 'client_id' => 'app', 'client_secret' => $secret]);
+
+        $refresh = $this->json()['refresh_token'] ?? null;
+        self::assertIsString($refresh);
+
+        return [$secret, $refresh];
     }
 }

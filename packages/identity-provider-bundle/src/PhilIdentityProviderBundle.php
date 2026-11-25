@@ -281,7 +281,7 @@ final class PhilIdentityProviderBundle extends AbstractBundle
                         ->end()
                     ->end()
                     ->booleanNode('require_nonce_without_pkce')->info('Whether an authorization request without a PKCE challenge, from a client registered with --pkce-optional, must carry a nonce (RFC 9700, section 2.1.1).')->defaultTrue()->end()
-                    ->booleanNode('refresh_token_bound_to_session')->info('Whether a refresh token issued in a session is refused once the session is closed or older than session_max_age, its family revoked.')->defaultTrue()->end()
+                    ->booleanNode('refresh_token_bound_to_session')->info('Whether a refresh token issued in a session is refused once the session is closed, past sessions.idle_timeout or sessions.max_age (the refresh closing it), or older than session_max_age, its family revoked.')->defaultTrue()->end()
                     ->integerNode('session_max_age')->info('The seconds after a session opened past which its refresh tokens are no longer issued nor accepted; null for no bound but the end of the session.')->defaultNull()->min(1)->end()
                     ->arrayNode('id_token')
                         ->info('The optional claims of the ID token.')
