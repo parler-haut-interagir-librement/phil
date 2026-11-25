@@ -16,6 +16,7 @@ message key is the rule's identifier and the case, such as `image-alt.missing`; 
 | `link-text` | 2.4.4 Link Purpose (In Context) (A) | warning | link names say where they lead |
 | `color-contrast` | 1.4.3 Contrast (Minimum) (AA), or 1.4.6 (AAA) | error | coloured text stands out from its background |
 | `table-headers` | 1.3.1 Info and Relationships (A) | error | tables of data mark their header cells |
+| `table-header-levels` | 1.3.1 Info and Relationships (A) | warning | tables of data have one level of column headers, none merged |
 | `html-lang` | 3.1.1 Language of Page (A) | error | a whole page says its language |
 | `lang-change` | 3.1.2 Language of Parts (AA) | error | passages in another language say which |
 | `frame-title` | 4.1.2 Name, Role, Value (A) | error | frames say what they hold |
@@ -144,6 +145,26 @@ In UJO, a `table` block of two rows or more has `withHeadings`, or a cell marked
 | Key | Placeholders |
 |---|---|
 | `table-headers.missing` | |
+
+## `table-header-levels`
+
+A table of data has one row of column headers, `scope="col"`, and row headers, `scope="row"`, each header cell over
+one column or one row. Screen readers announce merged and multi-level headers unevenly — some read only the first part
+of a compound header or the wrong axis, phones often read none — and the `headers` attribute does not make up for it;
+no automatic tool hears the difference, so the rule warns on the markup that leads there. A group of columns becomes a
+table of its own with its `caption`, or one more column; a total row puts its header in the first column alone.
+
+A header cell is a `th`, or a cell of role `columnheader` or `rowheader`. A `colspan` or a `rowspan` is read as HTML
+reads it — leading white space, an optional `+`, the digits up to the first other character —: above 1 the cell is
+merged, and so is a `rowspan` of 0, which runs to the end of its group; a `colspan` of 0, or a value HTML cannot read,
+is 1. A cell is reported once, for its `colspan` before its `rowspan`. A `thead` is reported when more than one of its
+own rows holds a header cell of its own. A table of role `presentation` or `none` lays out and is left alone, as is
+what is hidden. A UJO `table` block has no merged cells; the tables of the HTML fields are read as HTML.
+
+| Key | Placeholders | When |
+|---|---|---|
+| `table-header-levels.merged` | `attribute`, `span` | a header cell spans more than one column or row; `span` is the number read, `0` for a `rowspan` to the end of its group |
+| `table-header-levels.rows` | `rows` | a `thead` has `rows` rows of header cells |
 
 ## `html-lang`
 

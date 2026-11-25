@@ -28,6 +28,8 @@ final class Portuguese
         'color-contrast.insufficient' => 'O texto «{text}» tem um contraste de {ratio}:1 entre {foreground} e {background}; precisa de {required}:1.',
         'color-contrast.unresolved' => 'A cor {value} depende das folhas de estilo da página: verifique o contraste deste texto num navegador.',
         'table-headers.missing' => 'Esta tabela não tem célula de cabeçalho: marque os seus cabeçalhos com th, ou ative a linha de cabeçalho do bloco.',
+        'table-header-levels.merged' => 'Esta célula de cabeçalho tem {attribute}="{span}": os leitores de ecrã anunciam mal um cabeçalho fundido; dê a cada coluna ou linha o seu próprio cabeçalho, ou faça do grupo uma tabela à parte com a sua legenda.',
+        'table-header-levels.rows' => 'Este cabeçalho de tabela tem {rows} linhas de cabeçalhos: os leitores de ecrã anunciam mal vários níveis; mantenha uma só linha de cabeçalhos de coluna e faça de cada grupo uma tabela à parte com a sua legenda.',
         'html-lang.missing' => 'A página não diz a sua língua: dê ao elemento html um atributo lang.',
         'html-lang.invalid' => 'A língua da página, «{lang}», não é uma etiqueta de língua válida.',
         'lang-change.invalid' => '«{lang}» não é uma etiqueta de língua válida.',

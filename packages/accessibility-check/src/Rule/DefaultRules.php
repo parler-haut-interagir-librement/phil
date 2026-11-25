@@ -28,6 +28,7 @@ final class DefaultRules
             new LinkText(),
             new ColorContrast(),
             new TableHeaders(),
+            new TableHeaderLevels(),
             new HtmlLang(),
             new LangChange(),
             new FrameTitle(),

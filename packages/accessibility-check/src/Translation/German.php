@@ -28,6 +28,8 @@ final class German
         'color-contrast.insufficient' => 'Der Text „{text}“ hat einen Kontrast von {ratio}:1 zwischen {foreground} und {background}; er braucht {required}:1.',
         'color-contrast.unresolved' => 'Die Farbe {value} hängt von den Stylesheets der Seite ab: Prüfen Sie den Kontrast dieses Textes in einem Browser.',
         'table-headers.missing' => 'Diese Tabelle hat keine Kopfzelle: Kennzeichnen Sie ihre Überschriften mit th, oder schalten Sie die Kopfzeile des Blocks ein.',
+        'table-header-levels.merged' => 'Diese Kopfzelle hat {attribute}="{span}": Screenreader geben verbundene Kopfzellen ungleichmäßig wieder; geben Sie jeder Spalte oder Zeile eine eigene Kopfzelle, oder machen Sie aus der Gruppe eine eigene Tabelle mit Beschriftung.',
+        'table-header-levels.rows' => 'Dieser Tabellenkopf hat {rows} Zeilen mit Kopfzellen: Screenreader geben mehrere Ebenen ungleichmäßig wieder; behalten Sie eine Zeile mit Spaltenköpfen, und machen Sie aus jeder Gruppe eine eigene Tabelle mit Beschriftung.',
         'html-lang.missing' => 'Die Seite nennt ihre Sprache nicht: Geben Sie dem Element html ein Attribut lang.',
         'html-lang.invalid' => 'Die Sprache der Seite, „{lang}“, ist kein gültiges Sprach-Tag.',
         'lang-change.invalid' => '„{lang}“ ist kein gültiges Sprach-Tag.',

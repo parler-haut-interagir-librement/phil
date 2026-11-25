@@ -7,9 +7,9 @@ an editor produced — through the HTML parser of PHP, and UJO (Universal JSON O
 an author is told which block and which field to fix. Each rule is a class with an identifier, the WCAG 2.2 success
 criterion it tests, a severity and a message in English, French, Spanish, German, Italian and Portuguese: text
 alternatives of images, the order of headings and the first-level heading, names of links, buttons and tabs, link
-texts that say nothing, the contrast of the colours the content gives, header cells of tables, languages of pages and
-passages, titles of frames, captions of videos, identifiers given twice, titles of drawings. The report says, rule by rule,
-whether it passed, lists what was found with its location, and serializes to JSON.
+texts that say nothing, the contrast of the colours the content gives, header cells of tables and their single level,
+languages of pages and passages, titles of frames, captions of videos, identifiers given twice, titles of drawings. The
+report says, rule by rule, whether it passed, lists what was found with its location, and serializes to JSON.
 
 It is for any PHP application that publishes what people write: a CMS, a blog, a wiki, a tool that lays out books or
 game material. A check does not replace a test with people and assistive technologies; it stops the mistakes a machine
@@ -29,7 +29,7 @@ returns a `Report` of `RuleResult`s and `Finding`s; a rule implements `HtmlRule`
 |---|---|
 | HTML read through `Dom\HTMLDocument`, limits of size, depth and elements, UTF-8 only | Implemented and tested |
 | UJO documents read block by block, nested blocks included, fields that hold HTML parsed apart | Implemented and tested |
-| 16 rules, with their WCAG 2.2 success criterion and severity | Implemented and tested |
+| 17 rules, with their WCAG 2.2 success criterion and severity | Implemented and tested |
 | Contrast of WCAG computed from the colours of the content and of the tokens of the look | Implemented and tested |
 | Messages in English, French, Spanish, German, Italian and Portuguese | Implemented and tested |
 | Report with the outcome of each rule, locations and JSON | Implemented and tested |

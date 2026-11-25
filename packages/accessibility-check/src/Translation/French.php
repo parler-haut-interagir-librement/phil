@@ -28,6 +28,8 @@ final class French
         'color-contrast.insufficient' => 'Le texte « {text} » a un contraste de {ratio}:1 entre {foreground} et {background} ; il lui faut {required}:1.',
         'color-contrast.unresolved' => 'La couleur {value} dépend des feuilles de style de la page : vérifiez le contraste de ce texte dans un navigateur.',
         'table-headers.missing' => 'Ce tableau n’a pas de cellule d’en-tête : marquez ses en-têtes avec th, ou activez la ligne d’en-tête du bloc.',
+        'table-header-levels.merged' => 'Cette cellule d’en-tête a {attribute}="{span}" : les lecteurs d’écran annoncent mal un en-tête fusionné ; donnez à chaque colonne ou rangée son propre en-tête, ou faites du groupe un tableau à part avec sa légende.',
+        'table-header-levels.rows' => 'Cet en-tête de tableau a {rows} rangées d’en-têtes : les lecteurs d’écran annoncent mal plusieurs niveaux ; gardez une seule rangée d’en-têtes de colonne, et faites de chaque groupe un tableau à part avec sa légende.',
         'html-lang.missing' => 'La page ne dit pas sa langue : donnez un attribut lang à l’élément html.',
         'html-lang.invalid' => 'La langue de la page, « {lang} », n’est pas une étiquette de langue valide.',
         'lang-change.invalid' => '« {lang} » n’est pas une étiquette de langue valide.',

@@ -28,6 +28,8 @@ final class Italian
         'color-contrast.insufficient' => 'Il testo «{text}» ha un contrasto di {ratio}:1 tra {foreground} e {background}; gli serve {required}:1.',
         'color-contrast.unresolved' => 'Il colore {value} dipende dai fogli di stile della pagina: verifica il contrasto di questo testo in un browser.',
         'table-headers.missing' => 'Questa tabella non ha celle di intestazione: segna le sue intestazioni con th, o attiva la riga di intestazione del blocco.',
+        'table-header-levels.merged' => 'Questa cella di intestazione ha {attribute}="{span}": i lettori di schermo annunciano male un’intestazione unita; da’ a ogni colonna o riga la sua intestazione, o fai del gruppo una tabella a sé con la sua didascalia.',
+        'table-header-levels.rows' => 'Questa testata di tabella ha {rows} righe di intestazioni: i lettori di schermo annunciano male più livelli; tieni una sola riga di intestazioni di colonna, e fai di ogni gruppo una tabella a sé con la sua didascalia.',
         'html-lang.missing' => 'La pagina non dice la sua lingua: dai all’elemento html un attributo lang.',
         'html-lang.invalid' => 'La lingua della pagina, «{lang}», non è un tag di lingua valido.',
         'lang-change.invalid' => '«{lang}» non è un tag di lingua valido.',

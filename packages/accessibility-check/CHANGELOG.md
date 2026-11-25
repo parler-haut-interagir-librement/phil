@@ -4,6 +4,17 @@ All notable changes to `phil/accessibility-check` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Added
+
+- `table-header-levels`, in `DefaultRules::all()` after `table-headers`: a warning of 1.3.1 for a header cell — a `th`,
+  or a cell of role `columnheader` or `rowheader` — with a `colspan` or a `rowspan` above 1, or a `rowspan` of 0,
+  `table-header-levels.merged`, and for a `thead` with more than one row of header cells, `table-header-levels.rows`,
+  in the six languages of the messages.
+
 ## 0.1.1-alpha - 2026-11-24
 
 ### Added
