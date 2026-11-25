@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9ba3b996d9e2f8be946ae81689ad00745629084b7e11461e9bba32c202b5ba5d -->
+<!-- phil-dev source-sha256=490ea2c24a8ff7fe266c32b41168cdbbf5654b366d4fddeb06563ffe37a8bf40 -->
 # Supprimer un compte
 
 `AccountDeletions` supprime un compte par étapes, sur `symfony/workflow` : une demande, un délai pendant lequel la
@@ -121,7 +121,7 @@ la ferme une fois la demande terminée. Une demande qu'un exploitant a fermée c
 L'export est l'archive ZIP d'une réponse d'accès, un `README.txt` et un fichier JSON par module
 ([export-and-erasure.md](export-and-erasure.md#larchive-dune-réponse-daccès)). `EncryptedExportArchive` la garde comme
 fichier `0600` d'un répertoire `0700` (`account_deletion.export_directory`), scellée par libsodium sous une clé dérivée
-du secret de l'application, pendant `account_deletion.export_retention`. Chaque balayage retire celles qui ont expiré.
+du secret de l'application par HKDF, pendant `account_deletion.export_retention`. Chaque balayage retire celles qui ont expiré.
 
 ## Les tables
 

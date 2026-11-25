@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=119649ebd343bd236d8b6e486aefa94377bc0ee2bfbef2caa96788f3c95464f6 -->
+<!-- phil-dev source-sha256=8d6e60d6499b8ce7c6331d0a0c8db2111f59a4bc4f806cda8af69e806a1af416 -->
 # Installation
 
 ## Prérequis
@@ -60,6 +60,24 @@ return [
 
 Enregistrez-le dans chaque environnement : le caviardage des journaux compte autant en `dev` et en `test` qu'en `prod`,
 parce que ces journaux sont copiés dans des billets et des artefacts de CI.
+
+## Passer à la version 0.4
+
+Chaque clé que le bundle dérive du secret de l'application (`kernel.secret`) est désormais son HKDF-SHA-256 sous une
+étiquette à elle (voir [Modèle de menaces](threat-model.md#les-clés)). Ce qui a été scellé ou signé sous les clés de la
+version 0.3 ne s'ouvre plus :
+
+- **Les demandes sans compte** de `phil_privacy_guest_request` se lisent comme absentes : leurs liens ne les ouvrent
+  plus. Videz la table, ou laissez `link_lifetime` et la purge à chaque nouvelle demande les retirer, et demandez aux
+  personnes qui attendaient de refaire leur demande.
+- **Les archives d'export** gardées par `EncryptedExportArchive` (`account_deletion.export_directory`) se lisent comme
+  absentes. Supprimez les fichiers de ce répertoire, ou laissez le balayage les retirer à leur expiration.
+- **Le témoin de consentement** se lit comme aucun choix : chaque visiteur revoit la bannière et choisit de nouveau. Les
+  preuves de `phil_privacy_consent_proof` sont gardées telles quelles.
+- **Les limites de débit** des demandes sans compte repartent de zéro.
+
+Un `kernel.secret` vide arrête désormais le bundle avec `InvalidPrivacyValue` quand l'un de ces services est construit,
+au lieu de dériver des clés que n'importe qui peut calculer.
 
 ## Étapes suivantes
 

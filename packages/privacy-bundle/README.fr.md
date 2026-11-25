@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fe95f9cb3b584892a2ffb305f74f089cd0258745c7fd74a01f0b81debc019782 -->
+<!-- phil-dev source-sha256=a3481f40bde57db91be91baa7dc97118fd77ccc5b0e764bb8620e79b3145ce5e -->
 # phil/privacy-bundle
 
 **Déclarer les champs personnels, caviarder les journaux, respecter les droits des membres et des personnes sans compte,
@@ -145,6 +145,8 @@ l'application décide.
   lesquels compter.
 - [Tests](doc/fr/testing.md) — comment le bundle est testé, lancer ses tests dans un monodépôt ou seul, et comment
   tester vos adaptateurs et votre configuration.
+- [Modèle de menaces](doc/fr/threat-model.md) — ce que le bundle protège, de qui, les clés qu'il dérive et les risques
+  qu'il laisse à l'application.
 - [Référence de l'API](doc/fr/reference.md) — chaque type public par couche, avec son rôle et son état.
 
 ## Démarrage rapide
