@@ -12,6 +12,8 @@
 /packages/*/tests/Functional/App/config/reference.php
 /packages/*/tests/Functional/App/*/config/reference.php
 /packages/*/tests/Functional/App/config/schema.json
+/packages/*/tests/Functional/Plain/config/reference.php
+/packages/*/tests/Functional/Plain/config/schema.json
 /packages/*/tests/Functional/App/var/
 
 # Fixtures ZIP des tests, que le .gitignore global de la machine (*.zip) ferait oublier
