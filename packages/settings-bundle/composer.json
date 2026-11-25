@@ -44,7 +44,7 @@
         "ext-pdo": "*",
         "doctrine/doctrine-bundle": "^3.4",
         "doctrine/orm": "^3.8",
-        "phil/notifications-bundle": "^0.3@dev",
+        "phil/notifications-bundle": "^0.4@dev",
         "phil/privacy-bundle": "^0.3@dev",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",

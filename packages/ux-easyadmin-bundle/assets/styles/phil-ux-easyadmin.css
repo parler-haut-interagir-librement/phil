@@ -29,6 +29,7 @@
     :root {
         --phil-neutral-05: oklch(0.05 0.012 265);
         --phil-neutral-10: oklch(0.10 0.012 265);
+        --phil-neutral-15: oklch(0.15 0.012 265);
         --phil-neutral-20: oklch(0.20 0.012 265);
         --phil-neutral-30: oklch(0.30 0.012 265);
         --phil-neutral-40: oklch(0.40 0.012 265);
@@ -131,7 +132,7 @@
         color-scheme: light dark;
 
         /* The page */
-        --phil-color-surface: light-dark(var(--phil-neutral-99), var(--phil-neutral-10));
+        --phil-color-surface: light-dark(var(--phil-neutral-99), var(--phil-neutral-15));
         --phil-color-surface-raised: light-dark(var(--phil-neutral-95), var(--phil-neutral-20));
         --phil-color-text: light-dark(var(--phil-neutral-10), var(--phil-neutral-95));
         --phil-color-text-muted: light-dark(var(--phil-neutral-40), var(--phil-neutral-70));

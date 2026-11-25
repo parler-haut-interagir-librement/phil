@@ -21,6 +21,8 @@ direct`.
 
 ### Changed
 
+- The development requirements accept `phil/ux-kit` 0.6, the minor version of its main branch and no earlier one, so
+  that the package installs on its own beside that package.
 - Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6), and of each development
   requirement (`doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, `symfony/ux-twig-component` 3.8,
   `php-webdriver/webdriver` 1.16, …).

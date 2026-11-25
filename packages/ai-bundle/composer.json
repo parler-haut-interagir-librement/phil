@@ -44,7 +44,7 @@
         "doctrine/dbal": "^4.6",
         "doctrine/doctrine-bundle": "^3.4",
         "phil/privacy-bundle": "^0.3@dev",
-        "phil/user-secrets-bundle": "^0.1@dev",
+        "phil/user-secrets-bundle": "^0.2@dev",
         "phpunit/phpunit": "^13.4",
         "symfony/clock": "^8.2",
         "symfony/event-dispatcher": "^8.2",

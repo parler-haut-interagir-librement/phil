@@ -51,7 +51,7 @@
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.3",
         "phil/privacy-bundle": "^0.3@dev",
-        "phil/ux-kit": "^0.5@dev",
+        "phil/ux-kit": "^0.6@dev",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "symfony/cache": "^8.2",

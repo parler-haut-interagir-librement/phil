@@ -46,7 +46,7 @@
         "ext-gd": "*",
         "phil/reservation": "^0.1@dev",
         "phil/reservation-bundle": "^0.1@dev",
-        "phil/ux-kit": "^0.5@dev",
+        "phil/ux-kit": "^0.6@dev",
         "php-webdriver/webdriver": "^1.16",
         "phpunit/phpunit": "^13.4",
         "psr/clock": "^1.0",
