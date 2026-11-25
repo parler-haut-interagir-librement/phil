@@ -40,7 +40,7 @@
     },
     "require-dev": {
         "doctrine/orm": "^3.8",
-        "easycorp/easyadmin-bundle": "^5.10",
+        "easycorp/easyadmin-bundle": "^5.10.4",
         "phil/tenancy-bundle": "^0.2@dev",
         "phil/ux-kit": ">=0.5.0-alpha <1.0",
         "phpunit/phpunit": "^13.4",

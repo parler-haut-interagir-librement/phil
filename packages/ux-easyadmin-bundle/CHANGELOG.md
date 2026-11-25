@@ -15,6 +15,12 @@ The next version is 0.1.1-alpha.
 - Requires the latest minor of each dependency (`phil/ux-css` 0.5), and of each development requirement
   (`doctrine/doctrine-bundle` 3.4, `symfony/ux-twig-component` 3.8, `twig/extra-bundle` 3.31).
 
+### Security
+
+- Requires `easycorp/easyadmin-bundle` 5.10.4 or later, the release that fixes eight advisories of the back office this
+  theme dresses: GHSA-rrpv-c5fp-ppxr, GHSA-x7m7-8grf-r6m2, GHSA-v773-mfpm-hqgq, GHSA-4jgw-cjw7-8j52,
+  GHSA-jqfc-9phg-ghr7, GHSA-f7rw-7wx5-3c54, GHSA-rjcw-39g5-9hqr and GHSA-63v8-jq78-cmg3.
+
 ## 0.1.0-alpha - 2026-11-13
 
 ### Added

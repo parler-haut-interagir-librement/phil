@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9a77c97a2646aa3a86a91b1d299756f64e8dcf8be011fe43948ee56a86aecb23 -->
+<!-- phil-dev source-sha256=97775bb01cf3425718649ea2cad73795afee7ba532bb24670223737808ec8699 -->
 # Installation
 
 ## Prérequis
@@ -8,7 +8,7 @@
 | PHP | `>=8.5` | Le plancher déclaré. |
 | `phil/audit-bundle` | `^0.1@dev` | Les services que les pages appellent : `AuditLog`, `ChainStatus`, et `AuditTrail` pour l'export. |
 | `phil/ddd-bundle` | `^0.1@dev` | L'`InvalidValue` que lève un filtre qui ne se lit pas. |
-| `easycorp/easyadmin-bundle` | `^5.8` | Les pages sont des routes d'administration de chaque tableau de bord, dans sa mise en page. |
+| `easycorp/easyadmin-bundle` | `^5.10.4` | Les pages sont des routes d'administration de chaque tableau de bord, dans sa mise en page. |
 | `symfony/security-core`, `symfony/security-csrf` | `^8.2` | Le *voter*, le vérificateur d'autorisation et le jeton de l'export. |
 | `symfony/http-foundation`, `symfony/http-kernel` | `^8.2` | Les requêtes, les réponses et les erreurs du contrôleur. |
 | `symfony/translation` | `^8.2` | Les libellés du menu, sous forme de messages traduisibles. |

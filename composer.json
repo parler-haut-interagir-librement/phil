@@ -38,7 +38,7 @@
         "doctrine/migrations": "^3.9",
         "doctrine/orm": "^3.8",
         "doctrine/persistence": "^4.2",
-        "easycorp/easyadmin-bundle": "^5.10",
+        "easycorp/easyadmin-bundle": "^5.10.4",
         "ergebnis/phpunit-slow-test-detector": "^2.28",
         "league/flysystem": "^3.36",
         "league/flysystem-local": "^3.35",

@@ -87,7 +87,7 @@ $sharing->share($page, 'edit', MemberId::of($editor->id), new DateTimeImmutable(
 ## Requirements
 
 PHP 8.5 or later, Symfony 8.2 or later and Doctrine DBAL 4.5 or later; SecurityBundle for the voters, TwigBundle and
-Symfony UX Twig Component for the functions and components, EasyAdmin 5.8 or later for its voter.
+Symfony UX Twig Component for the functions and components, EasyAdmin 5.10.4 or later for its voter.
 
 ## Contributing
 

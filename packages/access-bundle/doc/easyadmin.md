@@ -38,6 +38,17 @@ public function configureActions(Actions $actions): Actions
 }
 ```
 
+EasyAdmin 5.10.4 and later check the entity permission for the autocomplete of an association field too, with a `null`
+subject when there is no entity: on the `new` page and in embedded forms. `AccessVoter` votes on items only, so nothing
+grants `access.view` to `null` and those fields answer `403`. An expression lets them through, and still asks the level
+of every entity:
+
+```php
+use Symfony\Component\ExpressionLanguage\Expression;
+
+return $crud->setEntityPermission(new Expression('null === subject or is_granted("access.view", subject)'));
+```
+
 ## A CRUD controller of declared scope
 
 The voters decide one entity at a time; the index of a CRUD controller lists many. The application's controller

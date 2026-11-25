@@ -41,7 +41,7 @@
     "require-dev": {
         "ext-intl": "*",
         "doctrine/doctrine-bundle": "^3.4",
-        "easycorp/easyadmin-bundle": "^5.10",
+        "easycorp/easyadmin-bundle": "^5.10.4",
         "phil/resource": "^0.1@dev",
         "phil/scheduled-transitions-bundle": "^0.2@dev",
         "phil/search-bundle": "^0.2@dev",

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2a1dd568ba32103f24036814872039711beac40b89bfd49711fa26b42d757f00 -->
+<!-- phil-dev source-sha256=9c8d232b24de7d1a27e1c8ee852daddfa0f618a583d7e812fa186ceebd365925 -->
 # phil/access-bundle
 
 **Qui voit et qui peut modifier chaque élément d'un site : visibilité, niveaux de partage, groupes d'accès, accès qui se
@@ -92,7 +92,7 @@ $sharing->share($page, 'edit', MemberId::of($editor->id), new DateTimeImmutable(
 
 PHP 8.5 ou une version plus récente, Symfony 8.2 ou une version plus récente et Doctrine DBAL 4.5 ou une version plus
 récente ; SecurityBundle pour les voters, TwigBundle et Symfony UX Twig Component pour les fonctions et les
-composants, EasyAdmin 5.8 ou une version plus récente pour son voter.
+composants, EasyAdmin 5.10.4 ou une version plus récente pour son voter.
 
 ## Contribuer
 

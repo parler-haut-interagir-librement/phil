@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dbf9529a625e980de6779f339e98f273eda1e54a5a0257ca6c523183dfba82ab -->
+<!-- phil-dev source-sha256=fcd9a20f8ac9436d300bb1906f207f1b93dff62942a22337f67393f4ac8ca8a9 -->
 # Installation
 
 ```sh
@@ -13,7 +13,7 @@ Phil\AccessBundle\PhilAccessBundle::class => ['all' => true],
 
 Le paquet exige PHP 8.5 ou une version plus récente, Symfony 8.2 ou une version plus récente et Doctrine DBAL 4.5 ou
 une version plus récente. Les voters exigent SecurityBundle ; les fonctions Twig, TwigBundle ; les composants, Symfony
-UX Twig Component et les recettes du kit PHIL UX ; le voter d'EasyAdmin, EasyAdmin 5.8 ou une version plus récente.
+UX Twig Component et les recettes du kit PHIL UX ; le voter d'EasyAdmin, EasyAdmin 5.10.4 ou une version plus récente.
 Chaque intégration n'est enregistrée que lorsque son bundle est activé.
 
 ## Les routes

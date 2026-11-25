@@ -7,7 +7,7 @@
 | PHP | `>=8.5` | The declared floor. |
 | `phil/audit-bundle` | `^0.1@dev` | The services the pages call: `AuditLog`, `ChainStatus`, and `AuditTrail` for the export. |
 | `phil/ddd-bundle` | `^0.1@dev` | The `InvalidValue` a filter that does not read throws. |
-| `easycorp/easyadmin-bundle` | `^5.8` | The pages are admin routes of every dashboard, in its layout. |
+| `easycorp/easyadmin-bundle` | `^5.10.4` | The pages are admin routes of every dashboard, in its layout. |
 | `symfony/security-core`, `symfony/security-csrf` | `^8.2` | The voter, the authorization checker and the export's token. |
 | `symfony/http-foundation`, `symfony/http-kernel` | `^8.2` | The controller's requests, responses and errors. |
 | `symfony/translation` | `^8.2` | The labels of the menu, as translatable messages. |

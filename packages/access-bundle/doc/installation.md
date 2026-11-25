@@ -12,7 +12,7 @@ Phil\AccessBundle\PhilAccessBundle::class => ['all' => true],
 
 The package needs PHP 8.5 or later, Symfony 8.2 or later and Doctrine DBAL 4.5 or later. The voters need
 SecurityBundle; the Twig functions TwigBundle; the components Symfony UX Twig Component and the recipes of the PHIL UX
-kit; the EasyAdmin voter EasyAdmin 5.8 or later. Each integration is registered only when its bundle is enabled.
+kit; the EasyAdmin voter EasyAdmin 5.10.4 or later. Each integration is registered only when its bundle is enabled.
 
 ## The routes
 

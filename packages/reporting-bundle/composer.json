@@ -33,7 +33,7 @@
         "symfony/service-contracts": "^3.8"
     },
     "require-dev": {
-        "easycorp/easyadmin-bundle": "^5.10",
+        "easycorp/easyadmin-bundle": "^5.10.4",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "symfony/clock": "^8.2",

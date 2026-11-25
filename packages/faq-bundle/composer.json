@@ -45,7 +45,7 @@
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.3",
-        "easycorp/easyadmin-bundle": "^5.8",
+        "easycorp/easyadmin-bundle": "^5.10.4",
         "phil/ux-kit": ">=0.5.0-alpha <1.0",
         "php-webdriver/webdriver": "^1.16",
         "phpunit/phpunit": "^13.4",

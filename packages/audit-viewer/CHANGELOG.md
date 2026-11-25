@@ -11,6 +11,8 @@ The next version is 0.1.2-alpha.
 ### Security
 
 - Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+- Requires `easycorp/easyadmin-bundle` 5.10.4 or later, the release that fixes GHSA-f7rw-7wx5-3c54: a link to a route,
+  like the menu links of the log and the chain, passed its `routeParams` to the controller of that route as arguments.
 
 ## 0.1.1-alpha - 2026-11-24
 

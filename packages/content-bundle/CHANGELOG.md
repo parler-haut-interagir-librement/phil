@@ -15,6 +15,9 @@ The next version is 0.3.1-alpha.
   `easycorp/easyadmin-bundle` 5.10). The identifiers of the roots are converted through the type provider of the
   connection, as DBAL 4.6 asks, instead of the static `Type::getType()`. The unique constraint the listener looks for
   is read as the index shape of `doctrine/orm` 3.8.
+- The development requirements take `easycorp/easyadmin-bundle` 5.10.4 or later, the release that fixes
+  GHSA-f7rw-7wx5-3c54: a link to a route, like the menu links of this bundle, passed its `routeParams` to the controller
+  of that route as arguments.
 
 ### Security
 
