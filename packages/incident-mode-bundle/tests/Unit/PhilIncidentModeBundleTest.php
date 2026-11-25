@@ -52,6 +52,8 @@ use PHPUnit\Framework\TestCase;
 use stdClass;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\FrameworkExtension;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
@@ -460,5 +462,24 @@ final class PhilIncidentModeBundleTest extends TestCase
         $removal = array_search(IncidentModePass::class, $passes, true);
         self::assertIsInt($removal);
         self::assertLessThan($messenger, $removal);
+    }
+
+    public function testThePassesRunAtPriorityOneNotHigher(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilIncidentModeBundle()->build($container);
+        $container->addCompilerPass(new class implements CompilerPassInterface {
+            public function process(ContainerBuilder $container): void
+            {
+            }
+        }, PassConfig::TYPE_BEFORE_OPTIMIZATION, 2);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $marker = array_search(true, array_map(static fn (string $class): bool => str_contains($class, '@anonymous'), $passes), true);
+        self::assertIsInt($marker);
+
+        $removal = array_search(IncidentModePass::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertGreaterThan($marker, $removal, 'IncidentModePass must run at priority 1, after a pass of priority 2.');
     }
 }

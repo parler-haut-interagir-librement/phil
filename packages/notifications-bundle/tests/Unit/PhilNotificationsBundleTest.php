@@ -68,6 +68,8 @@ use stdClass;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -616,5 +618,24 @@ final class PhilNotificationsBundleTest extends TestCase
         $removal = array_search(NotificationsPass::class, $passes, true);
         self::assertIsInt($removal);
         self::assertLessThan($messenger, $removal);
+    }
+
+    public function testThePassesRunAtPriorityOneNotHigher(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilNotificationsBundle()->build($container);
+        $container->addCompilerPass(new class implements CompilerPassInterface {
+            public function process(ContainerBuilder $container): void
+            {
+            }
+        }, PassConfig::TYPE_BEFORE_OPTIMIZATION, 2);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $marker = array_search(true, array_map(static fn (string $class): bool => str_contains($class, '@anonymous'), $passes), true);
+        self::assertIsInt($marker);
+
+        $removal = array_search(NotificationsPass::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertGreaterThan($marker, $removal, 'NotificationsPass must run at priority 1, after a pass of priority 2.');
     }
 }

@@ -36,6 +36,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
@@ -276,5 +278,24 @@ final class PhilApiContractBundleTest extends TestCase
         self::assertNotNull($extension);
 
         return $extension;
+    }
+
+    public function testThePassesRunAtPriorityOneNotHigher(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilApiContractBundle()->build($container);
+        $container->addCompilerPass(new class implements CompilerPassInterface {
+            public function process(ContainerBuilder $container): void
+            {
+            }
+        }, PassConfig::TYPE_BEFORE_OPTIMIZATION, 2);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $marker = array_search(true, array_map(static fn (string $class): bool => str_contains($class, '@anonymous'), $passes), true);
+        self::assertIsInt($marker);
+
+        $removal = array_search(AddTenantIdempotencyScopeMiddleware::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertGreaterThan($marker, $removal, 'AddTenantIdempotencyScopeMiddleware must run at priority 1, after a pass of priority 2.');
     }
 }
