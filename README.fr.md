@@ -12,6 +12,33 @@ ligne de leur domaine.
 Ce dépôt est le **monodépôt** où tous les paquets sont développés, testés et documentés ensemble. Chaque paquet est
 ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'installe par Packagist.
 
+## Principes
+
+Douze principes valent pour chaque paquet ; le [guide de contribution](CONTRIBUTING.md#principles) traduit chacun en
+règles que suit un changement.
+
+1. **Sûr par défaut.** Les réglages prudents sont ceux qu'on obtient sans rien faire, et toute entrée est hostile tant
+   qu'elle n'a pas été vérifiée.
+2. **Ouvert, en entier.** Chaque paquet est sous MIT, développé à découvert, sans accord de contributeur à signer.
+3. **Natif à Symfony.** Si vous connaissez Symfony, vous savez où regarder : Composer, une recette Flex, un bundle
+   standard, vos fichiers de configuration habituels.
+4. **Bilingue, toutes les langues.** Documenté en anglais et en français, tenus ensemble ; bâti pour toutes les
+   langues, pas seulement les nôtres.
+5. **La vie privée dès la conception.** Pensé pour la Loi 25 et le RGPD : rien ne part chez un tiers sans que le site
+   le décide.
+6. **Rapide, mesuré, sûr en mode worker.** La vitesse est mesurée par des bancs sur les chemins chauds, pas supposée,
+   et chaque paquet est sûr dans un worker qui dure.
+7. **Accessible d'office.** Le HTML sémantique d'abord, utilisable au clavier et au lecteur d'écran, et jamais une
+   information portée par la seule couleur.
+8. **Un vrai besoin.** Un paquet existe parce qu'un vrai site en a besoin ; une idée sans usager reste en incubation.
+9. **Peu à configurer.** Il marche sans configuration ; les options n'existent que pour de vrais choix.
+10. **Utile seul, meilleur ensemble.** Chaque paquet sert seul ; ensemble, ils partagent noms, configuration et points
+    d'extension.
+11. **Prévisible et extensible.** Des points d'extension documentés laissent les add-ons se brancher sans correctif, et
+    rien n'arrive par magie cachée.
+12. **Une qualité prouvée.** PHPStan au maximum, chaque mutant tué, chaque requis à sa dernière mineure publiée, le PHP
+    et le Symfony suivants testés dès leur première version candidate.
+
 ## Paquets
 
 ### Énumérations

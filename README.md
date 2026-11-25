@@ -10,6 +10,33 @@ level and tested down to the mutation of every line of their domain.
 This repository is the **monorepo** where every package is developed, tested and documented together. Each package is
 then split into its own **read-only** repository, from which Composer installs it through Packagist.
 
+## Principles
+
+Twelve principles hold for every package; the [contribution guide](CONTRIBUTING.md#principles) turns each one into the
+rules a change follows.
+
+1. **Secure by default.** The careful settings are the ones you get without doing anything, and every input is
+   treated as hostile until proven otherwise.
+2. **Open, all of it.** Every package is MIT, developed in the open, with no contributor agreement to sign.
+3. **Symfony-native.** If you know Symfony, you know where to look: Composer, a Flex recipe, a standard bundle, your
+   usual configuration files.
+4. **Bilingual, every language.** Documented in English and in French, kept in step; built for every language, not
+   only ours.
+5. **Private by design.** Built for Québec's Law 25 and the GDPR: nothing leaves for a third party unless the site
+   says so.
+6. **Fast, measured, worker-safe.** Speed is measured by benchmarks on the hot paths, not assumed, and every package
+   is safe in a long-running worker.
+7. **Accessible by default.** Semantic HTML first, usable with a keyboard and a screen reader, and never information
+   carried by colour alone.
+8. **A real need.** A package exists because a real site needs it; ideas without a user stay in incubation.
+9. **Little to configure.** It works with no configuration; options exist only for genuine choices.
+10. **Works alone, better together.** Each package is useful on its own; together they share names, configuration and
+    extension points.
+11. **Predictable and extensible.** Documented extension points let add-ons plug in without patches, and nothing
+    happens by hidden magic.
+12. **Proven quality.** PHPStan at its maximum, every mutant killed, every requirement at its latest published minor,
+    the next PHP and Symfony tested from their first release candidate.
+
 ## Packages
 
 ### Enums
