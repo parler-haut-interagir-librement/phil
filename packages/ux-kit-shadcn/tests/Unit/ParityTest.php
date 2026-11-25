@@ -128,10 +128,10 @@ final class ParityTest extends TestCase
         }
     }
 
-    public function testTheControllersAreTheSameFiles(): void
+    public function testTheControllersAndTheModulesBesideThemAreTheSameFiles(): void
     {
         foreach (self::RECIPES as $recipe) {
-            $controllers = glob($this->phil.'/'.$recipe.'/assets/controllers/*_controller.js');
+            $controllers = glob($this->phil.'/'.$recipe.'/assets/controllers/*.js');
             self::assertIsArray($controllers);
 
             foreach ($controllers as $controller) {

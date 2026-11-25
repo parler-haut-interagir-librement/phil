@@ -58,6 +58,8 @@ Copy the files of the recipes the page needs, from this directory, keeping their
 | CopyButton | `copy-button/templates/components/CopyButton.html.twig` | `templates/components/CopyButton.html.twig` |
 | Celebration | `celebration/templates/components/Celebration.html.twig` | `templates/components/Celebration.html.twig` |
 | Celebration | `celebration/assets/controllers/celebration_controller.js` | `assets/controllers/celebration_controller.js` |
+| Celebration | `celebration/assets/controllers/celebration_effects.js` | `assets/controllers/celebration_effects.js` |
+| Celebration | `celebration/assets/controllers/celebration_worker.js` | `assets/controllers/celebration_worker.js` |
 | AnimatedButton | `animated-button/templates/components/AnimatedButton.html.twig` | `templates/components/AnimatedButton.html.twig` |
 | Stepper | `stepper/templates/components/Stepper.html.twig` | `templates/components/Stepper.html.twig` |
 | ActivityCalendar | `activity-calendar/templates/components/ActivityCalendar.html.twig` | `templates/components/ActivityCalendar.html.twig` |

@@ -6,9 +6,16 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.2.1-alpha.
+The next version is 0.3.0-alpha.
 
-Development only.
+### Added
+
+- On `Celebration`, as in the PHIL UX kit: `messages`, words said in turn; `focus`, what the spotlight lights and where
+  the trophy lands; the nine effects `lasers`, `balloons`, `shooting-stars`, `streamers`, `coins`, `bubbles`, `aurora`,
+  `spotlight` and `trophy`; the choice of each person, `data-celebrations`, and the fatigue of a session; the colours
+  read again with the theme; the worker that paints on an `OffscreenCanvas`; the `<turbo-stream action="celebrate">`
+  that `celebrate()` of phil/ux-kit writes. The controller `celebration` and the modules beside it,
+  `celebration_effects.js` and `celebration_worker.js`, are those of the PHIL UX kit.
 
 ### Changed
 

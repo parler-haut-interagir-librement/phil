@@ -1,21 +1,27 @@
 {#-
- # A celebration: its message, said in a polite live region when it plays, and confetti or fireworks that the
- # `celebration` controller draws over the page on a canvas, where motion is not reduced, in the colours of the
- # `--primary` and `--chart-*` tokens. It plays as soon as the page shows it with `autoplay`, on the DOM event
- # `celebrate`, or by the action `celebration#play`. No style is written here: the canvas waits in a template, and the
- # controller sets it over the page through the CSSOM.
+ # A celebration: its message, said in a polite live region when it plays, and an effect that the `celebration`
+ # controller draws over the page on a canvas, where motion is not reduced and the person has not chosen
+ # `data-celebrations="none"`, in the colours of the `--primary` and `--chart-*` tokens. It plays as soon as the page
+ # shows it with `autoplay`, on the DOM event `celebrate`, on a `<turbo-stream action="celebrate">`, or by the action
+ # `celebration#play`. No style is written here: the canvas waits in a template, and the controller sets it over the
+ # page through the CSSOM.
  #}
 {%- props
     ## string The words of the victory, said when it plays, and shown where motion is reduced.
     message = '',
-    ## string What is drawn, `confetti` or `fireworks`; `confetti` for any other name.
+    ## list<string> Words said in turn when no message is given, one at random each time, another than the last.
+    messages = [],
+    ## string What is drawn: `confetti`, `fireworks`, `lasers`, `balloons`, `shooting-stars`, `streamers`, `coins`, `bubbles`, `aurora`, `spotlight` or `trophy`; `confetti` for any other name.
     effect = 'confetti',
     ## bool Whether it plays as soon as the page shows it, for a page that arrives on a victory.
     autoplay = false,
     ## int How long the animation runs, in milliseconds, kept by the controller between 600 and 4000.
-    duration = 2500
+    duration = 2500,
+    ## string The selector of what the spotlight lights and where the trophy lands; the middle of the screen without one.
+    focus = ''
 -%}
-<div data-celebration-message-value="{{ message }}" data-celebration-effect-value="{{ effect in ['confetti', 'fireworks'] ? effect : 'confetti' }}" data-celebration-autoplay-value="{{ autoplay ? 'true' : 'false' }}" data-celebration-duration-value="{{ duration }}" data-celebration-colors-value="--primary --chart-1 --chart-2 --chart-3 --chart-4 --chart-5" data-slot="celebration"{{ attributes.defaults({class: 'flex flex-col items-start gap-2', 'data-controller': 'celebration'}) }}>
+{%- set effects = ['confetti', 'fireworks', 'lasers', 'balloons', 'shooting-stars', 'streamers', 'coins', 'bubbles', 'aurora', 'spotlight', 'trophy'] -%}
+<div data-celebration-message-value="{{ message }}" data-celebration-messages-value="{{ []|merge(messages|filter(text => text is not empty))|json_encode }}" data-celebration-effect-value="{{ effect in effects ? effect : 'confetti' }}" data-celebration-autoplay-value="{{ autoplay ? 'true' : 'false' }}" data-celebration-duration-value="{{ duration }}" data-celebration-focus-value="{{ focus }}" data-celebration-colors-value="--primary --chart-1 --chart-2 --chart-3 --chart-4 --chart-5" data-slot="celebration"{{ attributes.defaults({class: 'flex flex-col items-start gap-2', 'data-controller': 'celebration'}) }}>
 {##- What plays it, a button with `data-action="celebration#play"`, or anything else shown with the message. -#}
 {%- block content %}{% endblock -%}
-<p class="m-0 text-lg font-semibold" role="status" aria-live="polite" data-celebration-target="message">{{ autoplay ? message }}</p><template data-celebration-target="stage"><canvas class="pointer-events-none fixed inset-0 z-50 size-full motion-reduce:hidden in-data-[motion=reduce]:hidden print:hidden" aria-hidden="true"></canvas></template></div>
+<p class="m-0 text-lg font-semibold" role="status" aria-live="polite" data-celebration-target="message">{{ autoplay ? (message is not empty ? message : messages|first|default('')) }}</p><template data-celebration-target="stage"><canvas class="pointer-events-none fixed inset-0 z-50 size-full motion-reduce:hidden in-data-[motion=reduce]:hidden print:hidden" aria-hidden="true"></canvas></template></div>

@@ -6,10 +6,33 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.6.1-alpha.
+The next version is 0.7.0-alpha.
+
+### Added
+
+- On `Celebration`: the choice of each person, `data-celebrations` on the root or an ancestor, `all` by default,
+  `discreet`, 30 % of the pieces for 60 % of the run, or `none`, the message alone, on top of reduced motion; its README
+  shows the choice of phil/settings-bundle that writes it. The celebrations of a session of the tab tire: the first
+  three in full, the next three with half their pieces, the others discreet, counted in the session storage or by the
+  page. A device of four cores or fewer, of two gigabytes or less, or saving data draws fewer pieces.
+- On `Celebration`: `messages`, words said in turn when there is no `message`, one at random each time, never the same
+  twice in a row; `celebration_messages()` gives eight in the language of the request, English or French.
+- On `Celebration`: the colours of the theme read again when the colour scheme or an attribute of the root changes
+  while it plays; the canvas handed to a worker as an `OffscreenCanvas` and painted off the main thread where the
+  browser allows it, `celebration_worker.js` beside the controller, on the page otherwise.
+- `celebrate()` in Twig, and `CelebrationStream` in PHP: a `<turbo-stream action="celebrate">` that plays the
+  `Celebration` of the page with a message, an effect and a focus, in a Turbo Stream response, on a Mercure topic or in
+  the page, so that a bundle celebrates without JavaScript; the controller renders it with Turbo, and plays the streams
+  already in the page without it.
+- On `Celebration`: nine effects, `lasers`, thin beams rising from the bottom in waves half a second apart, each fading
+  in and swinging at half a turn a second at most, never a fill of the screen, under the three flashes of WCAG 2.3.1;
+  `balloons` and `bubbles`, which a click bursts; `shooting-stars`; `streamers`; `coins`, which bounce; `aurora`, a calm
+  veil; `spotlight`, the page dimmed around what `focus` names; and `trophy`, which comes down where `focus` names.
 
 ### Changed
 
+- The page of recipes of the browser suites, `RecipesPage`, copies every module beside the controllers, so that a
+  controller imports its own.
 - The development requirements take `twig/html-extra` 3.31.1 or later, which fixes the advisories of its sandbox
   published on 2026-11-24.
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=25b815f98052382a70d4512861a4581c6f4b33e6174d94ef76ede89cdca6e4db -->
+<!-- phil-dev source-sha256=92a22157c16f6345fea54ff1daaadfc3e6119d86785ede299e1f284cc5479f8f -->
 # phil/ux-kit
 
 **Le kit PHIL UX pour le Symfony UX Toolkit : les mêmes recettes que le kit Shadcn, habillées par phil-ux, installées
@@ -77,7 +77,7 @@ noms et props, sont le kit [`phil/ux-kit-shadcn`](https://github.com/parler-haut
 | [ColorPicker](color-picker/README.md) | composant | Le sélecteur de couleur du navigateur, sa valeur hexadécimale et des pastilles parmi lesquelles choisir. Le sélecteur est le champ : il fonctionne seul, sans script. | Implémenté et testé |
 | [DatePicker](date-picker/README.md) | composant | Le champ de date du navigateur, qui fonctionne seul, et un bouton qui ouvre un mois sur une grille, dans une bulle. | Implémenté et testé |
 | [CopyButton](copy-button/README.md) | composant | Un bouton qui copie un texte, donné ou lu dans un autre élément, et le dit. | Implémenté et testé |
-| [Celebration](celebration/README.md) | composant | Un message dit dans une région active, et des confettis ou des feux d'artifice dessinés sur la page dans un canvas pendant quelques secondes, aux couleurs du thème ; le message seul là où le mouvement est réduit. Joué d'emblée, sur un événement ou par un bouton. | Implémenté et testé |
+| [Celebration](celebration/README.md) | composant | Un message dit dans une région active, et un effet dessiné sur la page dans un canvas pendant quelques secondes, aux couleurs du thème : confettis, feux d'artifice, jeu de lasers, ballons et sept autres ; le message seul là où le mouvement est réduit ou quand la personne n'en a choisi aucun, moins de pièces quand l'effet est discret ou la personne lasse. Joué d'emblée, sur un événement, par un bouton ou par un Turbo Stream qu'écrit `celebrate()`. | Implémenté et testé |
 | [AnimatedButton](animated-button/README.md) | composant | Un bouton, ou un lien quand il a une adresse, qui bouge sous le pointeur et le focus : une lumière qui le balaie, une élévation ou sa flèche poussée vers l'avant. Du CSS seulement. | Implémenté et testé |
 | [Stepper](stepper/README.md) | composant | Les étapes d'un processus, celles qui sont terminées marquées, la courante annoncée, lues de haut en bas sur un téléphone. | Implémenté et testé |
 | [ActivityCalendar](activity-calendar/README.md) | composant | L'activité dans le temps : une case par jour, chacune lue par son libellé, la couleur jamais seule. Plus large que l'écran, il défile de lui-même et prend le focus pour le faire. | Implémenté et testé |

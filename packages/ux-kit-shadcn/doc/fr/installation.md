@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e37356dd26400d98d0776b9a588272fcd9d806cba6c84f4385481e23dcdbd9f8 -->
+<!-- phil-dev source-sha256=223c44d67a5b798ab61b6445218eba597c497f4ba09f9c0b2c21c26735274f7b -->
 # Installation
 
 ## Tailwind et le kit Shadcn
@@ -60,6 +60,8 @@ Copiez les fichiers des recettes dont la page a besoin, depuis ce répertoire, e
 | CopyButton | `copy-button/templates/components/CopyButton.html.twig` | `templates/components/CopyButton.html.twig` |
 | Celebration | `celebration/templates/components/Celebration.html.twig` | `templates/components/Celebration.html.twig` |
 | Celebration | `celebration/assets/controllers/celebration_controller.js` | `assets/controllers/celebration_controller.js` |
+| Celebration | `celebration/assets/controllers/celebration_effects.js` | `assets/controllers/celebration_effects.js` |
+| Celebration | `celebration/assets/controllers/celebration_worker.js` | `assets/controllers/celebration_worker.js` |
 | AnimatedButton | `animated-button/templates/components/AnimatedButton.html.twig` | `templates/components/AnimatedButton.html.twig` |
 | Stepper | `stepper/templates/components/Stepper.html.twig` | `templates/components/Stepper.html.twig` |
 | ActivityCalendar | `activity-calendar/templates/components/ActivityCalendar.html.twig` | `templates/components/ActivityCalendar.html.twig` |

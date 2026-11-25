@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=81b2b9856f78b084793af041f252cff6d1d4b43e4033bdf9cf0990559fceec71 -->
+<!-- phil-dev source-sha256=f5371aabc2790882821f26f5ebdfee38e6757c51e8082d8856de3c434f9ce921 -->
 # Différences avec le kit PHIL UX
 
 Ce kit contient les recettes que le kit Shadcn du Toolkit n'offre pas, et un `Carousel` sur l'accrochage de défilement
@@ -15,7 +15,7 @@ le `DatePicker` du kit PHIL UX, dont le nom est celui du `DatePicker` du kit Sha
 | Le contrôleur de `phil/reactions-bundle` | Les cibles `summary`, `search`, `status`, `empty`, `group` et `option`, et les actions de la recherche, dans `ReactionPicker` |
 | Le contrôleur de la visionneuse | `lightbox_controller.js` est le même fichier, avec la cible `dialog` et les actions `open`, `close` et `closeOnClickOutside` |
 | Le contrôleur de l'aperçu | `image_preview_controller.js` est le même fichier, avec la valeur `src` |
-| Le contrôleur de la célébration | `celebration_controller.js` est le même fichier, avec les valeurs `message`, `effect`, `autoplay`, `duration` et `colors`, les cibles `message` et `stage`, l'action `play` et l'événement DOM `celebrate` |
+| Le contrôleur de la célébration | `celebration_controller.js` et les modules à côté, `celebration_effects.js` et `celebration_worker.js`, sont les mêmes fichiers, avec les valeurs `message`, `messages`, `effect`, `autoplay`, `duration`, `colors` et `focus`, les cibles `message` et `stage`, l'action `play`, l'événement DOM `celebrate` et l'action de Turbo Stream `celebrate` |
 | Le contrôleur Stimulus | `animated_headline_controller.js` est le même fichier, avec les valeurs `pause`, `duration`, `loop`, `pauseLabel` et `playLabel`, les cibles `reveal`, `word` et `toggle`, et l'action `toggle` |
 | L'accessibilité | `alt` requis, le titre lu en entier, rien qui bouge sous le mouvement réduit, les repères |
 

@@ -14,7 +14,7 @@ final class CelebrationTest extends KitTestCase
     public function testItWaitsWithAnEmptyLiveRegionAndItsCanvasInATemplate(): void
     {
         self::assertSame(
-            '<div data-celebration-message-value="You won" data-celebration-effect-value="confetti" data-celebration-autoplay-value="false" data-celebration-duration-value="2500" data-celebration-colors-value="'.self::COLORS.'" class="isCelebration" data-controller="celebration">'
+            '<div data-celebration-message-value="You won" data-celebration-messages-value="[]" data-celebration-effect-value="confetti" data-celebration-autoplay-value="false" data-celebration-duration-value="2500" data-celebration-focus-value="" data-celebration-colors-value="'.self::COLORS.'" class="isCelebration" data-controller="celebration">'
             .'<p class="isCelebrationMessage" role="status" aria-live="polite" data-celebration-target="message"></p>'
             .'<template data-celebration-target="stage"><canvas class="isCelebrationCanvas" aria-hidden="true"></canvas></template></div>',
             $this->render('<twig:Celebration message="You won" />'),
@@ -37,12 +37,48 @@ final class CelebrationTest extends KitTestCase
         self::assertStringContainsString('data-celebration-effect-value="confetti"', $this->render('<twig:Celebration effect="&quot;><script>" />'));
     }
 
+    public function testEveryEffectOfTheControllerIsKept(): void
+    {
+        foreach (['confetti', 'fireworks', 'lasers', 'balloons', 'shooting-stars', 'streamers', 'coins', 'bubbles', 'aurora', 'spotlight', 'trophy'] as $effect) {
+            self::assertStringContainsString(\sprintf('data-celebration-effect-value="%s"', $effect), $this->render(\sprintf('<twig:Celebration effect="%s" />', $effect)));
+        }
+    }
+
+    public function testItsMessagesAreAListOfTextsAndTheFirstIsShownOnAPageThatArrivesOnAVictory(): void
+    {
+        $html = $this->render('<twig:Celebration :messages="[\'Well done\', \'\', \'<Bravo>\']" :autoplay="true" focus="#winner" />');
+
+        self::assertStringContainsString('data-celebration-messages-value="[&quot;Well done&quot;,&quot;&lt;Bravo&gt;&quot;]"', $html);
+        self::assertStringContainsString('data-celebration-message-value=""', $html);
+        self::assertStringContainsString('data-celebration-focus-value="#winner"', $html);
+        self::assertStringContainsString('data-celebration-target="message">Well done</p>', $html);
+        self::assertStringContainsString('data-celebration-target="message">Bingo</p>', $this->render('<twig:Celebration message="Bingo" :messages="[\'Well done\']" :autoplay="true" />'), 'the message first');
+        self::assertStringContainsString('data-celebration-target="message"></p>', $this->render('<twig:Celebration :messages="[\'Well done\']" />'), 'empty until it plays');
+    }
+
     public function testWhatPlaysItComesBeforeTheMessageAndItsAttributesAreKept(): void
     {
         $html = $this->render('<twig:Celebration message="Bingo" class="wide" data-action="poll:revealed@window->celebration#play"><button type="button" data-action="celebration#play">Go</button></twig:Celebration>');
 
         self::assertStringContainsString('class="isCelebration wide" data-controller="celebration" data-action="poll:revealed@window-&gt;celebration#play">', $html);
         self::assertStringContainsString('<button type="button" data-action="celebration#play">Go</button><p class="isCelebrationMessage"', $html);
+    }
+
+    public function testCelebratePlaysItFromTheServerByATurboStream(): void
+    {
+        self::assertSame(
+            '<turbo-stream action="celebrate" effect="trophy" message="First &lt;place&gt;" focus="#winner"><template></template></turbo-stream>',
+            $this->render("{{ celebrate('First <place>', 'trophy', '#winner') }}"),
+        );
+        self::assertSame('<turbo-stream action="celebrate" effect="confetti"><template></template></turbo-stream>', $this->render('{{ celebrate() }}'));
+    }
+
+    public function testItsMessagesInTheLanguageOfTheRequestOrOfTheLocaleGiven(): void
+    {
+        self::assertSame('Bien joué!|Bravo!', $this->render("{{ celebration_messages('fr_CA')|slice(0, 2)|join('|') }}"));
+        self::assertSame('Well done!', $this->render('{{ celebration_messages()|first }}'));
+        [$html] = $this->renderInRequest("{{ app.request.setLocale('fr') }}{{ celebration_messages()|first }}");
+        self::assertSame('Bien joué!', $html);
     }
 
     public function testNoStyleIsWritten(): void

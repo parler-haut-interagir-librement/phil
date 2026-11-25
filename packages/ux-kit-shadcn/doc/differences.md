@@ -14,7 +14,7 @@ everything else is the same for each of them. Another recipe the Shadcn kit alre
 | The controller of `phil/reactions-bundle` | The targets `summary`, `search`, `status`, `empty`, `group` and `option`, and the actions of the search, in `ReactionPicker` |
 | The lightbox's controller | `lightbox_controller.js` is the same file, target `dialog`, actions `open`, `close` and `closeOnClickOutside` |
 | The preview's controller | `image_preview_controller.js` is the same file, value `src` |
-| The celebration's controller | `celebration_controller.js` is the same file, values `message`, `effect`, `autoplay`, `duration` and `colors`, targets `message` and `stage`, action `play`, the DOM event `celebrate` |
+| The celebration's controller | `celebration_controller.js` and the modules beside it, `celebration_effects.js` and `celebration_worker.js`, are the same files, values `message`, `messages`, `effect`, `autoplay`, `duration`, `colors` and `focus`, targets `message` and `stage`, action `play`, the DOM event `celebrate` and the Turbo Stream action `celebrate` |
 | The Stimulus controller | `animated_headline_controller.js` is the same file, values `pause`, `duration`, `loop`, `pauseLabel` and `playLabel`, targets `reveal`, `word` and `toggle`, action `toggle` |
 | The accessibility | `alt` required, the headline read whole, nothing moving under reduced motion, the landmarks |
 

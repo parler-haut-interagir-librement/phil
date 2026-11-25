@@ -488,12 +488,14 @@ final class ShadcnKitTest extends KitTestCase
     public function testACelebrationInTailwindWithTheChartTokens(): void
     {
         self::assertSame(
-            '<div data-celebration-message-value="You won" data-celebration-effect-value="fireworks" data-celebration-autoplay-value="true" data-celebration-duration-value="2500" data-celebration-colors-value="--primary --chart-1 --chart-2 --chart-3 --chart-4 --chart-5" data-slot="celebration" class="flex flex-col items-start gap-2" data-controller="celebration">'
+            '<div data-celebration-message-value="You won" data-celebration-messages-value="[]" data-celebration-effect-value="fireworks" data-celebration-autoplay-value="true" data-celebration-duration-value="2500" data-celebration-focus-value="" data-celebration-colors-value="--primary --chart-1 --chart-2 --chart-3 --chart-4 --chart-5" data-slot="celebration" class="flex flex-col items-start gap-2" data-controller="celebration">'
             .'<p class="m-0 text-lg font-semibold" role="status" aria-live="polite" data-celebration-target="message">You won</p>'
             .'<template data-celebration-target="stage"><canvas class="pointer-events-none fixed inset-0 z-50 size-full motion-reduce:hidden in-data-[motion=reduce]:hidden print:hidden" aria-hidden="true"></canvas></template></div>',
             $this->render('<twig:Celebration message="You won" effect="fireworks" :autoplay="true" />'),
         );
         self::assertStringContainsString('data-celebration-effect-value="confetti"', $this->render('<twig:Celebration effect="other" />'));
+        self::assertStringContainsString('data-celebration-effect-value="lasers"', $this->render('<twig:Celebration effect="lasers" />'));
+        self::assertStringContainsString('data-celebration-target="message">Bravo</p>', $this->render('<twig:Celebration :messages="[\'Bravo\']" :autoplay="true" />'));
         self::assertStringContainsString('data-celebration-target="message"></p>', $this->render('<twig:Celebration message="Later" />'));
     }
 
