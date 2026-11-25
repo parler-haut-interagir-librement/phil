@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8efb7a719e60375b773ff48e8bafe3fa724ddea1a9713843b6b3f6c976adda11 -->
+<!-- phil-dev source-sha256=b43cfb0ccda7fad3cc54b811f1661ccab8ae621016a2da266b7c67ad1a5f8116 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_identity_provider`. Chaque option a une valeur par défaut, sauf les
@@ -129,8 +129,8 @@ phil_identity_provider:
 | `step_up.attribute` | `PHIL_STEP_UP` | L'attribut qu'exigent les actions sensibles du bundle : `PHIL_STEP_UP`, ou `IS_AUTHENTICATED_RECENTLY` de Symfony Security. |
 | `step_up.lifetime` | `300` | Secondes pendant lesquelles une preuve accorde `PHIL_STEP_UP`. |
 | `sessions.touch_interval` | `300` | Le moins de secondes entre deux écritures du moment où une session a été vue pour la dernière fois. |
-| `sessions.idle_timeout` | `7200` | Le nombre de secondes sans requête après lequel une session est fermée : 0 pour aucune borne, sinon au moins 60 et plus que `sessions.touch_interval`. |
-| `sessions.max_age` | `43200` | Le nombre de secondes après son ouverture au-delà duquel une session est fermée, quelle que soit son activité : 0 pour aucune borne, sinon au moins 60. |
+| `sessions.idle_timeout` | `7200` | Le nombre de secondes sans requête après lequel une session est fermée : 0 pour aucune borne, sinon au moins 60 et plus que `sessions.touch_interval`. L'actualisation d'un jeton OpenID Connect lié à la session compte comme une requête. |
+| `sessions.max_age` | `43200` | Le nombre de secondes après son ouverture au-delà duquel une session est fermée, quelle que soit son activité : 0 pour aucune borne, sinon au moins 60. Un jeton d'actualisation lié à la session expire à ce moment, et une actualisation au-delà ferme la session. |
 | `external.link_verified_email` | `false` | Si une identité dont le fournisseur a vérifié l'adresse se lie au compte qui a vérifié la même adresse, au lieu de demander à la personne de se connecter d'abord. |
 | `external.register` | `true` | Si une identité externe inconnue crée un compte. |
 | `oidc.issuer` | `null` | L'adresse https sous laquelle les clients connaissent le fournisseur, sans barre oblique finale. |
@@ -154,7 +154,7 @@ phil_identity_provider:
 | `oidc.client_authentication.assertion_max_lifetime` | `300` | Le plus loin devant, en secondes, que peut être l'expiration d'une assertion de client, de 1 à 3600 ; son `jti` est gardé aussi longtemps. |
 | `oidc.client_authentication.legacy_assertion_audiences` | `false` | Si une assertion de client peut aussi nommer le point de terminaison des jetons à l'origine de l'émetteur, et ses audiences dans un tableau ; désactivé, son `aud` est l'émetteur, sous forme de chaîne (draft-ietf-oauth-rfc7523bis). |
 | `oidc.require_nonce_without_pkce` | `true` | Si une demande d'autorisation sans défi PKCE, d'un client enregistré avec `--pkce-optional`, doit porter un `nonce` (RFC 9700, section 2.1.1) ; `false` seulement pour une suite de tests qui joue un tel client sans `nonce`. |
-| `oidc.refresh_token_bound_to_session` | `true` | Si un jeton d'actualisation émis dans une session est refusé une fois la session fermée ou plus vieille que `oidc.session_max_age`, sa famille révoquée. |
+| `oidc.refresh_token_bound_to_session` | `true` | Si un jeton d'actualisation émis dans une session est refusé une fois la session fermée, au-delà de `sessions.idle_timeout` ou de `sessions.max_age` — l'actualisation la ferme alors —, ou plus vieille que `oidc.session_max_age`, sa famille révoquée ; une actualisation compte comme l'activité de la session. |
 | `oidc.session_max_age` | `null` | Secondes après l'ouverture d'une session au-delà desquelles ses jetons d'actualisation ne sont plus émis ni acceptés ; null pour aucune borne que la fin de la session. |
 | `oidc.id_token.acr` | `null` | L'`acr` de chaque jeton d'identité ; null pour aucun. |
 | `oidc.id_token.idp` | `null` | L'`idp` de chaque jeton d'identité ; null pour aucun. |

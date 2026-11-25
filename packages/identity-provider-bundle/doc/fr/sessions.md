@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5d764e518fc6dcfd01ea63eed690c462b8a486ab1bb0dcacf140df48d395fa76 -->
+<!-- phil-dev source-sha256=9a62ecf17803e13df6e41cce1b58ed7b1042bfb6bfb52972ede844094c9be293 -->
 # Appareils et sessions
 
 Le module `sessions` lie chaque session PHP à une ligne de `phil_identity_session` : un identifiant opaque de 256 bits
@@ -38,9 +38,21 @@ plus long que l'intervalle, et le bundle refuse une configuration où il ne l'es
 les réglages du framework (`framework.session.gc_maxlifetime`, `cookie_lifetime`) ; les bornes du bundle tiennent quels
 que soient ces réglages.
 
-Un jeton de rafraîchissement du fournisseur OpenID Connect émis dans une session est refusé une fois cette session
-fermée ; une session au-delà d'une borne et jamais touchée de nouveau est fermée quand le compte liste ses sessions, et
-`oidc.session_max_age` borne ces jetons à lui seul (voir [Fournisseur OpenID Connect](oidc-provider.md)).
+Une session au-delà d'une borne et jamais touchée de nouveau par son navigateur est fermée quand le compte liste ses
+sessions, ou quand un client du fournisseur OpenID Connect actualise un jeton émis dans cette session. Un jeton de
+rafraîchissement lié à une session la touche, comme le fait une requête :
+
+- au-delà de `sessions.idle_timeout` ou de `sessions.max_age`, la session est fermée sur-le-champ, avec tous les jetons
+  émis dans cette session, et l'actualisation est refusée avec `invalid_grant` ; la requête suivante de son navigateur
+  se poursuit déconnectée ;
+- dans ces bornes, l'actualisation compte comme l'activité de la session : une personne qui continue d'utiliser une
+  application connectée par le fournisseur garde la session ouverte sans revenir au fournisseur, jusqu'à
+  `sessions.max_age`, qu'aucune activité ne prolonge ;
+- aucun jeton de rafraîchissement émis dans une session n'expire après `sessions.max_age`, ni après
+  `oidc.session_max_age` quand il est défini.
+
+Un jeton de rafraîchissement d'une session fermée est refusé, et sa famille révoquée (voir
+[Fournisseur OpenID Connect](oidc-provider.md#jetons-dactualisation-et-session)).
 
 Une requête sans session préalable ne lit aucun jeton : le pare-feu paresseux reste paresseux, et le cache d'une page
 publique reste public.

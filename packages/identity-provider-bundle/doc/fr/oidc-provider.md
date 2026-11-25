@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=219aa6c7bf6462266984fd731b9dd5a51c77891efb6cd6d31181684133f1ca94 -->
+<!-- phil-dev source-sha256=0d4cbd40db7994df9f74e2df6876f4b17e75bc73d61ff30202ae0fe5c56de686 -->
 # Fournisseur OpenID Connect
 
 Le module `oidc` fait du site un fournisseur OpenID Connect pour ses clients : d'autres sites et applications
@@ -185,9 +185,16 @@ pas plus longtemps qu'elle :
 
 - une fois la session fermée — déconnexion, fermeture depuis un autre appareil, ou purge —, le jeton d'actualisation est
   refusé avec `invalid_grant` et sa famille révoquée ;
-- avec `oidc.session_max_age`, un jeton d'actualisation n'expire jamais plus tard que ce nombre de secondes après
-  l'ouverture de la session, et est refusé passé ce délai ; un code échangé passé ce délai ne donne aucun jeton
-  d'actualisation.
+- une actualisation touche sa session, comme le fait une requête de son navigateur : au-delà de `sessions.idle_timeout`
+  sans activité, ou de `sessions.max_age` après son ouverture, la session est fermée sur-le-champ — ses jetons
+  révoqués, les clients prévenus par la déconnexion par canal arrière, l'événement `identity.session.closed` écrit avec
+  la raison — et l'actualisation est refusée avec `invalid_grant` ; une session jamais touchée de nouveau ne peut pas
+  continuer à émettre des jetons par actualisation ;
+- dans ces bornes, une actualisation compte comme l'activité de la session : un client utilisé la garde ouverte
+  au-delà de `sessions.idle_timeout` ; rien ne la garde ouverte au-delà de `sessions.max_age` ;
+- un jeton d'actualisation n'expire jamais plus tard que `sessions.max_age` après l'ouverture de la session, ni plus
+  tard que `oidc.session_max_age` quand il est défini, et est refusé passé l'un ou l'autre ; un code échangé passé ces
+  délais ne donne aucun jeton d'actualisation.
 
 Un jeton d'actualisation émis sans session, et tous les jetons d'actualisation quand l'option est désactivée, gardent
 `oidc.refresh_token_lifetime`. Le module `sessions` détient les sessions : sans lui, rien ne lie les jetons.
