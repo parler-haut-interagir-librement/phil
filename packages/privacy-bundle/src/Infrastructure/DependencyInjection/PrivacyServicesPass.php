@@ -354,7 +354,7 @@ final class PrivacyServicesPass implements CompilerPassInterface
         }
 
         // The stores themselves, and the ports that name them, go with the features that no longer use them (tables()).
-        $this->remove($container, [DbalConsentProofs::class, DbalEmailTrackingConsents::class, DbalGuestRequests::class, DbalIncidentRegister::class, DbalErasureRequests::class, PrivacySchemaListener::class]);
+        $this->remove($container, [DbalEmailTrackingConsents::class, DbalGuestRequests::class, DbalIncidentRegister::class, DbalErasureRequests::class, PrivacySchemaListener::class]);
 
         if ($container->hasAlias(ErasureRequestStore::class) && DbalErasureRequests::class === (string) $container->getAlias(ErasureRequestStore::class)) {
             $container->removeAlias(ErasureRequestStore::class);
