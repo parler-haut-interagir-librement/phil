@@ -50,7 +50,8 @@ The page says whether a questionnaire is anonymous before its first question. An
 - the day it was sent, at midnight UTC, and not the time.
 
 So that a member answers once, the bundle keeps a mark of participation apart: the questionnaire, the subject and a
-keyed SHA-256 digest of the member's identifier under `secret`. The mark has no time and no reference to the response,
+keyed SHA-256 digest of the member's identifier under a key derived from `secret` by HKDF-SHA256 for that usage alone
+(`Participations::USAGE`). The mark has no time and no reference to the response,
 so nothing joins the two. An identified response keeps the member's identifier; it is the only kind the privacy export
 and erasure find.
 

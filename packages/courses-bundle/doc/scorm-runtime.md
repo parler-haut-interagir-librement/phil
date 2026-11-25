@@ -57,8 +57,8 @@ nothing.
 | `409` | The session is over: it ended, or a later launch opened a newer one; or its attempt ended, and opens for review only |
 | `413` | The body is larger than 2 MiB |
 
-The attempt token names the attempt, the session and the moment it expires, signed by an HMAC under
-`phil_courses.scorm.secret`; it holds `phil_courses.scorm.token_ttl` seconds after the last commit, four hours by
+The attempt token names the attempt, the session and the moment it expires, signed by an HMAC under a key
+derived from `phil_courses.scorm.secret` by HKDF-SHA256 for that usage alone (`ScormTokens::USAGE`); it holds `phil_courses.scorm.token_ttl` seconds after the last commit, four hours by
 default. When a learner is signed in, the attempt must be theirs; a beacon sent as the learner signs out is still
 taken, on its token alone.
 

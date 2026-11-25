@@ -67,7 +67,7 @@ final class TerminalNotificationControllerTest extends TestCase
         $controller = new TerminalNotificationController($till->terminalPayments, $entityManager, new MockClock());
         $payload = str_pad('{"id":"e","payment":"unknown","event":"captured"}', TerminalNotificationController::MAX_BODY);
 
-        self::assertSame(200, $controller($this->post($payload, [FakePaymentTerminal::SIGNATURE_HEADER => [hash_hmac('sha256', $payload, 'a secret of sixteen bytes or more')]]))->getStatusCode());
+        self::assertSame(200, $controller($this->post($payload, [FakePaymentTerminal::SIGNATURE_HEADER => [hash_hmac('sha256', $payload, hash_hkdf('sha256', 'a secret of sixteen bytes or more', 32, FakePaymentTerminal::USAGE))]]))->getStatusCode());
     }
 
     public function testAHeaderWithoutValueIsLeftOutOfThoseTheAdaptersRead(): void
@@ -79,8 +79,8 @@ final class TerminalNotificationControllerTest extends TestCase
         $payload = '{"id":"e","payment":"unknown","event":"captured"}';
         $request = $this->post($payload, []);
         $request->headers->set(FakePaymentTerminal::SIGNATURE_HEADER, null);
-        $request->headers->set(FakePaymentTerminal::SIGNATURE_HEADER, hash_hmac('sha256', $payload, 'a secret of sixteen bytes or more'), false);
-        self::assertSame([null, hash_hmac('sha256', $payload, 'a secret of sixteen bytes or more')], $request->headers->all(FakePaymentTerminal::SIGNATURE_HEADER));
+        $request->headers->set(FakePaymentTerminal::SIGNATURE_HEADER, hash_hmac('sha256', $payload, hash_hkdf('sha256', 'a secret of sixteen bytes or more', 32, FakePaymentTerminal::USAGE)), false);
+        self::assertSame([null, hash_hmac('sha256', $payload, hash_hkdf('sha256', 'a secret of sixteen bytes or more', 32, FakePaymentTerminal::USAGE))], $request->headers->all(FakePaymentTerminal::SIGNATURE_HEADER));
 
         self::assertSame(200, $controller($request)->getStatusCode());
     }

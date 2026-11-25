@@ -12,8 +12,9 @@ use Throwable;
 
 /**
  * The attempt tokens of the SCORM sessions: the attempt, the session and the moment the token expires, signed by an
- * HMAC under the application's secret, so that nothing secret is kept in the database. The page of the session sends
- * it with each commit, and receives a new one in answer: a token holds `ttl` seconds after the last commit.
+ * HMAC under a key derived from the application's secret, so that nothing secret is kept in the database. The page of
+ * the session sends it with each commit, and receives a new one in answer: a token holds `ttl` seconds after the last
+ * commit.
  */
 final readonly class ScormTokens
 {
@@ -21,12 +22,19 @@ final readonly class ScormTokens
 
     private const int MAX_LENGTH = 200;
 
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_courses.scorm_token';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     public function __construct(
         private ClockInterface $clock,
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
         private int $ttl = self::TTL,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     public function issue(ScormAttemptId $attempt, int $session): string
@@ -66,6 +74,6 @@ final readonly class ScormTokens
 
     private function signature(string $payload): string
     {
-        return sodium_bin2base64(hash_hmac('sha256', 'phil_courses.scorm|'.$payload, $this->secret, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        return sodium_bin2base64(hash_hmac('sha256', 'phil_courses.scorm|'.$payload, $this->key, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
     }
 }

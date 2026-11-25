@@ -151,7 +151,7 @@ final class ScormSurvivorsTest extends TestCase
         $token = new ScormTokens($this->store->clock, Store::SECRET, 600)->issue($id, 7);
         [$payload, $signature] = [substr($token, 0, -44), substr($token, -43)];
 
-        self::assertSame(sodium_bin2base64(hash_hmac('sha256', 'phil_courses.scorm|'.$payload, Store::SECRET, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), $signature);
+        self::assertSame(sodium_bin2base64(hash_hmac('sha256', 'phil_courses.scorm|'.$payload, hash_hkdf('sha256', Store::SECRET, 32, 'phil_courses.scorm_token'), true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), $signature);
         self::assertSame($id->value.'.7.'.($this->store->clock->now()->getTimestamp() + 600), $payload);
 
         foreach (['zz'.$token, $token."\n"] as $refused) {

@@ -20,7 +20,7 @@ use SensitiveParameter;
 /**
  * A payment terminal that only pretends, for tests, demos and a till's development: it remembers what it was asked —
  * until the kernel resets it, between two requests of a worker — and signs the notifications a test makes it send,
- * as a processor would, with an HMAC-SHA256 of the body under its secret.
+ * as a processor would, with an HMAC-SHA256 of the body under a key derived from its secret.
  *
  * Its notification is `{"id": "…", "payment": "…", "event": "captured", "amount": 1500}`, signed in the
  * `x-fake-terminal-signature` header; `amount` is read for a refund only.
@@ -42,13 +42,21 @@ final class FakePaymentTerminal implements PaymentTerminal
 
     private int $requests = 0;
 
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_commerce_pos.fake_terminal';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private readonly string $key;
+
     public function __construct(
         #[SensitiveParameter]
-        private readonly string $secret,
+        string $secret,
     ) {
         if (\strlen($secret) < 16) {
             throw new InvalidArgumentException('The fake terminal signs with a secret of 16 bytes or more.');
         }
+
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     #[Override]
@@ -176,6 +184,6 @@ final class FakePaymentTerminal implements PaymentTerminal
 
     private function sign(string $payload): string
     {
-        return hash_hmac('sha256', $payload, $this->secret);
+        return hash_hmac('sha256', $payload, $this->key);
     }
 }

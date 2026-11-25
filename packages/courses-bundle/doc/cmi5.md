@@ -57,7 +57,8 @@ in the course structure is the publisher identifier, in the `grouping` of the co
 
 The unit posts to the fetch URL and receives `{"auth-token": "…"}` once. A second request answers the error `1`; an
 unknown, ended or expired session the error `2`; a request that is not a `POST` the error `3`. The token is the
-session's identifier and an HMAC of it under `phil_courses.cmi5.secret`: nothing secret is kept in the database. The
+session's identifier and an HMAC of it under a key derived from `phil_courses.cmi5.secret` by HKDF-SHA256 for that
+usage alone (`Cmi5Tokens::USAGE`): nothing secret is kept in the database. The
 unit sends it as HTTP Basic credentials with each xAPI request.
 
 ## The xAPI endpoint

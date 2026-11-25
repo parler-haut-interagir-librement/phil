@@ -80,7 +80,7 @@ final class Cmi5SurvivorsTest extends TestCase
         $store = new Store();
         $id = LaunchSessionId::of('0192f0c1-5c5e-7a3b-9e1d-0123456789ab');
 
-        self::assertSame(base64_encode($id->value.':'.hash_hmac('sha256', 'phil_courses.cmi5|'.$id->value, Store::SECRET)), $store->tokens->token($id));
+        self::assertSame(base64_encode($id->value.':'.hash_hmac('sha256', 'phil_courses.cmi5|'.$id->value, hash_hkdf('sha256', Store::SECRET, 32, 'phil_courses.cmi5_token'))), $store->tokens->token($id));
     }
 
     public function testAnAuthorizationIsTheWholeHeader(): void
@@ -89,7 +89,7 @@ final class Cmi5SurvivorsTest extends TestCase
         $session = new LaunchSession(LaunchSessionId::of('0192f0c1-5c5e-7a3b-9e1d-0123456789ab'), $this->enrollment($store)->id, $this->activity($store)->id, $store->clock->now(), $store->clock->now()->modify('+1 hour'), true);
         $store->sessionStore->save($session);
         $token = $store->tokens->token($session->id);
-        $signature = hash_hmac('sha256', 'phil_courses.cmi5|'.$session->id->value, Store::SECRET);
+        $signature = hash_hmac('sha256', 'phil_courses.cmi5|'.$session->id->value, hash_hkdf('sha256', Store::SECRET, 32, 'phil_courses.cmi5_token'));
 
         self::assertSame($session->id->value, $store->tokens->authenticate('Basic '.$token)?->id->value);
 

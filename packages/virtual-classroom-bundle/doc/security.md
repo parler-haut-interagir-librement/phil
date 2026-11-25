@@ -2,8 +2,8 @@
 
 ## The webhook
 
-- Every address carries an HMAC-SHA-256 proof of its provider, its room and its channel under `webhook_secret`,
-  compared in constant time; a wrong proof is a 404, as an address that does not exist.
+- Every address carries an HMAC-SHA-256 proof of its provider, its room and its channel under a key derived from
+  `webhook_secret` by HKDF-SHA256 for that usage alone (`WebhookSigner::USAGE`), compared in constant time; a wrong proof is a 404, as an address that does not exist.
 - The address of the signed events of a room cannot end it nor reach another room; a notification naming another room
   than its address is refused.
 - The provider then checks its own signature: BigBlueButton's tokens, JaaS's `X-Jaas-Signature` within five minutes.

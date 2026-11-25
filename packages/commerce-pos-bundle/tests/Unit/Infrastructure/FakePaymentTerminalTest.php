@@ -47,7 +47,9 @@ final class FakePaymentTerminalTest extends TestCase
         [$payload, $headers] = $terminal->notification('evt-1', 'p-1', PaymentEvent::Captured);
 
         self::assertSame('{"id":"evt-1","payment":"p-1","event":"captured"}', $payload);
-        self::assertSame([FakePaymentTerminal::SIGNATURE_HEADER => [hash_hmac('sha256', $payload, self::SECRET)]], $headers);
+        self::assertSame([FakePaymentTerminal::SIGNATURE_HEADER => [hash_hmac('sha256', $payload, hash_hkdf('sha256', self::SECRET, 32, FakePaymentTerminal::USAGE))]], $headers);
+        self::assertSame('phil_commerce_pos.fake_terminal', FakePaymentTerminal::USAGE);
+        self::assertNotSame([hash_hmac('sha256', $payload, self::SECRET)], $headers[FakePaymentTerminal::SIGNATURE_HEADER]);
         self::assertTrue($terminal->recognises($headers));
         self::assertFalse($terminal->recognises(['stripe-signature' => ['x']]));
 
@@ -128,7 +130,7 @@ final class FakePaymentTerminalTest extends TestCase
      */
     private function signed(string $payload): array
     {
-        return [$payload, [FakePaymentTerminal::SIGNATURE_HEADER => [hash_hmac('sha256', $payload, self::SECRET)]]];
+        return [$payload, [FakePaymentTerminal::SIGNATURE_HEADER => [hash_hmac('sha256', $payload, hash_hkdf('sha256', self::SECRET, 32, FakePaymentTerminal::USAGE))]]];
     }
 
     private function cad(int $minorUnits): Money

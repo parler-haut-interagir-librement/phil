@@ -4,6 +4,16 @@ All notable changes to `phil/faq-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Security
+
+- The vote tokens were signed with the HMAC under `%kernel.secret%` itself, which other bundles keyed their own hashes
+  with. `VoteTokens` derives its key by HKDF-SHA256 under `phil_faq.vote_token` (`VoteTokens::USAGE`). A page served
+  before the update votes no more: it is served again with a new token.
+
 ## 0.1.0-alpha - 2026-11-24
 
 ### Added

@@ -115,7 +115,7 @@ final class SubmissionsTest extends TestCase
         self::assertSame($receipt->response, $row['id']);
         self::assertStringNotContainsString('ann', implode('|', array_map(static fn (mixed $value): string => \is_scalar($value) ? (string) $value : '', $row)));
         self::assertSame(
-            [['questionnaire' => 'games', 'subject' => '', 'respondent_digest' => hash_hmac('sha256', 'phil_survey.participation|member:ann', Stage::SECRET)]],
+            [['questionnaire' => 'games', 'subject' => '', 'respondent_digest' => hash_hmac('sha256', 'phil_survey.participation|member:ann', hash_hkdf('sha256', Stage::SECRET, 32, 'phil_survey.participation'))]],
             $this->stage->connection->fetchAllAssociative('SELECT * FROM phil_survey_participations'),
         );
     }
