@@ -5,8 +5,9 @@
 # same advisory found by both scanners opens a single issue.
 #
 # Every action is pinned to the commit of the version its comment names; the osv-scanner binary is checked against the
-# SHA-256 its release publishes. Composer must be at least 2.11.2, the release that fixes the lock-command, zip-symlink
-# and cross-host-credential vulnerabilities.
+# SHA-256 its release publishes. Composer must be at least 2.11.3: 2.11.2 fixes the lock-command, zip-symlink and
+# cross-host-credential vulnerabilities, and 2.11.3 fixes code execution from a prepared composer.json and vendor/
+# (GHSA-374h-4mh9-7rpm) and package metadata read as console markup.
 name: dependency-audit
 
 on:
@@ -21,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  COMPOSER_VERSION: '2.11.2'
+  COMPOSER_VERSION: '2.11.3'
   OSV_SCANNER_VERSION: 'v2.7.0'
   OSV_SCANNER_SHA256: '160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b'
   ISSUE_LABEL: 'dependency-audit'
