@@ -353,19 +353,15 @@ final class PrivacyServicesPass implements CompilerPassInterface
             return;
         }
 
-        $this->remove($container, [DbalAccountDeletions::class, DbalConsentProofs::class, DbalEmailTrackingConsents::class, DbalGuestRequests::class, DbalIncidentRegister::class, DbalErasureRequests::class, PrivacySchemaListener::class]);
+        // The stores themselves, and the ports that name them, go with the features that no longer use them (tables()).
+        $this->remove($container, [DbalConsentProofs::class, DbalEmailTrackingConsents::class, DbalGuestRequests::class, DbalIncidentRegister::class, DbalErasureRequests::class, PrivacySchemaListener::class]);
 
         if ($container->hasAlias(ErasureRequestStore::class) && DbalErasureRequests::class === (string) $container->getAlias(ErasureRequestStore::class)) {
             $container->removeAlias(ErasureRequestStore::class);
         }
 
         if ($container->hasAlias(IncidentRegister::class) && DbalIncidentRegister::class === (string) $container->getAlias(IncidentRegister::class)) {
-            $container->removeAlias(IncidentRegister::class);
             $this->remove($container, [IncidentCommand::class, IncidentsCommand::class, IncidentNoticeCommand::class, IncidentJournalRecorder::class, IncidentJournalCommand::class]);
-        }
-
-        if ($container->hasAlias(GuestRequestStore::class) && DbalGuestRequests::class === (string) $container->getAlias(GuestRequestStore::class)) {
-            $container->removeAlias(GuestRequestStore::class);
         }
 
         if (!\is_string($container->getParameter(self::PROOFS_PARAMETER))) {
