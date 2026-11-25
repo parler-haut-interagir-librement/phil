@@ -70,7 +70,7 @@
         "symfony/ux-twig-component": "^3.8",
         "symfony/validator": "^8.2",
         "symfony/web-link": "^8.2",
-        "twig/twig": "^3.31"
+        "twig/twig": "^3.31.1"
     },
     "suggest": {
         "easycorp/easyadmin-bundle": "For MediaField, the field of a medium in EasyAdmin",

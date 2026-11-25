@@ -14,6 +14,11 @@ Documentation and tests only.
   or with a space; character references padded with zeros, tabs and line feeds inside a scheme; images of a special
   scheme without its authority; an output sanitized again, which loses nothing.
 - The documentation of an output sanitized again, and of its `id` prefix written once more.
+- An HTML5 differential test: every output parsed again by `Dom\HTMLDocument`, PHP's HTML5 parser, inside a `div`, after
+  a paragraph and inside a link, under the default policy, with `<style>` elements, with animations and with everything
+  optional, holds no script, no HTML element, no `on…` attribute and no `javascript:` address, for the charges of the
+  bypasses known to SVG sanitizers and those of the advisories of Symfony UX Icons of 2026-11-24; the documentation of
+  the threat.
 
 ## 0.1.1-alpha - 2026-11-15
 

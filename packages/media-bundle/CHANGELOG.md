@@ -4,6 +4,21 @@ All notable changes to `phil/media-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.2-alpha.
+
+### Added
+
+- An HTML5 differential test of the SVG purifier: every image kept, sanitized then made smaller, is parsed again by
+  `Dom\HTMLDocument` inside a `div` and after a paragraph, and holds no script, no HTML element, no event handler and no
+  `javascript:` address.
+
+### Changed
+
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
+
 ## 0.2.1-alpha - 2026-11-24
 
 ### Added

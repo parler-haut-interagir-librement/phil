@@ -17,6 +17,7 @@
 | A kept `<style>` that reaches past its image: `body`, `:root`, `@media print { nav { … } }`, `#m ~ p`, `#m { & + p { … } }`, `:not(&)`, `@page`, `@font-face`, `@import`, a selector written with escapes | Every rule is placed under the image's root `id` through the CSS policy's scope, escapes read before the check; a selector that already starts with that `id` keeps its own form only when it reaches nothing but the root and what lies inside it; `&` at the top level and `:not(&)` are removed; `@import`, `@page`, `@font-face` and every URL but a fragment are removed |
 | Attributes hidden behind an undeclared prefix, elements of another namespace | Removed: the output is built from an empty document, so only what the policy names reaches it |
 | CSS that escapes its context: `expression()`, `behavior`, `-moz-binding`, `</style>` | Through `phil/css-sanitizer`, which refuses them and never writes the start of an end tag |
+| An image inlined in a page, which the browser reads with its HTML parser and not as XML: a `<style>` or a CDATA section that closes early, markup in a `<title>` or after a `<p>`, an element that breaks out of SVG, names of attributes read otherwise | The output is serialized from a document holding only what the policy names, text escaped; a test parses every output again with PHP's HTML5 parser, inside a `div`, after a paragraph and inside a link, and finds no script, no HTML element, no event handler and no `javascript:` address, under every policy |
 
 ## What stays the application's
 

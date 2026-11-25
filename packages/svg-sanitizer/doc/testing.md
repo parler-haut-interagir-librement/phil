@@ -6,6 +6,15 @@ The suite `tests/Unit` tests the policy — its defaults, every `with…()`, wha
 removal and of refusal, references and their scheme tricks, the CSS of attributes and of `<style>` elements, animation
 with and without the policy, and the limits at their bounds.
 
+`Html5DifferentialTest` reads every output as a browser reads an SVG inlined in a page: parsed again by
+`Dom\HTMLDocument`, PHP's HTML5 parser, inside a `div`, after a paragraph and inside a link, under the default policy,
+with `<style>` elements, with animations and with everything optional. The charges are the bypasses known to SVG
+sanitizers — a `<style>` or a CDATA section that closes early, markup in a title, a description or a text, an HTML
+integration point, MathML, names of attributes in capitals or under a prefix, schemes hidden by references or
+whitespace, an animation that rewrites a link, comments and processing instructions HTML reads otherwise — and those of
+the advisories that follow: none may leave a script, an HTML element, an `on…` attribute or a `javascript:` address.
+The check itself is tested against pages written by hand that hold each.
+
 From the monorepo root:
 
 ```sh
