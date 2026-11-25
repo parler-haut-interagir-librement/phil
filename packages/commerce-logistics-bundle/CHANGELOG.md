@@ -4,6 +4,35 @@ All notable changes to `phil/commerce-logistics-bundle` will be documented in th
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.0-alpha: a behaviour change in alpha, a minor bump — an order ships once its payments cover what
+it is due, or once an authorization of the application says so, and the table of shipments gains two columns,
+`forced_by` and `force_reason`, null for the shipments already there.
+
+### Added
+
+- Authorized shipments: the port `ShipmentAuthorization`, tagged `phil_commerce_logistics.shipment_authorization` by
+  autoconfiguration, which `Shipments::ship()` asks through `AnyShipmentAuthorization`, an order leaving when one says
+  yes; `PaidShipmentAuthorization`, the bundle's own, says yes once the payments of the core's `Payments::summary()`
+  cover what the order is due; `Shipments::isAuthorized()`; `StockRefused::notAuthorized()`.
+- Forced shipments: `Shipments::force()`, for whoever the port `ShipmentForcing` allows — `DenyShipmentForcing`, the
+  default alias, refuses everyone —, with a reason of 1 to 255 characters on one line; `Shipment::forced()`,
+  `wasForced()`, `forcedBy` and `forceReason`, the columns `forced_by` and `force_reason` of the table of shipments,
+  null for a shipment an authorization let leave; the event `ShipmentForced`, the shipment, the order and who forced it,
+  dispatched through the service `event_dispatcher` when there is one; `StockRefused::forcingRefused()`.
+
+### Changed
+
+- `Shipments` takes a `ShipmentAuthorization` as its third argument, then a `ShipmentForcing` and an event dispatcher,
+  both optional; the bundle wires them. An order whose payments do not cover what it is due — unpaid, a deposit only, a
+  payment pending — no longer ships; an application that shipped such orders adds its own authorization, or forces them.
+
+### Security
+
+- An order ships only once it is paid or otherwise authorized: before, `Shipments::ship()` let any placed order leave, a
+  deposit or nothing paid at all; forcing it takes a permission, and the shipment keeps who forced it and why.
+
 ## 0.2.0-alpha - 2026-11-24
 
 ### Added

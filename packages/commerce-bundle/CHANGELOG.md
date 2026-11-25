@@ -25,6 +25,9 @@ stops sending it. A gateway that maps every case of `PaymentEvent` with an exhau
 - `PaymentNotification::$externalReference` is null for an ignored notification, and only for one.
 - `Payments::notify()` returns the notification as the gateway read it as a third element.
 - `psr/log` is a requirement.
+- `Order::force()` is internal, not part of the public API: `OrderLifecycle::force()` is its one caller, which asks
+  `TransitionForcing`, journals the move with its reason and announces it; a test keeps any other caller out of the
+  bundle.
 
 ## 0.4.0-alpha - 2026-11-20
 

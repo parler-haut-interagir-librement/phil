@@ -6,12 +6,14 @@ namespace Phil\CommerceLogisticsBundle\Domain\Model;
 
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use Phil\CommerceBundle\Domain\ValueObject\Identifier;
 use Phil\DddBundle\Domain\Exception\InvalidValue;
 use Symfony\Component\Uid\Uuid;
 
 /**
  * A parcel that left for an order: how many units of which lines, the carrier and its tracking number. An order may
- * leave in several.
+ * leave in several. A shipment forced past the authorizations keeps who forced it and why: the shipments are their own
+ * journal.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'phil_commerce_logistics_shipment')]
@@ -36,6 +38,12 @@ final class Shipment
         public readonly ?string $carrier,
         #[ORM\Column(name: 'tracking', length: 128, nullable: true)]
         public readonly ?string $tracking,
+        /** The stable identifier of who forced the shipment; `null` for a shipment an authorization let leave. */
+        #[ORM\Column(name: 'forced_by', length: 255, nullable: true)]
+        public readonly ?string $forcedBy = null,
+        /** Why it was forced, on one line. */
+        #[ORM\Column(name: 'force_reason', length: 255, nullable: true)]
+        public readonly ?string $forceReason = null,
     ) {
     }
 
@@ -63,6 +71,27 @@ final class Shipment
         }
 
         return new self(Uuid::v7()->toRfc4122(), $orderNumber, $lines, $at, $carrier, $tracking);
+    }
+
+    /**
+     * A shipment that no authorization let leave, forced by someone allowed to, for a reason.
+     *
+     * @param array<string, int> $lines units by order line, each one or more
+     */
+    public static function forced(string $orderNumber, array $lines, DateTimeImmutable $at, string $actor, string $reason, ?string $carrier = null, ?string $tracking = null): self
+    {
+        if ('' === trim($reason) || mb_strlen($reason) > 255 || 1 !== preg_match('/^\P{Cc}+$/Du', $reason)) {
+            throw InvalidValue::because('A forced shipment has a reason: 1 to 255 characters on one line.');
+        }
+
+        $shipment = self::of($orderNumber, $lines, $at, $carrier, $tracking);
+
+        return new self($shipment->id, $orderNumber, $shipment->lines, $at, $carrier, $tracking, Identifier::check($actor, 'actor'), $reason);
+    }
+
+    public function wasForced(): bool
+    {
+        return null !== $this->forcedBy;
     }
 
     public function quantityOf(string $line): int

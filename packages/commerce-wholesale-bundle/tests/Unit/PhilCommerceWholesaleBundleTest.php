@@ -15,6 +15,7 @@ use Phil\CommerceWholesaleBundle\Domain\Repository\CreditRepository;
 use Phil\CommerceWholesaleBundle\Domain\Repository\CustomerGroupRepository;
 use Phil\CommerceWholesaleBundle\Domain\Repository\QuantityRuleRepository;
 use Phil\CommerceWholesaleBundle\Infrastructure\Doctrine\DoctrineWholesaleRepository;
+use Phil\CommerceWholesaleBundle\Infrastructure\Logistics\CreditShipmentAuthorization;
 use Phil\CommerceWholesaleBundle\Infrastructure\Validator\AllowedQuantityValidator;
 use Phil\CommerceWholesaleBundle\Infrastructure\Validator\QuantityGuard;
 use Phil\CommerceWholesaleBundle\PhilCommerceWholesaleBundle;
@@ -68,6 +69,9 @@ final class PhilCommerceWholesaleBundleTest extends TestCase
         self::assertSame([[]], $container->getDefinition(AccountGateway::class)->getTag('phil_commerce.payment_gateway'));
         self::assertSame(DoctrineWholesaleRepository::class, (string) $container->getAlias(CreditRepository::class));
         self::assertFalse($this->load([], [])->hasDefinition(CreditSales::class));
+        self::assertTrue($container->getDefinition(CreditShipmentAuthorization::class)->isAutowired());
+        self::assertSame([[]], $container->getDefinition(CreditShipmentAuthorization::class)->getTag('phil_commerce_logistics.shipment_authorization'));
+        self::assertFalse($this->load([], [])->hasDefinition(CreditShipmentAuthorization::class));
     }
 
     public function testWithDoctrineEverythingIsStored(): void

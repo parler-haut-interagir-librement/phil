@@ -62,6 +62,8 @@ $lifecycle->force($order, OrderState::Placed, 'manager-2', 'Cancelled by mistake
   dispatched by its class. No workflow event is dispatched: no transition was taken.
 - **The order keeps its invariants**: a forced move to the same state, or of an empty order to placed, is refused;
   moving to placed sets the moment placed, to cancelled the moment cancelled, and leaving cancelled forgets an expiry.
+- **`Order::force()` is internal**, not part of the public API: it moves the order without asking anyone, and
+  `OrderLifecycle::force()` is its one caller. An application, or another module, forces through the lifecycle.
 
 ## Announcing a cancellation
 

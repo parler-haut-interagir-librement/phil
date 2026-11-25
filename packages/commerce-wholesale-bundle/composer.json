@@ -35,12 +35,16 @@
         "doctrine/dbal": "^4.6",
         "doctrine/doctrine-bundle": "^3.4",
         "doctrine/persistence": "^4.2",
+        "phil/commerce-logistics-bundle": "^0.2.1@dev || ^0.3@dev",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/translation": "^8.2"
+    },
+    "suggest": {
+        "phil/commerce-logistics-bundle": "To let a buyer on credit receive an order before paying it, within the credit of the account"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

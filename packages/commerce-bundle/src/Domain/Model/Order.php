@@ -721,6 +721,11 @@ final class Order
     /**
      * Moves the order to a state outside its transitions, as an employee allowed to force one does; whoever forces it
      * journals why. A placed order still has lines; moving back to a cart forgets when it was placed.
+     *
+     * Not part of the public API: `OrderLifecycle::force()` is the one caller, which asks `TransitionForcing` first,
+     * journals the move with its reason and announces it.
+     *
+     * @internal
      */
     public function force(OrderState $to, DateTimeImmutable $at): void
     {

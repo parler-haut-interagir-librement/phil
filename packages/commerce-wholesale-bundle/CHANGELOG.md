@@ -11,6 +11,13 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - Requires the latest minor of each dependency (`doctrine/orm` 3.8), and of each development requirement
   (`doctrine/dbal` 4.6, `doctrine/doctrine-bundle` 3.4, `doctrine/persistence` 4.2).
 
+### Added
+
+- `CreditShipmentAuthorization`: with `phil/commerce-logistics-bundle`, an order whose buyer — its customer — has an
+  active credit account in its currency, whose available credit covers what is left to pay, may leave before it is paid;
+  registered as an authorization of the logistics, and only an answer: the purchase is owed once `CreditSales::charge()`
+  puts it on the account.
+
 ### Fixed
 
 - It requires `phil/commerce-bundle` 0.4, the version published on 2026-11-20, beside which its requirement of 0.2 or
