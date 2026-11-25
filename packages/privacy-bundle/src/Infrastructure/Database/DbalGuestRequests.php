@@ -11,6 +11,7 @@ use Phil\PrivacyBundle\Application\Contract\GuestRequestStore;
 use Phil\PrivacyBundle\Domain\Exception\InvalidPrivacyValue;
 use Phil\PrivacyBundle\Domain\GuestRequest\GuestRequest;
 use Phil\PrivacyBundle\Domain\GuestRequest\GuestRequestKind;
+use Phil\PrivacyBundle\Domain\Secret\KeyDerivation;
 use SensitiveParameter;
 use SodiumException;
 
@@ -29,7 +30,7 @@ final readonly class DbalGuestRequests implements GuestRequestStore
         #[SensitiveParameter]
         string $secret,
     ) {
-        $this->key = hash_hmac('sha256', 'phil_privacy.guest_request_store', $secret, true);
+        $this->key = KeyDerivation::key($secret, KeyDerivation::GUEST_REQUEST_STORE);
     }
 
     #[Override]

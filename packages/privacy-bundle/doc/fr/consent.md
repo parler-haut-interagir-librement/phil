@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=14f83112bddf8628874c8f0e00f182c3f65f2d8edd3ae2c91749f18817be1a92 -->
+<!-- phil-dev source-sha256=cfd7289f74ba828e3b30896e101d3f478cf02209dd630e227a6be97f99252006 -->
 # Consentement aux témoins
 
 Déclarez les catégories qu'utilise un site, et lisez le consentement là où il compte.
@@ -61,8 +61,8 @@ avec `privacy_embed()` ([third-party-frames.md](third-party-frames.md)).
 
 Le choix est gardé dans un témoin du site (`consent.cookie_name`), pendant `consent.lifetime` : sans `Domain`,
 `HttpOnly`, `SameSite=Lax`, `Secure` en HTTPS. Il contient un identifiant aléatoire, la version, les catégories
-accordées, la date, et un HMAC sous une clé dérivée du secret de l'application. Une valeur mal formée, modifiée ou trop
-longue se lit comme aucun choix.
+accordées, la date, et un HMAC-SHA-256 sous une clé dérivée du secret de l'application par HKDF. Une valeur mal
+formée, modifiée ou trop longue se lit comme aucun choix.
 
 Chaque décision laisse aussi une preuve datée dans `phil_privacy_consent_proof` : l'identifiant du choix, la version du
 texte, ce qui a été accordé, la date et si le signal était présent. Elle ne nomme personne et ne contient aucune

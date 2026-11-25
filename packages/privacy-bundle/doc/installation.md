@@ -59,6 +59,23 @@ return [
 Register it in every environment: log redaction matters in `dev` and `test` as much as in `prod`, because
 those logs are copied into tickets and CI artefacts.
 
+## Upgrading to 0.4
+
+Every key the bundle derives from the application secret (`kernel.secret`) is now its HKDF-SHA-256 under a label of
+its own (see [Threat model](threat-model.md#the-keys)). What was sealed or signed under the keys of 0.3 no longer opens:
+
+- **Requests without an account** in `phil_privacy_guest_request` read as absent: their links no longer open them.
+  Empty the table, or let `link_lifetime` and the purge at each new request remove them, and ask the people who were
+  waiting to make their request again.
+- **Export archives** kept by `EncryptedExportArchive` (`account_deletion.export_directory`) read as absent. Delete
+  the files of that directory, or let the sweep remove them at their expiry.
+- **The consent cookie** reads as no choice: each visitor sees the banner once more and chooses again. The proofs of
+  `phil_privacy_consent_proof` are kept as they are.
+- **The rate limits** of requests without an account start again from zero.
+
+An empty `kernel.secret` now stops the bundle with `InvalidPrivacyValue` when one of these services is built, instead
+of deriving keys anyone can compute.
+
 ## Next steps
 
 1. Write `config/packages/phil_privacy.yaml` with your denylist — see [configuration.md](configuration.md).

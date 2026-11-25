@@ -40,13 +40,14 @@ link, until it expires; erasers are idempotent.
   default, keyed on the client's IP. Over it, the form answers `429` with `Retry-After`.
 - **A limit per address**: `per_address`, 3 a day by default. Over it, the link is not sent and the page does not say
   so: the limit protects a mailbox from being filled by someone else.
-- **No address or IP in the limiter's storage.** Both limits are keyed on an HMAC under a key derived from the
-  application secret, in the cache pool of `guest_requests.cache` (`cache.app`).
+- **No address or IP in the limiter's storage.** Each limit is keyed on an HMAC-SHA-256 under a key of its own,
+  derived from the application secret by HKDF (see [Threat model](threat-model.md#the-keys)), in the cache pool of
+  `guest_requests.cache` (`cache.app`).
 - **A link works once, for a short time.** Its secret is 256 random bits; only its SHA-256 is kept, and it is compared
   in constant time. It expires after `link_lifetime` (`PT1H`). An expired request is removed when its link is opened,
   and at each new request.
 - **The address is sealed at rest.** The table `phil_privacy_guest_request` keeps it encrypted with libsodium under a
-  key derived from the application secret, only as long as the request.
+  key derived from the application secret by HKDF, only as long as the request.
 - **One execution at a time.** An export or an erasure runs under a lock named after the request, read again once the
   lock is held. The lock lives 300 seconds and is renewed before each module and before the request is removed: an
   execution whose lock was taken by another stops, keeps the request, and answers as a link that no longer opens it

@@ -27,6 +27,6 @@ $config->setTarget(static function (string $input) use ($token): void {
 
     // Signed, so that the reading of the payload is reached as well.
     $payload = rtrim(strtr(base64_encode($input), '+/', '-_'), '=');
-    $key = hash_hmac('sha256', 'phil_privacy.consent', 'fuzz', true);
+    $key = hash_hkdf('sha256', 'fuzz', 32, 'phil_privacy.consent');
     $token->decode($payload.'.'.rtrim(strtr(base64_encode(hash_hmac('sha256', $payload, $key, true)), '+/', '-_'), '='));
 });

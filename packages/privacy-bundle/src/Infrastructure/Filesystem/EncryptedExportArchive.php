@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Override;
 use Phil\PrivacyBundle\Application\Contract\ExportArchive;
 use Phil\PrivacyBundle\Domain\Exception\InvalidPrivacyValue;
+use Phil\PrivacyBundle\Domain\Secret\KeyDerivation;
 use SensitiveParameter;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -29,7 +30,7 @@ final readonly class EncryptedExportArchive implements ExportArchive
         #[SensitiveParameter]
         string $secret,
     ) {
-        $this->key = hash_hmac('sha256', 'phil_privacy.export_archive', $secret, true);
+        $this->key = KeyDerivation::key($secret, KeyDerivation::EXPORT_ARCHIVE);
     }
 
     #[Override]

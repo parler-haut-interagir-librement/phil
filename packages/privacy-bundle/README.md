@@ -138,6 +138,8 @@ for what the application decides.
   invariants an adapter keeps, example adapters, and the service ids you can rely on.
 - [Testing](doc/testing.md) — how the bundle is tested, running its tests in a monorepo or alone, and how to
   test your adapters and configuration.
+- [Threat model](doc/threat-model.md) — what the bundle protects, from whom, the keys it derives and the risks it
+  leaves to the application.
 - [API reference](doc/reference.md) — every public type by layer, with its role and state.
 
 ## Quick start

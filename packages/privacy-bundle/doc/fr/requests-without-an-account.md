@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ba97cc8b7e1b4ce614425280cb4ab3a820af8173f0a9e83332fd3d55be72b673 -->
+<!-- phil-dev source-sha256=bc5d837d651b154c7cb3c5789988f3ec93577a425ecf0bddc19c9f9063681642 -->
 # Demandes sans compte
 
 Une personne qui n'a pas de compte — abonnée à une infolettre, quelqu'un qui a écrit par un formulaire, l'acheteuse d'un
@@ -41,13 +41,14 @@ lien, jusqu'à son expiration ; les effaceurs sont idempotents.
   défaut, sur l'adresse IP du client. Au-delà, le formulaire répond `429` avec `Retry-After`.
 - **Une limite par adresse** : `per_address`, 3 par jour par défaut. Au-delà, le lien n'est pas envoyé et la page ne le
   dit pas : la limite protège une boîte aux lettres d'être remplie par quelqu'un d'autre.
-- **Ni adresse ni IP dans le stockage du limiteur.** Les deux limites ont pour clé un HMAC sous une clé dérivée du
-  secret de l'application, dans le réservoir de cache de `guest_requests.cache` (`cache.app`).
+- **Ni adresse ni IP dans le stockage du limiteur.** Chaque limite a pour clé un HMAC-SHA-256 sous une clé à elle,
+  dérivée du secret de l'application par HKDF (voir [Modèle de menaces](threat-model.md#les-clés)), dans le réservoir
+  de cache de `guest_requests.cache` (`cache.app`).
 - **Un lien fonctionne une fois, peu de temps.** Son secret fait 256 bits aléatoires ; seul son SHA-256 est gardé, et il
   est comparé en temps constant. Il expire après `link_lifetime` (`PT1H`). Une demande expirée est retirée à l'ouverture
   de son lien, et à chaque nouvelle demande.
 - **L'adresse est scellée au repos.** La table `phil_privacy_guest_request` la garde chiffrée par libsodium sous une clé
-  dérivée du secret de l'application, seulement aussi longtemps que la demande.
+  dérivée du secret de l'application par HKDF, seulement aussi longtemps que la demande.
 - **Une seule exécution à la fois.** Un export ou un effacement s'exécute sous un verrou nommé d'après la demande,
   relue une fois le verrou obtenu. Le verrou dure 300 secondes et est renouvelé avant chaque module et avant le retrait de
   la demande : une exécution dont le verrou a été pris par une autre s'arrête, garde la demande, et répond comme à un lien

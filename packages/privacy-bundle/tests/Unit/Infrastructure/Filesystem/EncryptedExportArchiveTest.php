@@ -60,6 +60,24 @@ final class EncryptedExportArchiveTest extends TestCase
         self::assertNull(new EncryptedExportArchive($this->directory, 'other')->get(self::A));
     }
 
+    public function testAnExportIsSealedUnderTheHkdfKeyOfItsLabel(): void
+    {
+        $this->archive()->put(self::A, 'x', new DateTimeImmutable('2026-02-01T00:00:00Z'));
+        $sealed = (string) file_get_contents($this->directory.'/'.self::A.'.1769904000.export');
+        $nonce = substr($sealed, 0, \SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $box = substr($sealed, \SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+
+        self::assertSame('x', sodium_crypto_secretbox_open($box, $nonce, hash_hkdf('sha256', 'secret', 32, 'phil_privacy.export_archive')));
+        self::assertFalse(sodium_crypto_secretbox_open($box, $nonce, hash_hmac('sha256', 'phil_privacy.export_archive', 'secret', true)));
+    }
+
+    public function testAnEmptySecretIsRefused(): void
+    {
+        $this->expectException(InvalidPrivacyValue::class);
+
+        new EncryptedExportArchive($this->directory, '');
+    }
+
     public function testAnAbsentExportIsNull(): void
     {
         new Filesystem()->mkdir($this->directory);

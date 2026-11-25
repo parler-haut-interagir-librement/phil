@@ -6,7 +6,28 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.3.1-alpha.
+The next version is 0.4.0-alpha.
+
+Every key the bundle derives from the application secret is its HKDF-SHA-256 under a label of its own: the requests
+without an account, the export archives and the consent cookies of 0.3 no longer open. See
+[Upgrading to 0.4](doc/installation.md#upgrading-to-04) and the [Threat model](doc/threat-model.md).
+
+### Added
+
+- `Domain\Secret\KeyDerivation`: the keys of the bundle, each the HKDF-SHA-256 (RFC 5869) of the application secret
+  under the label of its usage, `phil_privacy.guest_request_store`, `phil_privacy.guest_requests.client`,
+  `phil_privacy.guest_requests.address`, `phil_privacy.export_archive` and `phil_privacy.consent`.
+- [Threat model](doc/threat-model.md): the assets, the keys and their labels, the trust boundaries, the threats and
+  their defences, the risks left to the application.
+
+### Changed
+
+- `GuestRequests`, `DbalGuestRequests`, `EncryptedExportArchive` and `ConsentToken` take their keys from
+  `KeyDerivation` instead of an HMAC of a label keyed with the secret. The addresses of the requests without an account
+  and the export archives sealed by 0.3 read as absent, a consent cookie signed by 0.3 reads as no choice, and the rate
+  limits of requests without an account start again from zero.
+- The per-client and per-address limits of requests without an account are keyed under two keys, one each, instead of
+  one key and a prefix.
 
 ### Fixed
 
@@ -17,6 +38,9 @@ The next version is 0.3.1-alpha.
 ### Security
 
 - Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+- The keys are derived by HKDF with one label per usage (RFC 5869), where the secret is the input keying material,
+  instead of being the message of an HMAC keyed with a public label. An empty `kernel.secret` is refused with
+  `InvalidPrivacyValue` instead of giving keys anyone can compute.
 
 ## 0.3.0-alpha - 2026-11-24
 

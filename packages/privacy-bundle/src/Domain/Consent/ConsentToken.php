@@ -6,6 +6,7 @@ namespace Phil\PrivacyBundle\Domain\Consent;
 
 use JsonException;
 use Phil\PrivacyBundle\Domain\Exception\InvalidPrivacyValue;
+use Phil\PrivacyBundle\Domain\Secret\KeyDerivation;
 use SensitiveParameter;
 use SodiumException;
 
@@ -24,7 +25,7 @@ final readonly class ConsentToken
 
     public function __construct(#[SensitiveParameter] string $secret)
     {
-        $this->key = hash_hmac('sha256', 'phil_privacy.consent', $secret, true);
+        $this->key = KeyDerivation::key($secret, KeyDerivation::CONSENT);
     }
 
     public function encode(ConsentChoice $choice): string

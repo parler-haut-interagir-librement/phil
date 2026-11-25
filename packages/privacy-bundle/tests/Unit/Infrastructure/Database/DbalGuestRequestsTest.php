@@ -66,6 +66,19 @@ final class DbalGuestRequestsTest extends TestCase
         self::assertSame(1, $store->purgeExpired(new DateTimeImmutable('2027-02-08 12:00:00 UTC')));
     }
 
+    public function testTheAddressIsSealedUnderTheHkdfKeyOfItsLabel(): void
+    {
+        new DbalGuestRequests($this->connection, 'secret')->save($this->request('a@example.org'));
+        $email = $this->connection->fetchOne('SELECT email FROM '.PrivacyTables::GUEST_REQUESTS);
+        self::assertIsString($email);
+        $sealed = sodium_base642bin($email, \SODIUM_BASE64_VARIANT_ORIGINAL);
+        $nonce = substr($sealed, 0, \SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $box = substr($sealed, \SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+
+        self::assertSame('a@example.org', sodium_crypto_secretbox_open($box, $nonce, hash_hkdf('sha256', 'secret', 32, 'phil_privacy.guest_request_store')));
+        self::assertFalse(sodium_crypto_secretbox_open($box, $nonce, hash_hmac('sha256', 'phil_privacy.guest_request_store', 'secret', true)));
+    }
+
     public function testASealedAddressTooShortToOpenReadsAsAbsent(): void
     {
         $store = new DbalGuestRequests($this->connection, 'secret');

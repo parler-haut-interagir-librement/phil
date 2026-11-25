@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=77d2a66d301167b4194ac6316ee6a3d9a2b13f67c0e91188e111df5510ddecb8 -->
+<!-- phil-dev source-sha256=087e86af219cf07b6a5916d63c1a01b4be4e1c09059fa8470d368a0f800e9a97 -->
 # Référence de l'API
 
 Chaque type sous `Phil\PrivacyBundle\`, par couche. « Implémenté » veut dire implémenté et couvert par des tests
@@ -148,6 +148,12 @@ unitaires.
 | `NoticeRecipient` | Énumération : `Commission`, `Subject`, `Public` ; `section()`, `rubrics()` | Implémenté |
 | `NoticeRubric` | Énumération des rubriques des avis des articles 3 et 5 du règlement ; `paragraph($recipient)`, `fedBy($field)` | Implémenté |
 | `NoticeOrganisation` | Qui donne un avis : `name`, `enterpriseNumber`, `contactName`, `contactDetails`, chacun nullable | Implémenté |
+
+### `Domain\Secret`
+
+| Type | Rôle | État |
+|---|---|---|
+| `KeyDerivation` | Les clés du bundle, chacune le HKDF-SHA-256 du secret de l'application sous l'étiquette de son usage ; `key($secret, $usage)`, refuse un secret vide ; `LENGTH`, une constante par étiquette | Implémenté |
 
 ### `Domain\Exception`
 
