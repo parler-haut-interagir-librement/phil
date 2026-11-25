@@ -195,6 +195,8 @@ final class RightsContainerTest extends TestCase
     {
         $bundle = new PhilPrivacyBundle('php://memory');
         $container = new ContainerBuilder();
+        // An application with accounts, as most are: the account deletions are on by default.
+        $container->setParameter('kernel.bundles', ['SecurityBundle' => RightsServices::SECURITY_BUNDLE]);
         $instanceof = [];
         $extension = $bundle->getContainerExtension();
         self::assertInstanceOf(ConfigurationExtensionInterface::class, $extension);

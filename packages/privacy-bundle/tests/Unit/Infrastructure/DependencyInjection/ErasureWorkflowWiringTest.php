@@ -238,6 +238,7 @@ final class ErasureWorkflowWiringTest extends TestCase
     {
         $bundle = new PhilPrivacyBundle('php://memory');
         $container = new ContainerBuilder();
+        $container->setParameter('kernel.bundles', ['SecurityBundle' => RightsServices::SECURITY_BUNDLE]);
         $instanceof = [];
         $extension = $bundle->getContainerExtension();
         self::assertInstanceOf(ConfigurationExtensionInterface::class, $extension);

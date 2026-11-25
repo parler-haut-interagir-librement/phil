@@ -43,6 +43,7 @@ use Phil\PrivacyBundle\Infrastructure\Database\DbalEmailTrackingConsents;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalErasureRequests;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalGuestRequests;
 use Phil\PrivacyBundle\Infrastructure\Database\DbalIncidentRegister;
+use Phil\PrivacyBundle\Infrastructure\Database\PrivacyTables;
 use Phil\PrivacyBundle\Infrastructure\Doctrine\PrivacySchemaListener;
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentContext;
 use Phil\PrivacyBundle\Infrastructure\Http\ConsentController;
@@ -76,6 +77,27 @@ final class PrivacyServicesPass implements CompilerPassInterface
 {
     public const string PROOFS_PARAMETER = 'phil_privacy.consent.proofs';
 
+    /**
+     * The tables the schema listener adds, `PhilPrivacyBundle::TABLES`: those of the features left on whose store is the
+     * table of the bundle.
+     */
+    public const string TABLES_PARAMETER = 'phil_privacy.tables';
+
+    /** Whether `account_deletion.enabled` is true in the configuration, rather than on by default. */
+    public const string DELETIONS_REQUIRED = 'phil_privacy.account_deletion.required';
+
+    /**
+     * Each table of the bundle, by the store that writes it.
+     */
+    private const array TABLES = [
+        DbalAccountDeletions::class => [PrivacyTables::DELETIONS],
+        DbalConsentProofs::class => [PrivacyTables::PROOFS],
+        DbalGuestRequests::class => [PrivacyTables::GUEST_REQUESTS],
+        DbalIncidentRegister::class => [PrivacyTables::INCIDENTS, PrivacyTables::INCIDENT_REVISIONS, PrivacyTables::INCIDENT_JOURNAL],
+        DbalEmailTrackingConsents::class => [PrivacyTables::EMAIL_TRACKING],
+        DbalErasureRequests::class => [PrivacyTables::ERASURE_REQUESTS, PrivacyTables::ERASURE_STEPS],
+    ];
+
     #[Override]
     public function process(ContainerBuilder $container): void
     {
@@ -85,13 +107,18 @@ final class PrivacyServicesPass implements CompilerPassInterface
         $deletions = $working && $container->has(AccountDeletionStore::class);
 
         if (!$deletions) {
-            $this->remove($container, [AccountDeletions::class, AdvanceAccountDeletionHandler::class, ProcessDueAccountDeletionsHandler::class, ProcessDeletionsCommand::class, PrivacySchedule::class]);
-        } elseif (!$container->has('messenger.default_bus')) {
+            $this->requireDeletions($container);
+            $this->remove($container, [AccountDeletions::class, AdvanceAccountDeletionHandler::class, ProcessDueAccountDeletionsHandler::class, ProcessDeletionsCommand::class]);
+            $this->unschedule($container, 0);
+        }
+
+        if (!$container->has('messenger.default_bus')) {
             $this->remove($container, [ProcessDueAccountDeletionsHandler::class, PrivacySchedule::class]);
         }
 
         if (!$working) {
             $this->remove($container, [PersonalDataDownload::class, RetentionJob::class, RunRetentionHandler::class, RunRetentionCommand::class]);
+            $this->unschedule($container, 1);
         }
 
         if (!$container->has('clock')) {
@@ -112,6 +139,97 @@ final class PrivacyServicesPass implements CompilerPassInterface
         $this->erasureWorkflow($container);
         $this->emailTracking($container);
         $this->pages($container);
+        $this->tables($container);
+    }
+
+    /**
+     * Turned on in the configuration rather than by default, the account deletions need all of their parts: a missing
+     * one fails the build rather than leave members without the deletion the configuration promises them.
+     */
+    private function requireDeletions(ContainerBuilder $container): void
+    {
+        if ($container->hasParameter(self::DELETIONS_REQUIRED) && true === $container->getParameter(self::DELETIONS_REQUIRED)) {
+            throw new LogicException('phil_privacy.account_deletion.enabled is true and needs the lock component (framework.lock), the clock component (symfony/clock) and an AccountDeletionStore: Doctrine DBAL for the table of the bundle, or account_deletion.store.');
+        }
+    }
+
+    /**
+     * Takes one of the two recurring messages out of the schedule, the account deletions (0) or the retention (1), and
+     * the schedule itself once it has neither.
+     */
+    private function unschedule(ContainerBuilder $container, int $message): void
+    {
+        if (!$container->hasDefinition(PrivacySchedule::class)) {
+            return;
+        }
+
+        $schedule = $container->getDefinition(PrivacySchedule::class)->replaceArgument($message, null);
+
+        if ([null, null] === $schedule->getArguments()) {
+            $container->removeDefinition(PrivacySchedule::class);
+        }
+    }
+
+    /**
+     * The tables of the bundle the application uses: a store of the bundle that no feature left on names is taken out,
+     * so that nothing reads a table the schema does not have, and the schema listener adds the tables of the others.
+     */
+    private function tables(ContainerBuilder $container): void
+    {
+        $used = [
+            DbalAccountDeletions::class => $this->uses($container, AccountDeletions::class, AccountDeletionStore::class),
+            DbalConsentProofs::class => $this->uses($container, ConsentRecorder::class, ConsentProofs::class),
+            DbalGuestRequests::class => $this->uses($container, GuestRequests::class, GuestRequestStore::class),
+            DbalIncidentRegister::class => $this->uses($container, IncidentRegister::class, IncidentRegister::class),
+            DbalEmailTrackingConsents::class => $this->uses($container, EmailTrackingConsents::class, EmailTrackingStore::class),
+            DbalErasureRequests::class => $this->uses($container, ErasureRequests::class, ErasureRequestStore::class),
+        ];
+
+        $tables = [];
+
+        foreach ($used as $store => $inUse) {
+            if ($inUse) {
+                array_push($tables, ...self::TABLES[$store]);
+            } else {
+                $this->removeStore($container, $store);
+            }
+        }
+
+        $container->setParameter(self::TABLES_PARAMETER, $tables);
+    }
+
+    /**
+     * Takes out a store of the bundle and the ports that still name it.
+     */
+    private function removeStore(ContainerBuilder $container, string $store): void
+    {
+        $container->removeDefinition($store);
+
+        foreach ($container->getAliases() as $id => $alias) {
+            if ($store === (string) $alias) {
+                $container->removeAlias($id);
+            }
+        }
+    }
+
+    /**
+     * Whether a feature is there and keeps its records in the store of the bundle that its port names.
+     *
+     * @param class-string $port
+     */
+    private function uses(ContainerBuilder $container, string $feature, string $port): bool
+    {
+        if (!$container->has($feature) || !$container->hasAlias($port)) {
+            return false;
+        }
+
+        $store = $port;
+
+        while ($container->hasAlias($store)) {
+            $store = (string) $container->getAlias($store);
+        }
+
+        return \array_key_exists($store, self::TABLES) && $container->hasDefinition($store);
     }
 
     /**
@@ -225,11 +343,11 @@ final class PrivacyServicesPass implements CompilerPassInterface
 
     private function database(ContainerBuilder $container): void
     {
-        if (!$container->hasDefinition(DbalAccountDeletions::class)) {
+        if (!$container->hasDefinition(DbalConsentProofs::class)) {
             return;
         }
 
-        $connection = $container->getDefinition(DbalAccountDeletions::class)->getArgument(0);
+        $connection = $container->getDefinition(DbalConsentProofs::class)->getArgument(0);
 
         if ($connection instanceof Reference && $container->has((string) $connection)) {
             return;
@@ -241,7 +359,7 @@ final class PrivacyServicesPass implements CompilerPassInterface
             $container->removeAlias(ErasureRequestStore::class);
         }
 
-        if (DbalIncidentRegister::class === (string) $container->getAlias(IncidentRegister::class)) {
+        if ($container->hasAlias(IncidentRegister::class) && DbalIncidentRegister::class === (string) $container->getAlias(IncidentRegister::class)) {
             $container->removeAlias(IncidentRegister::class);
             $this->remove($container, [IncidentCommand::class, IncidentsCommand::class, IncidentNoticeCommand::class, IncidentJournalRecorder::class, IncidentJournalCommand::class]);
         }
@@ -254,7 +372,7 @@ final class PrivacyServicesPass implements CompilerPassInterface
             $container->setAlias(ConsentProofs::class, LoggedConsentProofs::class);
         }
 
-        if (DbalAccountDeletions::class === (string) $container->getAlias(AccountDeletionStore::class)) {
+        if ($container->hasAlias(AccountDeletionStore::class) && DbalAccountDeletions::class === (string) $container->getAlias(AccountDeletionStore::class)) {
             $container->removeAlias(AccountDeletionStore::class);
         }
     }

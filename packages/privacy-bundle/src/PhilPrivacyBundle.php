@@ -71,6 +71,9 @@ final class PhilPrivacyBundle extends AbstractBundle
 
     public const string DATABASE_IDENTITY = AnonymizationServices::DATABASE_IDENTITY;
 
+    /** The tables of the bundle the schema listener adds, those of the features on whose store is the table of the bundle. */
+    public const string TABLES = PrivacyServicesPass::TABLES_PARAMETER;
+
     /** Whether the requests without an account send their links through the bundle's mailer sender, read when the kernel boots. */
     public const string MAILED_LINKS = 'phil_privacy.guest_requests.mailed_links';
 
