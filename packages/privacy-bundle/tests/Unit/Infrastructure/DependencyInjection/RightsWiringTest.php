@@ -63,6 +63,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -194,8 +196,8 @@ final class RightsWiringTest extends TestCase
     public static function withoutAccounts(): iterable
     {
         yield 'no kernel.bundles' => [null];
-        yield 'other bundles' => [['FrameworkBundle' => 'Symfony\\Bundle\\FrameworkBundle\\FrameworkBundle']];
-        yield 'not a list' => ['Symfony\\Bundle\\SecurityBundle\\SecurityBundle'];
+        yield 'other bundles' => [['FrameworkBundle' => FrameworkBundle::class]];
+        yield 'not a list' => [RightsServices::SECURITY_BUNDLE];
     }
 
     /**
@@ -630,7 +632,7 @@ final class RightsWiringTest extends TestCase
      * @param array<string, mixed>              $config
      * @param array<string, string>|string|null $bundles the parameter kernel.bundles, null for none
      */
-    private function load(array $config, array|string|null $bundles = ['SecurityBundle' => RightsServices::SECURITY_BUNDLE]): ContainerBuilder
+    private function load(array $config, array|string|null $bundles = [RightsServices::SECURITY_BUNDLE => SecurityBundle::class]): ContainerBuilder
     {
         $bundle = new PhilPrivacyBundle($this->warnings);
         $container = new ContainerBuilder();

@@ -12,7 +12,6 @@ use stdClass;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /**
  * An application with Twig, Messenger, a lock and an SQLite database in memory, with or without symfony/security-bundle:
@@ -100,7 +99,7 @@ final class TablesKernel extends Kernel
         }
     }
 
-    private function configureRoutes(RoutingConfigurator $routes): void
+    private function configureRoutes(): void
     {
     }
 }

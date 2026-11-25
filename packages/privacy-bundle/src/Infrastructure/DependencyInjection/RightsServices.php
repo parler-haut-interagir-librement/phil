@@ -123,8 +123,10 @@ final class RightsServices
      */
     public const string ERASER_TAG = 'phil_privacy.eraser';
 
-    /** The bundle whose presence turns the account deletions on by default. */
-    public const string SECURITY_BUNDLE = 'Symfony\\Bundle\\SecurityBundle\\SecurityBundle';
+    /**
+     * The name, in `kernel.bundles`, of symfony/security-bundle, whose presence turns the account deletions on by default.
+     */
+    public const string SECURITY_BUNDLE = 'SecurityBundle';
 
     private function __construct()
     {
@@ -163,14 +165,15 @@ final class RightsServices
     }
 
     /**
-     * Whether the application has accounts: symfony/security-bundle is among the bundles of its kernel. Read from
-     * `kernel.bundles`, since an extension loads in a container of its own, without the extensions of the others.
+     * Whether the application has accounts: symfony/security-bundle is among the bundles of its kernel, by its name in
+     * `kernel.bundles`, read there since an extension loads in a container of its own, without the extensions of the
+     * others.
      */
     private static function hasAccounts(ContainerBuilder $builder): bool
     {
         $bundles = $builder->hasParameter('kernel.bundles') ? $builder->getParameter('kernel.bundles') : [];
 
-        return \is_array($bundles) && \in_array(self::SECURITY_BUNDLE, $bundles, true);
+        return \is_array($bundles) && \array_key_exists(self::SECURITY_BUNDLE, $bundles);
     }
 
     /**

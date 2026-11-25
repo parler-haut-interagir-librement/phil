@@ -49,6 +49,7 @@ use Phil\PrivacyBundle\PhilPrivacyBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Processor;
@@ -196,7 +197,8 @@ final class RightsContainerTest extends TestCase
         $bundle = new PhilPrivacyBundle('php://memory');
         $container = new ContainerBuilder();
         // An application with accounts, as most are: the account deletions are on by default.
-        $container->setParameter('kernel.bundles', ['SecurityBundle' => RightsServices::SECURITY_BUNDLE]);
+        $container->setParameter('kernel.bundles', [RightsServices::SECURITY_BUNDLE => SecurityBundle::class]);
+
         $instanceof = [];
         $extension = $bundle->getContainerExtension();
         self::assertInstanceOf(ConfigurationExtensionInterface::class, $extension);

@@ -34,6 +34,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -238,7 +239,8 @@ final class ErasureWorkflowWiringTest extends TestCase
     {
         $bundle = new PhilPrivacyBundle('php://memory');
         $container = new ContainerBuilder();
-        $container->setParameter('kernel.bundles', ['SecurityBundle' => RightsServices::SECURITY_BUNDLE]);
+        $container->setParameter('kernel.bundles', [RightsServices::SECURITY_BUNDLE => SecurityBundle::class]);
+
         $instanceof = [];
         $extension = $bundle->getContainerExtension();
         self::assertInstanceOf(ConfigurationExtensionInterface::class, $extension);
