@@ -6,7 +6,6 @@ namespace Phil\SearchBundle;
 
 use Loupe\Loupe\LoupeFactory;
 use Override;
-use Phil\Outbox\Contract\Outbox;
 use Phil\SearchBundle\Application\Contract\SynonymProvider;
 use Phil\SearchBundle\Application\DocumentProvider;
 use Phil\SearchBundle\Application\RejectedFormSynonyms;
@@ -75,8 +74,8 @@ final class PhilSearchBundle extends AbstractBundle
 
     public const string LOUPE_FACTORY = LoupeFactory::class;
 
-    /** The outbox of `phil/outbox`, named and not imported: the bundle does not require the package. */
-    public const string OUTBOX = Outbox::class;
+    /** The outbox of `phil/outbox`, named by a string: the bundle neither requires nor imports the package. */
+    public const string OUTBOX = 'Phil\\Outbox\\Contract\\Outbox';
 
     #[Override]
     protected string $extensionAlias = 'phil_search';
