@@ -14,7 +14,10 @@ pass of the alerts; and every definition the configuration wires.
 The suite `tests/Functional` boots a kernel with FrameworkBundle and DoctrineBundle on SQLite and serves requests as a
 worker would: a failing page grouped, scrubbed and notified, the token of its path and the addresses of the proxies
 never kept, a 404 left out, a browser's report kept, the records of the log redaction of `phil/privacy-bundle` grouped
-by their exception, the purge command, the health check and the named limiter.
+by their exception, the purge command, the health check and the named limiter. A second kernel is a plain install —
+FrameworkBundle, DoctrineBundle and the bundle, with a command bus and a query bus —: booted in a process of its own
+where the classes of phil/monitoring-bundle cannot be loaded, it compiles without the health check, and the queued
+alerts are handled on the default bus only.
 
 The tests of the Stimulus controller and its helpers, in `tests/js`, run under Node's own test runner, Stimulus
 resolved to a stub by `register.mjs`. `tests/Functional/JavaScriptTest.php` runs them with the other suites, so that

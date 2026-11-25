@@ -59,7 +59,9 @@ cut to 1,800 characters.
 ## Queued or at once
 
 With `alerts.async` (the default) and a Messenger bus, the tracker dispatches an `AlertErrorGroup` message — the
-fingerprint and the occurrence, nothing else — and `AlertErrorGroupHandler` reads the group and sends the message.
+fingerprint and the occurrence, nothing else — on the default bus, and `AlertErrorGroupHandler`, a handler of that bus
+only, reads the group and sends the message. An application with other buses beside it, a query bus for instance,
+does not find the handler on them.
 Route the message to an asynchronous transport, so that a slow chat never slows the request that failed:
 
 ```yaml

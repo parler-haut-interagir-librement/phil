@@ -20,6 +20,7 @@ use Phil\ErrorTrackingBundle\Application\BrowserErrorParser;
 use Phil\ErrorTrackingBundle\Application\BrowserErrorReceiver;
 use Phil\ErrorTrackingBundle\Application\Contract\ErrorGroupReader;
 use Phil\ErrorTrackingBundle\Application\Message\AlertErrorGroup;
+use Phil\ErrorTrackingBundle\Application\NewGroupsThreshold;
 use Phil\ErrorTrackingBundle\Application\SafeCapture;
 use Phil\ErrorTrackingBundle\Infrastructure\Console\ConsoleErrorListener;
 use Phil\ErrorTrackingBundle\Infrastructure\Console\PurgeCommand;
@@ -209,7 +210,7 @@ final class PhilErrorTrackingBundle extends AbstractBundle
                     ->info('A check of phil/monitoring-bundle, when it is installed: whether the store answers and whether new groups are flooding in.')
                     ->canBeDisabled()
                     ->children()
-                        ->integerNode('new_groups')->info('The new groups within the window that make the check degraded; 0 to ignore them.')->min(0)->max(ErrorStoreCheck::MAX_NEW_GROUPS)->defaultValue(20)->end()
+                        ->integerNode('new_groups')->info('The new groups within the window that make the check degraded; 0 to ignore them.')->min(0)->max(NewGroupsThreshold::MAX)->defaultValue(20)->end()
                         ->integerNode('window')->info('The length of that window, in seconds, up to a day.')->min(1)->max(86_400)->defaultValue(900)->end()
                     ->end()
                 ->end()
@@ -353,7 +354,7 @@ final class PhilErrorTrackingBundle extends AbstractBundle
 
         $health = $this->section($config, 'health_check');
 
-        if ($this->bool($health, 'enabled') && interface_exists(HealthCheck::class)) {
+        if ($this->bool($health, 'enabled') && interface_exists(HealthCheck::class) && $this->isRegistered($builder, 'PhilMonitoringBundle')) {
             $services->set(ErrorStoreCheck::class)
                 ->args([service(ErrorGroupReader::class), $clock, $health['new_groups'], $health['window']])
                 ->autoconfigure();

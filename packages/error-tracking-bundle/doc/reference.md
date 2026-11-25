@@ -26,7 +26,8 @@
 | `Phil\ErrorTrackingBundle\Infrastructure\Notifications\NotificationAlerter` | Sends an alert through phil/notifications-bundle |
 | `Phil\ErrorTrackingBundle\Infrastructure\Notifications\ErrorGroupSubjects` | The label and address of an alert's group, when it is shown |
 | `Phil\ErrorTrackingBundle\Infrastructure\Monitoring\ErrorStoreCheck` | The health check of phil/monitoring-bundle |
-| `Phil\ErrorTrackingBundle\Infrastructure\DependencyInjection\AlertsPass` | Without a chatter, puts the alerts in the degraded state; without a bus, drops their queue |
+| `Phil\ErrorTrackingBundle\Application\NewGroupsThreshold` | The highest threshold of new groups of the health check |
+| `Phil\ErrorTrackingBundle\Infrastructure\DependencyInjection\AlertsPass` | Without a chatter, puts the alerts in the degraded state; without a bus, drops their queue; else ties their handler to the default bus |
 | `Phil\ErrorTrackingBundle\Infrastructure\Console\ConsoleErrorListener` | The error of a command |
 | `Phil\ErrorTrackingBundle\Infrastructure\Console\PurgeCommand` | `phil:error-tracking:purge` |
 | `Phil\ErrorTrackingBundle\Infrastructure\Console\StatusCommand` | `phil:error-tracking:status` |

@@ -6,6 +6,7 @@ namespace Phil\ErrorTrackingBundle\Tests\Unit\Infrastructure;
 
 use Phil\ErrorTracking\ErrorTracker;
 use Phil\ErrorTrackingBundle\Application\AlertDestination;
+use Phil\ErrorTrackingBundle\Application\Message\AlertErrorGroup;
 use Phil\ErrorTrackingBundle\Application\UndeliveredAlerter;
 use Phil\ErrorTrackingBundle\Infrastructure\DependencyInjection\AlertsPass;
 use Phil\ErrorTrackingBundle\Infrastructure\Messenger\AlertErrorGroupHandler;
@@ -72,6 +73,19 @@ final class AlertsPassTest extends TestCase
         self::assertEquals(new Reference(MessengerAlerter::class), $container->getDefinition(ErrorTracker::class)->getArgument(6));
         self::assertTrue($container->hasDefinition(MessengerAlerter::class));
         self::assertTrue($container->hasDefinition(AlertErrorGroupHandler::class));
+        self::assertSame([['handles' => AlertErrorGroup::class, 'bus' => 'messenger.default_bus']], $container->getDefinition(AlertErrorGroupHandler::class)->getTag('messenger.message_handler'));
+    }
+
+    public function testTheQueuedAlertsAreHandledOnTheDefaultBusOnly(): void
+    {
+        $container = $this->container(queued: true, services: ['chatter', 'command.bus', 'query.bus']);
+        $container->setAlias('messenger.default_bus', 'command.bus');
+        $container->getDefinition(AlertErrorGroupHandler::class)->addTag('messenger.message_handler', ['handles' => AlertErrorGroup::class]);
+
+        new AlertsPass()->process($container);
+
+        self::assertSame([['handles' => AlertErrorGroup::class, 'bus' => 'command.bus']], $container->getDefinition(AlertErrorGroupHandler::class)->getTag('messenger.message_handler'));
+        self::assertEquals(new Reference(MessengerAlerter::class), $container->getDefinition(ErrorTracker::class)->getArgument(6));
     }
 
     public function testAlertsSentAtOnceAskNoBus(): void

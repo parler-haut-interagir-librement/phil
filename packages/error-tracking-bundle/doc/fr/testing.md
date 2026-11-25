@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=df28b69e5be7fdf5d27031679227f554ded6118cf40c060ed5adce729570ca3f -->
+<!-- phil-dev source-sha256=114fb756ecda4009b02113c8eab55e6caa258c40719f10092aa5ddced5651d24 -->
 # Tests
 
 ## Les tests du bundle
@@ -16,7 +16,10 @@ La suite `tests/Functional` démarre un noyau avec FrameworkBundle et DoctrineBu
 comme le ferait un *worker* : une page en échec groupée, assainie et notifiée, le jeton de son chemin et les adresses
 des mandataires jamais gardés, une 404 laissée de côté, le rapport d'un navigateur gardé, les enregistrements du
 caviardage des journaux de `phil/privacy-bundle` groupés par leur exception, la commande de purge, la vérification de
-santé et le limiteur nommé.
+santé et le limiteur nommé. Un second noyau est une installation simple — FrameworkBundle, DoctrineBundle et le bundle,
+avec un bus de commandes et un bus de requêtes — : démarré dans un processus à part où les classes de
+phil/monitoring-bundle ne peuvent pas être chargées, il se compile sans la vérification de santé, et les alertes en
+file d'attente sont traitées sur le seul bus par défaut.
 
 Les tests du contrôleur Stimulus et de ses fonctions d'aide, dans `tests/js`, s'exécutent avec l'exécuteur de tests
 propre à Node, Stimulus étant résolu en doublure par `register.mjs`. `tests/Functional/JavaScriptTest.php` les exécute

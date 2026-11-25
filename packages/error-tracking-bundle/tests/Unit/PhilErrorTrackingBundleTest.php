@@ -19,6 +19,7 @@ use Phil\ErrorTrackingBundle\Application\BrowserErrorParser;
 use Phil\ErrorTrackingBundle\Application\BrowserErrorReceiver;
 use Phil\ErrorTrackingBundle\Application\Contract\ErrorGroupReader;
 use Phil\ErrorTrackingBundle\Application\Message\AlertErrorGroup;
+use Phil\ErrorTrackingBundle\Application\NewGroupsThreshold;
 use Phil\ErrorTrackingBundle\Application\SafeCapture;
 use Phil\ErrorTrackingBundle\Infrastructure\Console\ConsoleErrorListener;
 use Phil\ErrorTrackingBundle\Infrastructure\Console\PurgeCommand;
@@ -42,6 +43,7 @@ use Phil\ErrorTrackingBundle\Infrastructure\RateLimit\LimiterCaptureThrottle;
 use Phil\ErrorTrackingBundle\Infrastructure\RateLimiter\RateLimiterThrottle;
 use Phil\ErrorTrackingBundle\PhilErrorTrackingBundle;
 use Phil\IpAnonymizer\Truncation;
+use Phil\MonitoringBundle\PhilMonitoringBundle;
 use Phil\NotificationsBundle\Application\Notifications;
 use Phil\NotificationsBundle\Domain\Exception\InvalidNotification;
 use Phil\NotificationsBundle\PhilNotificationsBundle;
@@ -266,13 +268,24 @@ final class PhilErrorTrackingBundleTest extends TestCase
 
     public function testTheHealthCheck(): void
     {
-        $definition = $this->load([])->getDefinition(ErrorStoreCheck::class);
+        $monitoring = ['PhilMonitoringBundle' => PhilMonitoringBundle::class];
+        $definition = $this->load([], $monitoring)->getDefinition(ErrorStoreCheck::class);
 
         self::assertEquals([new Reference(ErrorGroupReader::class), new Reference('clock'), 20, 900], $definition->getArguments());
         self::assertTrue($definition->isAutoconfigured());
 
-        self::assertSame([5, 60], \array_slice($this->load(['health_check' => ['new_groups' => 5, 'window' => 60]])->getDefinition(ErrorStoreCheck::class)->getArguments(), 2));
-        self::assertFalse($this->load(['health_check' => false])->hasDefinition(ErrorStoreCheck::class));
+        self::assertSame([5, 60], \array_slice($this->load(['health_check' => ['new_groups' => 5, 'window' => 60]], $monitoring)->getDefinition(ErrorStoreCheck::class)->getArguments(), 2));
+        self::assertSame(NewGroupsThreshold::MAX, $this->load(['health_check' => ['new_groups' => NewGroupsThreshold::MAX]], $monitoring)->getDefinition(ErrorStoreCheck::class)->getArgument(2));
+        self::assertFalse($this->load(['health_check' => false], $monitoring)->hasDefinition(ErrorStoreCheck::class));
+        self::assertFalse($this->load([])->hasDefinition(ErrorStoreCheck::class), 'without phil/monitoring-bundle enabled');
+    }
+
+    public function testTheThresholdOfNewGroupsIsBounded(): void
+    {
+        self::assertSame(NewGroupsThreshold::MAX, ErrorStoreCheck::MAX_NEW_GROUPS);
+        $this->expectException(InvalidConfigurationException::class);
+
+        $this->load(['health_check' => ['new_groups' => NewGroupsThreshold::MAX + 1]]);
     }
 
     public function testTheAlertsThroughNotifications(): void

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ef751bb1c439b3844333ebc206d50f7c61fd6af2cf744e397af73e8da02bbfe6 -->
+<!-- phil-dev source-sha256=d2b1794ac649857a52b9b8376c189d59c84d09e8adcb09a82989d7ad7f873b3d -->
 # Référence
 
 ## Classes
@@ -27,7 +27,8 @@
 | `Phil\ErrorTrackingBundle\Infrastructure\Notifications\NotificationAlerter` | Envoie une alerte par phil/notifications-bundle |
 | `Phil\ErrorTrackingBundle\Infrastructure\Notifications\ErrorGroupSubjects` | Le libellé et l'adresse du groupe d'une alerte, quand elle est affichée |
 | `Phil\ErrorTrackingBundle\Infrastructure\Monitoring\ErrorStoreCheck` | La vérification de santé de phil/monitoring-bundle |
-| `Phil\ErrorTrackingBundle\Infrastructure\DependencyInjection\AlertsPass` | Sans *chatter*, met les alertes dans l'état dégradé ; sans bus, retire leur file d'attente |
+| `Phil\ErrorTrackingBundle\Application\NewGroupsThreshold` | Le seuil le plus haut de nouveaux groupes de la vérification de santé |
+| `Phil\ErrorTrackingBundle\Infrastructure\DependencyInjection\AlertsPass` | Sans *chatter*, met les alertes dans l'état dégradé ; sans bus, retire leur file d'attente ; sinon, lie leur gestionnaire au bus par défaut |
 | `Phil\ErrorTrackingBundle\Infrastructure\Console\ConsoleErrorListener` | L'erreur d'une commande |
 | `Phil\ErrorTrackingBundle\Infrastructure\Console\PurgeCommand` | `phil:error-tracking:purge` |
 | `Phil\ErrorTrackingBundle\Infrastructure\Console\StatusCommand` | `phil:error-tracking:status` |

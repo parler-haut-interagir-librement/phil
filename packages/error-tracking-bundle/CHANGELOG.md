@@ -23,6 +23,11 @@ The next version is 0.1.1-alpha.
 
 ### Fixed
 
+- The bundle installs and compiles without `phil/monitoring-bundle`: the configuration no longer reads the highest
+  threshold of new groups from `ErrorStoreCheck`, whose interface comes from that bundle, but from
+  `NewGroupsThreshold::MAX`; the health check is registered only when that bundle is installed and enabled.
+- The handler of the queued alerts is tied to the default bus, the one they are dispatched on: an application with a
+  query bus beside it no longer finds the handler there, and its container compiles.
 - The compiler pass that removes Messenger handlers runs before the one of
   `symfony/messenger`, which Symfony 8.2.0-RC1 registers in its own bundle at the default priority: the container no
   longer fails to build with a handler locator that names a removed service.
