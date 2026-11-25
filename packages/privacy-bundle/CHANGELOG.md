@@ -47,7 +47,6 @@ finds the new fields, and its Markdown ten columns more, a table of corrections 
   `person_name`, `nickname`, `phone`, `ip` and `contact`: each category of `#[PersonalData]` is a denied key of the
   log redaction, beside the `denylist`; `RedactingProcessor::fromConfiguration()` takes them, last and optional, and
   refuses a malformed category.
-
 - Erasure as a workflow, `erasure_workflow` (`enabled`, `lease`, `operator_role`, `store`), off by default:
   `Application\Erasure\ErasureRequests`, which opens a request for every module of the erasure inventory or for the
   modules named, a module the inventory does not declare refused, and keeps the inventory's version on it; one
@@ -157,14 +156,6 @@ finds the new fields, and its Markdown ten columns more, a table of corrections 
 - `phil:privacy:incidents` prints the journal of each line, in a table of its own in Markdown and under `journal` in
   JSON, and the purge of `DbalIncidentRegister` removes the journal of a line with it.
 
-### Security
-
-- `ContextRedactor` left an object of a context as it was: the formatter of Monolog wrote its public properties, or
-  what it serialised to, and a message or a DTO of another bundle reached the log whole, personal data included. Any
-  object but a throwable is replaced by its class name at any depth, and a case of an enum by its class and case.
-- The log redaction denied no key by default: an address logged under `email` reached the log. The categories of
-  personal data are denied by default.
-
 ### Fixed
 
 - `ConsentContext::sendsGlobalPrivacyControl()` reads every occurrence of `Sec-GPC`, each split on its commas and
@@ -173,6 +164,14 @@ finds the new fields, and its Markdown ten columns more, a table of corrections 
 - Requires the latest minor of each dependency (`twig/twig` 3.31, `monolog/monolog` 3.13,
   `symfony/event-dispatcher-contracts` 3.8), and of each development requirement (`doctrine/orm` 3.8, `doctrine/dbal`
   4.6, `doctrine/persistence` 4.2, `symfony/dom-crawler` 8.2, …).
+
+### Security
+
+- `ContextRedactor` left an object of a context as it was: the formatter of Monolog wrote its public properties, or
+  what it serialised to, and a message or a DTO of another bundle reached the log whole, personal data included. Any
+  object but a throwable is replaced by its class name at any depth, and a case of an enum by its class and case.
+- The log redaction denied no key by default: an address logged under `email` reached the log. The categories of
+  personal data are denied by default.
 
 ## 0.2.0-alpha - 2026-11-20
 

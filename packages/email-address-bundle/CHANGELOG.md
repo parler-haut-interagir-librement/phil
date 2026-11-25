@@ -4,6 +4,18 @@ All notable changes to `phil/email-address-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha. The address fingerprints change at the update: a fingerprint stored before it no
+longer matches its address, so compute again those an application keeps.
+
+### Security
+
+- The address fingerprints were the HMAC under `fingerprint_key` itself, `%kernel.secret%` by default, which other
+  bundles keyed their own hashes of the same address with, so that two pseudonymous records joined on it.
+  `EmailAddresses` derives the key of `AddressFingerprint` by HKDF-SHA256 under `phil_email_address.fingerprint`
+  (`EmailAddresses::FINGERPRINT_USAGE`).
+
 ## 0.1.0-alpha - 2026-11-24
 
 ### Added
@@ -15,10 +27,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - `EmailPolicy` and `EmailPolicies`: the policy of the bundle, of the current site (`CurrentSite`) and of a list, laid
   over each other; `UnknownEmailList` for a list the configuration does not hold.
 - The constraint `AcceptedEmailAddress`, checked through `DeliverableEmailAddress` with the policy in force.
-- `EmailAddresses`: the normalized form, the comparison of two addresses, the keyed fingerprint `AddressFingerprint`
-  under a key derived from `fingerprint_key` by HKDF-SHA256 for that usage alone (`FINGERPRINT_USAGE`), so that no
-  other usage of the same secret gives the same hash for an address, and the role addresses, warned about and
-  accepted.
+- `EmailAddresses`: the normalized form, the comparison of two addresses, the keyed fingerprint `AddressFingerprint`,
+  and the role addresses, warned about and accepted.
 - `EmailAddressType`: the constraint, the Stimulus controller, and the suggestion or the role warning as the field's
   help once the form is submitted.
 - The route `phil_email_address_domains` and `EmailDomainsController`: the known domains, the top-level slips and the
