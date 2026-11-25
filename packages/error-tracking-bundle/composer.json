@@ -72,6 +72,9 @@
         "twig/extra-bundle": "^3.31",
         "twig/twig": "^3.31.1"
     },
+    "conflict": {
+        "easycorp/easyadmin-bundle": "<5.10.4"
+    },
     "suggest": {
         "doctrine/orm": "For the tables added to the schema the ORM generates",
         "easycorp/easyadmin-bundle": "To graft the administration pages on the dashboards of an EasyAdmin back office",

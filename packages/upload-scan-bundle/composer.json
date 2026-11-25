@@ -54,6 +54,9 @@
         "symfony/twig-bundle": "^8.2",
         "twig/twig": "^3.31.1"
     },
+    "conflict": {
+        "easycorp/easyadmin-bundle": "<5.10.4"
+    },
     "suggest": {
         "easycorp/easyadmin-bundle": "For QuarantineAdmin, the link of an EasyAdmin menu to the quarantine",
         "phil/media-bundle": "To scan the files of the media library before they are stored",

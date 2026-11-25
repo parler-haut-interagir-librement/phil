@@ -26,6 +26,8 @@ The next version is 0.3.1-alpha.
   other bundles keyed their own hashes with. `PreviewLinks` derives its key by HKDF-SHA256 under
   `phil_content.preview_link` (`PreviewLinks::USAGE`). A preview link sent before the update stops working: send it
   again.
+- Conflicts with `easycorp/easyadmin-bundle` below 5.10.4, the release that fixes GHSA-f7rw-7wx5-3c54: an application
+  cannot install this bundle next to a vulnerable EasyAdmin, which stays optional.
 
 ## 0.3.0-alpha - 2026-11-18
 

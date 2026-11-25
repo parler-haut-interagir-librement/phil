@@ -26,6 +26,8 @@ The next version is 0.2.1-alpha.
 - Conflicts with `symfony/ux-live-component` before 3.8.1, which fixes the advisories of 2026-11-24: a batched request
   without an action that rendered a component past its `#[IsGranted]`, and a component of its own route still reached
   through `/_components`. The development requirements take it at 3.8.1 and `symfony/ux-twig-component` at 3.8.
+- Conflicts with `easycorp/easyadmin-bundle` below 5.10.4, the release that fixes GHSA-f7rw-7wx5-3c54: an application
+  cannot install this bundle next to a vulnerable EasyAdmin, which stays optional.
 
 ## 0.2.0-alpha - 2026-11-24
 

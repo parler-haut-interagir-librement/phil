@@ -30,6 +30,11 @@ The next version is 0.2.2-alpha.
   `collection` of the `routeParams` EasyAdmin forwards when the query string names none, as EasyAdmin hands it neither
   as a query parameter nor, since 5.10.4, as an argument.
 
+### Security
+
+- Conflicts with `easycorp/easyadmin-bundle` below 5.10.4, the release that fixes GHSA-f7rw-7wx5-3c54: an application
+  cannot install this bundle next to a vulnerable EasyAdmin, which stays optional.
+
 ## 0.2.1-alpha - 2026-11-24
 
 ### Added

@@ -66,6 +66,9 @@
         "symfony/twig-bridge": "^8.2",
         "symfony/twig-bundle": "^8.2"
     },
+    "conflict": {
+        "easycorp/easyadmin-bundle": "<5.10.4"
+    },
     "suggest": {
         "easycorp/easyadmin-bundle": "For the links of the library in an EasyAdmin back office",
         "phil/privacy-bundle": "For a member's loans in the export and the erasure of their data",
