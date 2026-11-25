@@ -131,7 +131,9 @@ final class TrainingAndXapiTest extends WebTestCase
         self::assertSelectorTextContains('.phil-courses__obligation.is-completed [data-slot="badge"]', 'Completed');
         $this->client->request('GET', '/courses/transcript', server: self::ADA);
         self::assertSelectorTextContains('.phil-courses__transcript tbody th', 'Fire safety');
-        self::assertSelectorTextContains('.phil-courses__total td', '1.5 CEU');
+        self::assertSelectorTextContains('.phil-courses__total td:last-child', '1.5 CEU');
+        self::assertSelectorExists('.phil-courses__total th[scope="row"]:first-child + td:empty');
+        self::assertSelectorNotExists('.phil-courses__transcript [colspan]');
         $this->client->request('GET', '/courses/transcript.json', server: self::ADA);
         self::assertSame('ceu', Json::at(Json::decode($this->client->getResponse()->getContent()), 'entries', 0, 'unit'));
         $this->client->request('GET', '/courses/transcript.csv', server: self::ADA);

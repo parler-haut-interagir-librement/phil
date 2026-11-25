@@ -28,6 +28,8 @@ final class Spanish
         'color-contrast.insufficient' => 'El texto «{text}» tiene un contraste de {ratio}:1 entre {foreground} y {background}; necesita {required}:1.',
         'color-contrast.unresolved' => 'El color {value} depende de las hojas de estilo de la página: compruebe el contraste de este texto en un navegador.',
         'table-headers.missing' => 'Esta tabla no tiene celdas de encabezado: marque sus encabezados con th, o active la fila de encabezado del bloque.',
+        'table-header-levels.merged' => 'Esta celda de encabezado tiene {attribute}="{span}": los lectores de pantalla anuncian mal un encabezado combinado; dé a cada columna o fila su propio encabezado, o haga del grupo una tabla aparte con su título.',
+        'table-header-levels.rows' => 'Esta cabecera de tabla tiene {rows} filas de encabezados: los lectores de pantalla anuncian mal varios niveles; mantenga una sola fila de encabezados de columna y haga de cada grupo una tabla aparte con su título.',
         'html-lang.missing' => 'La página no indica su idioma: dé un atributo lang al elemento html.',
         'html-lang.invalid' => 'El idioma de la página, «{lang}», no es una etiqueta de idioma válida.',
         'lang-change.invalid' => '«{lang}» no es una etiqueta de idioma válida.',

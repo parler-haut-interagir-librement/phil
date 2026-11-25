@@ -28,6 +28,8 @@ final class English
         'color-contrast.insufficient' => 'The text "{text}" has a contrast of {ratio}:1 between {foreground} and {background}; it needs {required}:1.',
         'color-contrast.unresolved' => 'The colour {value} depends on the style sheets of the page: check the contrast of this text in a browser.',
         'table-headers.missing' => 'This table has no header cell: mark its headings with th, or turn on the heading row of the block.',
+        'table-header-levels.merged' => 'This header cell has {attribute}="{span}": screen readers announce a merged header unevenly; give each column or row its own header, or make the group a table of its own with its caption.',
+        'table-header-levels.rows' => 'This table head has {rows} rows of headers: screen readers announce several levels unevenly; keep one row of column headers, and make each group a table of its own with its caption.',
         'html-lang.missing' => 'The page does not say its language: give the html element a lang attribute.',
         'html-lang.invalid' => 'The language of the page, "{lang}", is not a valid language tag.',
         'lang-change.invalid' => '"{lang}" is not a valid language tag.',

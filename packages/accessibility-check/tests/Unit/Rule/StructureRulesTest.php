@@ -9,6 +9,7 @@ use Phil\AccessibilityCheck\Rule\FrameTitle;
 use Phil\AccessibilityCheck\Rule\HtmlLang;
 use Phil\AccessibilityCheck\Rule\LangChange;
 use Phil\AccessibilityCheck\Rule\SvgName;
+use Phil\AccessibilityCheck\Rule\TableHeaderLevels;
 use Phil\AccessibilityCheck\Rule\TableHeaders;
 use Phil\AccessibilityCheck\Rule\VideoCaptions;
 use Phil\AccessibilityCheck\Severity;
@@ -16,6 +17,7 @@ use Phil\AccessibilityCheck\SuccessCriterion;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(TableHeaders::class)]
+#[CoversClass(TableHeaderLevels::class)]
 #[CoversClass(HtmlLang::class)]
 #[CoversClass(LangChange::class)]
 #[CoversClass(FrameTitle::class)]
@@ -27,6 +29,7 @@ final class StructureRulesTest extends RuleTestCase
     public function testTheRulesAreDescribed(): void
     {
         self::assertSame(['table-headers', SuccessCriterion::InfoAndRelationships, Severity::Error], [new TableHeaders()->id(), new TableHeaders()->criterion(), new TableHeaders()->severity()]);
+        self::assertSame(['table-header-levels', SuccessCriterion::InfoAndRelationships, Severity::Warning], [new TableHeaderLevels()->id(), new TableHeaderLevels()->criterion(), new TableHeaderLevels()->severity()]);
         self::assertSame(['html-lang', SuccessCriterion::LanguageOfPage, Severity::Error], [new HtmlLang()->id(), new HtmlLang()->criterion(), new HtmlLang()->severity()]);
         self::assertSame(['lang-change', SuccessCriterion::LanguageOfParts, Severity::Error], [new LangChange()->id(), new LangChange()->criterion(), new LangChange()->severity()]);
         self::assertSame(['frame-title', SuccessCriterion::NameRoleValue, Severity::Error], [new FrameTitle()->id(), new FrameTitle()->criterion(), new FrameTitle()->severity()]);
@@ -56,6 +59,39 @@ final class StructureRulesTest extends RuleTestCase
             ['id' => 'e', 'type' => 'table', 'data' => ['content' => 'x']],
             ['id' => 'f', 'type' => 'paragraph', 'data' => ['content' => [['a'], ['b']]]],
             ['id' => 'g', 'type' => 'table', 'data' => ['withHeadings' => 'yes', 'content' => [[['text' => 'a', 'header' => 'yes']], ['c']]]],
+        ]));
+    }
+
+    public function testATableOfDataHasOneLevelOfColumnHeaders(): void
+    {
+        self::assertSame([
+            'table-header-levels.merged @ table:nth-of-type(1) > thead > tr > th:nth-of-type(1) (attribute=colspan, span=2)',
+            'table-header-levels.merged @ table:nth-of-type(1) > tbody > tr > th (attribute=colspan, span=2)',
+            'table-header-levels.merged @ table:nth-of-type(2) > tbody > tr > td:nth-of-type(1) (attribute=colspan, span=12)',
+            'table-header-levels.merged @ table:nth-of-type(2) > tbody > tr > td:nth-of-type(2) (attribute=rowspan, span=0)',
+            'table-header-levels.merged @ table:nth-of-type(2) > tbody > tr > td:nth-of-type(3) (attribute=rowspan, span=4)',
+        ], self::html(new TableHeaderLevels(), <<<'HTML'
+            <table><thead><tr><th colspan="2">a</th><th colspan="1">b</th><td colspan="3">c</td></tr></thead><tbody><tr><th rowspan="3" colspan="2">d</th></tr></tbody></table>
+            <table><tbody><tr><td role="columnheader" colspan=" +012x">a</td><td role="rowheader" rowspan="0">b</td><td role="rowheader" colspan="0" rowspan="4">c</td></tr></tbody></table>
+            <table><tr><th colspan="0" rowspan="1">a</th><th colspan="x2" rowspan="-2">b</th><th colspan="">c</th><th rowspan="001">d</th></tr></table>
+            <table role="presentation"><tr><th colspan="2">a</th></tr></table>
+            <table role="none"><thead><tr><th>a</th></tr><tr><th>b</th></tr></thead></table>
+            <table hidden><tr><th colspan="2">a</th></tr></table>
+            <table><tr><th colspan="2" hidden>a</th></tr></table>
+            HTML));
+        self::assertSame([
+            'table-header-levels.rows @ table:nth-of-type(1) > thead (rows=2)',
+            'table-header-levels.rows @ table:nth-of-type(3) > thead (rows=3)',
+        ], self::html(new TableHeaderLevels(), <<<'HTML'
+            <table><thead><template></template><tr><th>a</th><th>a2</th></tr><tr><th>b</th></tr></thead></table>
+            <table><thead><tr><th>a</th></tr><tr><td>b</td></tr><tr><td><table><tr><th>c</th></tr></table></td></tr></thead></table>
+            <table><thead><tr><td role="columnheader">a</td></tr><tr><td>x</td><th>b</th></tr><tr><td role="rowheader">c</td></tr></thead></table>
+            <table><thead><tr><th>a</th></tr></thead><tbody><tr><th>b</th></tr><tr><th>c</th></tr></tbody></table>
+            <table><thead hidden><tr><th>a</th></tr><tr><th>b</th></tr></thead></table>
+            HTML));
+        self::assertSame(['table-header-levels.merged @ blocks[1].data.html table > tbody > tr > th (attribute=colspan, span=2)'], self::ujo(new TableHeaderLevels(), [
+            ['id' => 'a', 'type' => 'table', 'data' => ['withHeadings' => true, 'content' => [['a', 'b'], ['c', 'd']]]],
+            ['id' => 'b', 'type' => 'raw', 'data' => ['html' => '<table><tr><th colspan="2">a</th></tr></table>']],
         ]));
     }
 

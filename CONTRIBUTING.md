@@ -85,7 +85,14 @@ Open an issue before a large change, so that its design can be agreed first. The
    - a key that signs or hashes is derived for its usage from the secret of the application, by
      `hash_hkdf('sha256', $secret, 32, 'phil_<bundle>.<usage>')`, never the secret itself: two usages never share a
      key, so that a signature or a pseudonym made for one never matches in another.
-7. **Pass the checks.** From the root of the monorepo, after `composer install` and `composer hooks`, the quality
+7. **Keep tables simple.** A table of data has one row of column headers, each a `th` with `scope="col"`, and a
+   row header, a `th` with `scope="row"`, at the start of each row that has one. A header cell never spans columns
+   or rows (`colspan` or `rowspan` on a `th`), a `thead` holds one row, and the `headers` attribute is not used:
+   screen readers announce merged and multi-level headers unevenly, and none hears `headers` reliably. Columns that
+   belong together become a table of their own, with its `caption`, or one more column; a row of totals puts its
+   header in the first column alone and leaves the other cells empty. `phil/accessibility-check` warns on merged
+   header cells and multi-row heads (`table-header-levels`), and a manual pass with a screen reader checks the rest.
+8. **Pass the checks.** From the root of the monorepo, after `composer install` and `composer hooks`, the quality
    checks run on every package — PHP-CS-Fixer, Rector, PHPStan at its maximum level, deptrac, Arkitect, PHPUnit and
    Infection — and `composer packages` installs each package on its own, checks its declared dependencies and runs
    its tests. A pull request is merged when every check passes.

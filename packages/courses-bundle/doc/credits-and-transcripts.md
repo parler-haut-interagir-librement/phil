@@ -41,6 +41,11 @@ the hundredths of that unit; `toArray()`; and `csv()`.
 | `phil_courses_transcript` | `/courses/transcript.csv` | the learner signed in | The same as CSV, an attachment |
 | `phil_courses_admin_transcript` | `/admin/courses/transcripts/{learner}`, `/json`, `/csv` | a manager | Any learner's transcript |
 
+The page is a table with one row of column headers — course, date of completion, credits — and a row header, the
+course, at the start of each row. Each total is a row of the footer headed by the word "Total" in the first column,
+the second cell empty and the amount under the credits, so that no header cell spans two columns and a screen reader
+announces the amount with its column.
+
 The JSON holds the learner, the entries and the totals:
 
 ```json

@@ -144,7 +144,8 @@ stands alone. `isActivityCalendarDay` is a day and `isActivityCalendarBlank` an 
 ## Tables
 
 `isStriped` stripes the rows of a table, `hasHover` lights the one under the pointer, and `isScrollable` is the box that
-scrolls a table too wide for the page, when a `figure` will not do.
+scrolls a table too wide for the page, when a `figure` will not do. The classes assume a table of data with one level
+of column headers, none merged: see [Tables of data](elements.md#tables-of-data).
 
 ## QR codes and highlighted code
 

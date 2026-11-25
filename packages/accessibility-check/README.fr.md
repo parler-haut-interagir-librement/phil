@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6001dcaf590f1b74462b9a550a6cfe53d7fc455b5e0dffc2c4bc18178d0a0910 -->
+<!-- phil-dev source-sha256=a09479e067c8ad70c67e4f2cbc570fefc27c9065c5e29802b98a86c292540ce7 -->
 # phil/accessibility-check
 
 **Repérez ce qui écarte des lecteurs avant la publication d'un contenu : textes de remplacement manquants, plans de
@@ -10,9 +10,9 @@ bloc par bloc : l'auteur sait ainsi quel bloc et quel champ corriger. Chaque rè
 identifiant, du critère de succès WCAG 2.2 qu'elle teste, d'une sévérité et d'un message en anglais, en français, en
 espagnol, en allemand, en italien et en portugais. Les règles couvrent les textes de remplacement des images, l'ordre
 des titres et le titre de premier niveau, le nom des liens, des boutons et des onglets, les textes de lien qui ne disent rien, le
-contraste des couleurs données par le contenu, les cellules d'en-tête des tableaux, la langue des pages et des passages,
-le titre des cadres, les sous-titres des vidéos, les identifiants donnés deux fois et le titre des dessins. Le rapport
-indique, règle par règle, si la vérification a réussi. Il énumère ce qui a été constaté, avec son emplacement, et se
+contraste des couleurs données par le contenu, les cellules d'en-tête des tableaux et leur niveau unique, la langue des
+pages et des passages, le titre des cadres, les sous-titres des vidéos, les identifiants donnés deux fois et le titre
+des dessins. Le rapport indique, règle par règle, si la vérification a réussi. Il énumère ce qui a été constaté, avec son emplacement, et se
 sérialise en JSON.
 
 Elle s'adresse à toute application PHP qui publie ce que des gens écrivent : un CMS, un blogue, un wiki, un outil de
@@ -36,7 +36,7 @@ La conception est sobre : `AccessibilityChecker` exécute les règles retenues p
 |---|---|
 | HTML lu avec `Dom\HTMLDocument`, limites de taille, de profondeur et d'éléments, UTF-8 seulement | Implémenté et testé |
 | Documents UJO lus bloc par bloc, blocs imbriqués compris, champs contenant du HTML analysés à part | Implémenté et testé |
-| 16 règles, avec leur critère de succès WCAG 2.2 et leur sévérité | Implémenté et testé |
+| 17 règles, avec leur critère de succès WCAG 2.2 et leur sévérité | Implémenté et testé |
 | Contraste WCAG calculé à partir des couleurs du contenu et des jetons de l'apparence | Implémenté et testé |
 | Messages en anglais, en français, en espagnol, en allemand, en italien et en portugais | Implémenté et testé |
 | Rapport avec le résultat de chaque règle, les emplacements et le JSON | Implémenté et testé |

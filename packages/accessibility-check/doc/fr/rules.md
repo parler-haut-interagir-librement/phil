@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0ef01f0c709c2a2c8c25ddfec8a5d402b546532c17fa660c214d943842f72831 -->
+<!-- phil-dev source-sha256=519837f41c7dcf5e95151e09c2093abccc9711704b6db0ebce2e20ab11b3dc1e -->
 # Règles
 
 Les règles de `DefaultRules::all()`, dans leur ordre d'exécution. Chacune lit le HTML ; chacune sauf `html-lang` lit
@@ -18,6 +18,7 @@ en donner une autre à une règle. Une clé de message est formée de l'identifi
 | `link-text` | 2.4.4 Fonction du lien (selon le contexte) (A) | avertissement | le nom des liens dit où ils mènent |
 | `color-contrast` | 1.4.3 Contraste (minimum) (AA), ou 1.4.6 (AAA) | erreur | le texte coloré se détache de son fond |
 | `table-headers` | 1.3.1 Information et relations (A) | erreur | les tableaux de données marquent leurs cellules d'en-tête |
+| `table-header-levels` | 1.3.1 Information et relations (A) | avertissement | les tableaux de données ont un seul niveau d'en-têtes de colonne, aucun fusionné |
 | `html-lang` | 3.1.1 Langue de la page (A) | erreur | une page entière indique sa langue |
 | `lang-change` | 3.1.2 Langue d'un passage (AA) | erreur | les passages dans une autre langue indiquent laquelle |
 | `frame-title` | 4.1.2 Nom, rôle et valeur (A) | erreur | les cadres disent ce qu'ils contiennent |
@@ -151,6 +152,29 @@ cellule marquée `header`.
 | Clé | Paramètres |
 |---|---|
 | `table-headers.missing` | |
+
+## `table-header-levels`
+
+Un tableau de données a une rangée d'en-têtes de colonne, `scope="col"`, et des en-têtes de rangée, `scope="row"`,
+chaque cellule d'en-tête couvrant une seule colonne ou une seule rangée. Les lecteurs d'écran annoncent de façon
+inégale les en-têtes fusionnés ou à plusieurs niveaux — certains ne lisent que la première partie d'un en-tête composé
+ou lisent le mauvais axe, les téléphones n'en lisent souvent aucun — et l'attribut `headers` n'y remédie pas. Aucun
+outil automatique n'entend la différence : la règle avertit donc du balisage qui y mène. Un groupe de colonnes devient
+un tableau à part avec son `caption`, ou une colonne de plus ; une rangée de totaux met son en-tête dans la première
+colonne seule.
+
+Une cellule d'en-tête est un `th`, ou une cellule de rôle `columnheader` ou `rowheader`. Un `colspan` ou un `rowspan`
+se lit comme le lit HTML — espaces initiaux, un `+` facultatif, les chiffres jusqu'au premier autre caractère — : au-dessus de 1, la
+cellule est fusionnée, tout comme un `rowspan` de 0, qui court jusqu'à la fin de son groupe ; un `colspan` de 0, ou une
+valeur que HTML ne sait pas lire, vaut 1. Une cellule n'est signalée qu'une fois, pour son `colspan` avant son
+`rowspan`. Un `thead` est signalé quand plus d'une de ses propres rangées contient une cellule d'en-tête qui lui est
+propre. Un tableau de rôle `presentation` ou `none` sert à la mise en page et est laissé de côté, tout comme ce qui est
+caché. Un bloc UJO `table` n'a aucune cellule fusionnée ; les tableaux des champs HTML se lisent comme du HTML.
+
+| Clé | Paramètres | Quand |
+|---|---|---|
+| `table-header-levels.merged` | `attribute`, `span` | une cellule d'en-tête couvre plus d'une colonne ou d'une rangée ; `span` est le nombre lu, `0` pour un `rowspan` jusqu'à la fin de son groupe |
+| `table-header-levels.rows` | `rows` | un `thead` a `rows` rangées de cellules d'en-tête |
 
 ## `html-lang`
 

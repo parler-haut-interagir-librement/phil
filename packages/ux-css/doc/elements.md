@@ -69,6 +69,37 @@ faded when disabled or `aria-disabled`. Hovering or pressing mixes the fill towa
 
 Striped rows are the class `isStriped`.
 
+### Tables of data
+
+The styles above assume one level of column headers, the shape a screen reader announces reliably:
+
+- one row of column headers in the `thead`, each a `th` with `scope="col"`;
+- a row header, a `th` with `scope="row"`, at the start of each row that has one;
+- no header cell over several columns or rows — no `colspan` or `rowspan` on a `th` — and no `headers` attribute:
+  screen readers announce merged and multi-level headers unevenly, some reading only the first part of a compound
+  header, phones often none, and `headers` does not make up for it;
+- columns that belong together become a table of their own, with its `caption`, or one more column;
+- a row of totals in the `tfoot` puts its header in the first column alone, the other cells empty or holding their
+  totals.
+
+```html
+<table>
+  <caption>Credits by course</caption>
+  <thead>
+    <tr><th scope="col">Course</th><th scope="col">Completed</th><th scope="col">Credits</th></tr>
+  </thead>
+  <tbody>
+    <tr><th scope="row">Fire safety</th><td>2026-11-22</td><td>1.5</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><th scope="row">Total</th><td></td><td>1.5</td></tr>
+  </tfoot>
+</table>
+```
+
+The rule `table-header-levels` of `phil/accessibility-check` warns on a merged header cell and on a `thead` of several
+rows of headers.
+
 ## Dialogs and popovers
 
 | Elements | What they get |

@@ -30,9 +30,9 @@
 | `Contract\Rule` | Identifier, success criterion and severity of a rule |
 | `Contract\HtmlRule` | A rule that reads HTML |
 | `Contract\UjoRule` | A rule that reads UJO documents |
-| `Rule\DefaultRules` | The fifteen rules of the library, in the order they run |
+| `Rule\DefaultRules` | The seventeen rules of the library, in the order they run |
 | `Rule\FragmentRule` | The base of a rule that reads the data of each block, then each of its HTML fields |
-| `Rule\ImageAlt`, `HeadingOrder`, `HeadingH1`, `EmptyHeading`, `LinkName`, `ButtonName`, `LinkText`, `ColorContrast`, `TableHeaders`, `HtmlLang`, `LangChange`, `FrameTitle`, `VideoCaptions`, `DuplicateId`, `SvgName` | The rules: see [Rules](rules.md) |
+| `Rule\ImageAlt`, `HeadingOrder`, `HeadingH1`, `EmptyHeading`, `LinkName`, `ButtonName`, `TabName`, `LinkText`, `ColorContrast`, `TableHeaders`, `TableHeaderLevels`, `HtmlLang`, `LangChange`, `FrameTitle`, `VideoCaptions`, `DuplicateId`, `SvgName` | The rules: see [Rules](rules.md) |
 | `Rule\Heading` | A heading of a content, from HTML or from UJO |
 | `Rule\FileName` | Whether a text alternative is a file name |
 | `Rule\GenericLinkText` | The generic link texts of six languages, and how a link name is compared with them |

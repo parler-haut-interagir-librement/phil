@@ -37,7 +37,8 @@
     <tfoot>
         {%- for total in totals %}
         <tr class="phil-courses__total">
-            <th scope="row" colspan="2">{{ 'transcript.total'|trans({}, 'phil_courses') }}</th>
+            <th scope="row">{{ 'transcript.total'|trans({}, 'phil_courses') }}</th>
+            <td></td>
             <td>{{ ('credits.' ~ total.unit)|trans({'%amount%': total.amount}, 'phil_courses') }}</td>
         </tr>
         {%- endfor %}

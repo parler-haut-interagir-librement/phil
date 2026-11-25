@@ -8,8 +8,6 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.3.1-alpha.
 
-Development only.
-
 ### Changed
 
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
@@ -17,6 +15,11 @@ Development only.
 - The development requirements accept `phil/certificates-bundle` 0.3, `phil/notifications-bundle` 0.4 and `phil/ux-kit`
   0.6, the minor versions of their main branches and no earlier one, so that the package installs on its own beside
   those packages.
+
+### Fixed
+
+- The transcript page: the header cell of each row of totals, "Total", covers the first column only, the second
+  cell is empty, so that no header cell of the table spans two columns.
 
 ## 0.3.0-alpha - 2026-11-24
 
