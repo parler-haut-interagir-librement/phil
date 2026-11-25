@@ -117,10 +117,9 @@ final class LegalNoticesServices
             ->addTag('twig.attribute_extension')
             ->addTag('twig.runtime');
 
-        // format_list, which writes the lists of the pages in their language; TwigExtraBundle registers it when present.
-        if (!$container->hasExtension('twig_extra')) {
-            $container->register(self::INTL_EXTENSION, IntlExtension::class)->addTag('twig.extension');
-        }
+        // format_list, which writes the lists of the pages in their language; IntlExtensionPass removes it when the
+        // application registers its own, through TwigExtraBundle for instance.
+        $container->register(self::INTL_EXTENSION, IntlExtension::class)->addTag('twig.extension');
 
         $container->register(CheckCommand::class, CheckCommand::class)->setArguments([$notices])->addTag('console.command');
         $container->register(AnnounceCommand::class, AnnounceCommand::class)->setArguments([$notices, new Reference('event_dispatcher'), $clock])->addTag('console.command');

@@ -15,6 +15,7 @@ use Phil\LegalNoticesBundle\Infrastructure\Body\MarkupBody;
 use Phil\LegalNoticesBundle\Infrastructure\Consent\ConfiguredConsentCategories;
 use Phil\LegalNoticesBundle\Infrastructure\Console\AnnounceCommand;
 use Phil\LegalNoticesBundle\Infrastructure\Console\CheckCommand;
+use Phil\LegalNoticesBundle\Infrastructure\DependencyInjection\IntlExtensionPass;
 use Phil\LegalNoticesBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\LegalNoticesBundle\Infrastructure\DependencyInjection\LegalNoticesServices;
 use Phil\LegalNoticesBundle\Infrastructure\Http\DocumentController;
@@ -33,9 +34,13 @@ use Phil\SitemapBundle\Infrastructure\Routing\RouteUrlProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\TwigBundle\DependencyInjection\Compiler\TwigEnvironmentPass;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -228,18 +233,42 @@ final class PhilLegalNoticesBundleTest extends TestCase
 
         self::assertContainsOnlyInstancesOf(KitSubdirectoryPass::class, array_filter($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof KitSubdirectoryPass));
         self::assertCount(1, array_filter($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof KitSubdirectoryPass));
+        self::assertCount(1, array_filter($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof IntlExtensionPass));
+    }
+
+    public function testTheIntlPassRunsBeforeTwigAtPriorityOneNotHigher(): void
+    {
+        $container = new ContainerBuilder();
+        new TwigBundle()->build($container);
+        new PhilLegalNoticesBundle()->build($container);
+        $container->addCompilerPass(new class implements CompilerPassInterface {
+            public function process(ContainerBuilder $container): void
+            {
+            }
+        }, PassConfig::TYPE_BEFORE_OPTIMIZATION, 2);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $marker = array_search(true, array_map(static fn (string $class): bool => str_contains($class, '@anonymous'), $passes), true);
+        $intl = array_search(IntlExtensionPass::class, $passes, true);
+        $twig = array_search(TwigEnvironmentPass::class, $passes, true);
+        self::assertIsInt($marker);
+        self::assertIsInt($intl);
+        self::assertIsInt($twig);
+        self::assertGreaterThan($marker, $intl, 'IntlExtensionPass must run at priority 1, after a pass of priority 2.');
+        self::assertLessThan($twig, $intl);
     }
 
     /**
-     * TwigExtraBundle registers the extension of twig/intl-extra: the bundle leaves it to it.
+     * The extension of twig/intl-extra is registered whatever the extensions loaded beside: inside the loading of a
+     * bundle, they are not known yet. IntlExtensionPass removes it when the application has its own.
      */
-    public function testTheIntlExtensionOfTwigExtraBundleIsKept(): void
+    public function testTheIntlExtensionIsRegisteredBesideTwigExtraBundle(): void
     {
         $container = new ContainerBuilder();
         $container->registerExtension(new TwigExtraExtension());
         $this->extension()->load([[]], $container);
 
-        self::assertFalse($container->hasDefinition(LegalNoticesServices::INTL_EXTENSION));
+        self::assertTrue($container->hasDefinition(LegalNoticesServices::INTL_EXTENSION));
     }
 
     public function testTheSourcesOfTheApplication(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\LegalNoticesBundle;
 
 use Override;
+use Phil\LegalNoticesBundle\Infrastructure\DependencyInjection\IntlExtensionPass;
 use Phil\LegalNoticesBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\LegalNoticesBundle\Infrastructure\DependencyInjection\LegalNoticesServices;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -53,12 +54,15 @@ final class PhilLegalNoticesBundle extends AbstractBundle
     protected string $extensionAlias = 'phil_legal_notices';
 
     /**
-     * The recipes of the kit are named after the components subdirectory of the Toolkit.
+     * The recipes of the kit are named after the components subdirectory of the Toolkit; the extension of twig/intl-extra
+     * is left to the application when it registers its own.
      */
     #[Override]
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new KitSubdirectoryPass());
+        // Priority 1: before the TwigEnvironmentPass of TwigBundle (priority 0), which adds the extensions to Twig.
+        $container->addCompilerPass(new IntlExtensionPass(), priority: 1);
     }
 
     #[Override]
