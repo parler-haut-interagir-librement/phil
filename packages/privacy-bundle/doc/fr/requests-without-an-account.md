@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5eb701658c105d54242263cb3d484153fa8dd360fc8ccc1797a2df53bf66eced -->
+<!-- phil-dev source-sha256=bc5d837d651b154c7cb3c5789988f3ec93577a425ecf0bddc19c9f9063681642 -->
 # Demandes sans compte
 
 Une personne qui n'a pas de compte — abonnée à une infolettre, quelqu'un qui a écrit par un formulaire, l'acheteuse d'un
@@ -42,7 +42,8 @@ lien, jusqu'à son expiration ; les effaceurs sont idempotents.
 - **Une limite par adresse** : `per_address`, 3 par jour par défaut. Au-delà, le lien n'est pas envoyé et la page ne le
   dit pas : la limite protège une boîte aux lettres d'être remplie par quelqu'un d'autre.
 - **Ni adresse ni IP dans le stockage du limiteur.** Chaque limite a pour clé un HMAC-SHA-256 sous une clé à elle,
-  dérivée du secret de l'application par HKDF (voir [Modèle de menaces](threat-model.md#les-clés)), dans le réservoir de cache de `guest_requests.cache` (`cache.app`).
+  dérivée du secret de l'application par HKDF (voir [Modèle de menaces](threat-model.md#les-clés)), dans le réservoir
+  de cache de `guest_requests.cache` (`cache.app`).
 - **Un lien fonctionne une fois, peu de temps.** Son secret fait 256 bits aléatoires ; seul son SHA-256 est gardé, et il
   est comparé en temps constant. Il expire après `link_lifetime` (`PT1H`). Une demande expirée est retirée à l'ouverture
   de son lien, et à chaque nouvelle demande.

@@ -59,7 +59,8 @@ it, and a functional test fails on a cookie it does not declare. A frame of anot
 
 The choice is kept in a cookie of the site (`consent.cookie_name`), for `consent.lifetime`: no `Domain`, `HttpOnly`,
 `SameSite=Lax`, `Secure` on HTTPS. It holds a random identifier, the version, the categories granted, the date, and an
-HMAC-SHA-256 under a key derived from the application secret by HKDF. A value that is malformed, altered or too long reads as no choice.
+HMAC-SHA-256 under a key derived from the application secret by HKDF. A value that is malformed, altered or too long
+reads as no choice.
 
 Each decision also leaves a dated proof in `phil_privacy_consent_proof`: the identifier of the choice, the version of
 the text, what was granted, the date and whether the signal was present. It names no one and holds no address. Without a

@@ -121,7 +121,8 @@ la ferme une fois la demande terminée. Une demande qu'un exploitant a fermée c
 L'export est l'archive ZIP d'une réponse d'accès, un `README.txt` et un fichier JSON par module
 ([export-and-erasure.md](export-and-erasure.md#larchive-dune-réponse-daccès)). `EncryptedExportArchive` la garde comme
 fichier `0600` d'un répertoire `0700` (`account_deletion.export_directory`), scellée par libsodium sous une clé dérivée
-du secret de l'application par HKDF, pendant `account_deletion.export_retention`. Chaque balayage retire celles qui ont expiré.
+du secret de l'application par HKDF, pendant `account_deletion.export_retention`. Chaque balayage retire celles qui
+ont expiré.
 
 ## Les tables
 

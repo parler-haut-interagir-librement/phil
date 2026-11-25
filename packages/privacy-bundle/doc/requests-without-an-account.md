@@ -41,7 +41,8 @@ link, until it expires; erasers are idempotent.
 - **A limit per address**: `per_address`, 3 a day by default. Over it, the link is not sent and the page does not say
   so: the limit protects a mailbox from being filled by someone else.
 - **No address or IP in the limiter's storage.** Each limit is keyed on an HMAC-SHA-256 under a key of its own,
-  derived from the application secret by HKDF (see [Threat model](threat-model.md#the-keys)), in the cache pool of `guest_requests.cache` (`cache.app`).
+  derived from the application secret by HKDF (see [Threat model](threat-model.md#the-keys)), in the cache pool of
+  `guest_requests.cache` (`cache.app`).
 - **A link works once, for a short time.** Its secret is 256 random bits; only its SHA-256 is kept, and it is compared
   in constant time. It expires after `link_lifetime` (`PT1H`). An expired request is removed when its link is opened,
   and at each new request.
