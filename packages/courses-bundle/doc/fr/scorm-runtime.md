@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b7b79b000e4d359d7b28b2eb2cba059a6fab3d6aeb78f94e24b2c072f616e35c -->
+<!-- phil-dev source-sha256=e372df694fdf88015582155b8e5be55fcaa7028fde316959df97c9b719e18c28 -->
 # Environnement d'exécution SCORM
 
 Une activité SCORM s'exécute dans la plateforme : son contenu trouve l'API d'exécution de sa version, signale où en est
@@ -60,8 +60,8 @@ conserve rien.
 | `409` | La session est terminée : elle a pris fin, ou un lancement plus récent en a ouvert une nouvelle ; ou sa tentative a pris fin, et ne s'ouvre plus qu'en révision |
 | `413` | Le corps dépasse 2 Mio |
 
-Le jeton de tentative nomme la tentative, la session et le moment où il expire, signés par un HMAC sous
-`phil_courses.scorm.secret` ; il tient `phil_courses.scorm.token_ttl` secondes après la dernière validation, quatre
+Le jeton de tentative nomme la tentative, la session et le moment où il expire, signés par un HMAC sous une clé
+dérivée de `phil_courses.scorm.secret` par HKDF-SHA256 pour cet usage seul (`ScormTokens::USAGE`) ; il tient `phil_courses.scorm.token_ttl` secondes après la dernière validation, quatre
 heures par défaut. Quand un apprenant est connecté, la tentative doit être la sienne ; un signal envoyé par balise au
 moment où l'apprenant se déconnecte est tout de même accepté, sur son jeton seul.
 

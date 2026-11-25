@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=88e6a9e26efd8f00af7105587140fcb0fa2c02a98b951160d5e1aad86fdca206 -->
+<!-- phil-dev source-sha256=095582be70793c7864b5c99a8c09ed1e707c87d368591a5c075c0956012718d3 -->
 # Géocodage
 
 ```yaml
@@ -30,6 +30,10 @@ phil_geo:
         cache:
             pool: cache.app
             lifetime: 604800
+    http:
+        client: http_client
+        timeout: 3.0
+        max_duration: 5.0
     ip_locator:
         maxmind:
             database: '%kernel.project_dir%/var/geoip/GeoLite2-City.mmdb'
@@ -42,6 +46,9 @@ phil_geo:
 
 | Option | Valeur par défaut | Rôle |
 |---|---|---|
+| `http.client` | `http_client` | L'identifiant du service du client HTTP des géocodeurs, d'ipstack et du programme de mise à jour de MaxMind |
+| `http.timeout` | `3.0` | L'attente la plus longue d'un octet de réponse, en secondes, au-dessus de zéro et d'au plus 120 |
+| `http.max_duration` | `5.0` | L'appel le plus long d'un géocodeur ou d'ipstack, en secondes, au moins égal à `http.timeout` ; le téléchargement de la base MaxMind attend 30 secondes au plus un octet et n'a aucune autre borne |
 | `geocoding.providers` | aucune | `nominatim`, `google_maps`, `nrcan`, `photon`, `opencage`, `here`, `mapbox`, `azure_maps`, `adresses_quebec` ; sans fournisseur, aucun `Geocoder` n'est enregistré |
 | `geocoding.nominatim.user_agent` | | Requis avec Nominatim : le site et la façon de le joindre |
 | `geocoding.nominatim.base_url` | le serveur public | Un autre serveur, le vôtre |
@@ -74,7 +81,8 @@ phil_geo:
 | `ip_locator.ipstack.base_url` | `https://api.ipstack.com` | `http://api.ipstack.com` pour un forfait qui ne répond qu'en HTTP simple, ce qui envoie en clair l'adresse IP du visiteur et la clé d'accès |
 
 Un seul fournisseur est le `Geocoder` ; plusieurs forment un `ChainGeocoder`, interrogés dans leur ordre ; avec un pool,
-l'ensemble est un `CachedGeocoder`. Chaque adaptateur prend le service `http_client` de FrameworkBundle. Un pool
+l'ensemble est un `CachedGeocoder`. Chaque adaptateur prend le client `http.client`, le service `http_client` de FrameworkBundle par
+défaut, avec les délais de `http`. Un pool
 conserve les réponses de chaque fournisseur : la configuration refuse donc un pool quand les fournisseurs comprennent
 Mapbox sans `permanent`, puisque ses conditions interdisent de conserver ses réponses temporaires. Gardez une durée de
 vie sous trente jours avec HERE ([les conditions de chacun](../../../geo/doc/fr/geocoding.md)).

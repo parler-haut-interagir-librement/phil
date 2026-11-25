@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=64f455e0b6ceb30d80774e1c6ed75944aa0c1757770431740f4945aad7b5cfa5 -->
+<!-- phil-dev source-sha256=b9d1bc6688a3badad06918f9da547881397fead068f24d7c9ece8c0984d73ed1 -->
 # Guide du réviseur
 
 Pour la personne qui revoit la sécurité du bundle avant son utilisation en production. Lisez d'abord le
@@ -35,7 +35,7 @@ L'entrée non fiable atteint le bundle à ces endroits ; chaque ligne nomme le p
 | `id_token_hint` | `/oidc/logout` | `Tokens::idTokenHint()`, puis `Jws::decode()` |
 | Enregistrement et assertion d'une clé d'accès | `/account/passkeys/register`, la connexion par clé d'accès | `Domain\WebAuthn\RelyingParty`, `Cbor` |
 | Codes à usage unique | la deuxième étape, la réauthentification | `OneTimeCodeAuthenticator`, `Totp`, `RecoveryCodes` |
-| Liens signés | `/verify-email`, `/reset-password`, liens de connexion | `SignedLinks`, l'authentificateur `login_link` |
+| Liens signés | `/verify-email`, `/reset-password`, liens de connexion | `SignedLinks`, l'authentificateur `login_link` sur un POST seulement (`LoginLinkPostOnlyPass`) |
 
 Où regarder d'abord dans la couche JOSE :
 

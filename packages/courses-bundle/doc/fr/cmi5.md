@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=35d0170aba70c8e94f9fd17ec019ca2d373dc63712dff4703d05e3127f01997f -->
+<!-- phil-dev source-sha256=8cd017c4177959dd9263716d83dee4d42508560575e169b226357abf5252ea5d -->
 # cmi5
 
 Le bundle importe des cours cmi5, lance leurs unités assignables comme l'exige cmi5, et reçoit leurs énoncés par un point
@@ -59,8 +59,8 @@ L'IRI de l'unité dans la structure de cours est l'identifiant de l'éditeur, da
 
 L'unité envoie une requête `POST` à l'URL de récupération et reçoit une seule fois `{"auth-token": "…"}`. Une deuxième
 requête répond par l'erreur `1` ; une session inconnue, terminée ou expirée, par l'erreur `2` ; une requête qui n'est pas
-un `POST`, par l'erreur `3`. Le jeton est l'identifiant de la session et un HMAC de celui-ci sous
-`phil_courses.cmi5.secret` : aucun secret n'est conservé dans la base de données. L'unité l'envoie comme identifiants
+un `POST`, par l'erreur `3`. Le jeton est l'identifiant de la session et un HMAC de celui-ci sous une
+clé dérivée de `phil_courses.cmi5.secret` par HKDF-SHA256 pour cet usage seul (`Cmi5Tokens::USAGE`) : aucun secret n'est conservé dans la base de données. L'unité l'envoie comme identifiants
 HTTP Basic avec chaque requête xAPI.
 
 ## Le point de terminaison xAPI

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c3d6847eb84ab01b3c5144409318c6e041ddcf40ee0825474039b9fda5ae3625 -->
+<!-- phil-dev source-sha256=8ca5a0875286364e29ef4d05b0dfeb66ba5524a0eb871fc89b5248515c73e84b -->
 # Réponses
 
 `Submissions::submit($questionnaire, $input, $respondent, $subject)` reçoit une réponse. Le serveur la juge quoi que le
@@ -56,7 +56,8 @@ La page dit si un questionnaire est anonyme avant sa première question. Une ré
 - le jour de l'envoi, à minuit UTC, et non l'heure.
 
 Pour qu'un membre réponde une seule fois, le bundle conserve à part une marque de participation : le questionnaire, le
-sujet et une empreinte SHA-256 à clé de l'identifiant du membre, sous `secret`. La marque n'a aucune heure et aucune
+sujet et une empreinte SHA-256 à clé de l'identifiant du membre, sous une clé dérivée de `secret` par HKDF-SHA256 pour cet usage seul
+(`Participations::USAGE`). La marque n'a aucune heure et aucune
 référence à la réponse : rien ne relie donc les deux. Une réponse identifiée conserve l'identifiant du membre ; c'est
 le seul genre que trouvent l'exportation et l'effacement de la vie privée.
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=041113e31aace8fc4f9898ab53c728022531f1e95de8b3a05eace120cd2aa8ac -->
+<!-- phil-dev source-sha256=fe0b1e31e8c99f1514f6be6a9a14db9631ece51dfedb0b6eacd06026f0482dab -->
 # Analyse
 
 `PhoneNumber::parse($input, $region = null)` lit un numéro comme les gens le saisissent et garde son indicatif de
@@ -32,6 +32,11 @@ parenthèses ; un `+` seulement au début. **Ce qui est lu comme un poste**, apr
 - un numéro sans indicatif de pays et sans région ;
 - un indicatif de pays qu'aucun plan ne connaît ;
 - une région sans plan.
+
+Le message nomme la raison, jamais l'entrée : un numéro mal saisi est le plus souvent le vrai numéro, et un message peut
+aboutir dans un journal. `InvalidPhoneNumber::$input` garde l'entrée, coupée à 100 caractères, pour un appelant qui la
+montre à la personne qui l'a saisie. Une région sans plan, qui n'est pas un renseignement personnel, est nommée dans le
+message.
 
 Un numéro que `parse()` lit n'existe pas toujours : `isValid()` le dit, comme l'explique
 [Validation et types](validation.md).

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9c355500089fd8f238f8d12ee2f7c5181b7ae3831df191155d060467f8bb7965 -->
+<!-- phil-dev source-sha256=393ab23d8fd4c72572b08674b3522f3183f4ceaa863fca98f833fc5b22e283d7 -->
 # Géocodage
 
 ## Les ports
@@ -37,9 +37,25 @@ Ils prennent le `HttpClientInterface` de Symfony.
 | `AdressesQuebecGeocoder` | une URL de base (le service du Gouvernement du Québec), le nombre maximal de lieux (5) | `/findAddressCandidates?SingleLine=` et `/reverseGeocode?location=`, en WGS 84 |
 | `IpstackLocator` | la clé d'accès, une URL de base (`https://api.ipstack.com`) | `/{ip}` |
 
+Chaque adaptateur HTTP prend le client qu'on lui donne et ses `Timeouts`, en dernier : `timeout`, l'attente la plus longue
+d'un octet de la réponse, 3 secondes par défaut, et `maxDuration`, l'appel entier le plus long, 5 secondes. Ils sont
+fixés sur chaque requête par `withOptions()`, de sorte qu'un fournisseur lent retient un *worker* pendant des secondes
+plutôt que pendant `default_socket_timeout`, et qu'une réponse lente échoue en `GeocodingFailed`, qu'une chaîne
+contourne. L'un et l'autre sont au-dessus de zéro et d'au plus 120 secondes, l'appel entier n'étant pas plus court que
+l'attente.
+
+```php
+use Phil\Geo\Geocoding\Adapter\NominatimGeocoder;
+use Phil\Geo\Geocoding\Timeouts;
+
+$geocoder = new NominatimGeocoder($httpClient, 'Example (contact@example.com)', timeouts: new Timeouts(2.0, 4.0));
+```
+
 La locale passée devient `accept-language` pour Nominatim et `language` pour Google Maps. La politique d'utilisation de
 Nominatim demande un agent utilisateur qui nomme le site et la façon de le joindre, et au plus une requête par seconde
-sur son serveur public. ipstack refuse une adresse IP invalide avant d'interroger le service. Il l'interroge en HTTPS ;
+sur son serveur public. ipstack refuse une adresse IP invalide avant d'interroger le service, et répond `null`, sans interroger,
+pour une adresse privée ou réservée — `10.0.0.1`, `192.168.1.1`, `127.0.0.1`, `::1`, `fc00::/7`, `fe80::/10` —, qui ne
+situe aucun visiteur ; `MaxMindLocator` fait de même. Il l'interroge en HTTPS ;
 un forfait qui ne répond qu'en HTTP simple prend `http://api.ipstack.com` comme URL de base, et chaque recherche envoie
 alors en clair l'adresse IP du visiteur (un renseignement personnel selon la Loi 25 du Québec) et la clé d'accès.
 `MaxMindLocator` lit une base sur le serveur et n'envoie rien.

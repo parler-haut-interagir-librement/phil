@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f6cc992c5afa36e2cffa9caaaf78ac3b0d0616337752513a5255a8033a01cbcb -->
+<!-- phil-dev source-sha256=e8c9abb9656ade83c3c0164de0b2542e9734a198212e07f79a0b150edb0bd4b7 -->
 # Problèmes
 
 `ProblemDetailsListener` répond aux exceptions par des détails de problème RFC 9457, `application/problem+json`.
@@ -7,6 +7,7 @@
 |---|---|---|
 | `ProblemException` | Partout | Son problème, son statut, ses en-têtes |
 | Une exception HTTP (`NotFoundHttpException`, `AccessDeniedHttpException`…) | Sous `problem_details.paths` | Le problème vierge de son statut : `{"type": "about:blank", "status": 404, "title": "Not Found"}`, avec les en-têtes de l'exception |
+| `OptimisticLockException` de Doctrine, levée ou enveloppée jusqu'à huit niveaux de profondeur | Sous `problem_details.paths`, en mode débogage aussi | Une `409` du type stable `urn:phil:problem:write-conflict` (`ProblemDetailsListener::WRITE_CONFLICT_TYPE`), sans l'entité ni ses versions |
 | Toute autre exception | Sous `problem_details.paths`, hors du mode débogage | Une `500` sans détail ; en mode débogage, la page d'erreur de Symfony |
 
 ```php
@@ -20,6 +21,20 @@ throw new ProblemException(
     ['Retry-After' => '60'],
 );
 ```
+
+## Conflits d'écriture
+
+Une entité dotée d'une colonne `#[ORM\Version]` refuse un `flush` sur une version que quelqu'un d'autre a modifiée entre-temps, par une
+`OptimisticLockException`. Sous les chemins, l'appelant reçoit :
+
+```json
+{"type": "urn:phil:problem:write-conflict", "status": 409, "title": "The resource changed since it was read.", "detail": "Read it again, then send the change again."}
+```
+
+Un client teste le `type`, qui reste le même d'une version à l'autre, plutôt que le titre. `ETag` et `If-Match` sont
+laissés aux routes qui modifient une ressource.
+
+## Détails
 
 L'appelant lit `detail` : n'y mettez jamais le message d'une exception. `ProblemDetailsResponse` écrit un problème pour
 un contrôleur qui le retourne plutôt que de le lever.

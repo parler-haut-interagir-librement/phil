@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9cf911990b5494e4ccee0262a90d0254d1a0b0202ca65b68a6836943a0e9652b -->
+<!-- phil-dev source-sha256=03d46631964fa57c12923ca2661a69c950d032f0795780162198c853ff421c1d -->
 # Points d'extension
 
 Ce qu'une application implémente, étiquette, configure ou utilise.
@@ -42,6 +42,7 @@ Voir [Étiquetage](tagging.md).
 | `header` | L'en-tête dans lequel les étiquettes sont écrites : `xkey`, `cache-tag` ou `surrogate-key` |
 | `purger` | Le cache qui est purgé : aucun, `varnish` ou `cloudflare` |
 | `varnish`, `cloudflare` | Où et comment |
+| `http.client`, `http.timeout`, `http.max_duration` | Le client HTTP des purgeurs, `http_client` par défaut, et la durée qu'un appel de purge peut prendre : 5 secondes d'attente d'un octet, 10 pour l'appel entier, par défaut |
 | `invalidate_entities` | Si chaque entité qu'un flush de Doctrine modifie est passée aux résolveurs |
 
 ## Services

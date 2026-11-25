@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f74572ffd0c5006ee3d7fd807120ff2e093c288063800f8bea2ddef44a2d9101 -->
+<!-- phil-dev source-sha256=3712bc98ad81acb9e205e77cc707a1ffac51254ab21acbc8005fb7c67d75b4d6 -->
 # Signature
 
 L'étape `sign` signe un PDF avec un certificat ; l'étape `timestamp` ajoute un horodatage de document provenant d'une
@@ -24,7 +24,7 @@ redémarrage.
 |---|---|
 | `FileCertificateSource($path, $keyPath, $password)` | Sur le disque : un fichier PKCS#12 et son mot de passe, ou un certificat PEM et le fichier de sa clé |
 | `InlineCertificateSource($certificate, $key, $password)` | En mémoire : un certificat et une clé PEM, ou les octets d'un fichier PKCS#12, tirés d'une variable d'environnement ou du coffre de secrets de Symfony ; envoyés comme `signer.pem` et `signer.key`, ou `signer.p12` |
-| `VaultCertificateSource($client, $address, $token, $path, $mount)` | Dans un moteur de secrets clé/valeur, version 2, de HashiCorp Vault ou d'OpenBao, lu à `<address>/v1/<mount>/data/<path>` ; le secret contient `certificate` et `key` en PEM |
+| `VaultCertificateSource($client, $address, $token, $path, $mount, $timeout, $maxDuration)` | Dans un moteur de secrets clé/valeur, version 2, de HashiCorp Vault ou d'OpenBao, lu à `<address>/v1/<mount>/data/<path>` ; le secret contient `certificate` et `key` en PEM ; l'appel attend 5 secondes au plus un octet et dure 10 secondes au plus, par défaut |
 
 Un coffre hors d'atteinte, ou un secret d'une autre forme, lève `CertificateUnavailable`. Une application qui a son
 propre coffre implémente `CertificateSource`.

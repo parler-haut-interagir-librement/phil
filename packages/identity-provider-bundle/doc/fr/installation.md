@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bce85f666bf089b2ff34b7418cd5f30f8f26526a853a5aee018b6dda6038df57 -->
+<!-- phil-dev source-sha256=245ba4dd82233e96421affef385ff15b0a3f8fe12537e794ace04a8537419b06 -->
 # Installation
 
 ```sh
@@ -94,6 +94,8 @@ utilisateurs : Argon2id (`sodium`). Générez la migration des tables avec `bin/
   option n'est pas activée.
 - Un client enregistré avec `--pkce-optional` envoie un `nonce` avec chaque demande d'autorisation qui ne porte aucun
   défi PKCE ; une demande sans l'un ni l'autre lui revient avec `invalid_request` (RFC 9700, section 2.1.1).
+- Les empreintes et vérifications de mots de passe des comptes prennent une place de `password.semaphore`, activé par
+  défaut ; écrivez `password: { semaphore: false }` pour garder l'ancien comportement.
 
 ## Où mènent les liens
 

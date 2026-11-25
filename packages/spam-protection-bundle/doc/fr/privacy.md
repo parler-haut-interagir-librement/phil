@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5a0d4860171ab8318dc6b2ce5d3d3b2ac7282d29ac5e5b2236b2dd488e36771b -->
+<!-- phil-dev source-sha256=237e7ac56c9afafd39ae8a1a36bd91da57d98a047a699c98fc9d8aa2117c7c9a -->
 # Vie privée
 
 | Donnée | Gardée | Pendant combien de temps |
@@ -11,7 +11,8 @@
 ou du clavier, les scores de réputation de tiers. **Jamais envoyé nulle part** : le contrôleur Stimulus calcule une
 empreinte localement et écrit un nombre dans le formulaire.
 
-L'empreinte du client est un HMAC-SHA256 sous le secret de l'application : on ne peut pas la ramener à une adresse
+L'empreinte du client est un HMAC-SHA256 sous une clé dérivée du secret de l'application par HKDF-SHA256 sous
+`phil_spam_protection.client_key`, qu'aucun autre usage du secret ne partage : on ne peut pas la ramener à une adresse
 sans le secret, et elle change avec lui. Une adresse IPv6 est hachée sous la forme de son `/64`, le bloc qu'un hôte
 reçoit et dans lequel il peut faire tourner ses adresses librement, pour qu'en changer n'échappe pas à la limite de
 débit ; une adresse IPv4 écrite en IPv6 (`::ffff:203.0.113.7`) est hachée comme l'adresse IPv4. Le jeton contient la

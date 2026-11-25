@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=33826671144ad00cdfc655a202c5e0ce76f3a882788ff7da648139942a2e0458 -->
+<!-- phil-dev source-sha256=6db2e5910d7be1ae487364842c94e5d7bd824ab0551ce5ea008b1ec2205e9335 -->
 # La route
 
 Avec `route.enabled` et `config/routes.php` importé, les codes sont servis en images :
@@ -9,7 +9,8 @@ Avec `route.enabled` et `config/routes.php` importé, les codes sont servis en i
 ```
 
 `qr_code_url(content, format = 'svg', logo = '', absolute = false)` écrit `/qr-code.svg` ou `/qr-code.png` avec la
-charge utile et le logo dans la requête, signés avec le secret de l'application (`_qr_signature`). La route ne dessine
+charge utile et le logo dans la requête, signés sous une clé dérivée du secret de l'application par HKDF-SHA256 sous
+`phil_qr_code.image_url` (`_qr_signature`), que le `uri_signer` de FrameworkBundle ne partage pas. La route ne dessine
 que ce que l'application a signé : toute autre adresse, ou un code qui ne peut pas être dessiné, est introuvable — la
 route ne peut pas servir à dessiner des codes pour quelqu'un d'autre.
 

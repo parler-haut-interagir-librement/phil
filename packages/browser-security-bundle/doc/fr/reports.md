@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=00cd640f6d8b3564de2be7758b31e8edf8706d5c41abe4c02d4fae0fbe00c3c5 -->
+<!-- phil-dev source-sha256=bcd21f209b558df78e67bb372ccc70b92589a44e1744321804dcc7661f25a0f4 -->
 # Rapports
 
 Un navigateur qui rencontre une violation envoie un rapport à l'adresse que nomme la politique. Le bundle nomme son
@@ -76,8 +76,8 @@ type ou trop grand ne compte jamais dans la limitation de débit.
 - Une adresse perd ses identifiants, sa chaîne de requête et son fragment, où se cachent les jetons et les données
   personnelles : `https://user:secret@example.com/reset?token=abc#x` est gardée comme `https://example.com/reset`.
 - Les caractères de contrôle sont retirés de chaque texte.
-- L'adresse du client n'est jamais gardée en clair. La limitation de débit compte un HMAC-SHA-256 de celle-ci, avec le
-  secret du noyau comme clé. Le magasin et l'événement la reçoivent tronquée par `phil/ip-anonymizer` (à un /24 en IPv4
+- L'adresse du client n'est jamais gardée en clair. La limitation de débit compte un HMAC-SHA-256 de celle-ci, sous une clé
+  dérivée du secret du noyau par HKDF-SHA256 sous `phil_browser_security.report_throttle`. Le magasin et l'événement la reçoivent tronquée par `phil/ip-anonymizer` (à un /24 en IPv4
   et un /48 en IPv6 par défaut), ou rien quand ce paquet manque ou que `client_address` est désactivé.
 
 ## La limitation de débit

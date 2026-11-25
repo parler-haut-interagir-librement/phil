@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=34ce3df04074033b36f2d8f7e1e507a86784d7e77ba9a1f3a167079b69831d54 -->
+<!-- phil-dev source-sha256=2ce79e747cb04132e1bd621d46db1ed6c40443f2b7bf39a2442e6aa469df073b -->
 # Terminaux connectés
 
 Un terminal de carte connecté est piloté par le serveur, jamais par la caisse. La caisse demande un débit au serveur ;
@@ -77,7 +77,8 @@ propriétés.
 ## Le terminal factice
 
 `Infrastructure\Terminal\FakePaymentTerminal`, nommé `fake`, fait semblant : il se souvient de ce qu'on lui a demandé et
-signe les notifications qu'un test lui demande avec un HMAC-SHA256 du corps sous le secret du noyau, dans l'en-tête
+signe les notifications qu'un test lui demande avec un HMAC-SHA256 du corps sous une clé dérivée du
+secret du noyau par HKDF-SHA256 (`FakePaymentTerminal::USAGE`), dans l'en-tête
 `x-fake-terminal-signature`. Il n'est enregistré que lorsque `terminals.fake` vaut `true` — pour les tests, les
 démonstrations et le développement d'une caisse —, et le noyau le remet à zéro entre deux requêtes.
 

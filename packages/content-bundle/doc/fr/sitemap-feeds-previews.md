@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0d8f3ec586a69b72814d6f27a724c4b82aa02563fccdc42c887deaff68fca731 -->
+<!-- phil-dev source-sha256=837c3022c43eb8b0d3eb92621ed35f754b69e10df6ce63aadf5eb5c14af4ac2f -->
 # Plan du site, flux et aperçus
 
 Deux points de terminaison lisent ce qui est publié, un autre ce qui ne l'est pas encore, et un fournisseur donne ses
@@ -98,7 +98,8 @@ lequel le lien est lu. Le locataire de la console est celui que `phil/tenancy-bu
 
 ### La signature
 
-La signature est `v2.` suivi du HMAC-SHA256, en hexadécimal, de la version, de la portée, de la référence et de la
+La signature est `v2.` suivi du HMAC-SHA256, en hexadécimal, sous une clé dérivée du secret par HKDF-SHA256 sous
+`phil_content.preview_link`, de la version, de la portée, de la référence et de la
 locale, chacune écrite après sa longueur, puis de l'expiration. La version vient en premier afin qu'un nouveau format se
 distingue d'un ancien et soit refusé proprement ; une signature qui ne commence pas par la version actuelle est refusée.
 

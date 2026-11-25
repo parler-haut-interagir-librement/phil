@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0234912f0a8fec0123c1947a555f05aaf5812d692c588ce1b2e23df607c9abe7 -->
+<!-- phil-dev source-sha256=756039db78dd105f630c9db36a0a29a9756fa5d9c603cd615ce9bc233006553a -->
 # Nonces
 
 Un nonce est une valeur aléatoire qu'une réponse donne à ses propres éléments `<script>` et `<style>`, et qu'elle liste
@@ -76,6 +76,15 @@ Un élément en ligne connu est permis par le SHA-256 de son contenu, depuis la 
 ```php
 $csp->allowInline('script', $code);
 ```
+
+## La page d'erreur
+
+La page d'erreur HTML du composant ErrorHandler, que FrameworkBundle affiche quand aucun gabarit de l'application ne
+répond, porte les nonces de la réponse : le bundle remet `scriptNonce()` et `styleNonce()` de
+`ContentSecurityPolicyContext` à `HtmlErrorRenderer::setNonce()` (Symfony 8.2), lus quand une page est produite. Son
+élément `<style>`, ainsi que les éléments `<script>` et `<style>` de la page d'exception et de ses vidages, s'exécutent
+sous une politique sans `'unsafe-inline'`. En mode débogage, l'ErrorListener de HttpKernel retire la politique d'une
+page d'erreur, comme le fait Symfony sans le bundle.
 
 ## Nonces et caches HTTP
 

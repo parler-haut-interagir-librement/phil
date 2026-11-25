@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e703f97a691db8579bd245c739ff4a865e2a50180bfc5fd968e9bf310dfd56df -->
+<!-- phil-dev source-sha256=0282a531c8f01a89caa5064612a63b358e052157106b974a3ad5c7662b4d8026 -->
 # Formats et URL
 
 ## Formats
@@ -163,7 +163,8 @@ point focal du média les supprime.
 | `phil_media_format` | `/{id}/{version}/{format}.{type}` |
 | `phil_media_format_width` | `/{id}/{version}/{format}@{width}.{type}` |
 
-Une URL porte une signature HMAC-SHA256 de son chemin et, avec `url_ttl`, du moment où elle expire. Ce moment est
+Une URL porte une signature HMAC-SHA256, sous une clé dérivée du secret par HKDF-SHA256 sous
+`phil_media.url_signature`, de son chemin et, avec `url_ttl`, du moment où elle expire. Ce moment est
 arrondi vers le haut à un palier, un dixième de `url_ttl` et une heure au plus : chaque page rendue pendant un même
 palier donne la même URL, qu'un navigateur ou un CDN peut alors garder, et une URL reste valide de `url_ttl` à
 `url_ttl` plus un palier. `MediaController` répond `404` à une URL qui n'est pas signée, qui a été signée avec un autre

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=80af160fdb92c496ec69073eb337415ac0dab30d422313a99cb68453a8437051 -->
+<!-- phil-dev source-sha256=8efb7a719e60375b773ff48e8bafe3fa724ddea1a9713843b6b3f6c976adda11 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_identity_provider`. Chaque option a une valeur par défaut, sauf les
@@ -90,6 +90,10 @@ phil_identity_provider:
 | `password.min_score` | `2` | Le plus bas score de l'estimateur de force de `phil/passwords`, de 0 à 4. |
 | `password.breach_check` | `false` | Si un nouveau mot de passe est cherché dans Pwned Passwords, par k-anonymat : seuls cinq caractères de son SHA-1 quittent le serveur. |
 | `password.http_client` | `http_client` | Le client HTTP de la vérification des fuites. |
+| `password.semaphore.enabled` | `true` | Plafonne les empreintes et vérifications de mots de passe des comptes calculées en même temps sur chaque serveur ; `semaphore: false` désactive le plafond. Voir [Le plafond des vérifications de mot de passe](accounts.md#le-plafond-des-vérifications-de-mot-de-passe). |
+| `password.semaphore.slots` | `4` | Combien d'empreintes s'exécutent en même temps, de 1 à 256 : environ le nombre de cœurs du processeur. |
+| `password.semaphore.wait` | `3.0` | Combien de temps une empreinte attend une place, en secondes, avant que la connexion soit refusée avec `password.busy`. |
+| `password.semaphore.lock_factory` | `null` | Un service `LockFactory` sur un magasin local à chaque serveur ; null garde des fichiers flock dans le répertoire temporaire. |
 | `lockout.enabled` | `true` | Si les échecs de connexion par mot de passe verrouillent le compte ; `lockout: false` les compte sans rien verrouiller et laisse les essais à `login_limiter`. Voir [Le verrou](accounts.md#le-verrou). |
 | `lockout.threshold` | `5` | Échecs de connexion par mot de passe de suite avant le premier verrou. |
 | `lockout.base` | `60` | Secondes du premier verrou, doublées à chaque échec de plus. |

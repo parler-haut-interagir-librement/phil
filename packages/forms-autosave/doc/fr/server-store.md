@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c3344e61793dde864ec39bf45230396f2207b75b96ab8c2f4458f232a7cf6434 -->
+<!-- phil-dev source-sha256=8bcba5d3655e2bdd8abbd28449b08313ee83379760f57e51d2019034253b66f0 -->
 # Le stockage serveur
 
 Avec `server.enabled`, les brouillons d'un utilisateur connecté sont aussi conservés sur le serveur, pour qu'ils le
@@ -7,7 +7,8 @@ suivent sur un autre appareil. Les brouillons d'un visiteur restent dans son nav
 ## Utilisateurs
 
 `DraftOwner` nomme l'utilisateur : par défaut `TokenDraftOwner`, l'identifiant d'utilisateur de Symfony Security. La
-table n'en garde qu'une empreinte à clé, de 64 chiffres hexadécimaux, et chaque lecture ou écriture se fait sous
+table n'en garde qu'une empreinte à clé, de 64 chiffres hexadécimaux, sous une clé dérivée du secret par HKDF-SHA256 sous
+`phil_forms_autosave.draft_key`, et chaque lecture ou écriture se fait sous
 l'empreinte de l'utilisateur courant : un utilisateur n'atteint donc jamais le brouillon d'un autre, même avec sa clé.
 
 ## Révisions et conflits

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=da385de03a97fc3e3780dbc5d331413fc8d268ce0147edf2bb0da79343155308 -->
+<!-- phil-dev source-sha256=d1132c97ec0c73e247d51f8c1eb2c026dee12c4ca2f5016192e0f1a10f72d4ec -->
 # Référence
 
 ## Types publics
@@ -63,7 +63,7 @@
 | `passkeys` | `_passkeys` `/account/passkeys`, `_passkeys_options`, `_passkeys_register`, `_passkeys_rename`, `_passkeys_remove`, `_passkey_login_options` `/passkey/options`, `_passkey_login` `/passkey/login` |
 | `totp` | `_totp` `/account/two-factor`, `_totp_confirm`, `_totp_disable`, `_challenge` `/two-factor`, `_code_check` `/two-factor/check` |
 | `recovery_codes` | `_recovery_codes` `/account/two-factor/recovery-codes` |
-| `login_link` | `_login_link` `/login/link`, `_login_link_check` `/login/link/check` |
+| `login_link` | `_login_link` `/login/link`, `_login_link_check` `/login/link/check` (GET : la page de confirmation ; POST : l'authentificateur) |
 | `sms` | `_phone` `/account/phone`, `_phone_start`, `_phone_confirm`, `_phone_remove` |
 | `sessions` | `_sessions` `/account/sessions`, `_sessions_close`, `_sessions_close_others`, `_consent_withdraw` avec `oidc` |
 | `step_up` | `_reauthenticate` `/reauthenticate` |

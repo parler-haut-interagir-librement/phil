@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c5c2e5cf7bddd421f2135976560cec19d4b8c45589758b2b1784517a06769092 -->
+<!-- phil-dev source-sha256=c488814c72979a3629e9eb9a100031ceebccf4c37e9a0005f5b79b66aa44cbb1 -->
 # Configuration
 
 ```yaml
@@ -36,7 +36,7 @@ phil_rate_limit:
 
 | Option | Valeur par défaut | Sens |
 |---|---|---|
-| `secret` | `%kernel.secret%` | La clé du HMAC-SHA-256 des clés `ip`, `user` et `ip_route`. |
+| `secret` | `%kernel.secret%` | Le secret dont dérivent les clés du HMAC-SHA-256 des clés `ip`, `user` et `ip_route`, une par stratégie, par HKDF-SHA256 sous `phil_rate_limit.client_ip_key`, `phil_rate_limit.user_key` et `phil_rate_limit.ip_route_key`. |
 | `headers` | `draft` | `draft` écrit `RateLimit-Policy` et `RateLimit` ; `legacy` écrit `RateLimit-Limit`, `RateLimit-Remaining` et `RateLimit-Reset` ; `both` ; `none` garde `Retry-After` seul. |
 | `error_template` | `@PhilRateLimit/too_many_requests.html.twig` | La page d'un refus donné en HTML. |
 | `cache_pool` | `cache.app` | Le pool de cache de chaque limiteur qui ne nomme ni pool ni stockage. |

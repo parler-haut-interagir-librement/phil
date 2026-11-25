@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=39b5e6e2fcc6ab9b728c3478b9a180b1f7e401b24db77bc63d8a7102fb209b91 -->
+<!-- phil-dev source-sha256=522b4dbb839b4b24c5903baf71edc19f9d5b536fed1aa51dd2430340c22d1e24 -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace, configure ou utilise.
@@ -67,6 +67,7 @@ chaque reconstruction et avec `phil:search:synonyms`.
 |---|---|
 | `adapter` | `dbal`, `meilisearch` ou `loupe` |
 | `connection`, `meilisearch`, `loupe.directory` | L'endroit où chaque adaptateur garde les index |
+| `meilisearch.http_client`, `timeout`, `max_duration` | Le client HTTP qui appelle Meilisearch, `http_client` par défaut, et la durée qu'un appel peut prendre : 5 secondes d'attente d'un octet, 10 pour l'appel entier, par défaut |
 | `index_entities` | Comment chaque entité que modifie un `flush` de Doctrine est indexée : `outbox`, la valeur par défaut avec Meilisearch et Loupe, `direct`, la valeur par défaut avec la base de données, ou `none` |
 | `batch` | Le nombre de documents qu'une reconstruction écrit à la fois |
 | `synonyms.directory`, `synonyms.store`, `synonyms.rejected_forms` | L'origine des synonymes |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4f7c802d239c7bc3b7b10dec1e7829fece23a0d1ed76a645ab45e2e0fe855cc3 -->
+<!-- phil-dev source-sha256=d40e4194a948d37178f814ac3e0766339fbf46a131f5ce98d541fe2cc65ec5f3 -->
 # Administration
 
 Les pages sont désactivées, sauf si `admin` est activé, avec `admin: true` ou l'une de ses clés et `enabled: true`.
@@ -11,8 +11,10 @@ Les pages sont désactivées, sauf si `admin` est activé, avec `admin: true` ou
 | `phil_error_tracking_group` | `/{fingerprint}` | Un groupe, son état et ses versions, et ses derniers événements avec leurs chaînes, leurs cadres, leur requête et leurs étiquettes |
 | `phil_error_tracking_group_status` | `/{fingerprint}/{action}`, `POST` | Résout, ignore ou rouvre le groupe, puis l'affiche de nouveau |
 
-Chaque page répond avec `Cache-Control: no-store`. Chaque valeur qui y figure est passée par l'assainisseur ; les
-cadres des dépendances sont estompés. Quand les alertes sont activées mais sans destination — l'état dégradé des
+Chaque page répond avec `Cache-Control: no-store`. Chaque valeur qui y figure est passée par l'assainisseur. Une chaîne se lit
+de haut en bas : l'exception levée, puis chaque exception précédente marquée « Caused by », la cause première en dernier,
+« Root cause ». Les cadres de chaque exception commencent par le plus récent ; chaque suite de cadres sous `vendor/` est
+repliée dans un élément `<details>` qui dit combien elle en contient et s'ouvre sans script. Quand les alertes sont activées mais sans destination — l'état dégradé des
 [Alertes](alerts.md) —, les deux pages le disent en haut, dans un paragraphe `role="status"` de
 `@PhilErrorTracking/_alerts.html.twig`.
 

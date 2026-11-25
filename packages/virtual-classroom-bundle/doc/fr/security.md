@@ -1,10 +1,10 @@
-<!-- phil-dev source-sha256=cdc682ef2a23f20a664f95338ee4e85adcc97f9844d1292088095a9bac4a92ae -->
+<!-- phil-dev source-sha256=fdcef2d5e0d8924af063c4ec2d7387c204893ed2814e61907fc80caf0b7afff2 -->
 # Sécurité
 
 ## Le webhook
 
-- Chaque adresse porte une preuve HMAC-SHA-256 de son fournisseur, de sa salle et de son canal sous `webhook_secret`,
-  comparée en temps constant ; une preuve fausse donne un 404, comme une adresse qui n'existe pas.
+- Chaque adresse porte une preuve HMAC-SHA-256 de son fournisseur, de sa salle et de son canal sous une clé dérivée de
+  `webhook_secret` par HKDF-SHA256 pour cet usage seul (`WebhookSigner::USAGE`), comparée en temps constant ; une preuve fausse donne un 404, comme une adresse qui n'existe pas.
 - L'adresse des événements signés d'une salle ne peut ni la terminer ni atteindre une autre salle ; une notification
   qui nomme une autre salle que son adresse est refusée.
 - Le fournisseur vérifie ensuite sa propre signature : les jetons de BigBlueButton, le `X-Jaas-Signature` de JaaS à

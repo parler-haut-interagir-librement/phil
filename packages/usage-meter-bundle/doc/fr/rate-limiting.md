@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=647a4252d80335223d8e5e69072047db32b1cb0142a38c5ab79e1a6f00a721ff -->
+<!-- phil-dev source-sha256=a2fc6384b226e31d00b2cdefe55275e588de868b3e15499ccbcc63050208c1ba -->
 # Limitation de débit
 
 Les limiteurs de débit de ce bundle sont des limiteurs de `phil/rate-limit-bundle` qui comptent sur un compteur. Ce
@@ -74,7 +74,8 @@ Idempotency-Key: "8e03978e-40d5-43e8-bc93-6894a57f9324"
 - La valeur fait de 1 à 255 caractères ASCII imprimables, entre guillemets comme une chaîne de champ structuré ou non,
   sans guillemet ni barre oblique inverse à l'intérieur : `"abc"` et `abc` sont la même clé. Une autre valeur reçoit
   la réponse `400 Bad Request`. Une requête sans l'en-tête est comptée comme d'habitude.
-- Le stockage ne garde jamais la valeur du client : il garde le HMAC-SHA-256, sous `idempotency_secret`, du nom du
+- Le stockage ne garde jamais la valeur du client : il garde le HMAC-SHA-256, sous une clé dérivée de `idempotency_secret` par HKDF-SHA256
+  sous `phil_usage_meter.meter_limiter`, du nom du
   limiteur, de la méthode, de l'URI avec sa chaîne de requête, du SHA-256 du corps et de la valeur. La même clé sur une
   autre action, une autre URI ou un autre corps est une autre clé, et compte ; deux limiteurs à clé sur un même
   compteur comptent chacun la requête. Une clé est propre au sujet : les clés d'un client ne rencontrent donc jamais

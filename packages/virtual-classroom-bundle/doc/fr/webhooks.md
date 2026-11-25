@@ -1,8 +1,9 @@
-<!-- phil-dev source-sha256=5740dea698cd33b2e5775b1a30fc1cf3c50be158ae7e26ad3e36533aac9fb6f4 -->
+<!-- phil-dev source-sha256=fc98c2a4032967f816824d3e83504944864e107d339d7bb95e9522ffe33f7bbd -->
 # Webhooks
 
 Les serveurs rappellent l'application à des adresses du bundle, chacune portant une **preuve** : le HMAC-SHA-256 de son
-fournisseur, de sa salle et de son canal sous `webhook_secret`, 32 caractères en base64url.
+fournisseur, de sa salle et de son canal sous une clé dérivée de `webhook_secret` par HKDF-SHA256 pour cet usage seul
+(`WebhookSigner::USAGE`), 32 caractères en base64url.
 
 | Route | Chemin | Méthodes | Usage |
 |---|---|---|---|
