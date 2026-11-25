@@ -120,9 +120,9 @@ final class PhoneNumberTest extends TestCase
         try {
             PhoneNumber::parse($input, $region);
             self::fail('The input is no phone number.');
-        } catch (InvalidPhoneNumber $e) {
-            self::assertSame($message, $e->getMessage());
-            self::assertSame($input, $e->input);
+        } catch (InvalidPhoneNumber $invalidPhoneNumber) {
+            self::assertSame($message, $invalidPhoneNumber->getMessage());
+            self::assertSame($input, $invalidPhoneNumber->input);
         }
     }
 
@@ -142,9 +142,9 @@ final class PhoneNumberTest extends TestCase
         try {
             PhoneNumber::parse('514 555 0123', $region);
             self::fail('The region has no numbering plan.');
-        } catch (InvalidPhoneNumber $e) {
-            self::assertSame('"'.$region.'" is no region with a numbering plan.', $e->getMessage());
-            self::assertSame($region, $e->input);
+        } catch (InvalidPhoneNumber $invalidPhoneNumber) {
+            self::assertSame('"'.$region.'" is no region with a numbering plan.', $invalidPhoneNumber->getMessage());
+            self::assertSame($region, $invalidPhoneNumber->input);
         }
     }
 
@@ -153,8 +153,8 @@ final class PhoneNumberTest extends TestCase
         try {
             PhoneNumber::parse(str_repeat('a', 150));
             self::fail('Letters are no phone number.');
-        } catch (InvalidPhoneNumber $e) {
-            self::assertSame(str_repeat('a', 100), $e->input);
+        } catch (InvalidPhoneNumber $invalidPhoneNumber) {
+            self::assertSame(str_repeat('a', 100), $invalidPhoneNumber->input);
             self::assertSame(100, InvalidPhoneNumber::SHOWN_LENGTH);
         }
     }
@@ -193,9 +193,9 @@ final class PhoneNumberTest extends TestCase
         try {
             PhoneNumber::parse(str_repeat('é', 150));
             self::fail('Letters are no phone number.');
-        } catch (InvalidPhoneNumber $e) {
-            self::assertSame(str_repeat('é', 100), $e->input);
-            self::assertStringNotContainsString('é', $e->getMessage());
+        } catch (InvalidPhoneNumber $invalidPhoneNumber) {
+            self::assertSame(str_repeat('é', 100), $invalidPhoneNumber->input);
+            self::assertStringNotContainsString('é', $invalidPhoneNumber->getMessage());
         }
     }
 

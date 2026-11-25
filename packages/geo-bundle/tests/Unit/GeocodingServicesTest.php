@@ -53,7 +53,7 @@ final class GeocodingServicesTest extends TestCase
 
         self::assertSame('phil_geo.geocoder.nominatim', (string) $container->getAlias(Geocoder::class));
         self::assertSame(NominatimGeocoder::class, $container->getDefinition('phil_geo.geocoder.nominatim')->getClass());
-        self::assertEquals([new Reference('http_client'), 'Site (a@b.ca)', 'https://nominatim.openstreetmap.org', 5, '$timeouts' => self::timeouts()], $container->getDefinition('phil_geo.geocoder.nominatim')->getArguments());
+        self::assertEquals([new Reference('http_client'), 'Site (a@b.ca)', 'https://nominatim.openstreetmap.org', 5, '$timeouts' => $this->timeouts()], $container->getDefinition('phil_geo.geocoder.nominatim')->getArguments());
         self::assertFalse($container->hasDefinition('phil_geo.geocoder.chain'));
     }
 
@@ -66,9 +66,9 @@ final class GeocodingServicesTest extends TestCase
             'cache' => ['pool' => 'cache.app', 'lifetime' => 60],
         ]]);
 
-        self::assertEquals([new Reference('http_client'), 'key', 'https://maps.example.com', '$timeouts' => self::timeouts()], $container->getDefinition('phil_geo.geocoder.google_maps')->getArguments());
+        self::assertEquals([new Reference('http_client'), 'key', 'https://maps.example.com', '$timeouts' => $this->timeouts()], $container->getDefinition('phil_geo.geocoder.google_maps')->getArguments());
         self::assertSame(GoogleMapsGeocoder::class, $container->getDefinition('phil_geo.geocoder.google_maps')->getClass());
-        self::assertEquals([new Reference('http_client'), 'ua', 'https://geo.example.com', 40, '$timeouts' => self::timeouts()], $container->getDefinition('phil_geo.geocoder.nominatim')->getArguments());
+        self::assertEquals([new Reference('http_client'), 'ua', 'https://geo.example.com', 40, '$timeouts' => $this->timeouts()], $container->getDefinition('phil_geo.geocoder.nominatim')->getArguments());
         self::assertSame(ChainGeocoder::class, $container->getDefinition('phil_geo.geocoder.chain')->getClass());
         self::assertEquals([[new Reference('phil_geo.geocoder.google_maps'), new Reference('phil_geo.geocoder.nominatim')]], $container->getDefinition('phil_geo.geocoder.chain')->getArguments());
         self::assertSame(CachedGeocoder::class, $container->getDefinition('phil_geo.geocoder.cached')->getClass());
@@ -91,8 +91,8 @@ final class GeocodingServicesTest extends TestCase
 
         self::assertSame('phil_geo.geocoder.nrcan', (string) $container->getAlias(Geocoder::class));
         self::assertSame(NrcanGeocoder::class, $container->getDefinition('phil_geo.geocoder.nrcan')->getClass());
-        self::assertEquals([new Reference('http_client'), 'https://www.geolocator.api.geo.ca/geolocation', 5, '$timeouts' => self::timeouts()], $container->getDefinition('phil_geo.geocoder.nrcan')->getArguments());
-        self::assertEquals([new Reference('http_client'), 'https://geo.example.com', 2, '$timeouts' => self::timeouts()], $this->load(['geocoding' => ['providers' => ['nrcan'], 'nrcan' => ['base_url' => 'https://geo.example.com', 'limit' => 2]]])->getDefinition('phil_geo.geocoder.nrcan')->getArguments());
+        self::assertEquals([new Reference('http_client'), 'https://www.geolocator.api.geo.ca/geolocation', 5, '$timeouts' => $this->timeouts()], $container->getDefinition('phil_geo.geocoder.nrcan')->getArguments());
+        self::assertEquals([new Reference('http_client'), 'https://geo.example.com', 2, '$timeouts' => $this->timeouts()], $this->load(['geocoding' => ['providers' => ['nrcan'], 'nrcan' => ['base_url' => 'https://geo.example.com', 'limit' => 2]]])->getDefinition('phil_geo.geocoder.nrcan')->getArguments());
         self::assertSame([1, 40], [
             $this->load(['geocoding' => ['providers' => ['nrcan'], 'nrcan' => ['limit' => 1]]])->getDefinition('phil_geo.geocoder.nrcan')->getArgument(2),
             $this->load(['geocoding' => ['providers' => ['nrcan'], 'nrcan' => ['limit' => 40]]])->getDefinition('phil_geo.geocoder.nrcan')->getArgument(2),
@@ -109,8 +109,8 @@ final class GeocodingServicesTest extends TestCase
 
         self::assertSame('phil_geo.geocoder.photon', (string) $container->getAlias(Geocoder::class));
         self::assertSame(PhotonGeocoder::class, $container->getDefinition('phil_geo.geocoder.photon')->getClass());
-        self::assertEquals([new Reference('http_client'), 'https://photon.komoot.io', 5, ['de', 'en', 'fr'], '$timeouts' => self::timeouts()], $container->getDefinition('phil_geo.geocoder.photon')->getArguments());
-        self::assertEquals([new Reference('http_client'), 'https://photon.example.com', 2, ['fr', 'it'], '$timeouts' => self::timeouts()], $this->load(['geocoding' => ['providers' => ['photon'], 'photon' => ['base_url' => 'https://photon.example.com', 'limit' => 2, 'languages' => ['fr', 'it']]]])->getDefinition('phil_geo.geocoder.photon')->getArguments());
+        self::assertEquals([new Reference('http_client'), 'https://photon.komoot.io', 5, ['de', 'en', 'fr'], '$timeouts' => $this->timeouts()], $container->getDefinition('phil_geo.geocoder.photon')->getArguments());
+        self::assertEquals([new Reference('http_client'), 'https://photon.example.com', 2, ['fr', 'it'], '$timeouts' => $this->timeouts()], $this->load(['geocoding' => ['providers' => ['photon'], 'photon' => ['base_url' => 'https://photon.example.com', 'limit' => 2, 'languages' => ['fr', 'it']]]])->getDefinition('phil_geo.geocoder.photon')->getArguments());
         self::assertSame([1, 40], [
             $this->load(['geocoding' => ['providers' => ['photon'], 'photon' => ['limit' => 1]]])->getDefinition('phil_geo.geocoder.photon')->getArgument(2),
             $this->load(['geocoding' => ['providers' => ['photon'], 'photon' => ['limit' => 40]]])->getDefinition('phil_geo.geocoder.photon')->getArgument(2),
@@ -130,11 +130,11 @@ final class GeocodingServicesTest extends TestCase
         $client = new Reference('http_client');
 
         self::assertSame([OpenCageGeocoder::class, HereGeocoder::class, MapboxGeocoder::class, AzureMapsGeocoder::class, AdressesQuebecGeocoder::class], array_map(static fn (string $name): ?string => $container->getDefinition('phil_geo.geocoder.'.$name)->getClass(), ['opencage', 'here', 'mapbox', 'azure_maps', 'adresses_quebec']));
-        self::assertEquals([$client, 'oc', 'https://api.opencagedata.com/geocode/v1/json', 5, '$timeouts' => self::timeouts()], $container->getDefinition('phil_geo.geocoder.opencage')->getArguments());
-        self::assertEquals([$client, 'he', 'https://geocode.search.hereapi.com/v1/geocode', 'https://revgeocode.search.hereapi.com/v1/revgeocode', 5, '$timeouts' => self::timeouts()], $container->getDefinition('phil_geo.geocoder.here')->getArguments());
-        self::assertEquals([$client, 'mb', 'https://api.mapbox.com/search/geocode/v6', 5, false, '$timeouts' => self::timeouts()], $container->getDefinition('phil_geo.geocoder.mapbox')->getArguments());
-        self::assertEquals([$client, 'az', 'https://atlas.microsoft.com', 5, '2026-01-01', '$timeouts' => self::timeouts()], $container->getDefinition('phil_geo.geocoder.azure_maps')->getArguments());
-        self::assertEquals([$client, 'https://servicescarto.mrnf.gouv.qc.ca/pes/rest/services/Territoire/Adresse_Geocodage/GeocodeServer', 5, '$timeouts' => self::timeouts()], $container->getDefinition('phil_geo.geocoder.adresses_quebec')->getArguments());
+        self::assertEquals([$client, 'oc', 'https://api.opencagedata.com/geocode/v1/json', 5, '$timeouts' => $this->timeouts()], $container->getDefinition('phil_geo.geocoder.opencage')->getArguments());
+        self::assertEquals([$client, 'he', 'https://geocode.search.hereapi.com/v1/geocode', 'https://revgeocode.search.hereapi.com/v1/revgeocode', 5, '$timeouts' => $this->timeouts()], $container->getDefinition('phil_geo.geocoder.here')->getArguments());
+        self::assertEquals([$client, 'mb', 'https://api.mapbox.com/search/geocode/v6', 5, false, '$timeouts' => $this->timeouts()], $container->getDefinition('phil_geo.geocoder.mapbox')->getArguments());
+        self::assertEquals([$client, 'az', 'https://atlas.microsoft.com', 5, '2026-01-01', '$timeouts' => $this->timeouts()], $container->getDefinition('phil_geo.geocoder.azure_maps')->getArguments());
+        self::assertEquals([$client, 'https://servicescarto.mrnf.gouv.qc.ca/pes/rest/services/Territoire/Adresse_Geocodage/GeocodeServer', 5, '$timeouts' => $this->timeouts()], $container->getDefinition('phil_geo.geocoder.adresses_quebec')->getArguments());
 
         $set = $this->load(['geocoding' => [
             'providers' => ['opencage', 'here', 'mapbox', 'azure_maps', 'adresses_quebec'],
@@ -145,11 +145,11 @@ final class GeocodingServicesTest extends TestCase
             'adresses_quebec' => ['base_url' => 'https://aq.example.com', 'limit' => 40],
         ]]);
         self::assertEquals([
-            [$client, 'oc', 'https://oc.example.com', 100, '$timeouts' => self::timeouts()],
-            [$client, 'he', 'https://g.example.com', 'https://r.example.com', 100, '$timeouts' => self::timeouts()],
-            [$client, 'mb', 'https://mb.example.com', 10, true, '$timeouts' => self::timeouts()],
-            [$client, 'az', 'https://az.example.com', 20, '2025-01-01', '$timeouts' => self::timeouts()],
-            [$client, 'https://aq.example.com', 40, '$timeouts' => self::timeouts()],
+            [$client, 'oc', 'https://oc.example.com', 100, '$timeouts' => $this->timeouts()],
+            [$client, 'he', 'https://g.example.com', 'https://r.example.com', 100, '$timeouts' => $this->timeouts()],
+            [$client, 'mb', 'https://mb.example.com', 10, true, '$timeouts' => $this->timeouts()],
+            [$client, 'az', 'https://az.example.com', 20, '2025-01-01', '$timeouts' => $this->timeouts()],
+            [$client, 'https://aq.example.com', 40, '$timeouts' => $this->timeouts()],
         ], array_map(static fn (string $name): array => $set->getDefinition('phil_geo.geocoder.'.$name)->getArguments(), ['opencage', 'here', 'mapbox', 'azure_maps', 'adresses_quebec']));
         self::assertSame([1, 1, 1, 1, 1], array_map(fn (string $name): mixed => $this->load(['geocoding' => ['providers' => [$name], 'opencage' => ['api_key' => 'k', 'limit' => 1], 'here' => ['api_key' => 'k', 'limit' => 1], 'mapbox' => ['access_token' => 't', 'limit' => 1], 'azure_maps' => ['subscription_key' => 'k', 'limit' => 1], 'adresses_quebec' => ['limit' => 1]]])->getDefinition('phil_geo.geocoder.'.$name)->getArgument(['opencage' => 3, 'here' => 4, 'mapbox' => 3, 'azure_maps' => 3, 'adresses_quebec' => 2][$name]), ['opencage', 'here', 'mapbox', 'azure_maps', 'adresses_quebec']));
         self::assertSame(
@@ -166,8 +166,8 @@ final class GeocodingServicesTest extends TestCase
             'ip_locator' => ['ipstack' => ['access_key' => 'k'], 'maxmind' => ['database' => '/var/geoip/City.mmdb', 'account_id' => '1', 'license_key' => 's']],
         ]);
 
-        self::assertEquals([new Reference('app.geo_client'), 'ua', 'https://nominatim.openstreetmap.org', 5, '$timeouts' => self::timeouts(1.5, 2.0)], $container->getDefinition('phil_geo.geocoder.nominatim')->getArguments());
-        self::assertEquals([new Reference('app.geo_client'), 'k', 'https://api.ipstack.com', self::timeouts(1.5, 2.0)], $container->getDefinition('phil_geo.ip_locator.ipstack')->getArguments());
+        self::assertEquals([new Reference('app.geo_client'), 'ua', 'https://nominatim.openstreetmap.org', 5, '$timeouts' => $this->timeouts(1.5, 2.0)], $container->getDefinition('phil_geo.geocoder.nominatim')->getArguments());
+        self::assertEquals([new Reference('app.geo_client'), 'k', 'https://api.ipstack.com', $this->timeouts(1.5, 2.0)], $container->getDefinition('phil_geo.ip_locator.ipstack')->getArguments());
         self::assertEquals(new Reference('app.geo_client'), $container->getDefinition('phil_geo.maxmind.updater')->getArgument(0));
     }
 
@@ -189,7 +189,7 @@ final class GeocodingServicesTest extends TestCase
 
         self::assertSame('phil_geo.ip_locator.ipstack', (string) $container->getAlias(IpLocator::class));
         self::assertSame(IpstackLocator::class, $container->getDefinition('phil_geo.ip_locator.ipstack')->getClass());
-        self::assertEquals([new Reference('http_client'), 'secret', 'https://api.ipstack.com', self::timeouts()], $container->getDefinition('phil_geo.ip_locator.ipstack')->getArguments());
+        self::assertEquals([new Reference('http_client'), 'secret', 'https://api.ipstack.com', $this->timeouts()], $container->getDefinition('phil_geo.ip_locator.ipstack')->getArguments());
         self::assertSame('https://ip.example.com', $this->load(['ip_locator' => ['ipstack' => ['access_key' => 'k', 'base_url' => 'https://ip.example.com']]])->getDefinition('phil_geo.ip_locator.ipstack')->getArgument(2));
         self::assertFalse($container->hasDefinition('phil_geo.ip_locator.maxmind'));
     }
@@ -331,7 +331,7 @@ final class GeocodingServicesTest extends TestCase
         return $extension;
     }
 
-    private static function timeouts(float $timeout = 3.0, float $maxDuration = 5.0): Definition
+    private function timeouts(float $timeout = 3.0, float $maxDuration = 5.0): Definition
     {
         return new Definition(Timeouts::class, [$timeout, $maxDuration]);
     }

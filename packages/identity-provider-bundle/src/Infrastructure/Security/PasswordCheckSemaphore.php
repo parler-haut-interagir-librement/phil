@@ -48,7 +48,7 @@ final readonly class PasswordCheckSemaphore
      */
     public function run(callable $hash): mixed
     {
-        $deadline = self::now() + (int) round($this->wait * 1_000_000);
+        $deadline = $this->now() + (int) round($this->wait * 1_000_000);
         $first = random_int(0, $this->slots - 1);
 
         do {
@@ -66,7 +66,7 @@ final readonly class PasswordCheckSemaphore
                 }
             }
 
-            $remaining = $deadline - self::now();
+            $remaining = $deadline - $this->now();
 
             if ($remaining > 0) {
                 usleep(min(self::PAUSE, $remaining));
@@ -79,7 +79,7 @@ final readonly class PasswordCheckSemaphore
     /**
      * The monotonic clock, in microseconds.
      */
-    private static function now(): int
+    private function now(): int
     {
         [$seconds, $nanoseconds] = hrtime();
 

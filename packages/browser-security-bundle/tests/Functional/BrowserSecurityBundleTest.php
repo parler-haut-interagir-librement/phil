@@ -112,7 +112,7 @@ final class BrowserSecurityBundleTest extends KernelTestCase
         self::assertStringNotContainsString('The page failed.', $content);
         self::assertSame(1, preg_match('/<style nonce="([A-Za-z0-9+\/]+=*)"/', $content, $style));
         self::assertStringContainsString("style-src 'self' 'nonce-".$style[1]."'", $header);
-        self::assertSame(0, preg_match('/<(script|style)(?![^>]*nonce=)[^>]*>/', $content), 'every element carries a nonce');
+        self::assertDoesNotMatchRegularExpression('/<(script|style)(?![^>]*nonce=)[^>]*>/', $content, 'every element carries a nonce');
         self::assertTrue($response->headers->hasCacheControlDirective('private'));
 
         self::assertStringNotContainsString($style[1], (string) $again->getContent(), 'each error page gets its own nonce');

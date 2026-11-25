@@ -52,7 +52,7 @@ final class ErrorPageNoncePassTest extends TestCase
         $container->getDefinition(ContentSecurityPolicyContext::class)->setArguments([new Reference('request_stack')]);
         $container->getDefinition(ErrorPageNoncePass::RENDERER)->setPublic(true);
         new ErrorPageNoncePass()->process($container);
-        $container->compile();
+        $container->compile(true);
 
         self::assertInstanceOf(HtmlErrorRenderer::class, $container->get(ErrorPageNoncePass::RENDERER));
     }

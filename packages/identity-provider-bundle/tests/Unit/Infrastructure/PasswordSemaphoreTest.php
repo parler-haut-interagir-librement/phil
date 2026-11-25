@@ -45,10 +45,10 @@ final class PasswordSemaphoreTest extends TestCase
         $semaphore = new PasswordCheckSemaphore($locks, 1, 0.0);
 
         try {
-            $semaphore->run(self::failing());
+            $semaphore->run($this->failing());
             self::fail('The failure goes through.');
-        } catch (RuntimeException $e) {
-            self::assertSame('failed', $e->getMessage());
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('failed', $runtimeException->getMessage());
         }
 
         self::assertTrue($locks->createLock('phil_identity_provider.password_check.0')->acquire());
@@ -69,9 +69,9 @@ final class PasswordSemaphoreTest extends TestCase
                 $ran = true;
             });
             self::fail('Every slot is taken.');
-        } catch (CustomUserMessageAuthenticationException $e) {
-            self::assertNotInstanceOf(BadCredentialsException::class, $e);
-            self::assertSame('password.busy', $e->getMessageKey());
+        } catch (CustomUserMessageAuthenticationException $customUserMessageAuthenticationException) {
+            self::assertNotInstanceOf(BadCredentialsException::class, $customUserMessageAuthenticationException);
+            self::assertSame('password.busy', $customUserMessageAuthenticationException->getMessageKey());
         }
 
         self::assertFalse($ran);
@@ -97,7 +97,7 @@ final class PasswordSemaphoreTest extends TestCase
     public function testTheHasherTakesASlotToHashAndToVerifyOnly(): void
     {
         $locks = new LockFactory(new InMemoryStore());
-        $hasher = new SemaphorePasswordHasher(self::plain(), new PasswordCheckSemaphore($locks, 1, 0.0));
+        $hasher = new SemaphorePasswordHasher($this->plain(), new PasswordCheckSemaphore($locks, 1, 0.0));
         $hash = $hasher->hash('secret');
 
         self::assertSame('plain:secret', $hash);
@@ -118,8 +118,8 @@ final class PasswordSemaphoreTest extends TestCase
     {
         $semaphore = new PasswordCheckSemaphore(new LockFactory(new InMemoryStore()), 1, 0.0);
         $factory = new SemaphorePasswordHasherFactory(new PasswordHasherFactory([
-            AccountUser::class => self::plain(),
-            InMemoryUser::class => self::plain(),
+            AccountUser::class => $this->plain(),
+            InMemoryUser::class => $this->plain(),
             'plaintext' => new PlaintextPasswordHasher(),
             'legacy' => new MessageDigestPasswordHasher(),
         ]), $semaphore);
@@ -148,14 +148,14 @@ final class PasswordSemaphoreTest extends TestCase
     /**
      * @return Closure(): string
      */
-    private static function failing(): Closure
+    private function failing(): Closure
     {
         return static function (): string {
             throw new RuntimeException('failed');
         };
     }
 
-    private static function plain(): PasswordHasherInterface
+    private function plain(): PasswordHasherInterface
     {
         return new class implements PasswordHasherInterface {
             public function hash(string $plainPassword): string

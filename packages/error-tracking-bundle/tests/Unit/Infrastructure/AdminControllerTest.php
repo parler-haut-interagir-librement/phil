@@ -32,6 +32,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Loader\PhpFileLoader;
 use Symfony\Component\Routing\RequestContext;
@@ -137,7 +138,7 @@ final class AdminControllerTest extends TestCase
     public function testTheNewestExceptionComesFirstAndTheVendorFramesFold(): void
     {
         $app = static fn (int $line): Frame => new Frame('src/Export.php', $line, 'App\\Export::run', true);
-        $vendor = static fn (int $line): Frame => new Frame('vendor/symfony/http-kernel/HttpKernel.php', $line, 'Symfony\\Component\\HttpKernel\\HttpKernel::handle');
+        $vendor = static fn (int $line): Frame => new Frame('vendor/symfony/http-kernel/HttpKernel.php', $line, HttpKernel::class.'::handle');
         $capture = $this->tracking->tracker->capture(new ErrorEvent('0123456789abcdef0123456789abcdef', new DateTimeImmutable('2026-11-24T12:00:00Z'), Source::Http, Severity::Error, [
             new ExceptionRecord('RuntimeException', 'Export failed', [$app(10), $vendor(1), $vendor(2), $app(11), $vendor(3)]),
             new ExceptionRecord('LogicException', 'Bad state', [$app(20)]),
@@ -155,7 +156,7 @@ final class AdminControllerTest extends TestCase
         self::assertIsInt($root);
         self::assertLessThan($middle, $thrown);
         self::assertLessThan($root, $middle);
-        self::assertStringContainsString('<li><code>App\\Export::run (src/Export.php:10)</code></li> <li class="is-vendor"><details><summary>2 vendor frames</summary><ol> <li class="is-vendor"><code>Symfony\\Component\\HttpKernel\\HttpKernel::handle (vendor/symfony/http-kernel/HttpKernel.php:1)</code></li>', $html);
+        self::assertStringContainsString('<li><code>App\Export::run (src/Export.php:10)</code></li> <li class="is-vendor"><details><summary>2 vendor frames</summary><ol> <li class="is-vendor"><code>'.HttpKernel::class.'::handle (vendor/symfony/http-kernel/HttpKernel.php:1)</code></li>', $html);
         self::assertStringContainsString('(vendor/symfony/http-kernel/HttpKernel.php:2)</code></li> </ol></details></li> <li><code>App\\Export::run (src/Export.php:11)</code></li>', $html);
         self::assertStringContainsString('<summary>1 vendor frame</summary>', $html);
         self::assertSame(3, substr_count($html, '<details>'));

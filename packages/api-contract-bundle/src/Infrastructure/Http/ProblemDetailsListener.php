@@ -57,7 +57,7 @@ final readonly class ProblemDetailsListener
             return;
         }
 
-        if (self::isWriteConflict($exception)) {
+        if ($this->isWriteConflict($exception)) {
             $event->setResponse(new ProblemDetailsResponse(ProblemDetails::create(Response::HTTP_CONFLICT, self::WRITE_CONFLICT_TYPE, 'The resource changed since it was read.', 'Read it again, then send the change again.')));
 
             return;
@@ -72,7 +72,7 @@ final readonly class ProblemDetailsListener
      * Whether the exception, or one it wraps — as Messenger's `HandlerFailedException` does —, is a write conflict.
      * Neither the entity nor its versions are named: the problem says what to do, not what the row holds.
      */
-    private static function isWriteConflict(Throwable $exception): bool
+    private function isWriteConflict(Throwable $exception): bool
     {
         for ($depth = 0, $current = $exception; $current instanceof Throwable && $depth < self::CHAIN_DEPTH; ++$depth, $current = $current->getPrevious()) {
             if ($current instanceof OptimisticLockException) {

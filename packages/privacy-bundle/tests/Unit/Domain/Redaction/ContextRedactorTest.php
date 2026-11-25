@@ -54,6 +54,7 @@ final class ContextRedactorTest extends TestCase
     {
         $object = new stdClass();
         $object->email = 'ada@example.com';
+
         $dto = new class {
             public string $phone = '+15145550123';
         };
