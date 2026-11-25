@@ -149,7 +149,8 @@ final class PhilSchedulingPollBundle extends AbstractBundle
     {
         parent::build($container);
         $container->addCompilerPass(new KitSubdirectoryPass());
-        $container->addCompilerPass(new OptionalServicesPass());
+        // Priority 1: before the MessengerPass of symfony/messenger (priority 0, from a bundle registered before this one), which wires the handlers and middleware this pass may remove or add.
+        $container->addCompilerPass(new OptionalServicesPass(), priority: 1);
     }
 
     #[Override]

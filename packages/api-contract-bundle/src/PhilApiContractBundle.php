@@ -62,8 +62,8 @@ final class PhilApiContractBundle extends AbstractBundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new CheckDeprecatedEndpoints());
-        // Runs before the pass of Messenger, which reads the middleware of each bus.
-        $container->addCompilerPass(new AddTenantIdempotencyScopeMiddleware());
+        // Priority 1: before the MessengerPass of symfony/messenger (priority 0, from a bundle registered before this one), which wires the handlers and middleware this pass may remove or add.
+        $container->addCompilerPass(new AddTenantIdempotencyScopeMiddleware(), priority: 1);
     }
 
     #[Override]

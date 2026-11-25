@@ -93,7 +93,7 @@ final class ContactCardArrayTest extends TestCase
         yield 'an email that is none' => [['emails' => ['ada']], '"ada" is not an email address.'];
         yield 'a phone without number' => [['phones' => [['role' => 'voice']]], 'an entry has no text "number"'];
         yield 'a phone of no role' => [['phones' => [['role' => 'office', 'number' => '+15145550123']]], 'a phone line has no known role'];
-        yield 'a phone without its country code' => [['phones' => [['role' => 'voice', 'number' => '5145550123']]], '"5145550123" is written without its country code, and no region is given'];
+        yield 'a phone without its country code' => [['phones' => [['role' => 'voice', 'number' => '5145550123']]], 'The number is written without its country code, and no region is given.'];
         yield 'an address of no kind' => [['urls' => [['type' => KnownUrlType::class.'::Nothing', 'url' => 'https://example.com/']]], '"'.KnownUrlType::class.'::Nothing" is no case of an enum implementing Phil\Url\UrlType'];
         yield 'an address of another enum' => [['urls' => [['type' => PhoneRole::class.'::Voice', 'url' => 'https://example.com/']]], '"'.PhoneRole::class.'::Voice" is no case of an enum implementing Phil\Url\UrlType'];
         yield 'an address of a case and more' => [['urls' => [['type' => KnownUrlType::class.'::Website::Facebook', 'url' => 'https://example.com/']]], '"'.KnownUrlType::class.'::Website::Facebook" is no case'];

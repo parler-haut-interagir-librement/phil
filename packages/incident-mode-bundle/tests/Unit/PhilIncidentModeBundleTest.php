@@ -58,6 +58,8 @@ use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
+use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
+use Symfony\Component\Messenger\MessengerBundle;
 use Symfony\Component\Translation\IdentityTranslator;
 
 #[CoversClass(PhilIncidentModeBundle::class)]
@@ -443,5 +445,20 @@ final class PhilIncidentModeBundleTest extends TestCase
         self::assertInstanceOf(ExtensionInterface::class, $extension);
 
         return $extension;
+    }
+
+    public function testTheHandlersAreRemovedBeforeMessengerWiresThem(): void
+    {
+        $container = new ContainerBuilder();
+        new MessengerBundle()->build($container);
+        new PhilIncidentModeBundle()->build($container);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $messenger = array_search(MessengerPass::class, $passes, true);
+        self::assertIsInt($messenger);
+
+        $removal = array_search(IncidentModePass::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertLessThan($messenger, $removal);
     }
 }

@@ -98,7 +98,8 @@ final class PhilIncidentModeBundle extends AbstractBundle
     #[Override]
     public function build(ContainerBuilder $container): void
     {
-        $container->addCompilerPass(new IncidentModePass());
+        // Priority 1: before the MessengerPass of symfony/messenger (priority 0, from a bundle registered before this one), which wires the handlers and middleware this pass may remove or add.
+        $container->addCompilerPass(new IncidentModePass(), priority: 1);
     }
 
     private function presets(NodeBuilder $children): void

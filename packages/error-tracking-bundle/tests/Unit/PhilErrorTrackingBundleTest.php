@@ -59,7 +59,9 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
+use Symfony\Component\Messenger\MessengerBundle;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\CacheStorage;
 
@@ -595,5 +597,20 @@ final class PhilErrorTrackingBundleTest extends TestCase
         $extension->load([$config], $container);
 
         return $container;
+    }
+
+    public function testTheHandlersAreRemovedBeforeMessengerWiresThem(): void
+    {
+        $container = new ContainerBuilder();
+        new MessengerBundle()->build($container);
+        new PhilErrorTrackingBundle()->build($container);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $messenger = array_search(MessengerPass::class, $passes, true);
+        self::assertIsInt($messenger);
+
+        $removal = array_search(AlertsPass::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertLessThan($messenger, $removal);
     }
 }

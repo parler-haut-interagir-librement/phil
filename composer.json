@@ -49,7 +49,7 @@
         "monolog/monolog": "^3.13",
         "nelmio/api-doc-bundle": "^5.14",
         "nyholm/psr7": "^1.8",
-        "phil/dev-tools": "^0.1@dev",
+        "phil/dev-tools": "0.1.8-alpha",
         "phil/ux-css": "^0.6@dev",
         "phil/ux-kit": "^0.6@dev",
         "php-webdriver/webdriver": "^1.16",

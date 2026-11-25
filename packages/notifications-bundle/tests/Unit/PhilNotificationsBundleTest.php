@@ -76,6 +76,8 @@ use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
+use Symfony\Component\Messenger\MessengerBundle;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 
 #[CoversClass(PhilNotificationsBundle::class)]
@@ -599,5 +601,20 @@ final class PhilNotificationsBundleTest extends TestCase
         self::assertInstanceOf(ExtensionInterface::class, $extension);
 
         return $extension;
+    }
+
+    public function testTheHandlersAreRemovedBeforeMessengerWiresThem(): void
+    {
+        $container = new ContainerBuilder();
+        new MessengerBundle()->build($container);
+        new PhilNotificationsBundle()->build($container);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $messenger = array_search(MessengerPass::class, $passes, true);
+        self::assertIsInt($messenger);
+
+        $removal = array_search(NotificationsPass::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertLessThan($messenger, $removal);
     }
 }

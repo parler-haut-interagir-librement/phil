@@ -40,6 +40,8 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
+use Symfony\Component\Messenger\MessengerBundle;
 
 #[CoversClass(PhilAudioBundle::class)]
 #[CoversClass(AudioServices::class)]
@@ -261,5 +263,20 @@ final class PhilAudioBundleTest extends TestCase
         self::assertTrue($container->getDefinition(Renditions::class)->isPublic());
         self::assertTrue($container->getDefinition('phil_audio.listening_policy')->isPublic());
         self::assertTrue($container->getAlias(ListeningPolicy::class)->isPublic());
+    }
+
+    public function testTheHandlersAreRemovedBeforeMessengerWiresThem(): void
+    {
+        $container = new ContainerBuilder();
+        new MessengerBundle()->build($container);
+        new PhilAudioBundle()->build($container);
+
+        $passes = array_map(static fn (object $pass): string => $pass::class, $container->getCompilerPassConfig()->getBeforeOptimizationPasses());
+        $messenger = array_search(MessengerPass::class, $passes, true);
+        self::assertIsInt($messenger);
+
+        $removal = array_search(JobsPass::class, $passes, true);
+        self::assertIsInt($removal);
+        self::assertLessThan($messenger, $removal);
     }
 }
