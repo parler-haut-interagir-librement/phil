@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bca838145104647bacd52a95afe0ed90def8a70b2202d91737995452030ed0a3 -->
+<!-- phil-dev source-sha256=e188105820097025cb5ad8a21dd883309d41d8b824abdc595b853280d8d60b36 -->
 # Installation
 
 | Prérequis | Version | Raison |
@@ -37,7 +37,7 @@ phil_search:
         key: '%env(MEILISEARCH_KEY)%'
     loupe:
         directory: '%kernel.project_dir%/var/loupe'   # a directory per index
-    index_entities: true     # entities indexed at each flush
+    index_entities: ~        # outbox (Meilisearch, Loupe), direct (dbal) or none; null: the adapter's default
     batch: 500               # documents a rebuild sends at once
     synonyms:
         directory: ~         # files of synonyms, fr.txt, en.txt, with phil/search-synonyms
@@ -47,8 +47,9 @@ phil_search:
     kit_subdirectory: ~      # where the recipes of the kit are; the Toolkit's subdirectory when null
 ```
 
-`adapter: meilisearch` sans URL, `adapter: loupe` sans `phil/search-loupe` et `synonyms.directory` sans
-`phil/search-synonyms` sont refusés à la construction du conteneur. Un service `SearchIndex` propre à l'application,
+`adapter: meilisearch` sans URL, `adapter: loupe` sans `phil/search-loupe`, `synonyms.directory` sans
+`phil/search-synonyms`, et `index_entities: outbox` — la valeur par défaut avec Meilisearch et Loupe — sans
+`phil/outbox-bundle`, sont refusés à la construction du conteneur. Un service `SearchIndex` propre à l'application,
 sous forme d'alias, remplace celui qui est configuré.
 
 ## Les adaptateurs
@@ -81,6 +82,13 @@ Les tables d'une installation 0.1 sur MySQL ou MariaDB gardaient la collation de
 `doctrine:migrations:migrate`. Le changement ne fait que distinguer davantage les valeurs : aucune ligne existante ne
 brise une clé. Les lignes qu'une collation insensible à la casse avait déjà fusionnées restent fusionnées ; les valeurs
 écrites à partir de la migration sont gardées distinctes. Sur PostgreSQL et SQLite, le diff est vide.
+
+#### Mise à niveau vers 0.3
+
+Avec Meilisearch ou Loupe, `index_entities` vaut `outbox` par défaut : installez `phil/outbox-bundle` sur la connexion
+des entités, créez sa table et lancez son relais — `phil:outbox:relay` sous un gestionnaire de processus, ou son
+horaire. Une application qui garde l'indexation après chaque `flush` met `index_entities: direct` ; `true` reste la
+valeur par défaut de l'adaptateur, `false` reste `none`. Voyez [Ce que fait un `flush`](providers.md#ce-que-fait-un-flush).
 
 ## Les filtres
 

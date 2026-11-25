@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c65547f94f0c6a3da50f01a5710d5ea5c08bbf551aa372ab75270b0cea0a29d3 -->
+<!-- phil-dev source-sha256=658fb2b337057851475b72fe36cd7547969b3ed4d4bfb7d5a0892e7ff3fdab87 -->
 # Le cycle de vie d'une commande
 
 Les états d'une commande — panier, soumission, passée, annulée — sont décrits par `symfony/workflow` : la machine à
@@ -64,6 +64,9 @@ $lifecycle->force($order, OrderState::Placed, 'manager-2', 'Cancelled by mistake
 - **La commande garde ses invariants** : un passage forcé vers le même état, ou d'une commande vide vers passée, est
   refusé ; passer à passée fixe le moment du passage, à annulée le moment de l'annulation, et quitter annulée oublie une
   expiration.
+- **`Order::force()` est interne** et ne fait pas partie de l'API publique : elle fait passer la commande sans
+  demander à personne, et `OrderLifecycle::force()` est son seul appelant. Une application, ou un autre module, force
+  par le cycle de vie.
 
 ## Annoncer une annulation
 

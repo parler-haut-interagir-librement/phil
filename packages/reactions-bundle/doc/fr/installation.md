@@ -1,9 +1,9 @@
-<!-- phil-dev source-sha256=d0db030bf8da2eb031b117d08dbdd26f4d93dabbbb69211a4aeb3a3e00d588c1 -->
+<!-- phil-dev source-sha256=9f02da6a6e4f032e1824b913abf2a5106eb684f0b35eb476570841d0ba476379 -->
 # Installation
 
 ## Prérequis
 
-PHP 8.5 ou plus récent avec `ext-intl`, Symfony 8.2 ou plus récent, Live Component et Twig Component de Symfony UX 3.7 ou
+PHP 8.5 ou plus récent avec `ext-intl`, Symfony 8.2 ou plus récent, Live Component 3.8.1 et Twig Component 3.8 de Symfony UX, ou
 plus récent, Doctrine DBAL 4.5 et ORM 3.7, et twig/intl-extra, dont `format_list` écrit les noms de ceux qui ont réagi
 dans la langue de la page. Le bundle enregistre lui-même l'extension de twig/intl-extra, sauf si TwigExtraBundle est là
 pour l'enregistrer. La protection CSRF de FrameworkBundle doit être activée : sinon, le conteneur s'arrête avec

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bc0220e0507b30f2bf4d6d8f9a5358433fa83c9b14c2482eb69b09acca3a5804 -->
+<!-- phil-dev source-sha256=f84c277703a48f482cd5d5635e083a1f9cb2fabfb834dfda376cf421c875e2b6 -->
 # Tests
 
 | Aspect | Ce qui est couvert |
@@ -9,7 +9,8 @@
 | `DbalSearchIndex`, sa table et son écouteur | Les mots et les filtres, l'échappement, le classement, les pages, le remplacement, le retrait, le vidage, une reconstruction en une seule transaction, les noms d'index, les variantes et les expressions, les listes de valeurs, les facettes comptées sans leur propre filtre |
 | `MeilisearchIndex` | Les requêtes envoyées, les attributs filtrables fusionnés avec ceux de l'index, les valeurs de filtre avec accents, barres obliques et guillemets, les listes avec `IN`, les facettes en une recherche ou dans `/multi-search`, les synonymes, une reconstruction par échange, les réponses lues, les refus, les noms d'index |
 | `Search`, `IndexOnFlushListener`, `ReindexCommand`, `SynonymsCommand` | L'indexation, plusieurs ressources en un appel et leurs retraits en un appel par index, les brouillons, plusieurs fournisseurs, les reconstructions par lots et leur échec, les noms d'index, les `flush`, leurs entités indexées ensemble dans l'ordre des changements, les suppressions sous l'identifiant lu avant le `flush`, les `flush` en échec et vidés, les commandes, les synonymes lus ou donnés au moteur |
-| `PhilSearchBundle` | Les trois adaptateurs, les synonymes, le composant, le répertoire du contrôleur, les réglages refusés |
+| `SearchOutboxCodec`, `OutboxIndexingListener` | Les deux enregistrements reconstruits, l'identifiant relu par champ, une classe qui n'est plus mappée ignorée, un index refusé, la clé d'ordre d'une entité |
+| `PhilSearchBundle` | Les trois adaptateurs, les modes de `index_entities` et leurs valeurs par défaut, l'outbox exigée, les synonymes, le composant, le répertoire du contrôleur, les réglages refusés |
 
 Une suite fonctionnelle démarre un noyau avec FrameworkBundle, DoctrineBundle sur SQLite, des pages et des notes et
 leurs fournisseurs : les pages sont trouvées au fil de leurs `flush`, de leurs changements de nom et de leurs
@@ -17,6 +18,11 @@ suppressions, puis reconstruites ; une note, dont la base de données génère l
 est supprimée. Le même noyau dessine une page de résultats de jeux avec les recettes du kit PHIL UX copiées là où le
 Toolkit les mettrait : ses filtres sont cochés et retirés par de simples formulaires et liens, et ses mots lisent les
 synonymes d'un répertoire.
+
+Un second noyau indexe par `phil/outbox-bundle`, dont les enregistrements partagent la base de données SQLite : un
+`flush` est trouvé une fois l'outbox relayée, renommé et supprimé ; l'indexation et le retrait d'une note vont dans leur
+ordre ; un `flush` que l'appelant annule ne laisse ni enregistrement ni document ; et, l'index étant retiré, la page est
+sauvegardée, la livraison réessayée, et l'index rattrapé une fois revenu.
 
 ```sh
 vendor/bin/phpunit packages/search-bundle/tests

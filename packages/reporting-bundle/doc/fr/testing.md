@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9a227af877ee7c9a05e2b7ed30fcc0af90324c25073c59ad2d4bd9ea384bceed -->
+<!-- phil-dev source-sha256=9beb9407fc8f48a1697a552f3ff1264a99429f665bc033fea6deac468c5fe69a -->
 # Tests
 
 ## Les tests du bundle
@@ -44,3 +44,11 @@ self::assertStringStartsWith("Order,Date,Total,Paid\r\n", array_values($exports-
 
 `InMemoryJobStore::ids()` et `InMemoryExportStore::contents()` montrent ce que contiennent les magasins. Une source ou
 un rapport se teste seul avec une `Period` construite à la main.
+
+## Les requêtes de LiveComponent
+
+`tests/Functional/LiveRequestsTest.php` envoie au composant les requêtes que le navigateur envoie, et le tient à ce que
+LiveComponent 3.8.1 impose : sous le nom de sa classe plutôt que sous son nom, le composant répond 404 ; un 422 levé
+avant son action, par un résolveur d'arguments ou un attribut de contrôleur, n'en produit aucun rendu ; et une
+redirection répond 204 avec `X-Live-Redirect` et son `Location`, sans `X-Live-Url`, tandis qu'une réponse ordinaire
+porte l'adresse que ses propriétés d'URL écrivent.

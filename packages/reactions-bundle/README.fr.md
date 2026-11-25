@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6ead80057fbf37e1042570556d58e5890ad1a92a8f3307b77726e6e021e744ed -->
+<!-- phil-dev source-sha256=8ea16dc7b2e901912a09b5c67ebf1854c525c4f8d1e1a24553c6a7b162745a13 -->
 # phil/reactions-bundle
 
 **Des réactions à n'importe quel contenu pour les applications Symfony, sous forme de Live Component qui fonctionne
@@ -93,7 +93,7 @@ final class ReactionVoter extends Voter
 
 ## Prérequis
 
-PHP 8.5 ou plus récent avec `ext-intl`, Symfony 8.2 ou plus récent, Live Component de Symfony UX 3.7 ou plus récent,
+PHP 8.5 ou plus récent avec `ext-intl`, Symfony 8.2 ou plus récent, Live Component de Symfony UX 3.8.1 ou plus récent,
 twig/intl-extra, Doctrine DBAL 4.5 et ORM 3.7. Symfony Security, Messenger, AssetMapper, `phil/media-bundle`,
 `phil/settings-bundle` et `phil/privacy-bundle` sont facultatifs.
 

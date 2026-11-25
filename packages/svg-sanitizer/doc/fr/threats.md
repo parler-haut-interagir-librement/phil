@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=50184e38bb36cb8041bf851fa51b0904b6ea4eab90754347b284b5e694d7a813 -->
+<!-- phil-dev source-sha256=7061bb18f37dce9b514f9f0d89f3c7254a12e9e31552170038a35b368c742926 -->
 # Menaces
 
 | Menace | Réponse de l'assainisseur |
@@ -18,6 +18,7 @@
 | Un `<style>` conservé qui atteint plus loin que son image : `body`, `:root`, `@media print { nav { … } }`, `#m ~ p`, `#m { & + p { … } }`, `:not(&)`, `@page`, `@font-face`, `@import`, un sélecteur écrit avec des échappements | Chaque règle est placée sous l'`id` de la racine de l'image par la portée de la politique CSS, les échappements lus avant la vérification ; un sélecteur qui commence déjà par cet `id` garde sa forme seulement s'il n'atteint que la racine et ce qu'elle contient ; `&` au premier niveau et `:not(&)` sont retirés ; `@import`, `@page`, `@font-face` et toute URL sauf un fragment sont retirés |
 | Des attributs cachés derrière un préfixe non déclaré, des éléments d'un autre espace de noms | Retirés : la sortie est construite à partir d'un document vide, et seul ce que la politique nomme l'atteint |
 | Du CSS qui s'échappe de son contexte : `expression()`, `behavior`, `-moz-binding`, `</style>` | Par `phil/css-sanitizer`, qui les refuse et n'écrit jamais le début d'une balise fermante |
+| Une image intégrée dans une page, que le navigateur lit avec son analyseur HTML et non comme du XML : un `<style>` ou une section CDATA qui se ferme trop tôt, du balisage dans un `<title>` ou après un `<p>`, un élément qui sort du SVG, des noms d'attributs lus autrement | La sortie est sérialisée à partir d'un document qui ne contient que ce que la politique nomme, le texte échappé ; un test analyse de nouveau chaque sortie avec l'analyseur HTML5 de PHP, dans un `div`, après un paragraphe et dans un lien, et ne trouve ni script, ni élément HTML, ni gestionnaire d'événement, ni adresse `javascript:`, sous chaque politique |
 
 ## Ce qui reste à l'application
 

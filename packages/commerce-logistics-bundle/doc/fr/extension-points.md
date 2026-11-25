@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b61d8d7f3aa250f5d5543d8512c0e420e7e94c8a59ef0a0cc1f701bdca58e113 -->
+<!-- phil-dev source-sha256=30353058e2488297edcf1ad31e8eb235ec6ba89d62ce57789e4d84b7eb6eacf8 -->
 <!-- phil-dev source-sha256=0 -->
 # Points d'extension
 
@@ -44,6 +44,70 @@ autoconfiguration ; `ConventionStock` les appelle tous, une fois par commande et
 | `conventions.window_days` | Combien de jours à l'avance une convention compte comme proche, de 0 à 366 ; 30 par défaut |
 | `conventions.online_channels` | Les canaux dont les commandes sont passées en ligne, avec les commandes sans canal |
 
+## `ShipmentAuthorization`
+
+`Application\Contract\ShipmentAuthorization` dit si une commande passée peut partir maintenant. Un service qui
+l'implémente reçoit l'étiquette `phil_commerce_logistics.shipment_authorization` par autoconfiguration ;
+`Shipments::ship()` les interroge par `AnyShipmentAuthorization` et expédie quand une répond oui.
+`PaidShipmentAuthorization`, celle du bundle, répond oui une fois que les paiements couvrent ce que la commande doit
+— voyez [Expéditions](shipments.md#expédition-autorisée).
+
+| Méthode | Contrat |
+|---|---|
+| `authorizes(Order $order): bool` | Si la commande peut partir ; elle ne change, ne facture ni n'enregistre rien |
+
+```php
+use Phil\CommerceBundle\Domain\Model\Order;
+use Phil\CommerceLogisticsBundle\Application\Contract\ShipmentAuthorization;
+
+/** The customers the application invoices at the end of the month, whose orders leave before they are paid. */
+final readonly class InvoicedCustomers implements ShipmentAuthorization
+{
+    /** @param list<string> $customers stable identifiers */
+    public function __construct(private array $customers)
+    {
+    }
+
+    public function authorizes(Order $order): bool
+    {
+        return \in_array($order->customer(), $this->customers, true);
+    }
+}
+```
+
+## `ShipmentForcing`
+
+`Application\Contract\ShipmentForcing` dit qui peut expédier, par `Shipments::force()`, une commande qu'aucune
+autorisation ne laisse partir. `DenyShipmentForcing`, l'alias du bundle, refuse tout le monde — voyez
+[Expéditions](shipments.md#forcer-une-expédition).
+
+| Méthode | Contrat |
+|---|---|
+| `allows(Order $order, string $actor): bool` | Si l'auteur, par son identifiant stable, peut forcer l'expédition de la commande |
+
+```php
+use Phil\CommerceBundle\Domain\Model\Order;
+use Phil\CommerceLogisticsBundle\Application\Contract\ShipmentForcing;
+use Symfony\Bundle\SecurityBundle\Security;
+
+final readonly class VoterShipmentForcing implements ShipmentForcing
+{
+    public function __construct(private Security $security)
+    {
+    }
+
+    public function allows(Order $order, string $actor): bool
+    {
+        return $this->security->isGranted('ROLE_SHIPMENT_FORCE', $order);
+    }
+}
+```
+
+```yaml
+services:
+    Phil\CommerceLogisticsBundle\Application\Contract\ShipmentForcing: '@App\Logistics\VoterShipmentForcing'
+```
+
 ## Le calcul des coûts
 
 `Application\Contract\StockOwnership` dit à qui appartiennent les unités qui partent d'un niveau de stock que se partagent
@@ -64,8 +128,9 @@ Voyez [Coûts](costing.md).
 | Événement | Envoyé par | Quand |
 |---|---|---|
 | `Domain\Event\UnitsShipped` | `Stock`, par le service `event_dispatcher` quand il y en a un | Des unités ont quitté la tablette : une fois par `ship()` ou `shipPart()` qui a déplacé des unités, une ligne par *SKU* et par emplacement |
+| `Domain\Event\ShipmentForced` | `Shipments`, par le service `event_dispatcher` quand il y en a un | Quelqu'un a forcé une expédition qu'aucune autorisation ne laissait partir, une fois qu'elle est gardée |
 
-L'événement ne porte que des identifiants et des quantités — voyez [Expéditions](shipments.md#les-unités-expédiées).
+Les événements ne portent que des identifiants et des quantités — voyez [Expéditions](shipments.md#les-unités-expédiées).
 
 ## Les dépôts
 

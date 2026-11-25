@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=20dafbf02b37554eb24b9613925a19255c454d8863b508da01fbca768a2c4f82 -->
+<!-- phil-dev source-sha256=3c8ad6bcd73e51be8484b56c7ab5af2f61699436aa1c4a32e3be204027fc6485 -->
 # Tests
 
 ```sh
@@ -42,3 +42,11 @@ par une table d'importation, ses réactions gardées entre deux requêtes dans l
 Ce que dit à voix haute un lecteur d'écran — la région active, le libellé et le compteur d'un bouton, la divulgation des
 noms — est entendu par une personne, avec VoiceOver et NVDA au moins : la suite vérifie le balisage qu'ils lisent, non
 leur parole.
+
+## Les requêtes de LiveComponent
+
+`tests/Functional/LiveRequestsTest.php` envoie au composant les requêtes que le navigateur envoie, et le tient à ce que
+LiveComponent 3.8.1 impose : sous le nom de sa classe plutôt que sous son nom, le composant répond 404 ; un 422 levé
+avant son action, par un résolveur d'arguments ou un attribut de contrôleur, n'en produit aucun rendu ; et une
+redirection répond 204 avec `X-Live-Redirect` et son `Location`, sans `X-Live-Url`, tandis qu'une réponse ordinaire
+rend l'adresse de la page.

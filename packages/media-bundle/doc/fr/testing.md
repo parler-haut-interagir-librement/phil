@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=12f052e15417bb3d04b5e606c111a0928697eac3dbb97e047370923d6f5a3890 -->
+<!-- phil-dev source-sha256=b7f3b67abe523ae5505d821f62209619a34295abe6ed664507ddc4211b846300 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -20,7 +20,7 @@
 | `VipsImageProcessor`, `ImageProcessors` | Les commandes données à libvips pour chaque étape, l'alpha et le JPEG, la qualité et les métadonnées, ce qui ne l'atteint jamais, les échecs et le nettoyage, par des doublures de `vips` et `vipsheader` ; libvips lui-même quand il est installé |
 | Les aperçus | Un par version, calculé une fois, aucun sans format, pour un fichier qui n'est pas une image matricielle, qui ne peut pas être rendu ou dont l'aperçu est trop grand ; l'aperçu et sa position confiés aux composants, jamais un `style` ; `phil:media:placeholders` sur plusieurs pages et collections, sa limite, son essai à blanc, ses échecs et ses refus |
 | `priority` | `loading`, `decoding` et `fetchpriority`, ce qu'une valeur explicite garde ; le lien de préchargement d'un `Img`, de la première source d'un `Picture` et d'un fichier qui ne peut pas être rendu, à côté des liens déjà là, rien sans requête ou sans fournisseur qui évolue |
-| `SanitizingSvgPurifier`, `SvgMinifier`, les téléversements SVG | Ce qui est retiré, le texte gardé, chaque cas d'arrondi, les refus ; une image SVG servie purifiée en `image/svg+xml`, une image gardée sans purification purifiée à son premier service, puis relue, de nouveau pour une nouvelle version, une image refusée en `404`, un flux d'octets sans purificateur |
+| `SanitizingSvgPurifier`, `SvgMinifier`, les téléversements SVG | Ce qui est retiré, le texte gardé, chaque cas d'arrondi, les refus ; une image SVG servie purifiée en `image/svg+xml`, une image gardée sans purification purifiée à son premier service, puis relue, de nouveau pour une nouvelle version, une image refusée en `404`, un flux d'octets sans purificateur ; chaque image gardée relue par `Dom\HTMLDocument`, l'analyseur HTML5 de PHP, dans un `div` et après un paragraphe, sans script, sans élément HTML, sans gestionnaire d'événement et sans adresse `javascript:`, quoi que le minificateur ait réécrit |
 | La politique « contenu d'usager » | Les en-têtes de l'original et d'un format, ce qui est affiché sous la politique par défaut et sous une politique propre |
 | `getMany()` | L'ordre demandé, les doublons et les identifiants inconnus, une requête par 500 |
 | Comment un média a été fait | La divulgation de l'IA selon chaque sorte de type de source numérique, les types retirés, schema.org |

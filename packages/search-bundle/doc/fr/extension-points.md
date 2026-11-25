@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6bf487671b2db8e5b90f9e9c22958e0f8b3baafba42a5e229ce4655a1b4b2092 -->
+<!-- phil-dev source-sha256=39b5e6e2fcc6ab9b728c3478b9a180b1f7e401b24db77bc63d8a7102fb209b91 -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace, configure ou utilise.
@@ -67,7 +67,7 @@ chaque reconstruction et avec `phil:search:synonyms`.
 |---|---|
 | `adapter` | `dbal`, `meilisearch` ou `loupe` |
 | `connection`, `meilisearch`, `loupe.directory` | L'endroit où chaque adaptateur garde les index |
-| `index_entities` | Indique si chaque entité que modifie un `flush` de Doctrine est indexée |
+| `index_entities` | Comment chaque entité que modifie un `flush` de Doctrine est indexée : `outbox`, la valeur par défaut avec Meilisearch et Loupe, `direct`, la valeur par défaut avec la base de données, ou `none` |
 | `batch` | Le nombre de documents qu'une reconstruction écrit à la fois |
 | `synonyms.directory`, `synonyms.store`, `synonyms.rejected_forms` | L'origine des synonymes |
 | `synonyms.languages` | Les langues que reçoit un moteur qui garde des synonymes |

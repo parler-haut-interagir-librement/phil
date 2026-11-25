@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e4ec2e4d47ce2a9bd332b0d685fbb98e5a779b695d93807f38b17c6508f4187f -->
+<!-- phil-dev source-sha256=07e1297299ecb70e4f1ca71b0e4cbc59a6477f16f1184d75bb3ea80250a7f442 -->
 # Points d'extension
 
 Seize ports. Les modules et l'application se branchent aux neuf que l'autoconfiguration étiquette, que lisent
@@ -134,7 +134,7 @@ liée à la commande, à la ligne et à l'unité qu'on lui donne.
 | `supports(string $method): bool` | Si la passerelle répond pour ce mode ; une seule devrait le faire |
 | `start(Payment $payment, Order $order): PaymentStart` | Remet le paiement au processeur pour `$payment->amount` ; retourne la référence du processeur et une page ou un secret client |
 | `refund(Payment $payment, Money $amount, string $idempotencyKey): void` | Demande un remboursement au processeur, en lui remettant la clé comme clé d'idempotence ; n'enregistre rien |
-| `read(string $payload, array $headers): PaymentNotification` | Vérifie la signature du processeur et lit son événement ; lève `InvalidNotification` sinon |
+| `read(string $payload, array $headers): PaymentNotification` | Vérifie la signature du processeur et lit son événement, comme ignoré quand la boutique n'y donne pas suite ; lève `InvalidNotification` sinon |
 
 Invariants :
 
@@ -143,7 +143,9 @@ Invariants :
 - **Nommez le paiement par la référence propre au processeur**, celle qu'a retournée `start()`, et la notification
   par l'identifiant d'événement propre au processeur : le paiement n'applique un identifiant qu'une seule fois.
 - **Faites correspondre les événements du processeur à `PaymentEvent`** ; un événement sur lequel la boutique n'agit
-  pas est lu comme `InvalidNotification`, auquel le *webhook* répond 400, ou n'est tout simplement pas souscrit.
+  pas, une fois sa signature vérifiée, est lu comme `PaymentNotification::ignored($eventId, $eventType)`, que le
+  *webhook* acquitte par un 204 et journalise, pour que le processeur cesse de l'envoyer. `InvalidNotification`, qui
+  répond 400, est gardée pour ce qui ne se vérifie pas ou ne peut pas être lu.
 - **Ne prenez jamais un montant dans la requête** : `start()` facture le montant du paiement, `refund()` le montant
   demandé.
 - **Remettez la clé d'idempotence au processeur** : la même clé accompagne chaque tentative d'un même remboursement,

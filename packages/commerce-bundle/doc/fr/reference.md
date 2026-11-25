@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7e35c72f39b26bef211ec26a6a58f18cf549f3f850070f247f73600909a6e489 -->
+<!-- phil-dev source-sha256=bf94062d119f9c515ef319f035dd888976069a9a05adedf81e7568c84f15f7cd -->
 # Référence
 
 Chaque type public du bundle, par couche, et les parties de la conception qui ne sont pas encore commencées. Les
@@ -106,7 +106,7 @@ lignes, les ventilations et leur calculateur sont les types de `phil/tax` ([taxe
 | `Channels` | `final readonly class` | Le canal d'une requête, les commandes qu'ouvre un canal | Implémenté et testé |
 | `Port\SellableAvailability` | port | Ce qu'un canal offre de quelque chose : listé, par lien direct seulement ou caché ; commandable ou non ; avec prix ou non | Le catalogue l'implémente |
 | `Payments` | `final readonly class` | Commence les paiements, applique les notifications, demande les remboursements, additionne une commande | Implémenté et testé |
-| `NotificationOutcome` | énumération adossée à une chaîne | Appliquée, déjà appliquée, refusée, paiement inconnu | Implémenté et testé |
+| `NotificationOutcome` | énumération adossée à une chaîne | Appliquée, déjà appliquée, refusée, paiement inconnu, ignorée | Implémenté et testé |
 | `Port\PaymentGateway` | port | Un processeur de paiement | L'application l'implémente |
 | `Receipts` | `final readonly class` | Émet les reçus et les notes de crédit | Implémenté et testé |
 | `Quotes` | `final readonly class` | Émet, accepte et refuse les soumissions | Implémenté et testé |
