@@ -107,6 +107,15 @@ final class ConsentTokenTest extends TestCase
         yield 'bad id' => [self::encodeRaw('{"i":"x","v":"1","g":[],"t":1,"p":false}')];
     }
 
+    public function testATokenSignedUnderTheKeyOfTheHmacDerivationReadsNothing(): void
+    {
+        $payload = self::encodeRaw('{"i":"'.self::ID.'","v":"2","g":["analytics"],"t":1767225600,"p":false}');
+        $token = new ConsentToken('secret');
+
+        self::assertInstanceOf(ConsentChoice::class, $token->decode($this->signed($payload)));
+        self::assertNull($token->decode(self::signedWith($payload, hash_hmac('sha256', 'phil_privacy.consent', 'secret', true))));
+    }
+
     #[DataProvider('shapes')]
     public function testAPayloadOfTheWrongShapeReadsNothing(string $payload): void
     {
@@ -120,8 +129,11 @@ final class ConsentTokenTest extends TestCase
 
     private function signed(string $payload): string
     {
-        $key = hash_hmac('sha256', 'phil_privacy.consent', 'secret', true);
+        return self::signedWith($payload, hash_hkdf('sha256', 'secret', 32, 'phil_privacy.consent'));
+    }
 
+    private static function signedWith(string $payload, string $key): string
+    {
         return $payload.'.'.rtrim(strtr(base64_encode(hash_hmac('sha256', $payload, $key, true)), '+/', '-_'), '=');
     }
 }

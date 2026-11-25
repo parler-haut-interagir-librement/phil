@@ -387,10 +387,9 @@ final class GuestRequestsTest extends TestCase
         $guests = $this->guests();
         $guests->submit(GuestRequestKind::Access, 'a@example.org', '203.0.113.9');
 
-        $key = hash_hmac('sha256', 'phil_privacy.guest_requests', 'secret', true);
         $dump = serialize($this->limits);
-        self::assertStringContainsString('client-'.hash_hmac('sha256', 'client|203.0.113.9', $key), $dump);
-        self::assertStringContainsString('address-'.hash_hmac('sha256', 'address|a@example.org', $key), $dump);
+        self::assertStringContainsString('client-'.hash_hmac('sha256', '203.0.113.9', hash_hkdf('sha256', 'secret', 32, 'phil_privacy.guest_requests.client')), $dump);
+        self::assertStringContainsString('address-'.hash_hmac('sha256', 'a@example.org', hash_hkdf('sha256', 'secret', 32, 'phil_privacy.guest_requests.address')), $dump);
     }
 
     public function testTheTooManyExceptionWaitsAtLeastOneSecond(): void

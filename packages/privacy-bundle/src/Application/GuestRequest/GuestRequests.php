@@ -21,6 +21,7 @@ use Phil\PrivacyBundle\Application\SubjectExport;
 use Phil\PrivacyBundle\Domain\Erasure\ErasureRequest;
 use Phil\PrivacyBundle\Domain\GuestRequest\GuestRequest;
 use Phil\PrivacyBundle\Domain\GuestRequest\GuestRequestKind;
+use Phil\PrivacyBundle\Domain\Secret\KeyDerivation;
 use Phil\PrivacyBundle\Domain\Subject\ErasureReport;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
@@ -54,7 +55,9 @@ final readonly class GuestRequests
     /** How long a request whose erasure runs as a workflow is kept at most, so that its modules can find the person. */
     public const string WORKFLOW_RETENTION = 'P90D';
 
-    private string $key;
+    private string $clientKey;
+
+    private string $addressKey;
 
     private DateInterval $lifetime;
 
@@ -77,7 +80,8 @@ final readonly class GuestRequests
         ?LoggerInterface $logger = null,
         private ?ErasureRequests $workflow = null,
     ) {
-        $this->key = hash_hmac('sha256', 'phil_privacy.guest_requests', $secret, true);
+        $this->clientKey = KeyDerivation::key($secret, KeyDerivation::GUEST_REQUESTS_CLIENT);
+        $this->addressKey = KeyDerivation::key($secret, KeyDerivation::GUEST_REQUESTS_ADDRESS);
         $this->lifetime = new DateInterval($linkLifetime);
         $this->logger = $logger ?? new NullLogger();
     }
@@ -92,7 +96,7 @@ final readonly class GuestRequests
      */
     public function submit(GuestRequestKind $kind, string $address, string $client): void
     {
-        $limit = $this->perClient->create($this->digest('client', $client))->consume();
+        $limit = $this->perClient->create(hash_hmac('sha256', $client, $this->clientKey))->consume();
 
         if (!$limit->isAccepted()) {
             // The limiter counts on the system's time, not on the clock of the application.
@@ -103,7 +107,7 @@ final readonly class GuestRequests
         $now = $this->clock->now();
         $this->store->purgeExpired($now);
 
-        if (!$this->perAddress->create($this->digest('address', $email))->consume()->isAccepted()) {
+        if (!$this->perAddress->create(hash_hmac('sha256', $email, $this->addressKey))->consume()->isAccepted()) {
             $this->logger->notice('A request without an account was dropped: its address received too many links.');
 
             return;
@@ -241,10 +245,5 @@ final readonly class GuestRequests
         } finally {
             $held->release();
         }
-    }
-
-    private function digest(string $purpose, string $value): string
-    {
-        return hash_hmac('sha256', $purpose.'|'.$value, $this->key);
     }
 }

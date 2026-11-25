@@ -16,7 +16,7 @@ return [
         'public' => true,
         // The names of the cryptography and the regular expressions, the terms of Doctrine and of the redaction, the
         // reason information cannot be described, and the name of the Québec authority.
-        'words' => ['libsodium', 'HMAC', 'PCRE', 'embeddables', 'retagged', 'unredacted', 'uncompiled', 'undescribed', "d'accès"],
+        'words' => ['libsodium', 'HMAC', 'HKDF', 'PCRE', 'embeddables', 'retagged', 'unredacted', 'uncompiled', 'undescribed', "d'accès"],
     ],
     'fuzz' => [
         // The readers of what nobody controls, from the seeds of tests/Fuzz/corpus/<target>.

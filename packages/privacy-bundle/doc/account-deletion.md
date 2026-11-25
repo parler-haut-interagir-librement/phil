@@ -115,7 +115,7 @@ operator closed as failed leaves the deletion at `exported`, for the operator to
 The export is the ZIP archive of an access answer, a `README.txt` and one JSON file per module
 ([export-and-erasure.md](export-and-erasure.md#the-archive-of-an-access-answer)). `EncryptedExportArchive` keeps it as a
 `0600` file of a `0700` directory (`account_deletion.export_directory`), sealed with libsodium under a key derived from
-the application secret, for `account_deletion.export_retention`. Each sweep removes those that have expired.
+the application secret by HKDF, for `account_deletion.export_retention`. Each sweep removes those that have expired.
 
 ## The tables
 

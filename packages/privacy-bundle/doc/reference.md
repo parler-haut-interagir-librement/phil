@@ -147,6 +147,12 @@ Every type under `Phil\PrivacyBundle\`, by layer. "Implemented" means implemente
 | `NoticeRubric` | Enum of the rubrics of the notices of sections 3 and 5 of the regulation; `paragraph($recipient)`, `fedBy($field)` | Implemented |
 | `NoticeOrganisation` | Who gives a notice: `name`, `enterpriseNumber`, `contactName`, `contactDetails`, each nullable | Implemented |
 
+### `Domain\Secret`
+
+| Type | Role | State |
+|---|---|---|
+| `KeyDerivation` | The keys of the bundle, each the HKDF-SHA-256 of the application secret under the label of its usage; `key($secret, $usage)`, refuses an empty secret; `LENGTH`, one constant per label | Implemented |
+
 ### `Domain\Exception`
 
 | Type | Role | State |
