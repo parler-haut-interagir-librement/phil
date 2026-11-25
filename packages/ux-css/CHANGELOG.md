@@ -4,6 +4,16 @@ All notable changes to `phil/ux-css` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.6.1-alpha.
+
+### Added
+
+- The documentation of the elements gives the shape of a table of data the styles assume: one row of column headers
+  with `scope="col"`, row headers with `scope="row"`, no header cell over several columns or rows and no `headers`
+  attribute, a group of columns as a table of its own with its `caption`, a row of totals headed in its first column.
+
 ## 0.6.0-alpha - 2026-11-24
 
 ### Added
