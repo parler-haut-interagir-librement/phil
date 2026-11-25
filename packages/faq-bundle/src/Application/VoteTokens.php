@@ -10,9 +10,9 @@ use Psr\Clock\ClockInterface;
 use SensitiveParameter;
 
 /**
- * The vote tokens of a page: 16 random bytes and an expiry, signed with HMAC-SHA-256 under the application's secret.
- * A token needs no session and no cookie, and carries nothing about the reader; it votes once for each question of the
- * page, which the spent tokens remember until it expires.
+ * The vote tokens of a page: 16 random bytes and an expiry, signed with HMAC-SHA-256 under a key derived from the
+ * application's secret. A token needs no session and no cookie, and carries nothing about the reader; it votes once for
+ * each question of the page, which the spent tokens remember until it expires.
  *
  * A token is `<random part>.<expiry>.<signature>`, in base64url without padding and decimal seconds.
  */
@@ -31,15 +31,22 @@ final readonly class VoteTokens
 
     private const string PATTERN = '/^(?<nonce>[A-Za-z0-9_-]{22})\.(?<expiry>[1-9]\d{0,11})\.(?<mac>[A-Za-z0-9_-]{43})$/D';
 
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_faq.vote_token';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     /**
      * @param int<self::MIN_LIFETIME, self::MAX_LIFETIME> $lifetime how long a token votes, in seconds
      */
     public function __construct(
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
         private ClockInterface $clock,
         private int $lifetime = 86_400,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     public function issue(): string
@@ -73,7 +80,7 @@ final readonly class VoteTokens
 
     private function mac(string $payload): string
     {
-        return $this->encode(hash_hmac('sha256', self::CONTEXT.'|'.$payload, $this->secret, true));
+        return $this->encode(hash_hmac('sha256', self::CONTEXT.'|'.$payload, $this->key, true));
     }
 
     private function encode(string $bytes): string

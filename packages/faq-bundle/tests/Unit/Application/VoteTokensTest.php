@@ -123,7 +123,7 @@ final class VoteTokensTest extends TestCase
     public function testATokenIsSignedOverItsContextAndItsPayload(): void
     {
         $payload = str_repeat('A', 22).'.2000';
-        $mac = rtrim(strtr(base64_encode(hash_hmac('sha256', 'phil_faq_vote|'.$payload, self::SECRET, true)), '+/', '-_'), '=');
+        $mac = rtrim(strtr(base64_encode(hash_hmac('sha256', 'phil_faq_vote|'.$payload, hash_hkdf('sha256', self::SECRET, 32, 'phil_faq.vote_token'), true)), '+/', '-_'), '=');
 
         self::assertSame(2000, new VoteTokens(self::SECRET, new MockClock('@1000'))->read($payload.'.'.$mac)->expiresAt->getTimestamp());
     }

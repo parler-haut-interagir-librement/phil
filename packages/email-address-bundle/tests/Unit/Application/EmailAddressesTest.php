@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\EmailAddressBundle\Tests\Unit\Application;
 
+use InvalidArgumentException;
 use Phil\EmailAddressBundle\Application\EmailAddresses;
 use Phil\EmailAddressBundle\Domain\ValueObject\AddressFingerprint;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -53,7 +54,26 @@ final class EmailAddressesTest extends TestCase
     {
         $addresses = new EmailAddresses('the key');
 
-        self::assertEquals(AddressFingerprint::of('ada@example.org', 'the key'), $addresses->fingerprint('Ada@EXAMPLE.org'));
+        self::assertEquals(AddressFingerprint::of('ada@example.org', hash_hkdf('sha256', 'the key', 32, 'phil_email_address.fingerprint')), $addresses->fingerprint('Ada@EXAMPLE.org'));
+        self::assertSame('phil_email_address.fingerprint', EmailAddresses::FINGERPRINT_USAGE);
+        self::assertNotEquals(new EmailAddresses('other key')->fingerprint('ada@example.org'), $addresses->fingerprint('ada@example.org'));
+    }
+
+    public function testTheFingerprintsNeverMatchTheDigestsOfTheFormsUnderTheSameSecret(): void
+    {
+        $secret = str_repeat('s', 32);
+        $fingerprint = new EmailAddresses($secret)->fingerprint('ada@example.org');
+
+        self::assertNotNull($fingerprint);
+        self::assertNotSame(hash_hmac('sha256', 'ada@example.org', $secret), $fingerprint->value);
+        self::assertNotSame(hash_hmac('sha256', 'ada@example.org', hash_hkdf('sha256', $secret, 32, 'phil_forms.email_digest')), $fingerprint->value);
+    }
+
+    public function testAnEmptySecretStillRefusesAFingerprint(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new EmailAddresses('')->fingerprint('ada@example.org');
     }
 
     #[TestWith(['info@example.org', true])]

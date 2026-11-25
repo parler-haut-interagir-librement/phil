@@ -7,9 +7,13 @@ namespace Phil\ErrorTrackingBundle\Tests\Unit\Infrastructure;
 use DateTimeImmutable;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Context\AdminContextInterface;
 use Phil\ErrorTracking\CaptureContext;
+use Phil\ErrorTracking\ErrorEvent;
 use Phil\ErrorTracking\ErrorGroup;
+use Phil\ErrorTracking\ExceptionRecord;
+use Phil\ErrorTracking\Frame;
 use Phil\ErrorTracking\GroupStatus;
 use Phil\ErrorTracking\RequestSummary;
+use Phil\ErrorTracking\Severity;
 use Phil\ErrorTracking\Source;
 use Phil\ErrorTrackingBundle\Application\AlertDestination;
 use Phil\ErrorTrackingBundle\Infrastructure\EasyAdmin\ErrorTrackingAdmin;
@@ -28,6 +32,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Loader\PhpFileLoader;
 use Symfony\Component\Routing\RequestContext;
@@ -128,6 +133,35 @@ final class AdminControllerTest extends TestCase
 
         $both = (string) $this->controller()->show(Request::create('/'), $fingerprint)->getContent();
         self::assertStringContainsString('GET https://example.com/orders?token=[Filtered]', $both);
+    }
+
+    public function testTheNewestExceptionComesFirstAndTheVendorFramesFold(): void
+    {
+        $app = static fn (int $line): Frame => new Frame('src/Export.php', $line, 'App\\Export::run', true);
+        $vendor = static fn (int $line): Frame => new Frame('vendor/symfony/http-kernel/HttpKernel.php', $line, HttpKernel::class.'::handle');
+        $capture = $this->tracking->tracker->capture(new ErrorEvent('0123456789abcdef0123456789abcdef', new DateTimeImmutable('2026-11-24T12:00:00Z'), Source::Http, Severity::Error, [
+            new ExceptionRecord('RuntimeException', 'Export failed', [$app(10), $vendor(1), $vendor(2), $app(11), $vendor(3)]),
+            new ExceptionRecord('LogicException', 'Bad state', [$app(20)]),
+            new ExceptionRecord('DomainException', 'Disk full', [$vendor(4)]),
+        ]));
+        self::assertNotNull($capture);
+        $html = (string) $this->controller()->show(Request::create('/'), $capture->fingerprint)->getContent();
+        $html = (string) preg_replace('/\s+/', ' ', $html);
+
+        $thrown = strpos($html, '<h3>RuntimeException</h3>');
+        $middle = strpos($html, '<h3>Caused by LogicException</h3>');
+        $root = strpos($html, '<h3>Root cause: DomainException</h3>');
+        self::assertIsInt($thrown);
+        self::assertIsInt($middle);
+        self::assertIsInt($root);
+        self::assertLessThan($middle, $thrown);
+        self::assertLessThan($root, $middle);
+        self::assertStringContainsString('<li><code>App\Export::run (src/Export.php:10)</code></li> <li class="is-vendor"><details><summary>2 vendor frames</summary><ol> <li class="is-vendor"><code>'.HttpKernel::class.'::handle (vendor/symfony/http-kernel/HttpKernel.php:1)</code></li>', $html);
+        self::assertStringContainsString('(vendor/symfony/http-kernel/HttpKernel.php:2)</code></li> </ol></details></li> <li><code>App\\Export::run (src/Export.php:11)</code></li>', $html);
+        self::assertStringContainsString('<summary>1 vendor frame</summary>', $html);
+        self::assertSame(3, substr_count($html, '<details>'));
+        self::assertSame(substr_count($html, '<details>'), substr_count($html, '</details>'));
+        self::assertStringNotContainsString('<script', $html);
     }
 
     public function testAnUnknownGroupIsNotFound(): void

@@ -80,6 +80,13 @@ return [
                     'return substr\\(\\$this->blocks\\[\\$first\\], \\$at, \\$length\\);',
                 ],
             ],
+            // The country of the database reaches `country()` already trimmed by `text()`, so it never ends with a line
+            // break: the `D` modifier of the check, a safeguard, changes no answer.
+            'PregMatchRemoveFlags' => [
+                'ignoreSourceCodeByRegex' => [
+                    'if \\(null !== \$code && 1 !== preg_match\(\'/\^\[A-Za-z\]\{2\}\$/D\', \$code\)\) \{',
+                ],
+            ],
             // The memo of the Decoder: building it again gives the same result, only the cost changes.
             'AssignCoalesce' => [
                 'ignoreSourceCodeByRegex' => [

@@ -20,15 +20,18 @@ use Phil\Geo\Geocoding\Adapter\PhotonGeocoder;
 use Phil\Geo\Geocoding\Geocoder;
 use Phil\Geo\Geocoding\IpLocator;
 use Phil\Geo\Geocoding\MaxMind\Database;
+use Phil\Geo\Geocoding\Timeouts;
 use Phil\GeoBundle\Infrastructure\Console\UpdateMaxMindDatabaseCommand;
 use Phil\GeoBundle\Infrastructure\MaxMind\DatabaseUpdater;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * The geocoders of the configuration, asked in its order — chained when there are several, cached when a pool is
- * named —, autowired as `Geocoder`, and the IP locator, autowired as `IpLocator`, on the HTTP client of the application.
+ * named —, autowired as `Geocoder`, and the IP locator, autowired as `IpLocator`, on the HTTP client `http.client`,
+ * each call bounded by `http.timeout` and `http.max_duration`.
  *
  * The IP locator is the MaxMind database on this server when one is named — an address looked up never leaves it —,
  * and ipstack otherwise. Reading the database needs no HTTP client: only with a MaxMind account, its identifier and
@@ -36,6 +39,7 @@ use Symfony\Component\DependencyInjection\Reference;
  * application, to download the latest database.
  *
  * @phpstan-type GeocodingConfig array{providers: list<string>, nominatim: array{user_agent: ?string, base_url: string, limit: int}, google_maps: array{api_key: ?string, base_url: string}, nrcan: array{base_url: string, limit: int}, photon: array{base_url: string, limit: int, languages: list<string>}, opencage: array{api_key: ?string, base_url: string, limit: int}, here: array{api_key: ?string, geocode_url: string, reverse_url: string, limit: int}, mapbox: array{access_token: ?string, base_url: string, limit: int, permanent: bool}, azure_maps: array{subscription_key: ?string, base_url: string, limit: int, api_version: string}, adresses_quebec: array{base_url: string, limit: int}, cache: array{pool: ?string, lifetime: int}}
+ * @phpstan-type HttpConfig array{client: string, timeout: float, max_duration: float}
  * @phpstan-type IpConfig array{maxmind: array{database: ?string, locale: string, account_id: ?string, license_key: ?string, edition: string, download_url: string}, ipstack: array{access_key: ?string, base_url: string}}
  */
 final class GeocodingServices
@@ -79,10 +83,13 @@ final class GeocodingServices
     /**
      * @param GeocodingConfig $geocoding
      * @param IpConfig        $ip
+     * @param HttpConfig      $http
      */
-    public static function register(ContainerBuilder $container, array $geocoding, array $ip): void
+    public static function register(ContainerBuilder $container, array $geocoding, array $ip, array $http): void
     {
         $geocoders = [];
+        $client = new Reference($http['client']);
+        $timeouts = new Definition(Timeouts::class, [$http['timeout'], $http['max_duration']]);
 
         foreach ($geocoding['providers'] as $provider) {
             $geocoders[] = new Reference(self::ID_PREFIX.$provider);
@@ -97,7 +104,7 @@ final class GeocodingServices
                 AdressesQuebecGeocoder::NAME => [AdressesQuebecGeocoder::class, [$geocoding['adresses_quebec']['base_url'], $geocoding['adresses_quebec']['limit']]],
                 default => [GoogleMapsGeocoder::class, [$geocoding['google_maps']['api_key'], $geocoding['google_maps']['base_url']]],
             };
-            $container->register(self::ID_PREFIX.$provider, $class)->setArguments([new Reference('http_client'), ...$arguments]);
+            $container->register(self::ID_PREFIX.$provider, $class)->setArguments([$client, ...$arguments, '$timeouts' => $timeouts]);
         }
 
         if (\count($geocoders) > 1) {
@@ -117,7 +124,7 @@ final class GeocodingServices
 
         if (null !== $ip['ipstack']['access_key']) {
             $container->register('phil_geo.ip_locator.ipstack', IpstackLocator::class)
-                ->setArguments([new Reference('http_client'), $ip['ipstack']['access_key'], $ip['ipstack']['base_url']]);
+                ->setArguments([$client, $ip['ipstack']['access_key'], $ip['ipstack']['base_url'], $timeouts]);
             $container->setAlias(IpLocator::class, 'phil_geo.ip_locator.ipstack');
         }
 
@@ -131,7 +138,7 @@ final class GeocodingServices
 
         if (isset($ip['maxmind']['database'], $ip['maxmind']['account_id'], $ip['maxmind']['license_key'])) {
             $container->register('phil_geo.maxmind.updater', DatabaseUpdater::class)->setArguments([
-                new Reference('http_client'),
+                $client,
                 $ip['maxmind']['database'],
                 $ip['maxmind']['account_id'],
                 $ip['maxmind']['license_key'],

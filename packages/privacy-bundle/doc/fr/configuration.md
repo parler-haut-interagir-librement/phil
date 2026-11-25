@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1156659ac3b9cc7e255daa01e2a35b95286f9b749e1ac4fedd5b8bff6b38b277 -->
+<!-- phil-dev source-sha256=1fdd16bb1eedc8bbb88045feaf868be347d9835f2a5211ac6964104f1fa543af -->
 # Référence de la configuration
 
 L'alias de l'extension est `phil_privacy`. L'arbre de configuration est défini dans `PhilPrivacyBundle::configure()` et
@@ -168,6 +168,8 @@ phil_privacy:
         # The value is redacted only when the denylist denies that long name.
         short_options:
             p: password
+        # The categories of #[PersonalData] whose names are denied keys too.
+        personal_data_categories: [email, person_name, nickname, phone, ip, contact, birth_date]
     database:
         connection: database_connection   # a Doctrine DBAL connection service
     anonymization:
@@ -205,6 +207,20 @@ composant Config (`Unrecognized option ... under "phil_privacy"`).
 - Les listes de plusieurs fichiers de configuration sont mises bout à bout, comme toute liste à prototype dans Symfony.
 - La même liste gouverne trois choses : les clés du contexte et de `extra`, les noms d'options longues dans les lignes
   de commande, et les noms longs vers lesquels pointe `short_options`. Voir [log-redaction.md](log-redaction.md).
+
+### `phil_privacy.log_redaction.personal_data_categories`
+
+| | |
+|---|---|
+| Type | liste de scalaires, chacun une chaîne |
+| Par défaut | `[email, person_name, nickname, phone, ip, contact]`, `RedactingProcessor::PERSONAL_DATA_CATEGORIES` |
+| Effet | Chaque catégorie de `#[PersonalData]` est aussi une clé refusée, à côté de la `denylist`. |
+
+- Chaque entrée est une catégorie : un jeton `snake_case` en minuscules d'au plus 64 caractères. `Birth Date` fait
+  échouer la construction.
+- Une catégorie est comparée comme une clé, exactement : `email` refuse `email`, `Email` et `e-mail`, pas `email_count`.
+- Écrire la liste remplace la valeur par défaut : gardez les catégories de la valeur par défaut qu'une application veut
+  encore. `[]` désactive la règle.
 
 ### `phil_privacy.log_redaction.token_path_prefixes`
 

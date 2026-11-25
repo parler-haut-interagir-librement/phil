@@ -26,12 +26,18 @@ return [
             [
                 'identifier' => 'typeCoverage.paramTypeCoverage',
                 'path' => 'src/Infrastructure/MaxMind/DatabaseUpdater.php',
+                // La couverture se calcule sur les fichiers analysés : une analyse des seuls fichiers indexés ne la
+                // relève pas toujours.
+                'reportUnmatched' => false,
                 'count' => 2,
             ],
             // à corriger : type natif manquant (ressource ou paramètre de fermeture) pour la couverture de types à 100 %.
             [
                 'identifier' => 'typeCoverage.returnTypeCoverage',
                 'path' => 'src/Infrastructure/MaxMind/DatabaseUpdater.php',
+                // La couverture se calcule sur les fichiers analysés : une analyse des seuls fichiers indexés ne la
+                // relève pas toujours.
+                'reportUnmatched' => false,
                 'count' => 1,
             ],
         ],

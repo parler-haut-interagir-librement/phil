@@ -19,6 +19,7 @@ use Phil\BrowserSecurityBundle\Infrastructure\Cache\CacheDeduplicator;
 use Phil\BrowserSecurityBundle\Infrastructure\Console\PurgeReportsCommand;
 use Phil\BrowserSecurityBundle\Infrastructure\Doctrine\DbalReportRepository;
 use Phil\BrowserSecurityBundle\Infrastructure\Doctrine\ReportSchemaListener;
+use Phil\BrowserSecurityBundle\Infrastructure\ErrorHandler\ErrorPageNoncePass;
 use Phil\BrowserSecurityBundle\Infrastructure\Http\ContentSecurityPolicyListener;
 use Phil\BrowserSecurityBundle\Infrastructure\Http\ExternalRedirectListener;
 use Phil\BrowserSecurityBundle\Infrastructure\Http\HttpsRedirectListener;
@@ -65,6 +66,14 @@ final class PhilBrowserSecurityBundleTest extends TestCase
         new PhilBrowserSecurityBundle()->build($container);
 
         self::assertTrue(array_any($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof RateLimitGuard));
+    }
+
+    public function testTheBundleGivesTheErrorPagesTheirNonce(): void
+    {
+        $container = new ContainerBuilder();
+        new PhilBrowserSecurityBundle()->build($container);
+
+        self::assertTrue(array_any($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof ErrorPageNoncePass));
     }
 
     public function testTheReportsFallBackOnTheRateLimiterComponent(): void

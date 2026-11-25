@@ -37,10 +37,16 @@ which adds nine columns to `phil_privacy_incident`, nullable or false by default
 on `phil_privacy_incident` now fails the container build: raise it to `P5Y` or more. An `IncidentRegister` of your own
 that also purges keeps at least five years from the discovery. Code that reads the JSON of `phil:privacy:incidents`
 finds the new fields, and its Markdown ten columns more, a table of corrections and a table of the journal;
-`phil:privacy:incident` prints the paragraphs a line still lacks.
+`phil:privacy:incident` prints the paragraphs a line still lacks. The logs lose the values under `email`,
+`person_name`, `nickname`, `phone`, `ip` and `contact`, and every object of a context but a throwable: set
+`log_redaction.personal_data_categories: []` to keep those keys, and log the value a line needs rather than its object.
 
 ### Added
 
+- `log_redaction.personal_data_categories`, by default `RedactingProcessor::PERSONAL_DATA_CATEGORIES` — `email`,
+  `person_name`, `nickname`, `phone`, `ip` and `contact`: each category of `#[PersonalData]` is a denied key of the
+  log redaction, beside the `denylist`; `RedactingProcessor::fromConfiguration()` takes them, last and optional, and
+  refuses a malformed category.
 - Erasure as a workflow, `erasure_workflow` (`enabled`, `lease`, `operator_role`, `store`), off by default:
   `Application\Erasure\ErasureRequests`, which opens a request for every module of the erasure inventory or for the
   modules named, a module the inventory does not declare refused, and keeps the inventory's version on it; one
@@ -158,6 +164,14 @@ finds the new fields, and its Markdown ten columns more, a table of corrections 
 - Requires the latest minor of each dependency (`twig/twig` 3.31, `monolog/monolog` 3.13,
   `symfony/event-dispatcher-contracts` 3.8), and of each development requirement (`doctrine/orm` 3.8, `doctrine/dbal`
   4.6, `doctrine/persistence` 4.2, `symfony/dom-crawler` 8.2, …).
+
+### Security
+
+- `ContextRedactor` left an object of a context as it was: the formatter of Monolog wrote its public properties, or
+  what it serialised to, and a message or a DTO of another bundle reached the log whole, personal data included. Any
+  object but a throwable is replaced by its class name at any depth, and a case of an enum by its class and case.
+- The log redaction denied no key by default: an address logged under `email` reached the log. The categories of
+  personal data are denied by default.
 
 ## 0.2.0-alpha - 2026-11-20
 

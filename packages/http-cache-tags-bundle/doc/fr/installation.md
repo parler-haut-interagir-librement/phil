@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=39eb49031c7e42f7923f98556e69f8130f8deca2868fc747bf54f479f8807d76 -->
+<!-- phil-dev source-sha256=f7ac1b2657377ad79a870093a4e9d10b75b3b8bc2363a25e179e47d39a4c660c -->
 # Installation
 
 | Prérequis | Version | Raison |
@@ -34,6 +34,10 @@ phil_http_cache_tags:
     cloudflare:
         zone: '%env(CLOUDFLARE_ZONE)%'
         token: '%env(CLOUDFLARE_TOKEN)%'
+    http:
+        client: http_client      # the HTTP client of the purgers
+        timeout: 5.0             # the longest wait for a byte of an answer, in seconds
+        max_duration: 10.0       # the longest purge call, in seconds
     invalidate_entities: true    # tags of the entities a Doctrine flush changes
 ```
 

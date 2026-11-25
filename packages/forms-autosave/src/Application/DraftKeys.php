@@ -14,13 +14,20 @@ use SensitiveParameter;
  */
 final readonly class DraftKeys
 {
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_forms_autosave.draft_key';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     /** The length of a key: 32 URL-safe characters, 192 bits of the keyed hash. */
     public const int LENGTH = 32;
 
     public function __construct(
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     /**
@@ -28,7 +35,7 @@ final readonly class DraftKeys
      */
     public function key(string $form, ?string $subject, ?string $user): DraftKey
     {
-        $hash = hash_hmac('sha256', json_encode(['key', $form, $subject, $user], \JSON_THROW_ON_ERROR), $this->secret, true);
+        $hash = hash_hmac('sha256', json_encode(['key', $form, $subject, $user], \JSON_THROW_ON_ERROR), $this->key, true);
 
         return DraftKey::of(substr(sodium_bin2base64($hash, \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), 0, self::LENGTH));
     }
@@ -38,6 +45,6 @@ final readonly class DraftKeys
      */
     public function owner(string $user): string
     {
-        return hash_hmac('sha256', json_encode(['owner', $user], \JSON_THROW_ON_ERROR), $this->secret);
+        return hash_hmac('sha256', json_encode(['owner', $user], \JSON_THROW_ON_ERROR), $this->key);
     }
 }

@@ -73,7 +73,7 @@ final class UsageMeterBundleTest extends WebTestCase
         self::assertInstanceOf(Connection::class, $connection);
         $subjects = $connection->fetchFirstColumn('SELECT subject FROM phil_usage_counter ORDER BY used DESC');
         self::assertCount(2, $subjects);
-        self::assertSame('ip:'.hash_hmac('sha256', '203.0.113.7', 'test'), $subjects[0]);
+        self::assertSame('ip:'.hash_hmac('sha256', '203.0.113.7', hash_hkdf('sha256', 'test', 32, 'phil_rate_limit.client_ip_key')), $subjects[0]);
     }
 
     public function testRequestsAreCountedByTheApplicationsSubject(): void

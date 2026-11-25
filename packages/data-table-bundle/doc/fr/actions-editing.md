@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dc1ed90653db69c171bcb98ced2271cdedcd2eec6f2581ff262ad74efe449b5f -->
+<!-- phil-dev source-sha256=c1169a688286383515b206a2a1e7333fe3868de961a77430ab11bf83c4f54d6c -->
 # Actions et modification
 
 ## Actions
@@ -54,8 +54,8 @@ dans l'adresse et la région active dit que la ligne n'est plus dans la page ; l
 | Le type de la valeur, puis Symfony Validator | | oui |
 
 Afficher un bouton n'est pas une permission : les boutons sont cachés quand le *voter* refuse, et la vérification
-s'exécute de nouveau quand l'appel arrive. Un simple formulaire porte aussi le contexte du tableau avec un sceau tiré de
-`kernel.secret`, et la page vers laquelle il revient doit être un chemin de ce site.
+s'exécute de nouveau quand l'appel arrive. Un simple formulaire porte aussi le contexte du tableau avec un sceau fait sous une clé
+dérivée de `kernel.secret` par HKDF-SHA256 sous `phil_data_table.table_guard`, et la page vers laquelle il revient doit être un chemin de ce site.
 
 Quand la modification d'un simple formulaire s'arrête, le gabarit `@PhilDataTable/table/stopped.html.twig` dit pourquoi,
 avec un lien de retour vers le tableau. Redéfinissez-le sous `templates/bundles/PhilDataTableBundle/table/` pour

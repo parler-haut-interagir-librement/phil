@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ea808bcad8ed1e75e13936067bbe638bbd36e27a0b1e5fb9bc392250da223007 -->
+<!-- phil-dev source-sha256=0bd8f0bb17e3481c27549e6ced6997dd78b9af5b437f379062db56d4e7f06fbf -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_email_address`. Chaque option a une valeur par défaut ; l'exemple en
@@ -68,7 +68,7 @@ phil_email_address:
 | `allowed_domains` | `[]` | Les seuls domaines acceptés, avec leurs sous-domaines ; une liste vide accepte tous les domaines. |
 | `disposable_domains` | `[]` | Domaines jetables ajoutés à la liste que la bibliothèque importe. |
 | `role_local_parts` | la liste du bundle | Les parties avant l'arobase qui désignent un rôle : on avertit, on ne refuse jamais. |
-| `fingerprint_key` | `%kernel.secret%` | Le secret qui sert de clé aux empreintes des adresses. |
+| `fingerprint_key` | `%kernel.secret%` | Le secret dont dérive la clé des empreintes des adresses, par HKDF-SHA256 sous `phil_email_address.fingerprint` : les empreintes ne correspondent jamais à un hachage que garde, pour l'adresse, un autre usage du même secret. |
 
 `sites` et `lists` prennent les mêmes options, sauf `disposable_domains`, `role_local_parts` et `fingerprint_key`.
 Chaque option qu'ils omettent, ou qu'ils fixent à `null`, garde la valeur de la politique en dessous : celle d'un site

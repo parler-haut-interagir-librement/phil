@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=aec95b9bf862e016d13351b084a805d6ecbd13baa62102ca9d4802d3da593c3b -->
+<!-- phil-dev source-sha256=35f7a260bc91a2964d90d97225ecefbf0e752d5f91524137b0fae767e647e0ba -->
 # Erreurs du navigateur
 
 ## Le point de terminaison
@@ -46,7 +46,8 @@ la page.
   normalisés.
 
 L'événement est de source `browser`, avec la page comme adresse de la requête, le `User-Agent` comme seul en-tête, et
-l'adresse du client tronquée. Le traqueur l'assainit comme n'importe quel autre. Le limiteur compte une empreinte à clé de l'adresse du client, jamais l'adresse. Quand
+l'adresse du client tronquée. Le traqueur l'assainit comme n'importe quel autre. Le limiteur compte une empreinte à clé de l'adresse du client, jamais l'adresse, sous une clé dérivée du secret par
+HKDF-SHA256 sous `phil_error_tracking.browser_throttle`. Quand
 phil/rate-limit-bundle est enregistré, il passe par un limiteur de ce bundle nommé `phil_error_tracking.browser`, sur
 la même fenêtre, que remplace la décoration du service `phil_error_tracking.browser_throttle.limit` ; sans ce bundle,
 il compte directement sur `symfony/rate-limiter`. Voir [la configuration](configuration.md#ce-qui-fait-échouer-la-construction)

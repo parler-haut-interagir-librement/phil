@@ -73,7 +73,8 @@ large never counts against the throttle.
 - An address loses its credentials, its query and its fragment, where tokens and personal data hide:
   `https://user:secret@example.com/reset?token=abc#x` is kept as `https://example.com/reset`.
 - Control characters are removed from every text.
-- The client's address is never kept raw. The throttle counts an HMAC-SHA-256 of it, keyed by the kernel secret. The
+- The client's address is never kept raw. The throttle counts an HMAC-SHA-256 of it, under a key derived from the
+  kernel secret by HKDF-SHA256 under `phil_browser_security.report_throttle`. The
   store and the event get it truncated by `phil/ip-anonymizer` — to a /24 in IPv4 and a /48 in IPv6 by default —, or
   nothing when that package is missing or `client_address` is off.
 

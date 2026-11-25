@@ -17,14 +17,21 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
  */
 final readonly class TableGuard
 {
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_data_table.table_guard';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     /** The CSRF token identifier, listed among the stateless ones of FrameworkBundle by the bundle. */
     public const string TOKEN_ID = 'phil_data_table';
 
     public function __construct(
         private CsrfTokenManagerInterface $tokens,
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     public function token(): string
@@ -54,7 +61,7 @@ final readonly class TableGuard
 
     public function seal(string $table, string $context): string
     {
-        return hash_hmac('sha256', $table."\0".$context, $this->secret);
+        return hash_hmac('sha256', $table."\0".$context, $this->key);
     }
 
     /**

@@ -34,6 +34,9 @@ phil_search:
     meilisearch:
         url: '%env(MEILISEARCH_URL)%'
         key: '%env(MEILISEARCH_KEY)%'
+        http_client: http_client  # the HTTP client that calls Meilisearch
+        timeout: 5.0              # the longest wait for a byte of an answer, in seconds
+        max_duration: 10.0        # the longest call, in seconds
     loupe:
         directory: '%kernel.project_dir%/var/loupe'   # a directory per index
     index_entities: ~        # outbox (Meilisearch, Loupe), direct (dbal) or none; null: the adapter's default

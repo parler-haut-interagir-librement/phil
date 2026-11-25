@@ -18,14 +18,21 @@ use Symfony\Component\HttpFoundation\RequestStack;
  */
 final readonly class ClientKey
 {
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_spam_protection.client_key';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     /** The twelve leading bytes of an IPv4 address mapped into IPv6. */
     private const string IPV4_MAPPED_PREFIX = "\0\0\0\0\0\0\0\0\0\0\xff\xff";
 
     public function __construct(
         private RequestStack $requests,
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     /**
@@ -35,7 +42,7 @@ final readonly class ClientKey
     {
         $address = $this->requests->getCurrentRequest()?->getClientIp();
 
-        return null === $address ? null : hash_hmac('sha256', self::network($address), $this->secret);
+        return null === $address ? null : hash_hmac('sha256', self::network($address), $this->key);
     }
 
     /**

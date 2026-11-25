@@ -19,6 +19,10 @@ The next version is 0.3.1-alpha.
 ### Security
 
 - Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+- The signatures of the preview links were the HMAC under the secret itself, `%kernel.secret%` by default, which
+  other bundles keyed their own hashes with. `PreviewLinks` derives its key by HKDF-SHA256 under
+  `phil_content.preview_link` (`PreviewLinks::USAGE`). A preview link sent before the update stops working: send it
+  again.
 
 ## 0.3.0-alpha - 2026-11-18
 

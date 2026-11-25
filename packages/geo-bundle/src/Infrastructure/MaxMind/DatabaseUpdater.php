@@ -30,6 +30,9 @@ final readonly class DatabaseUpdater
 
     public const string EDITION = 'GeoLite2-City';
 
+    /** The longest wait for a byte of the download, in seconds; the download itself, tens of mebibytes, has no bound. */
+    public const float TIMEOUT = 30.0;
+
     private const int BLOCK = 512;
 
     private const int CHUNK = 1_048_576;
@@ -179,6 +182,7 @@ final readonly class DatabaseUpdater
             $response = $this->client->request('GET', rtrim($this->baseUrl, '/').'/'.rawurlencode($this->edition).'/download', [
                 'query' => ['suffix' => $suffix],
                 'auth_basic' => $account,
+                'timeout' => self::TIMEOUT,
             ]);
 
             if (200 !== $response->getStatusCode()) {

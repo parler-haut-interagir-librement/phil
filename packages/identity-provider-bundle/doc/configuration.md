@@ -88,6 +88,10 @@ phil_identity_provider:
 | `password.min_score` | `2` | The lowest score of the strength estimator of `phil/passwords`, 0 to 4. |
 | `password.breach_check` | `false` | Whether a new password is looked up in Pwned Passwords, by k-anonymity: only five characters of its SHA-1 leave the server. |
 | `password.http_client` | `http_client` | The HTTP client of the breach check. |
+| `password.semaphore.enabled` | `true` | Caps the password hashes and checks of the accounts computed at once on each server; `semaphore: false` turns the cap off. See [The cap on password checks](accounts.md#the-cap-on-password-checks). |
+| `password.semaphore.slots` | `4` | How many hashes run at once, 1 to 256: about the number of processor cores. |
+| `password.semaphore.wait` | `3.0` | How long a hash waits for a slot, in seconds, before the sign-in is refused with `password.busy`. |
+| `password.semaphore.lock_factory` | `null` | A `LockFactory` service on a store local to each server; null keeps flock files in the temporary directory. |
 | `lockout.enabled` | `true` | Whether failed password sign-ins lock the account; `lockout: false` counts them and locks nothing, and leaves guessing to `login_limiter`. See [The lock](accounts.md#the-lock). |
 | `lockout.threshold` | `5` | Failed password sign-ins in a row before the first lock. |
 | `lockout.base` | `60` | Seconds of the first lock, doubled at each further failure. |

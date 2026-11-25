@@ -14,7 +14,7 @@ final class DraftKeysTest extends TestCase
     public function testAKeyIsThirtyTwoUrlSafeCharactersOfAKeyedHash(): void
     {
         $keys = new DraftKeys('secret');
-        $expected = substr(sodium_bin2base64(hash_hmac('sha256', '["key","App\\\\Form#post","42","ada"]', 'secret', true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), 0, 32);
+        $expected = substr(sodium_bin2base64(hash_hmac('sha256', '["key","App\\\\Form#post","42","ada"]', hash_hkdf('sha256', 'secret', 32, 'phil_forms_autosave.draft_key'), true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), 0, 32);
 
         self::assertSame($expected, $keys->key('App\Form#post', '42', 'ada')->value);
         self::assertMatchesRegularExpression('/^[A-Za-z0-9_-]{32}$/D', $keys->key('f', null, null)->value);
@@ -42,7 +42,7 @@ final class DraftKeysTest extends TestCase
     {
         $keys = new DraftKeys('secret');
 
-        self::assertSame(hash_hmac('sha256', '["owner","ada"]', 'secret'), $keys->owner('ada'));
+        self::assertSame(hash_hmac('sha256', '["owner","ada"]', hash_hkdf('sha256', 'secret', 32, 'phil_forms_autosave.draft_key')), $keys->owner('ada'));
         self::assertNotSame($keys->owner('ada'), $keys->owner('bob'));
         self::assertNotSame($keys->owner('ada'), new DraftKeys('other')->owner('ada'));
     }

@@ -32,20 +32,28 @@ final readonly class EmailAddresses
         'orders', 'postmaster', 'press', 'privacy', 'root', 'sales', 'security', 'service', 'support', 'team', 'webmaster',
     ];
 
+    /** The usage label the key of the fingerprints is derived under, from the secret given. */
+    public const string FINGERPRINT_USAGE = 'phil_email_address.fingerprint';
+
     /** @var array<string, true> */
     private array $roles;
+
+    /** The key of the fingerprints, derived for that usage alone: no other usage of the secret gives the same hash. */
+    private string $fingerprintKey;
 
     private SyntaxPolicy $policy;
 
     /**
-     * @param string       $fingerprintKey the secret the fingerprints are keyed with
+     * @param string       $secret         the secret the key of the fingerprints is derived from, by HKDF-SHA256 under
+     *                                     `FINGERPRINT_USAGE`
      * @param list<string> $roleLocalParts the parts before the @ that name a role, in lowercase
      */
     public function __construct(
         #[SensitiveParameter]
-        private string $fingerprintKey,
+        string $secret,
         array $roleLocalParts = self::ROLE_LOCAL_PARTS,
     ) {
+        $this->fingerprintKey = '' === $secret ? '' : hash_hkdf('sha256', $secret, 32, self::FINGERPRINT_USAGE);
         $this->roles = array_fill_keys(array_map(strtolower(...), $roleLocalParts), true);
         $this->policy = new SyntaxPolicy()->withInternationalLocalPart(true)->withQuotedLocalPart(true)->withIpLiteral(true);
     }

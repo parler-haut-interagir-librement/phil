@@ -36,6 +36,12 @@ final readonly class MaxMindLocator implements IpLocator
             throw InvalidPlace::ip($ip);
         }
 
+        // A private or reserved address — a proxy's own, behind a proxy the application does not trust — locates no
+        // visitor, and is never looked up.
+        if (false === filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_NO_PRIV_RANGE | \FILTER_FLAG_NO_RES_RANGE)) {
+            return null;
+        }
+
         $record = $this->database->find($ip);
         $location = \is_array($record) ? $record['location'] ?? null : null;
         $latitude = \is_array($location) ? $location['latitude'] ?? null : null;

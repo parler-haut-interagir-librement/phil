@@ -14,9 +14,9 @@ use Throwable;
 
 /**
  * The tokens of the cmi5 sessions: the fetch URL gives a session's token once, as cmi5 asks; the assignable unit then
- * sends it as HTTP Basic credentials with each request. The token is the session's identifier and an HMAC of it under
- * the application's secret, so that nothing secret is kept in the database; it opens its session while the session is
- * neither ended nor expired.
+ * sends it as HTTP Basic credentials with each request. The token is the session's identifier and an HMAC of it under a
+ * key derived from the application's secret, so that nothing secret is kept in the database; it opens its session while
+ * the session is neither ended nor expired.
  */
 final readonly class Cmi5Tokens
 {
@@ -26,12 +26,19 @@ final readonly class Cmi5Tokens
 
     public const string GENERAL = '3';
 
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_courses.cmi5_token';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     public function __construct(
         private LaunchSessionRepository $sessions,
         private ClockInterface $clock,
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     /**
@@ -101,6 +108,6 @@ final readonly class Cmi5Tokens
 
     private function signature(LaunchSessionId $session): string
     {
-        return hash_hmac('sha256', 'phil_courses.cmi5|'.$session->value, $this->secret);
+        return hash_hmac('sha256', 'phil_courses.cmi5|'.$session->value, $this->key);
     }
 }

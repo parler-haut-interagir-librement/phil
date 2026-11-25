@@ -87,6 +87,14 @@ and takes `Equivalences` as its second argument.
 - `phil/elearning-packages` 0.2 is accepted beside 0.1: the package did not install beside the version published on
   2026-11-20.
 
+### Security
+
+- The SCORM attempt tokens and the cmi5 session tokens were the HMAC under `scorm.secret` and `cmi5.secret`
+  themselves, `%kernel.secret%` by default, which other bundles keyed their own hashes with. `ScormTokens` and
+  `Cmi5Tokens` derive their keys by HKDF-SHA256 under `phil_courses.scorm_token` and `phil_courses.cmi5_token`
+  (`ScormTokens::USAGE`, `Cmi5Tokens::USAGE`). A session open at the update loses its token: the learner launches the
+  unit again.
+
 ## 0.2.0-alpha - 2026-11-20
 
 An ended SCORM attempt opens for review, the time allowed is enforced on the server,

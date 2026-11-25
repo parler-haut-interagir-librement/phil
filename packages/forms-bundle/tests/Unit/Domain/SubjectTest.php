@@ -36,7 +36,7 @@ final class SubjectTest extends TestCase
         $form->identifyBy('email');
         self::assertSame('email', $form->subjectField());
         $known = $form->submit(['email' => '  Ada@Example.COM '] + Forms::values(), new DateTimeImmutable(), 'fr', 'member-7', $digester);
-        self::assertSame(['member-7', hash_hmac('sha256', 'ada@example.com', 'key')], [$known->subject, $known->emailDigest]);
+        self::assertSame(['member-7', hash_hmac('sha256', 'ada@example.com', hash_hkdf('sha256', 'key', 32, 'phil_forms.email_digest'))], [$known->subject, $known->emailDigest]);
         self::assertNull($form->submit(Forms::values(), new DateTimeImmutable())->emailDigest, 'without a digester, no digest');
 
         $optional = Form::create('lettre', 'Lettre', [Field::of('email', 'Courriel', FieldType::Email)]);
@@ -73,8 +73,10 @@ final class SubjectTest extends TestCase
         $digester = new HmacEmailDigester('key');
 
         self::assertSame($digester->digest('àda@example.com'), $digester->digest(" ÀDA@Example.com\n"));
-        self::assertSame(hash_hmac('sha256', 'àda@example.com', 'key'), $digester->digest(" ÀDA@Example.com\n"));
+        self::assertSame(hash_hmac('sha256', 'àda@example.com', hash_hkdf('sha256', 'key', 32, 'phil_forms.email_digest')), $digester->digest(" ÀDA@Example.com\n"));
         self::assertNotSame($digester->digest('ada@example.com'), new HmacEmailDigester('other')->digest('ada@example.com'));
+        self::assertNotSame(hash_hmac('sha256', 'ada@example.com', 'key'), $digester->digest('ada@example.com'));
+        self::assertSame('phil_forms.email_digest', HmacEmailDigester::USAGE);
 
         $this->expectException(InvalidArgumentException::class);
         new HmacEmailDigester('');

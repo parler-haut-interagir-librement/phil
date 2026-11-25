@@ -44,7 +44,8 @@ secret from the visitor: it keeps out the scripts that do not load the page.
 
 The event is of the `browser` source, with the page as the request's address, the `User-Agent` as its only header, and
 the client's address truncated. The tracker scrubs it like any other. The
-throttle counts a keyed digest of the client's address, never the address. When phil/rate-limit-bundle is registered, it
+throttle counts a keyed digest of the client's address, never the address, under a key derived from the secret by
+HKDF-SHA256 under `phil_error_tracking.browser_throttle`. When phil/rate-limit-bundle is registered, it
 goes through a limiter of that bundle named `phil_error_tracking.browser`, over the same window, which decorating the
 service `phil_error_tracking.browser_throttle.limit` replaces; without that bundle it counts on `symfony/rate-limiter`
 directly. See [the configuration](configuration.md#what-fails-the-build) for what a rate limit needs.

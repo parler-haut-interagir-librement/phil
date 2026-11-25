@@ -22,14 +22,21 @@ use Symfony\Component\HttpFoundation\Request;
  */
 final readonly class ClientIpKey implements KeyResolver
 {
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_rate_limit.client_ip_key';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     /** The first twelve bytes of an IPv4-mapped IPv6 address. */
     private const string MAPPED_PREFIX = "\0\0\0\0\0\0\0\0\0\0\xFF\xFF";
 
     public function __construct(
         #[SensitiveParameter]
-        private string $secret,
+        string $secret,
         private ?AddressNormalizer $normalizer = null,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     #[Override]
@@ -44,7 +51,7 @@ final readonly class ClientIpKey implements KeyResolver
         $address = $this->unmapped($address);
         $normalized = $this->normalizer?->normalize($address) ?? IpUtils::anonymize($address, 0, 8);
 
-        return 'ip:'.hash_hmac('sha256', $normalized, $this->secret);
+        return 'ip:'.hash_hmac('sha256', $normalized, $this->key);
     }
 
     /**

@@ -62,6 +62,15 @@ final class PhilHttpCacheTagsBundle extends AbstractBundle
                     ->values(['none', 'varnish', 'cloudflare'])
                     ->defaultValue('none')
                 ->end()
+                ->arrayNode('http')
+                    ->info('The HTTP client of the purgers, and how long a purge call may take.')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('client')->info('The service id of the HTTP client.')->defaultValue('http_client')->cannotBeEmpty()->end()
+                        ->floatNode('timeout')->info('The longest wait for a byte of an answer, in seconds.')->defaultValue(VarnishPurger::TIMEOUT)->min(0.001)->max(300.0)->end()
+                        ->floatNode('max_duration')->info('The longest call, in seconds.')->defaultValue(VarnishPurger::MAX_DURATION)->min(0.001)->max(300.0)->end()
+                    ->end()
+                ->end()
                 ->arrayNode('varnish')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -113,7 +122,7 @@ final class PhilHttpCacheTagsBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{header: string, purger: string, varnish: array{urls: list<string>, header: string}, cloudflare: array{zone: ?string, token: ?string}, invalidate_entities: bool} $config */
+        /** @var array{header: string, purger: string, http: array{client: string, timeout: float, max_duration: float}, varnish: array{urls: list<string>, header: string}, cloudflare: array{zone: ?string, token: ?string}, invalidate_entities: bool} $config */
         $builder->registerForAutoconfiguration(CacheTagResolver::class)->addTag(self::RESOLVER_TAG);
         $services = $container->services();
         [$header, $separator] = self::HEADERS[$config['header']];
@@ -127,12 +136,12 @@ final class PhilHttpCacheTagsBundle extends AbstractBundle
             ->tag('kernel.event_listener', ['event' => 'kernel.response', 'method' => 'onResponse', 'after' => SessionListener::class, 'before' => ProfilerListener::class]);
 
         if ('varnish' === $config['purger']) {
-            $services->set(VarnishPurger::class)->args([new Reference('http_client'), $config['varnish']['urls'], $config['varnish']['header']]);
+            $services->set(VarnishPurger::class)->args([new Reference($config['http']['client']), $config['varnish']['urls'], $config['varnish']['header'], $config['http']['timeout'], $config['http']['max_duration']]);
             $services->alias(CacheTagPurger::class, VarnishPurger::class);
         }
 
         if ('cloudflare' === $config['purger']) {
-            $services->set(CloudflarePurger::class)->args([new Reference('http_client'), $config['cloudflare']['zone'], $config['cloudflare']['token']]);
+            $services->set(CloudflarePurger::class)->args([new Reference($config['http']['client']), $config['cloudflare']['zone'], $config['cloudflare']['token'], $config['http']['timeout'], $config['http']['max_duration']]);
             $services->alias(CacheTagPurger::class, CloudflarePurger::class);
         }
 

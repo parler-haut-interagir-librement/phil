@@ -129,6 +129,9 @@ final class PhilSearchBundle extends AbstractBundle
                     ->children()
                         ->scalarNode('url')->defaultNull()->end()
                         ->scalarNode('key')->defaultNull()->end()
+                        ->scalarNode('http_client')->info('The service id of the HTTP client that calls Meilisearch.')->defaultValue('http_client')->cannotBeEmpty()->end()
+                        ->floatNode('timeout')->info('The longest wait for a byte of an answer, in seconds.')->defaultValue(MeilisearchIndex::TIMEOUT)->min(0.001)->max(300.0)->end()
+                        ->floatNode('max_duration')->info('The longest call, in seconds.')->defaultValue(MeilisearchIndex::MAX_DURATION)->min(0.001)->max(300.0)->end()
                     ->end()
                 ->end()
                 ->arrayNode('loupe')
@@ -212,14 +215,14 @@ final class PhilSearchBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{adapter: string, connection: string, meilisearch: array{url: ?string, key: ?string}, loupe: array{directory: string}, index_entities: string, batch: int, synonyms: array{languages: list<string>, directory: ?string, store: ?string, rejected_forms: list<string>}, kit_subdirectory: ?string} $config */
+        /** @var array{adapter: string, connection: string, meilisearch: array{url: ?string, key: ?string, http_client: string, timeout: float, max_duration: float}, loupe: array{directory: string}, index_entities: string, batch: int, synonyms: array{languages: list<string>, directory: ?string, store: ?string, rejected_forms: list<string>}, kit_subdirectory: ?string} $config */
         $builder->registerForAutoconfiguration(DocumentProvider::class)->addTag(self::PROVIDER_TAG);
         $builder->registerForAutoconfiguration(SynonymProvider::class)->addTag(self::SYNONYM_PROVIDER_TAG);
         $services = $container->services();
         $connection = new Reference(\sprintf('doctrine.dbal.%s_connection', $config['connection']));
 
         if ('meilisearch' === $config['adapter']) {
-            $services->set(MeilisearchIndex::class)->args([new Reference('http_client'), $config['meilisearch']['url'], $config['meilisearch']['key']]);
+            $services->set(MeilisearchIndex::class)->args([new Reference($config['meilisearch']['http_client']), $config['meilisearch']['url'], $config['meilisearch']['key'], $config['meilisearch']['timeout'], $config['meilisearch']['max_duration']]);
             $services->alias(SearchIndex::class, MeilisearchIndex::class);
         } elseif ('loupe' === $config['adapter']) {
             $services->set(self::LOUPE_FACTORY, self::LOUPE_FACTORY);

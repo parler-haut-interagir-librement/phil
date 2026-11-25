@@ -90,6 +90,34 @@ final class BrowserSecurityBundleTest extends KernelTestCase
         self::assertStringNotContainsString($script[1], $again, 'a worker gives each request its own nonce');
     }
 
+    public function testTheErrorPageCarriesTheNoncesOfThePolicy(): void
+    {
+        // In debug, the ErrorListener of HttpKernel drops the policy of an error page; FrameworkBundle picks the HTML
+        // page in the web runtime only.
+        self::ensureKernelShutdown();
+        self::bootKernel(['debug' => false]);
+        $_SERVER['APP_RUNTIME_MODE'] = 'web=1';
+
+        try {
+            $response = $this->request('GET', 'https://example.com/broken');
+            $again = $this->request('GET', 'https://example.com/broken');
+        } finally {
+            unset($_SERVER['APP_RUNTIME_MODE']);
+        }
+
+        $header = (string) $response->headers->get('Content-Security-Policy');
+        $content = (string) $response->getContent();
+
+        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
+        self::assertStringNotContainsString('The page failed.', $content);
+        self::assertSame(1, preg_match('/<style nonce="([A-Za-z0-9+\/]+=*)"/', $content, $style));
+        self::assertStringContainsString("style-src 'self' 'nonce-".$style[1]."'", $header);
+        self::assertDoesNotMatchRegularExpression('/<(script|style)(?![^>]*nonce=)[^>]*>/', $content, 'every element carries a nonce');
+        self::assertTrue($response->headers->hasCacheControlDirective('private'));
+
+        self::assertStringNotContainsString($style[1], (string) $again->getContent(), 'each error page gets its own nonce');
+    }
+
     public function testTheStructuredDataOfAPageAsksForNoNonceAndStaysInSharedCaches(): void
     {
         $response = $this->request('GET', '/described');

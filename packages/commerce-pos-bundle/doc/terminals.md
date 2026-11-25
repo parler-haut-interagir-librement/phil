@@ -75,7 +75,8 @@ An adapter keeps no state between two requests: the processor's client and its s
 ## The fake terminal
 
 `Infrastructure\Terminal\FakePaymentTerminal`, named `fake`, pretends: it remembers what it was asked and signs the
-notifications a test asks it for with an HMAC-SHA256 of the body under the kernel secret, in the
+notifications a test asks it for with an HMAC-SHA256 of the body under a key derived from the
+kernel secret by HKDF-SHA256 (`FakePaymentTerminal::USAGE`), in the
 `x-fake-terminal-signature` header. It is registered only when `terminals.fake` is `true` — for tests, demos and a
 till's development —, and the kernel resets it between two requests.
 

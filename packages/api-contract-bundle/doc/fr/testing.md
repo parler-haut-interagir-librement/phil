@@ -1,10 +1,10 @@
-<!-- phil-dev source-sha256=fef8e710aa14b385d7691a4acca53d8408708ac2d29221208704aa06109436b1 -->
+<!-- phil-dev source-sha256=51db007570801c32ff461bd67c3f5269f688c470d757df4c9d9fce4b23c7cbd1 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
 |---|---|
 | `PhilApiContractBundle` | Chaque service, argument, alias, étiquette et décoration ; les valeurs par défaut ; aucune connexion Doctrine sans DoctrineBundle ; le pool de cache et sa fabrique de verrous |
-| `ProblemDetailsListener`, `ProblemException`, `ProblemDetailsResponse` | Les problèmes partout, les exceptions HTTP et les autres sous les chemins, le mode débogage, la borne `400` |
+| `ProblemDetailsListener`, `ProblemException`, `ProblemDetailsResponse` | Les problèmes partout, les exceptions HTTP, les conflits d'écriture et les autres sous les chemins, le mode débogage, la borne `400` |
 | `IdempotencyListener`, `Idempotent`, `IdempotencyReservation` | Réservation et expiration, rejeu avec les attributs de l'original et sans arguments, une clé nouvelle qui laisse le contrôleur et ses arguments, clé réutilisée, requête en cours avec son `Retry-After`, clé échouée exécutée de nouveau, clés manquantes et erronées, `5xx` et flux marqués échoués, réservation perdue au profit d'une autre requête (`409`, ou le `5xx` laissé tel quel), en-têtes rejoués, absence de stockage |
 | `CallerScopeResolver`, `ActiveTenantResolver`, `TokenAttributeClientResolver`, `AnonymousCallers` | Le locataire, le client et l'utilisateur hachés ensemble ; deux locataires de `phil/tenancy-bundle`, deux clients, un locataire et un client du même nom gardés distincts ; un client sans utilisateur ; les appelants anonymes refusés, ou rattachés à leur adresse dans leur locataire ; l'attribut du jeton, absent, vide, qui n'est pas une chaîne ou non lu |
 | `IdempotencySchemaListener` | La table de `phil/idempotency` dans le schéma de sa connexion, et pas d'une autre ; son SQL sur MySQL, MariaDB, PostgreSQL et SQLite, `utf8mb4_bin` sur MySQL et MariaDB ; sur de vrais MySQL et PostgreSQL, les portées et les clés qui diffèrent par la casse ou l'accent gardées comme des lignes distinctes. Les stockages eux-mêmes sont testés dans `phil/idempotency` |

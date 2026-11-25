@@ -40,6 +40,7 @@ See [Tagging](tagging.md).
 | `header` | The header the tags are written in: `xkey`, `cache-tag` or `surrogate-key` |
 | `purger` | Which cache is purged: none, `varnish` or `cloudflare` |
 | `varnish`, `cloudflare` | Where and how |
+| `http.client`, `http.timeout`, `http.max_duration` | The HTTP client of the purgers, `http_client` by default, and how long a purge call may take: 5 seconds of wait for a byte, 10 for the whole call, by default |
 | `invalidate_entities` | Whether every entity a Doctrine flush changes is passed to the resolvers |
 
 ## Services

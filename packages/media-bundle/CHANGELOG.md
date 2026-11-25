@@ -45,6 +45,12 @@ Development only.
   `symfony/service-contracts` 3.8), and of each development requirement (`doctrine/doctrine-bundle` 3.4, `twig/twig`
   3.31, `symfony/ux-twig-component` 3.8, `easycorp/easyadmin-bundle` 5.10, …).
 
+### Security
+
+- The signatures of the media addresses were the HMAC under the secret itself, `%kernel.secret%` by default, which
+  other bundles keyed their own hashes with. `UrlSigner` derives its key by HKDF-SHA256 under
+  `phil_media.url_signature` (`UrlSigner::USAGE`). An address signed before the update stops working: sign it again.
+
 ## 0.2.0-alpha - 2026-11-18
 
 The keys of the media, versions and collections compare byte by byte on MySQL and

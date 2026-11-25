@@ -62,7 +62,7 @@
 | `passkeys` | `_passkeys` `/account/passkeys`, `_passkeys_options`, `_passkeys_register`, `_passkeys_rename`, `_passkeys_remove`, `_passkey_login_options` `/passkey/options`, `_passkey_login` `/passkey/login` |
 | `totp` | `_totp` `/account/two-factor`, `_totp_confirm`, `_totp_disable`, `_challenge` `/two-factor`, `_code_check` `/two-factor/check` |
 | `recovery_codes` | `_recovery_codes` `/account/two-factor/recovery-codes` |
-| `login_link` | `_login_link` `/login/link`, `_login_link_check` `/login/link/check` |
+| `login_link` | `_login_link` `/login/link`, `_login_link_check` `/login/link/check` (GET: the confirmation page; POST: the authenticator) |
 | `sms` | `_phone` `/account/phone`, `_phone_start`, `_phone_confirm`, `_phone_remove` |
 | `sessions` | `_sessions` `/account/sessions`, `_sessions_close`, `_sessions_close_others`, `_consent_withdraw` with `oidc` |
 | `step_up` | `_reauthenticate` `/reauthenticate` |

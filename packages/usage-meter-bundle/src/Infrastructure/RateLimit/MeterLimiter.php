@@ -32,6 +32,12 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  */
 final readonly class MeterLimiter implements Limiter
 {
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_usage_meter.meter_limiter';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private string $key;
+
     /** The request header a client names a request by, so that its retries count once. */
     public const string IDEMPOTENCY_HEADER = 'Idempotency-Key';
 
@@ -44,8 +50,9 @@ final readonly class MeterLimiter implements Limiter
         private string $meterName,
         private bool $idempotencyKey = false,
         #[SensitiveParameter]
-        private string $secret = '',
+        string $secret = '',
     ) {
+        $this->key = '' === $secret ? '' : hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     #[Override]
@@ -91,7 +98,7 @@ final readonly class MeterLimiter implements Limiter
      */
     private function keyOf(Request $request, string $header): string
     {
-        return hash_hmac('sha256', implode("\n", [$this->name, $request->getMethod(), $request->getRequestUri(), hash('sha256', $request->getContent()), $header]), $this->secret);
+        return hash_hmac('sha256', implode("\n", [$this->name, $request->getMethod(), $request->getRequestUri(), hash('sha256', $request->getContent()), $header]), $this->key);
     }
 
     /**

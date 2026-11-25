@@ -47,7 +47,8 @@ Rate Limiter, in the pool of `rate_limiter_storage`, under `lock.factory` when t
 
 The address typed is trimmed and lowercased, so that its spellings share their count, and it is counted whether it is
 subscribed or not: the answers tell nobody who is on a list. A refusal by the client's count spends nothing of the
-address's. The keys of the counts are keyed hashes of the secret: the store holds no address, IP address or email
+address's. The keys of the counts are keyed hashes, under a key derived from the secret by HKDF-SHA256 under
+`phil_newsletter.subscription_limiter`: the store holds no address, IP address or email
 address. A subscription refused by the delay keeps its place, pending, and announces nothing; `subscribe()` answers
 `SubscribeOutcome::ConfirmationDelayed`. A person who subscribes again after the delay gets a new confirmation.
 

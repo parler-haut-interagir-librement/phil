@@ -33,6 +33,22 @@ final readonly class ContentSecurityPolicyContext
     }
 
     /**
+     * The nonce of the `<script>` elements, for a caller that takes a closure without arguments.
+     */
+    public function scriptNonce(): string
+    {
+        return $this->nonce(InlineKind::Script);
+    }
+
+    /**
+     * The nonce of the `<style>` elements, for a caller that takes a closure without arguments.
+     */
+    public function styleNonce(): string
+    {
+        return $this->nonce(InlineKind::Style);
+    }
+
+    /**
      * The script nonce, allowed for styles too: the value of the `csp-nonce` meta tag that Turbo reads for the scripts
      * and the styles it adds.
      */

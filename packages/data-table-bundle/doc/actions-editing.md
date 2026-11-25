@@ -52,7 +52,8 @@ live region says that the row is no longer on the page; the control comes back w
 | The value's type, then Symfony Validator | | yes |
 
 Showing a button is not a permission: buttons are hidden when the voter refuses, and the check runs again when the call
-comes. A plain form also carries the table's context with a seal made from `kernel.secret`, and the page it comes back to
+comes. A plain form also carries the table's context with a seal made under a key derived from `kernel.secret` by HKDF-SHA256 under
+`phil_data_table.table_guard`, and the page it comes back to
 must be a path of this site.
 
 When a plain form's change stops, the template `@PhilDataTable/table/stopped.html.twig` says why, with a link back to the

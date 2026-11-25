@@ -32,6 +32,12 @@ final class MeilisearchIndex implements SearchIndex, SynonymAwareIndex
 {
     public const string REBUILD_SUFFIX = '__rebuild';
 
+    /** The longest wait for a byte of an answer, in seconds, by default. */
+    public const float TIMEOUT = 5.0;
+
+    /** The longest whole call, in seconds, by default. */
+    public const float MAX_DURATION = 10.0;
+
     /**
      * The filterable attributes known of each index, so that a write sends them only when they grow.
      *
@@ -44,6 +50,8 @@ final class MeilisearchIndex implements SearchIndex, SynonymAwareIndex
         private readonly string $url,
         #[SensitiveParameter]
         private readonly ?string $key = null,
+        private readonly float $timeout = self::TIMEOUT,
+        private readonly float $maxDuration = self::MAX_DURATION,
     ) {
     }
 
@@ -250,7 +258,7 @@ final class MeilisearchIndex implements SearchIndex, SynonymAwareIndex
      */
     private function read(string $path, string $what): ?array
     {
-        $response = $this->client->request('GET', rtrim($this->url, '/').$path, ['auth_bearer' => $this->key]);
+        $response = $this->client->request('GET', rtrim($this->url, '/').$path, ['auth_bearer' => $this->key, 'timeout' => $this->timeout, 'max_duration' => $this->maxDuration]);
         $status = $response->getStatusCode();
 
         if (404 === $status) {
@@ -272,6 +280,8 @@ final class MeilisearchIndex implements SearchIndex, SynonymAwareIndex
         $response = $this->client->request($method, rtrim($this->url, '/').$path, [
             'auth_bearer' => $this->key,
             'json' => $body,
+            'timeout' => $this->timeout,
+            'max_duration' => $this->maxDuration,
         ]);
         $status = $response->getStatusCode();
 

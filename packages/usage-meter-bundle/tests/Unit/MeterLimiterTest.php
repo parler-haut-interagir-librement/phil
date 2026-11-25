@@ -115,7 +115,7 @@ final class MeterLimiterTest extends TestCase
 
         new MeterLimiter($this->meter, $this->clock, 'keyed', 'actions', true, 'other secret')->consume('alice', 1, $this->request('POST', 'k'));
         self::assertSame(3, $this->meter->usage('alice', 'actions')->used);
-        self::assertTrue($this->meter->record('alice', 'actions', 1, hash_hmac('sha256', implode("\n", ['keyed', 'POST', '/', hash('sha256', ''), 'k']), 'secret'))->replayed, 'The store keeps the HMAC of the limiter, the method, the URI, the body and the header.');
+        self::assertTrue($this->meter->record('alice', 'actions', 1, hash_hmac('sha256', implode("\n", ['keyed', 'POST', '/', hash('sha256', ''), 'k']), hash_hkdf('sha256', 'secret', 32, 'phil_usage_meter.meter_limiter')))->replayed, 'The store keeps the HMAC of the limiter, the method, the URI, the body and the header.');
         self::assertSame('Idempotency-Key', MeterLimiter::IDEMPOTENCY_HEADER);
     }
 

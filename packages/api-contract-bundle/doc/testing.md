@@ -3,7 +3,7 @@
 | Area | What is covered |
 |---|---|
 | `PhilApiContractBundle` | Every service, argument, alias, tag and decoration; the defaults; no Doctrine connection without DoctrineBundle; the cache pool and its lock factory |
-| `ProblemDetailsListener`, `ProblemException`, `ProblemDetailsResponse` | Problems anywhere, HTTP exceptions and others under the paths, debug, the `400` bound |
+| `ProblemDetailsListener`, `ProblemException`, `ProblemDetailsResponse` | Problems anywhere, HTTP exceptions, write conflicts and others under the paths, debug, the `400` bound |
 | `IdempotencyListener`, `Idempotent`, `IdempotencyReservation` | Reservation and expiry, replay with the original's attributes and no arguments, a new key that leaves the controller and its arguments, reuse, in progress with its `Retry-After`, a failed key run again, missing and bad keys, `5xx` and streams marked failed, a reservation lost to another request (`409`, or the `5xx` left as it is), the replayed headers, no store |
 | `CallerScopeResolver`, `ActiveTenantResolver`, `TokenAttributeClientResolver`, `AnonymousCallers` | The tenant, the client and the user hashed together; two tenants of `phil/tenancy-bundle`, two clients, a tenant and a client of one name kept apart; a client without a user; anonymous callers refused, or scoped by address within their tenant; the token attribute, absent, empty, not a string or not read |
 | `IdempotencySchemaListener` | The table of `phil/idempotency` in the schema of its connection, and not of another; its SQL on MySQL, MariaDB, PostgreSQL and SQLite, `utf8mb4_bin` on MySQL and MariaDB; on a real MySQL and PostgreSQL, scopes and keys that differ by case or accent kept as distinct rows. The stores themselves are tested in `phil/idempotency` |

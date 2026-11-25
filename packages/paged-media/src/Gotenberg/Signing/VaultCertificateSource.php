@@ -18,6 +18,12 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final readonly class VaultCertificateSource implements CertificateSource
 {
+    /** The longest wait for a byte of an answer, in seconds, by default. */
+    public const float TIMEOUT = 5.0;
+
+    /** The longest whole call, in seconds, by default. */
+    public const float MAX_DURATION = 10.0;
+
     public function __construct(
         private HttpClientInterface $client,
         private string $address,
@@ -25,6 +31,8 @@ final readonly class VaultCertificateSource implements CertificateSource
         private string $token,
         private string $path,
         private string $mount = 'secret',
+        private float $timeout = self::TIMEOUT,
+        private float $maxDuration = self::MAX_DURATION,
     ) {
     }
 
@@ -34,7 +42,7 @@ final readonly class VaultCertificateSource implements CertificateSource
         $url = rtrim($this->address, '/').'/v1/'.trim($this->mount, '/').'/data/'.ltrim($this->path, '/');
 
         try {
-            $response = $this->client->request('GET', $url, ['headers' => ['X-Vault-Token' => $this->token]]);
+            $response = $this->client->request('GET', $url, ['headers' => ['X-Vault-Token' => $this->token], 'timeout' => $this->timeout, 'max_duration' => $this->maxDuration]);
             $status = $response->getStatusCode();
             $body = $response->getContent(false);
         } catch (ExceptionInterface $exception) {

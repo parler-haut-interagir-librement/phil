@@ -15,6 +15,9 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 - `CacheUsedTokens` no longer puts the nonce in clear in the key of its lock or of its cache item: both use the SHA-256
   of the nonce, so a lock store or a shared pool that logs or lists its keys never sees a token's nonce.
+- The key a client's submissions are counted by was the HMAC of its network under the secret itself,
+  `%kernel.secret%` by default, the same hash other bundles kept for the same address. `ClientKey` derives its key by
+  HKDF-SHA256 under `phil_spam_protection.client_key` (`ClientKey::USAGE`). The counts start again at the update.
 
 ## 0.3.0-alpha - 2026-11-20
 

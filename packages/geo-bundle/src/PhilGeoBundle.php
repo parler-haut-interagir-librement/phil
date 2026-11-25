@@ -7,6 +7,7 @@ namespace Phil\GeoBundle;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Override;
+use Phil\Geo\Geocoding\Timeouts;
 use Phil\GeoBundle\Infrastructure\DependencyInjection\GeocodingServices;
 use Phil\GeoBundle\Infrastructure\Form\CoordinatesType;
 use Phil\GeoBundle\Infrastructure\Twig\GeoExtension;
@@ -36,6 +37,21 @@ final class PhilGeoBundle extends AbstractBundle
                 ->booleanNode('doctrine_mapping')
                     ->info('Maps Phil\Geo\Coordinates as an embeddable on the ORM.')
                     ->defaultTrue()
+                ->end()
+                ->arrayNode('http')
+                    ->info('The HTTP client of the geocoders, of ipstack and of the MaxMind updater, and how long a call to a provider may take.')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('client')->info('The service id of the HTTP client.')->defaultValue('http_client')->cannotBeEmpty()->end()
+                        ->floatNode('timeout')->info('The longest wait for a byte of an answer, in seconds.')->defaultValue(Timeouts::TIMEOUT)->min(0.001)->max(Timeouts::MAX)->end()
+                        ->floatNode('max_duration')->info('The longest call of a geocoder or of ipstack, in seconds; the download of the MaxMind database has no such bound.')->defaultValue(Timeouts::MAX_DURATION)->min(0.001)->max(Timeouts::MAX)->end()
+                    ->end()
+                    ->validate()
+                        ->ifTrue(static fn (array $http): bool => $http['max_duration'] < $http['timeout'])
+                        ->then(static function (): never {
+                            throw new InvalidArgumentException('phil_geo.http.max_duration cannot be shorter than phil_geo.http.timeout.');
+                        })
+                    ->end()
                 ->end()
                 ->arrayNode('geocoding')
                     ->addDefaultsIfNotSet()
@@ -196,8 +212,8 @@ final class PhilGeoBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{geocoding: array{providers: list<string>, nominatim: array{user_agent: ?string, base_url: string, limit: int}, google_maps: array{api_key: ?string, base_url: string}, nrcan: array{base_url: string, limit: int}, photon: array{base_url: string, limit: int, languages: list<string>}, opencage: array{api_key: ?string, base_url: string, limit: int}, here: array{api_key: ?string, geocode_url: string, reverse_url: string, limit: int}, mapbox: array{access_token: ?string, base_url: string, limit: int, permanent: bool}, azure_maps: array{subscription_key: ?string, base_url: string, limit: int, api_version: string}, adresses_quebec: array{base_url: string, limit: int}, cache: array{pool: ?string, lifetime: int}}, ip_locator: array{maxmind: array{database: ?string, locale: string, account_id: ?string, license_key: ?string, edition: string, download_url: string}, ipstack: array{access_key: ?string, base_url: string}}} $config */
-        GeocodingServices::register($builder, $config['geocoding'], $config['ip_locator']);
+        /** @var array{http: array{client: string, timeout: float, max_duration: float}, geocoding: array{providers: list<string>, nominatim: array{user_agent: ?string, base_url: string, limit: int}, google_maps: array{api_key: ?string, base_url: string}, nrcan: array{base_url: string, limit: int}, photon: array{base_url: string, limit: int, languages: list<string>}, opencage: array{api_key: ?string, base_url: string, limit: int}, here: array{api_key: ?string, geocode_url: string, reverse_url: string, limit: int}, mapbox: array{access_token: ?string, base_url: string, limit: int, permanent: bool}, azure_maps: array{subscription_key: ?string, base_url: string, limit: int, api_version: string}, adresses_quebec: array{base_url: string, limit: int}, cache: array{pool: ?string, lifetime: int}}, ip_locator: array{maxmind: array{database: ?string, locale: string, account_id: ?string, license_key: ?string, edition: string, download_url: string}, ipstack: array{access_key: ?string, base_url: string}}} $config */
+        GeocodingServices::register($builder, $config['geocoding'], $config['ip_locator'], $config['http']);
         $services = $container->services();
         $services->set(CoordinatesType::class)->tag('form.type');
 

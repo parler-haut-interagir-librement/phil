@@ -16,7 +16,7 @@ final class WebhookSignerTest extends TestCase
     {
         $signer = new WebhookSigner('a-secret-of-sixteen-bytes');
         $token = $signer->token('main', 'room1', 'ended');
-        $expected = substr(sodium_bin2base64(hash_hmac('sha256', "phil_virtual_classroom\0main\0room1\0ended", 'a-secret-of-sixteen-bytes', true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), 0, 32);
+        $expected = substr(sodium_bin2base64(hash_hmac('sha256', "phil_virtual_classroom\0main\0room1\0ended", hash_hkdf('sha256', 'a-secret-of-sixteen-bytes', 32, 'phil_virtual_classroom.webhook_address'), true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), 0, 32);
 
         self::assertSame($expected, $token);
         self::assertSame(32, \strlen($token));
@@ -26,7 +26,7 @@ final class WebhookSignerTest extends TestCase
         self::assertFalse($signer->verify($token, 'other', 'room1', 'ended'));
         self::assertFalse($signer->verify($token, 'main', null, 'ended'));
         self::assertFalse(new WebhookSigner('another-secret-of-16')->verify($token, 'main', 'room1', 'ended'));
-        self::assertSame(substr(sodium_bin2base64(hash_hmac('sha256', "phil_virtual_classroom\0main\0\0account", 'a-secret-of-sixteen-bytes', true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), 0, 32), $signer->token('main', null, 'account'));
+        self::assertSame(substr(sodium_bin2base64(hash_hmac('sha256', "phil_virtual_classroom\0main\0\0account", hash_hkdf('sha256', 'a-secret-of-sixteen-bytes', 32, 'phil_virtual_classroom.webhook_address'), true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING), 0, 32), $signer->token('main', null, 'account'));
         self::assertTrue(new WebhookSigner(str_repeat('s', 16))->verify(new WebhookSigner(str_repeat('s', 16))->token('a', 'b', 'c'), 'a', 'b', 'c'));
     }
 

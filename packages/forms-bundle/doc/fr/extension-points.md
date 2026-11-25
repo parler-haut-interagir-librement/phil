@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f316d051a3c87d4b76a063b34fe6d3718d037f4a4b34652ba2697f7da11a757a -->
+<!-- phil-dev source-sha256=6ee850b9b23403172ebe9b93a1cb159d955e294aa7f144d8babce1a7cab3e47e -->
 # Points d'extension
 
 Ce qu'une application implémente, étiquette, configure ou surcharge. La protection contre le pourriel vient de
@@ -77,7 +77,8 @@ toutes les entrées.
 ### `EmailDigester`
 
 `Phil\FormsBundle\Domain\Subject\EmailDigester` : l'empreinte qu'une entrée conserve d'une adresse. `HmacEmailDigester`
-est le HMAC-SHA256 de l'adresse sans espaces aux extrémités et en minuscules, sous `digest_key`.
+est le HMAC-SHA256 de l'adresse sans espaces aux extrémités et en minuscules, sous une clé dérivée de `digest_key` par HKDF-SHA256 sous
+`HmacEmailDigester::USAGE`.
 
 ## Configuration
 

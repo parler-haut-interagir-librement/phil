@@ -69,7 +69,8 @@ Idempotency-Key: "8e03978e-40d5-43e8-bc93-6894a57f9324"
 - The value is 1 to 255 printable ASCII characters, quoted as a structured-field string or not, without a quote or a
   backslash inside: `"abc"` and `abc` are the same key. Another value is answered `400 Bad Request`. A request
   without the header is counted as usual.
-- The store never keeps the client's value: it keeps the HMAC-SHA-256, under `idempotency_secret`, of the limiter's
+- The store never keeps the client's value: it keeps the HMAC-SHA-256, under a key derived from `idempotency_secret` by
+HKDF-SHA256 under `phil_usage_meter.meter_limiter`, of the limiter's
   name, the method, the URI with its query, the SHA-256 of the body and the value. The same key on another action,
   another URI or another body is another key, and counts; two limiters keyed on one meter count the request each. A
   key is scoped to the subject, so one client's keys never meet another's.

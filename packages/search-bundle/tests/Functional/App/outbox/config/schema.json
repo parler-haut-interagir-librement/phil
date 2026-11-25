@@ -6293,12 +6293,34 @@
                             "key": {
                                 "$ref": "#/$defs/types/scalar",
                                 "default": null
+                            },
+                            "http_client": {
+                                "$ref": "#/$defs/types/scalar",
+                                "default": "http_client",
+                                "description": "The service id of the HTTP client that calls Meilisearch."
+                            },
+                            "timeout": {
+                                "$ref": "#/$defs/types/number",
+                                "minimum": 0.001,
+                                "maximum": 300,
+                                "default": 5,
+                                "description": "The longest wait for a byte of an answer, in seconds."
+                            },
+                            "max_duration": {
+                                "$ref": "#/$defs/types/number",
+                                "minimum": 0.001,
+                                "maximum": 300,
+                                "default": 10,
+                                "description": "The longest call, in seconds."
                             }
                         },
                         "additionalProperties": false,
                         "default": {
                             "url": null,
-                            "key": null
+                            "key": null,
+                            "http_client": "http_client",
+                            "timeout": 5,
+                            "max_duration": 10
                         }
                     },
                     "loupe": {

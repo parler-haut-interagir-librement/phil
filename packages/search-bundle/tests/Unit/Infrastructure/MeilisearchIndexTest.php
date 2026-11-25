@@ -29,6 +29,25 @@ final class MeilisearchIndexTest extends TestCase
     /** @var list<string> the raw bodies sent */
     private array $bodies = [];
 
+    /** @var list<array{mixed, mixed}> */
+    private array $timeouts = [];
+
+    public function testEveryCallHasItsTimeouts(): void
+    {
+        new MeilisearchIndex($this->client(), 'http://meili:7700', 'k')->clear('pages');
+        new MeilisearchIndex($this->client(), 'http://meili:7700', 'k', 1.0, 2.0)->clear('pages');
+
+        self::assertSame([[5.0, 10.0], [1.0, 2.0]], $this->timeouts);
+        self::assertSame([5.0, 10.0], [MeilisearchIndex::TIMEOUT, MeilisearchIndex::MAX_DURATION]);
+    }
+
+    public function testEveryReadHasItsTimeouts(): void
+    {
+        new MeilisearchIndex($this->client(), 'http://meili:7700', 'k', 1.5, 2.5)->index(Document::of('pages', 'a', ['title' => 'Accueil'], ['year' => 2020]));
+
+        self::assertSame([[1.5, 2.5], [1.5, 2.5], [1.5, 2.5]], $this->timeouts);
+    }
+
     public function testDocumentsGoToTheirIndexes(): void
     {
         $index = new MeilisearchIndex($this->client(), 'http://meili:7700/', 'secret');
@@ -287,6 +306,7 @@ final class MeilisearchIndexTest extends TestCase
             $body = $options['body'] ?? '';
             self::assertIsString($body);
             $this->bodies[] = $body;
+            $this->timeouts[] = [$options['timeout'], $options['max_duration']];
             $this->sent[] = [$method, $url, '' === $body ? null : json_decode($body, true), \is_string($authorization[0] ?? null) ? substr($authorization[0], \strlen('Authorization: ')) : null];
 
             $given = $answers[$method.' '.parse_url($url, \PHP_URL_PATH)] ?? $answer;

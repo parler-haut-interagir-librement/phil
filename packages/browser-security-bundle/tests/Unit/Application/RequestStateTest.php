@@ -96,6 +96,9 @@ final class RequestStateTest extends TestCase
         self::assertSame($state->nonce(InlineKind::Script), $context->nonce());
         self::assertSame($state->nonce(InlineKind::Style), $context->nonce('style'));
         self::assertSame($state->nonce(InlineKind::Style), $context->nonce(InlineKind::Style));
+        self::assertSame($state->nonce(InlineKind::Script), $context->scriptNonce());
+        self::assertSame($state->nonce(InlineKind::Style), $context->styleNonce());
+        self::assertNotSame($context->scriptNonce(), $context->styleNonce());
         self::assertSame($state->nonce(InlineKind::Script), $context->sharedNonce());
         self::assertTrue($state->sharedNonce);
 

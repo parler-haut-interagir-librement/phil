@@ -104,7 +104,8 @@ phil_identity_provider:
 address typed, known or not, so that the answer still tells nobody who has an account; a refusal answers `429` with
 the form and `error.registration.too_many`. A verification email goes to one address once in each `resend_delay`,
 whether it is asked for by registration, by the account page or by a change of address: one asked for again too soon
-is not sent, and the page answers as if it were. The keys are keyed hashes: the cache never holds an address.
+is not sent, and the page answers as if it were. The keys are keyed hashes, under a key derived from `secret` by HKDF-SHA256 for that limiter alone: the
+cache never holds an address.
 
 The counts live in `cache.app`, under `lock.factory` when it is defined. On several servers, point `cache.app` to a
 shared store, or each server counts on its own. `registration: { rate_limit: false }` turns the limits off, for an
@@ -154,6 +155,26 @@ breach source that does not answer does not refuse the password. The reasons go 
 
 Passwords are hashed by the password hasher of Symfony Security: the bundle prepends `sodium` — Argon2id — for
 `AccountUser`, and the application may tune it in `security.password_hashers`.
+
+### The cap on password checks
+
+Each Argon2id hash takes tens of mebibytes. A burst of failed sign-ins spread over many accounts and many addresses
+passes under the limiters by address and by account, yet a server that hashed every one at once would run out of
+memory. The bundle decorates the password hasher factory of Symfony Security: every hash and every check of an
+account's password — sign-in, change, reset, registration — takes one of `password.semaphore.slots` locks of the Lock
+component first, and waits up to `password.semaphore.wait` seconds for one to free. Past that wait the sign-in is
+refused with `password.busy`, which never counts towards the lock of the account. Whether a hash needs computing
+again takes no slot. The hashers of other user classes are left as they are.
+
+The cap belongs to each server, since memory does: the default keeps flock files in the temporary directory, and a
+lock dies with the process that held it. `password.semaphore.lock_factory` names another `LockFactory`, such as one on
+`SemaphoreStore`; a store shared by every server would cap the whole site at the number of slots.
+
+```yaml
+phil_identity_provider:
+    password:
+        semaphore: { slots: 8, wait: 2.0 }
+```
 
 ## The forgotten password
 
@@ -214,7 +235,8 @@ security:
 
 `LoginRateLimiter` counts three things in each `login_limiter.interval`: the attempts per address — an IPv6 client by
 its /64 network —, `network_max_attempts`; per identifier and address, `max_attempts`; per identifier, whatever the
-address, `account_max_attempts`. The keys are keyed hashes of the address and of the identifier, in lower case: the
+address, `account_max_attempts`. The keys are keyed hashes of the address and of the identifier, in lower case, under a key derived from
+`secret` by HKDF-SHA256 for that limiter alone: the
 cache never holds either. A successful sign-in clears both counts of its identifier and gives its token back to its
 address. The options of `login_throttling` itself, `max_attempts` and `interval`, are not read once a limiter is named.
 

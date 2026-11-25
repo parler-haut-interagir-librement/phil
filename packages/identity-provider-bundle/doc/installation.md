@@ -85,6 +85,8 @@ Argon2id (`sodium`). Generate the migration of the tables with `bin/console doct
   `ProviderSettings::assertionAudiences()` gives the issuer alone unless that option is on.
 - A client registered with `--pkce-optional` sends a `nonce` with every authorization request that carries no PKCE
   challenge; a request with neither goes back to it with `invalid_request` (RFC 9700, section 2.1.1).
+- The password hashes and checks of the accounts take a slot of `password.semaphore`, on by default; set
+  `password: { semaphore: false }` to keep the former behaviour.
 
 ## Where the links point
 

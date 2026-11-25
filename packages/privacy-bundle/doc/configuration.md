@@ -165,6 +165,8 @@ phil_privacy:
         # The value is redacted only when the denylist denies that long name.
         short_options:
             p: password
+        # The categories of #[PersonalData] whose names are denied keys too.
+        personal_data_categories: [email, person_name, nickname, phone, ip, contact, birth_date]
     database:
         connection: database_connection   # a Doctrine DBAL connection service
     anonymization:
@@ -202,6 +204,19 @@ writing every child with its default. Any other key under `phil_privacy` is refu
 - Lists from several configuration files are concatenated, as with any prototyped list in Symfony.
 - The same list governs three things: context and `extra` keys, long option names in command lines, and the
   long names that `short_options` points to. See [log-redaction.md](log-redaction.md).
+
+### `phil_privacy.log_redaction.personal_data_categories`
+
+| | |
+|---|---|
+| Type | list of scalars, each one a string |
+| Default | `[email, person_name, nickname, phone, ip, contact]`, `RedactingProcessor::PERSONAL_DATA_CATEGORIES` |
+| Effect | Each category of `#[PersonalData]` is a denied key too, beside the `denylist`. |
+
+- Each entry is a category: a lowercase `snake_case` token of at most 64 characters. `Birth Date` fails the build.
+- A category is compared as a key, exactly: `email` denies `email`, `Email` and `e-mail`, not `email_count`.
+- Writing the list replaces the default: keep the categories of the default an application still wants. `[]` turns
+  the rule off.
 
 ### `phil_privacy.log_redaction.token_path_prefixes`
 

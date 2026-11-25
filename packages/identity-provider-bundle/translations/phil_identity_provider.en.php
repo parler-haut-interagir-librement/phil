@@ -157,6 +157,7 @@ return [
     'account.locked' => 'Too many attempts: try again in a few minutes, or sign in with a passkey.',
     'account.disabled' => 'This account is disabled.',
     'account.unverified' => 'Verify your email address first.',
+    'password.busy' => 'Too many sign-ins at once: try again in a moment.',
     'email.greeting' => 'Hello,',
     'email.greeting_name' => 'Hello %name%,',
     'email.ignore' => 'If you did not ask for this, ignore this message.',

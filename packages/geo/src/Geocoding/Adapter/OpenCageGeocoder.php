@@ -7,6 +7,7 @@ namespace Phil\Geo\Geocoding\Adapter;
 use Phil\Geo\Coordinates;
 use Phil\Geo\Geocoding\Geocoder;
 use Phil\Geo\Geocoding\Place;
+use Phil\Geo\Geocoding\Timeouts;
 use SensitiveParameter;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -20,13 +21,17 @@ final readonly class OpenCageGeocoder implements Geocoder
 
     public const string BASE_URL = 'https://api.opencagedata.com/geocode/v1/json';
 
+    private HttpClientInterface $client;
+
     public function __construct(
-        private HttpClientInterface $client,
+        HttpClientInterface $client,
         #[SensitiveParameter]
         private string $apiKey,
         private string $baseUrl = self::BASE_URL,
         private int $limit = 5,
+        Timeouts $timeouts = new Timeouts(),
     ) {
+        $this->client = $timeouts->apply($client);
     }
 
     public function geocode(string $address, ?string $locale = null): array

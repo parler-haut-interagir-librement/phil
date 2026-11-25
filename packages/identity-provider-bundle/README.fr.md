@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ca4f062cb134b5929457c3c41b16a9d6e3b5720d3ac5c6addc91883130b650ac -->
+<!-- phil-dev source-sha256=41b01821d1a69559c29ab7fab7c91f1dfc534c19e3a1e80122b179d3bc449f90 -->
 # phil/identity-provider-bundle
 
 **Une brique d'identité ouverte pour Symfony : des comptes, un module par façon de se connecter et un fournisseur OpenID Connect.**
@@ -35,7 +35,7 @@ le minimum sur les personnes — aucune adresse de leur connexion, aucun jeton d
 | Mots de passe : Argon2id, force et fuites vérifiées par `phil/passwords`, réinitialisation par un lien signé sur le mot de passe et servi une fois, autres sessions fermées à chaque changement, verrou progressif qui peut être désactivé, limiteur de connexion par identifiant pour `login_throttling` | Implémenté et testé |
 | Clés d'accès : enregistrement, connexion, renommage, retrait ; la dernière façon de se connecter est conservée ; AAGUID et indicateurs de copie de secours enregistrés, attestation `packed` lue contre des racines de confiance, politique des marques et des clés d'accès synchronisées | Implémenté et testé |
 | Application d'authentification (TOTP), codes de récupération, deuxième étape d'une connexion | Implémenté et testé |
-| Liens de connexion par courriel (`login_link` de Symfony Security) | Implémenté et testé |
+| Liens de connexion par courriel (`login_link` de Symfony Security, confirmés par un bouton) | Implémenté et testé |
 | Numéro de téléphone vérifié par message texte, par le composant Notifier ou par un `SmsSender` à vous | Implémenté et testé |
 | Réauthentification sur Symfony 8.2 : `PHIL_STEP_UP`, preuves `AuthenticationMethodBadge` (RFC 8176), `requestReAuthentication()` | Implémenté et testé |
 | Appareils et sessions : liste, fermeture d'une session ou de toutes depuis un autre appareil, connexion risquée signalée | Implémenté et testé |

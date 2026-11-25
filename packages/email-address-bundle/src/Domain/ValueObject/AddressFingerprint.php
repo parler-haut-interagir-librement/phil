@@ -21,7 +21,7 @@ final readonly class AddressFingerprint implements Stringable
 
     /**
      * @param string $normalized the address in the normalized form of `EmailAddresses::normalize()`
-     * @param string $key        the application's secret
+     * @param string $key        the key of the fingerprints, derived for that usage from the application's secret
      *
      * @throws InvalidArgumentException when the key is empty
      */

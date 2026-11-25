@@ -201,7 +201,7 @@ final class AdaptersTest extends TestCase
         $requests = new RequestStack([Request::create('/', server: ['REMOTE_ADDR' => '203.0.113.7'])]);
         $key = new ClientKey($requests, 'secret');
 
-        self::assertSame(hash_hmac('sha256', '203.0.113.7', 'secret'), $key->current());
+        self::assertSame(hash_hmac('sha256', '203.0.113.7', hash_hkdf('sha256', 'secret', 32, 'phil_spam_protection.client_key')), $key->current());
         self::assertNotSame($key->current(), new ClientKey($requests, 'other')->current());
 
         $requests->push(new Request());
@@ -219,7 +219,7 @@ final class AdaptersTest extends TestCase
 
         self::assertSame($key('2001:db8:1:2::1'), $key('2001:db8:1:2:ffff:abcd:1234:5678'));
         self::assertNotSame($key('2001:db8:1:2::1'), $key('2001:db8:1:3::1'));
-        self::assertSame(hash_hmac('sha256', '2001:db8:1:2::/64', 'secret'), $key('2001:0DB8:0001:0002:0000:0000:0000:0001'));
+        self::assertSame(hash_hmac('sha256', '2001:db8:1:2::/64', hash_hkdf('sha256', 'secret', 32, 'phil_spam_protection.client_key')), $key('2001:0DB8:0001:0002:0000:0000:0000:0001'));
         self::assertSame($key('203.0.113.7'), $key('::ffff:203.0.113.7'));
         self::assertNotSame($key('203.0.113.7'), $key('203.0.113.8'));
     }

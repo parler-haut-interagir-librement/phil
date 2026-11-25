@@ -86,6 +86,10 @@ an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
   VERP tags and its suppression hashes with a key known to everyone. The recipe writes the variable empty, with a
   comment on how to fill it, and `NewsletterKey::check()`, which `SignedLinks` calls, refuses a key that begins with
   `change-me` or `changeme`, as it refuses one shorter than 16 bytes.
+- The limiter of the subscriptions keyed its counts by the HMAC of the address, of the client and of the subscriber
+  under the secret itself, `%kernel.secret%` by default, the same hash other bundles kept for the same address.
+  `SubscriptionRateLimiter` derives its key by HKDF-SHA256 under `phil_newsletter.subscription_limiter`
+  (`SubscriptionRateLimiter::USAGE`). The counts start again at the update.
 
 ## 0.3.0-alpha - 2026-11-20
 

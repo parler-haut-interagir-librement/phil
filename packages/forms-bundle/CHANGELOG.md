@@ -31,6 +31,11 @@ The next version is 0.2.2-alpha.
 
 ### Security
 
+- The digest of an entry's address was the HMAC under `digest_key` itself, `%kernel.secret%` by default, and
+  phil/email-address-bundle kept the same HMAC of the same address as its fingerprint: two tables meant to keep
+  pseudonyms of their own matched by a join. `HmacEmailDigester` derives its key by HKDF-SHA256 under
+  `phil_forms.email_digest` (`HmacEmailDigester::USAGE`). The digests kept change: an entry kept before the update is
+  no longer found by its address, for an export or an erasure, until it is digested again.
 - An entry's email no longer goes through `MailerInterface`, which put a `SendEmailMessage` on the bus when the
   application routed it: the unrendered email, with the entry, its form and every value — a sealed value in clear with
   `allow_unsealed_sensitive` — in its context, kept by the Messenger transport and its failure transport. The email is

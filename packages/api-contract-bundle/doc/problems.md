@@ -6,6 +6,7 @@
 |---|---|---|
 | `ProblemException` | Anywhere | Its problem, its status, its headers |
 | An HTTP exception (`NotFoundHttpException`, `AccessDeniedHttpException`…) | Under `problem_details.paths` | The blank problem of its status: `{"type": "about:blank", "status": 404, "title": "Not Found"}`, with the exception's headers |
+| `OptimisticLockException` of Doctrine, thrown or wrapped up to eight levels deep | Under `problem_details.paths`, in debug too | A `409` of the stable type `urn:phil:problem:write-conflict` (`ProblemDetailsListener::WRITE_CONFLICT_TYPE`), without the entity nor its versions |
 | Any other exception | Under `problem_details.paths`, out of debug | A `500` without detail; in debug, Symfony's error page |
 
 ```php
@@ -19,6 +20,20 @@ throw new ProblemException(
     ['Retry-After' => '60'],
 );
 ```
+
+## Write conflicts
+
+An entity with a `#[ORM\Version]` column refuses a flush over a version someone else changed meanwhile, with an
+`OptimisticLockException`. Under the paths, the caller gets:
+
+```json
+{"type": "urn:phil:problem:write-conflict", "status": 409, "title": "The resource changed since it was read.", "detail": "Read it again, then send the change again."}
+```
+
+A client tests the `type`, which stays the same from one version to the next, rather than the title. `ETag` and
+`If-Match` are left to the routes that change a resource.
+
+## Details
 
 `detail` is read by the caller: never put an exception's message in it. `ProblemDetailsResponse` writes a problem
 for a controller that returns one rather than throwing it.

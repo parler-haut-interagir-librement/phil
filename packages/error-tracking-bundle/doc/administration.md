@@ -10,8 +10,10 @@ The pages are off unless `admin` is enabled, with `admin: true` or any of its ke
 | `phil_error_tracking_group` | `/{fingerprint}` | A group, its status and releases, and its latest events with their chains, frames, request and tags |
 | `phil_error_tracking_group_status` | `/{fingerprint}/{action}`, `POST` | Resolves, ignores or reopens the group, then shows it again |
 
-Every page answers with `Cache-Control: no-store`. Every value on them has gone through the scrubber; frames of the
-dependencies are dimmed. When the alerts are on but have no destination — the degraded state of [Alerts](alerts.md) —
+Every page answers with `Cache-Control: no-store`. Every value on them has gone through the scrubber. A chain reads
+from the top down: the exception thrown, then each previous one marked "Caused by", the root cause last as "Root
+cause". The frames of each exception start with the newest; each run of frames under `vendor/` is folded into a
+`<details>` element that tells how many it holds and opens without script. When the alerts are on but have no destination — the degraded state of [Alerts](alerts.md) —
 both pages say so at the top, in a `role="status"` paragraph of `@PhilErrorTracking/_alerts.html.twig`.
 
 ## The role

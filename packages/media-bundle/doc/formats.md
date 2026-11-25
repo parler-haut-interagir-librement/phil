@@ -158,7 +158,8 @@ request; the renderings made before stay in storage until the next version or fo
 | `phil_media_format` | `/{id}/{version}/{format}.{type}` |
 | `phil_media_format_width` | `/{id}/{version}/{format}@{width}.{type}` |
 
-A URL carries an HMAC-SHA256 signature of its path and, with `url_ttl`, of the moment it expires. That moment is
+A URL carries an HMAC-SHA256 signature, under a key derived from the secret by HKDF-SHA256 under
+`phil_media.url_signature`, of its path and, with `url_ttl`, of the moment it expires. That moment is
 rounded up to a step, a tenth of `url_ttl` and an hour at most: every page rendered during one step hands out the
 same URL, which a browser or a CDN can then keep, and a URL stays valid from `url_ttl` to `url_ttl` and one step.
 `MediaController`

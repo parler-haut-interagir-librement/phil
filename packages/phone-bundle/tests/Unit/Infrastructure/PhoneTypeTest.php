@@ -69,14 +69,17 @@ final class PhoneTypeTest extends TestCase
             $transformer->reverseTransform('1-800-FLOWERS');
             self::fail('Letters were read.');
         } catch (TransformationFailedException $transformationFailedException) {
-            self::assertSame('"1-800-FLOWERS" is not a phone number.', $transformationFailedException->getMessage());
+            self::assertSame('The text is not a phone number.', $transformationFailedException->getMessage());
             self::assertNotNull($transformationFailedException->getPrevious());
         }
 
-        $this->expectException(TransformationFailedException::class);
-        $this->expectExceptionMessageIsOrContains('"+15145551" is in no numbering plan.');
-
-        $transformer->reverseTransform('514 5551');
+        try {
+            $transformer->reverseTransform('514 5551');
+            self::fail('A number in no plan was read.');
+        } catch (TransformationFailedException $transformationFailedException) {
+            self::assertSame('The number is in no numbering plan.', $transformationFailedException->getMessage());
+            self::assertStringNotContainsString('5551', $transformationFailedException->getMessage());
+        }
     }
 
     private function forms(?string $region): FormFactoryInterface

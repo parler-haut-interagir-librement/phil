@@ -67,6 +67,7 @@ final class ConfigurationTest extends TestCase
             'min_score' => 2,
             'breach_check' => false,
             'http_client' => 'http_client',
+            'semaphore' => ['enabled' => true, 'slots' => 4, 'wait' => 3.0, 'lock_factory' => null],
         ],
         'lockout' => [
             'enabled' => true,
@@ -206,6 +207,7 @@ final class ConfigurationTest extends TestCase
     public static function limits(): iterable
     {
         yield 'password.min_score' => [['password', 'min_score'], 0, 4];
+        yield 'password.semaphore.slots' => [['password', 'semaphore', 'slots'], 1, 256];
         yield 'lockout.threshold' => [['lockout', 'threshold'], 1, null];
         yield 'lockout.base' => [['lockout', 'base'], 1, null];
         yield 'lockout.max' => [['lockout', 'max'], 1, null];
@@ -267,6 +269,19 @@ final class ConfigurationTest extends TestCase
         $this->assertRefused(['sessions' => ['max_age' => 59]]);
         $this->assertRefused(['sessions' => ['max_age' => 1]]);
         $this->assertRefused(['sessions' => ['max_age' => -1]], 'greater than or equal to 0');
+    }
+
+    public function testTheWaitForASlotIsFromZeroToThirtySeconds(): void
+    {
+        foreach ([0.0, 0.5, 30.0] as $wait) {
+            $password = $this->process(['password' => ['semaphore' => ['wait' => $wait]]])['password'];
+            self::assertIsArray($password);
+            self::assertIsArray($password['semaphore']);
+            self::assertSame($wait, $password['semaphore']['wait']);
+        }
+
+        $this->assertRefused(['password' => ['semaphore' => ['wait' => -0.1]]]);
+        $this->assertRefused(['password' => ['semaphore' => ['wait' => 30.1]]]);
     }
 
     public function testARegistrationCountMayBeOne(): void

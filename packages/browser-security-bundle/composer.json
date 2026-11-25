@@ -33,6 +33,7 @@
         "psr/event-dispatcher": "^1.0",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",
+        "symfony/error-handler": "^8.2",
         "symfony/http-foundation": "^8.2",
         "symfony/http-kernel": "^8.2",
         "symfony/routing": "^8.2"

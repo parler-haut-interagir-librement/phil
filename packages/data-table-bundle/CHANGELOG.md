@@ -34,6 +34,12 @@ The next version is 0.1.2-alpha.
   `symfony/ux-live-component` 3.8.1 fixes CVE-2026-133774 and CVE-2026-133778. The window of a page given to the
   paginator starts at zero or later and holds one row or more.
 
+### Security
+
+- The seal of a table's context was the HMAC under the secret itself, `%kernel.secret%` by default, which other
+  bundles keyed their own hashes with. `TableGuard` derives its key by HKDF-SHA256 under `phil_data_table.table_guard`
+  (`TableGuard::USAGE`). A page opened before the update asks to be reloaded.
+
 ## 0.1.0-alpha - 2026-11-14
 
 ### Added

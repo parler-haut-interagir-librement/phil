@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f5d5ea6ec0c7e490c3a8ef55f4097ec28cf9810c70a1637e6485c5dc7d4a3a90 -->
+<!-- phil-dev source-sha256=556558c77d25e921dab677d3b68f792f9708ffc582ecbd6cbc940e0ec8927af1 -->
 # Entrées et conservation
 
 ## Ce qui est conservé
@@ -28,7 +28,9 @@ entrée conserve l'une de deux choses, ou les deux :
   autrement crée un alias de `CurrentSubject` vers son propre service.
 - **L'empreinte d'une adresse**, pour un visiteur. Un formulaire désigne l'un de ses champs de courriel
   (`Form::identifyBy('email')`), et l'entrée conserve `email_digest`, le HMAC-SHA256 de l'adresse sans espaces aux
-  extrémités et en minuscules, sous la clé `phil_forms.digest_key`. L'adresse est trouvée quelle que soit la façon dont
+  extrémités et en minuscules, sous une clé dérivée de `phil_forms.digest_key` par HKDF-SHA256 pour cet usage seul
+  (`phil_forms.email_digest`), de sorte que les empreintes ne correspondent jamais aux pseudonymes qu'un autre bundle
+  garde pour l'adresse. L'adresse est trouvée quelle que soit la façon dont
   elle a été écrite, et ne peut pas être essayée contre les empreintes sans la clé. **Changer la clé** rend les entrées
   déjà conservées introuvables pour les demandes par adresse, jusqu'à la fin de leur conservation.
 

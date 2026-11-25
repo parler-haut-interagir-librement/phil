@@ -73,7 +73,8 @@ address digest, so that retention and privacy requests never read every entry.
 ### `EmailDigester`
 
 `Phil\FormsBundle\Domain\Subject\EmailDigester` — the digest an entry keeps of an address. `HmacEmailDigester` is the
-HMAC-SHA256 of the address trimmed and lower-cased, under `digest_key`.
+HMAC-SHA256 of the address trimmed and lower-cased, under a key derived from `digest_key` by HKDF-SHA256 under
+`HmacEmailDigester::USAGE`.
 
 ## Configuration
 

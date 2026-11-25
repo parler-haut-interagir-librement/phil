@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=df4790adbbd38845b45c60a443520eb242f6a0cf2987bbfa1f6d598565c289a1 -->
+<!-- phil-dev source-sha256=742df8500f036055a2fe33831695b2383c61a57667d6cb30852d2dcd7fd51020 -->
 # Abonnements
 
 ## Les listes et les abonnés
@@ -50,7 +50,8 @@ définit un :
 
 L'adresse saisie est dépouillée de ses espaces et mise en minuscules, pour que ses graphies partagent leur compte, et
 elle est comptée qu'elle soit abonnée ou non : les réponses n'apprennent à personne qui est sur une liste. Un refus par le
-compte du client ne dépense rien de celui de l'adresse. Les clés des comptes sont des empreintes à clé du secret : le
+compte du client ne dépense rien de celui de l'adresse. Les clés des comptes sont des empreintes à clé, sous une clé dérivée du secret par HKDF-SHA256 sous
+`phil_newsletter.subscription_limiter` : le
 stockage ne contient aucune adresse, ni IP ni courriel. Un abonnement refusé par le délai garde sa place, en attente, et
 n'annonce rien ; `subscribe()` répond `SubscribeOutcome::ConfirmationDelayed`. Une personne qui s'abonne de nouveau après
 le délai reçoit une nouvelle confirmation.

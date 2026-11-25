@@ -120,10 +120,12 @@ use Phil\IdentityProviderBundle\Infrastructure\Security\ExternalAuthenticator;
 use Phil\IdentityProviderBundle\Infrastructure\Security\LoginRateLimiter;
 use Phil\IdentityProviderBundle\Infrastructure\Security\OneTimeCodeAuthenticator;
 use Phil\IdentityProviderBundle\Infrastructure\Security\PasskeyAuthenticator;
+use Phil\IdentityProviderBundle\Infrastructure\Security\PasswordCheckSemaphore;
 use Phil\IdentityProviderBundle\Infrastructure\Security\PasswordSignInListener;
 use Phil\IdentityProviderBundle\Infrastructure\Security\ReAuthenticationEntryPoint;
 use Phil\IdentityProviderBundle\Infrastructure\Security\RegistrationRateLimiter;
 use Phil\IdentityProviderBundle\Infrastructure\Security\SecondFactorListener;
+use Phil\IdentityProviderBundle\Infrastructure\Security\SemaphorePasswordHasherFactory;
 use Phil\IdentityProviderBundle\Infrastructure\Security\SessionChallengeStore;
 use Phil\IdentityProviderBundle\Infrastructure\Security\SessionListener;
 use Phil\IdentityProviderBundle\Infrastructure\Security\StepUpVoter;
@@ -143,6 +145,8 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\KeyManagement\EncrypterInterface;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\FlockStore;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Notifier\Texter;
@@ -176,7 +180,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *     default_target: string,
  *     open_routes: list<string>,
  *     mailer: array{from: ?string},
- *     password: array{min_score: int<0, 4>, breach_check: bool, http_client: string},
+ *     password: array{min_score: int<0, 4>, breach_check: bool, http_client: string, semaphore: array{enabled: bool, slots: positive-int, wait: float, lock_factory: ?string}},
  *     lockout: array{enabled: bool, threshold: positive-int, base: positive-int, max: positive-int},
  *     login_limiter: array{enabled: bool, max_attempts: positive-int, network_max_attempts: positive-int, account_max_attempts: positive-int, interval: string, cache_pool: string, lock_factory: ?string, single_server: bool},
  *     links: array{verify_lifetime: positive-int, reset_lifetime: positive-int, mode: string},
@@ -419,6 +423,7 @@ final class IdentityProviderServices
 
         $container->register(PasswordRules::class, PasswordRules::class)
             ->setArguments([new Reference(StrengthEstimator::class.' $phil_identity_provider'), Score::from($config['password']['min_score']), $breaches]);
+        self::passwordSemaphore($container, $config['password']['semaphore']);
         $container->register(LockoutPolicy::class, LockoutPolicy::class)
             ->setArguments([$config['lockout']['threshold'], $config['lockout']['base'], $config['lockout']['max'], $config['lockout']['enabled']]);
         self::accountIdentity($container, $config['accounts']);
@@ -458,6 +463,28 @@ final class IdentityProviderServices
         } else {
             $container->setAlias(AddressCanonicalizer::class, $accounts['canonicalizer']);
         }
+    }
+
+    /**
+     * The semaphore over the hashes of the accounts' passwords, by a decorator of the password hasher factory of
+     * Symfony Security.
+     *
+     * @param array{enabled: bool, slots: positive-int, wait: float, lock_factory: ?string} $semaphore
+     */
+    private static function passwordSemaphore(ContainerBuilder $container, array $semaphore): void
+    {
+        if (!$semaphore['enabled']) {
+            return;
+        }
+
+        $locks = null !== $semaphore['lock_factory']
+            ? new Reference($semaphore['lock_factory'])
+            : new Definition(LockFactory::class, [new Definition(FlockStore::class)]);
+        $container->register(PasswordCheckSemaphore::class, PasswordCheckSemaphore::class)
+            ->setArguments([$locks, $semaphore['slots'], $semaphore['wait']]);
+        $container->register(SemaphorePasswordHasherFactory::class, SemaphorePasswordHasherFactory::class)
+            ->setDecoratedService('security.password_hasher_factory')
+            ->setArguments([new Reference('.inner'), new Reference(PasswordCheckSemaphore::class)]);
     }
 
     /**

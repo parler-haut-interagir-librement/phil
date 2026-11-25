@@ -6,7 +6,8 @@ device. A visitor's drafts stay in their browser.
 ## Users
 
 `DraftOwner` names the user: by default `TokenDraftOwner`, the user identifier of Symfony Security. The table keeps
-only a keyed hash of it, 64 hexadecimal digits, and every read or write is made under the hash of the current user, so
+only a keyed hash of it, 64 hexadecimal digits, under a key derived from the secret by HKDF-SHA256 under
+`phil_forms_autosave.draft_key`, and every read or write is made under the hash of the current user, so
 a user never reaches another's draft, even with its key.
 
 ## Revisions and conflicts

@@ -36,9 +36,24 @@ They take the `HttpClientInterface` of Symfony.
 | `AdressesQuebecGeocoder` | a base URL — the service of the Gouvernement du Québec —, the most places (5) | `/findAddressCandidates?SingleLine=` and `/reverseGeocode?location=`, in WGS 84 |
 | `IpstackLocator` | the access key, a base URL — `https://api.ipstack.com` | `/{ip}` |
 
+Every HTTP adapter takes the client it is given, and its `Timeouts`, last: `timeout`, the longest wait for a byte of
+the answer, 3 seconds by default, and `maxDuration`, the longest whole call, 5 seconds. They are set on every request
+by `withOptions()`, so that a slow provider holds a worker for seconds rather than for `default_socket_timeout`, and
+a slow answer fails as a `GeocodingFailed` that a chain passes over. Either is above zero and at most 120 seconds, the
+whole call no shorter than the wait.
+
+```php
+use Phil\Geo\Geocoding\Adapter\NominatimGeocoder;
+use Phil\Geo\Geocoding\Timeouts;
+
+$geocoder = new NominatimGeocoder($httpClient, 'Example (contact@example.com)', timeouts: new Timeouts(2.0, 4.0));
+```
+
 The locale given becomes `accept-language` for Nominatim and `language` for Google Maps. Nominatim's usage policy
 asks for a user agent that names the site and how to reach it, and one request a second at most on its public
-server. ipstack refuses an IP address that is not one before asking. It asks over HTTPS; a plan that answers over
+server. ipstack refuses an IP address that is not one before asking, and answers `null` for a private or reserved
+address — `10.0.0.1`, `192.168.1.1`, `127.0.0.1`, `::1`, `fc00::/7`, `fe80::/10` —, which locates no visitor, without
+asking; `MaxMindLocator` does the same. It asks over HTTPS; a plan that answers over
 plain HTTP only takes `http://api.ipstack.com` as its base URL, and every lookup then sends the visitor's IP address
 — personal information under Québec's Law 25 — and the access key in clear. `MaxMindLocator` reads a database on
 the server and sends nothing.

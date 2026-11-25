@@ -8,11 +8,19 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Development only.
+### Added
+
+- `VaultCertificateSource::TIMEOUT` and `MAX_DURATION`, and its last two arguments, optional: how long the call to
+  the vault may take, 5 and 10 seconds by default.
 
 ### Changed
 
 - The development requirements ask for the latest minor of each dependency (`symfony/http-client-contracts` 3.8).
+
+### Security
+
+- `VaultCertificateSource` asked the vault without a timeout: a vault out of reach held a worker until
+  `default_socket_timeout`, 60 seconds. The call waits 5 seconds at most for a byte and lasts 10 at most by default.
 
 ## 0.1.0-alpha - 2026-11-13
 

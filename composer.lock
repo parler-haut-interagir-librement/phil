@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "71f9f65e2ebbf0660cc3b737efa6a7b0",
+    "content-hash": "ba1e6144e7c7cb25e0d46b8dea8636b5",
     "packages": [],
     "packages-dev": [
         {
@@ -9117,23 +9117,23 @@
         },
         {
             "name": "symfony/error-handler",
-            "version": "v8.1.10",
+            "version": "v8.2.0-BETA1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/error-handler.git",
-                "reference": "84c6d73f990ae22dbd45625c056d7ff99ca6810d"
+                "reference": "dc1e4d5a75e6082c1beb7dbf9f523e4e4b420110"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/error-handler/zipball/84c6d73f990ae22dbd45625c056d7ff99ca6810d",
-                "reference": "84c6d73f990ae22dbd45625c056d7ff99ca6810d",
+                "url": "https://api.github.com/repos/symfony/error-handler/zipball/dc1e4d5a75e6082c1beb7dbf9f523e4e4b420110",
+                "reference": "dc1e4d5a75e6082c1beb7dbf9f523e4e4b420110",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.4.1",
                 "psr/log": "^1|^2|^3",
                 "symfony/polyfill-php85": "^1.32",
-                "symfony/var-dumper": "^7.4|^8.0"
+                "symfony/var-dumper": "^8.1"
             },
             "conflict": {
                 "symfony/deprecation-contracts": "<2.5"
@@ -9174,7 +9174,7 @@
             "description": "Provides tools to manage errors and ease debugging PHP code",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/error-handler/tree/v8.1.10"
+                "source": "https://github.com/symfony/error-handler/tree/v8.2.0-BETA1"
             },
             "funding": [
                 {
@@ -9194,8 +9194,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-25T14:40:25+00:00",
-            "published-time": "2026-10-28T18:24:13+00:00"
+            "time": "2026-10-29T22:32:57+00:00",
+            "published-time": "2026-11-04T12:34:08+00:00"
         },
         {
             "name": "symfony/event-dispatcher",

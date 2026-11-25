@@ -1,6 +1,7 @@
 {#
     One group of errors: its status and the forms that change it, then its latest events, each with its chain of
-    exceptions and their frames, its request and its tags. Every value has gone through the scrubber.
+    exceptions — the newest on top, the root cause last — and their frames, the runs under vendor/ folded, its request
+    and its tags. Every value has gone through the scrubber.
 #}
 {% extends layout %}
 
@@ -34,12 +35,28 @@
             <h2><time datetime="{{ event.occurredAt|date('c') }}">{{ event.occurredAt|date('Y-m-d H:i:s') }}</time> · {{ event.source.value }} · {{ event.severity.value }}</h2>
             <p>Release {{ event.release ?? 'unknown' }}, environment {{ event.environment ?? 'unknown' }}.</p>
 
+            {# The exception thrown first, on top; each previous one under it; the root cause last. #}
             {% for exception in event.exceptions %}
-                <h3>{% if not loop.first %}Caused by {% endif %}{{ exception.type }}</h3>
+                <h3>{% if loop.first %}{{ exception.type }}{% elseif loop.last %}Root cause: {{ exception.type }}{% else %}Caused by {{ exception.type }}{% endif %}</h3>
                 <pre>{{ exception.message }}</pre>
+                {# The newest frame first; each run of frames under vendor/ folded, without script. #}
+                {% set frames = exception.frames %}
                 <ol>
-                    {% for frame in exception.frames %}
+                    {% for frame in frames %}
+                        {% set opens = not frame.inApp and (loop.first or frames[loop.index0 - 1].inApp) %}
+                        {% set closes = not frame.inApp and (loop.last or frames[loop.index0 + 1].inApp) %}
+                        {% if opens %}
+                            {% set run = 0 %}
+                            {% set ended = false %}
+                            {% for next in frames|slice(loop.index0) %}
+                                {% if not ended and not next.inApp %}{% set run = run + 1 %}{% else %}{% set ended = true %}{% endif %}
+                            {% endfor %}
+                            <li class="is-vendor"><details><summary>{{ run }} vendor {{ run == 1 ? 'frame' : 'frames' }}</summary><ol>
+                        {% endif %}
                         <li{% if not frame.inApp %} class="is-vendor"{% endif %}><code>{{ frame.label }}</code></li>
+                        {% if closes %}
+                            </ol></details></li>
+                        {% endif %}
                     {% endfor %}
                 </ol>
             {% endfor %}

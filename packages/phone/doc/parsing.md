@@ -32,5 +32,9 @@ country code is written in.
 - a country code no plan has;
 - a region with no plan.
 
+The message names the reason, never the input: a number mistyped is most often the real number, and a message may
+reach a log. `InvalidPhoneNumber::$input` keeps the input, cut to 100 characters, for a caller that shows it back to
+the person who typed it. A region with no plan, which is no personal data, is named in the message.
+
 A number `parse()` reads is not always one that exists: `isValid()` tells, as
 [Validation and types](validation.md) explains.

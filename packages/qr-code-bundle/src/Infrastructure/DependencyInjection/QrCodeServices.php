@@ -10,6 +10,7 @@ use Phil\QrCodeBundle\Application\Logos;
 use Phil\QrCodeBundle\Application\QrCodeDefaults;
 use Phil\QrCodeBundle\Application\QrCodes;
 use Phil\QrCodeBundle\Infrastructure\Http\QrCodeController;
+use Phil\QrCodeBundle\Infrastructure\Http\QrCodeUriSigner;
 use Phil\QrCodeBundle\Infrastructure\Http\QrCodeUrls;
 use Phil\QrCodeBundle\Infrastructure\PagedMedia\PdfQrCodes;
 use Phil\QrCodeBundle\Infrastructure\Twig\Components\QrCodeComponent;
@@ -55,7 +56,9 @@ final class QrCodeServices
         $urls = null;
 
         if ($config['route']['enabled']) {
-            $container->register(self::SIGNER, UriSigner::class)->setArguments(['%kernel.secret%', '_qr_signature']);
+            $container->register(self::SIGNER, UriSigner::class)
+                ->setFactory([QrCodeUriSigner::class, 'create'])
+                ->setArguments(['%kernel.secret%']);
             $container->register(QrCodeUrls::class, QrCodeUrls::class)
                 ->setArguments([new Reference('router'), new Reference(self::SIGNER), new Reference(QrCodes::class)])
                 ->setPublic(true);

@@ -8,8 +8,12 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.3.2-alpha.
 
-Development only.
+### Added
 
+- Under `problem_details.paths`, an `OptimisticLockException` of Doctrine, thrown or wrapped up to eight levels deep,
+  is answered with a `409` problem of the stable type `urn:phil:problem:write-conflict`
+  (`ProblemDetailsListener::WRITE_CONFLICT_TYPE`), in debug too, without the entity nor its versions; it was a `500`.
+  `doctrine/orm` joins `suggest`.
 ### Changed
 
 - The development requirements ask for the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,

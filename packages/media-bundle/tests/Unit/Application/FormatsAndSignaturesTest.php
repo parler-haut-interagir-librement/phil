@@ -56,8 +56,8 @@ final class FormatsAndSignaturesTest extends TestCase
 
         self::assertSame(43, \strlen($forever));
         self::assertMatchesRegularExpression('/^[A-Za-z0-9_-]+$/', $forever);
-        self::assertSame(rtrim(strtr(base64_encode(hash_hmac('sha256', '/media/a/1/original|', 'secret', true)), '+/', '-_'), '='), $forever);
-        self::assertSame('Mru_y0wAdm3CiJm8YH4UXVSBaT6WZlbhQvPc_B-D5jI', $until);
+        self::assertSame(rtrim(strtr(base64_encode(hash_hmac('sha256', '/media/a/1/original|', hash_hkdf('sha256', 'secret', 32, 'phil_media.url_signature'), true)), '+/', '-_'), '='), $forever);
+        self::assertSame('bOy50E-q6tCYIGl8VkoKTXGXV4w1OmH9XpW8mp5G850', $until);
         self::assertNotSame($forever, new UrlSigner('other')->signature('/media/a/1/original', null));
         self::assertTrue($signer->verify('/media/a/1/original', null, $forever, 99_999));
         self::assertTrue($signer->verify('/media/a/1/original', 2000, $until, 2000));

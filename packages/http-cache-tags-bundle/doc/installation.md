@@ -33,6 +33,10 @@ phil_http_cache_tags:
     cloudflare:
         zone: '%env(CLOUDFLARE_ZONE)%'
         token: '%env(CLOUDFLARE_TOKEN)%'
+    http:
+        client: http_client      # the HTTP client of the purgers
+        timeout: 5.0             # the longest wait for a byte of an answer, in seconds
+        max_duration: 10.0       # the longest purge call, in seconds
     invalidate_entities: true    # tags of the entities a Doctrine flush changes
 ```
 

@@ -157,6 +157,7 @@ return [
     'account.locked' => 'Trop de tentatives : réessayez dans quelques minutes, ou connectez-vous avec une clé d’accès.',
     'account.disabled' => 'Ce compte est désactivé.',
     'account.unverified' => 'Vérifiez d’abord votre adresse courriel.',
+    'password.busy' => 'Trop de connexions en même temps : réessayez dans un instant.',
     'email.greeting' => 'Bonjour,',
     'email.greeting_name' => 'Bonjour %name%,',
     'email.ignore' => 'Si vous n’avez rien demandé, ignorez ce message.',

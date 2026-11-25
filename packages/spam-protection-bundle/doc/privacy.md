@@ -10,7 +10,8 @@
 reputation scores. **Never sent anywhere**: the Stimulus controller computes a hash locally and writes a number into the
 form.
 
-The client hash is an HMAC-SHA256 under the application's secret: it cannot be turned back into an address without
+The client hash is an HMAC-SHA256 under a key derived from the application's secret by HKDF-SHA256 under
+`phil_spam_protection.client_key`, which no other usage of the secret shares: it cannot be turned back into an address without
 the secret, and it changes with it. An IPv6 address is hashed as its `/64`, the block one host is given and can
 rotate addresses in freely, so that rotating does not escape the rate limit; an IPv4 address written as IPv6
 (`::ffff:203.0.113.7`) is hashed as the IPv4 address. The token holds the scope, a date and a random nonce — nothing about the person.

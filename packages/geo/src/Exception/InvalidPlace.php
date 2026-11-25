@@ -18,6 +18,11 @@ final class InvalidPlace extends InvalidArgumentException implements GeoExceptio
         return new self(\sprintf('A country is its two letters of ISO 3166-1; "%s" is not.', $code));
     }
 
+    public static function timeouts(float $timeout, float $maxDuration): self
+    {
+        return new self(\sprintf('The timeouts of a provider are above zero and at most 120 seconds, the whole call no shorter than the wait; %s and %s are not.', $timeout, $maxDuration));
+    }
+
     /**
      * The refused value usually comes from the client: the message keeps its first {@see self::MAX_SHOWN} bytes, with
      * control characters escaped and invalid UTF-8 replaced by U+FFFD, so that a log line cannot be forged nor bloated.

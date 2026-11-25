@@ -24,6 +24,7 @@ use Phil\BrowserSecurityBundle\Infrastructure\Cache\CacheDeduplicator;
 use Phil\BrowserSecurityBundle\Infrastructure\Console\PurgeReportsCommand;
 use Phil\BrowserSecurityBundle\Infrastructure\Doctrine\DbalReportRepository;
 use Phil\BrowserSecurityBundle\Infrastructure\Doctrine\ReportSchemaListener;
+use Phil\BrowserSecurityBundle\Infrastructure\ErrorHandler\ErrorPageNoncePass;
 use Phil\BrowserSecurityBundle\Infrastructure\Http\ContentSecurityPolicyListener;
 use Phil\BrowserSecurityBundle\Infrastructure\Http\ExternalRedirectListener;
 use Phil\BrowserSecurityBundle\Infrastructure\Http\HttpsRedirectListener;
@@ -150,6 +151,7 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new RateLimitGuard());
+        $container->addCompilerPass(new ErrorPageNoncePass());
     }
 
     #[Override]

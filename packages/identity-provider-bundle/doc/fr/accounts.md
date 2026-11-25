@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=672b5aff10409bd2ce057cdda18aceaf40515122a9a505e3523752726749140c -->
+<!-- phil-dev source-sha256=ef498fe9f61f6603da9486704097ab0ccc38a89396a7be946792a5bd4601aa03 -->
 # Comptes et mots de passe
 
 ## Comptes
@@ -108,7 +108,7 @@ phil_identity_provider:
 adresse saisie, connue ou non, de sorte que la réponse ne dit toujours à personne qui a un compte ; un refus répond
 `429` avec le formulaire et `error.registration.too_many`. Un courriel de vérification va à une adresse une fois par
 `resend_delay`, qu'il soit demandé par l'inscription, par la page du compte ou par un changement d'adresse : un courriel
-redemandé trop tôt n'est pas envoyé, et la page répond comme s'il l'était. Les clés sont des empreintes à clé : la
+redemandé trop tôt n'est pas envoyé, et la page répond comme s'il l'était. Les clés sont des empreintes à clé, sous une clé dérivée de `secret` par HKDF-SHA256 pour ce limiteur seul : la
 cache ne contient jamais une adresse.
 
 Les comptes vivent dans `cache.app`, sous `lock.factory` quand il est défini. Sur plusieurs serveurs, pointez `cache.app`
@@ -163,6 +163,28 @@ raisons reviennent sous forme de clés de traduction : `password.too_short`, `pa
 
 Les mots de passe sont hachés par le hacheur de mots de passe de Symfony Security : le bundle préconfigure `sodium` —
 Argon2id — pour `AccountUser`, et l'application peut l'ajuster dans `security.password_hashers`.
+
+### Le plafond des vérifications de mot de passe
+
+Chaque empreinte Argon2id prend des dizaines de mébioctets. Une rafale de connexions échouées réparties sur beaucoup de
+comptes et beaucoup d'adresses passe sous les limiteurs par adresse et par compte, mais un serveur qui calculerait
+chaque empreinte en même temps manquerait de mémoire. Le bundle décore la fabrique de hacheurs de mots de passe de
+Symfony Security : chaque empreinte et chaque vérification du mot de passe d'un compte — connexion, changement,
+réinitialisation, inscription — prend d'abord l'un des `password.semaphore.slots` verrous du composant Lock, et attend
+jusqu'à `password.semaphore.wait` secondes qu'un se libère. Passé cette attente, la connexion est refusée avec
+`password.busy`, qui ne compte jamais vers le verrou du compte. Savoir si une empreinte doit être recalculée ne prend
+aucune place. Les hacheurs des autres classes d'utilisateurs sont laissés tels quels.
+
+Le plafond appartient à chaque serveur, puisque la mémoire aussi : la valeur par défaut garde des fichiers flock dans le
+répertoire temporaire, et un verrou meurt avec le processus qui le tenait. `password.semaphore.lock_factory` nomme une
+autre `LockFactory`, par exemple une sur `SemaphoreStore` ; un magasin partagé par tous les serveurs plafonnerait tout le
+site au nombre de places.
+
+```yaml
+phil_identity_provider:
+    password:
+        semaphore: { slots: 8, wait: 2.0 }
+```
 
 ## Le mot de passe oublié
 
@@ -226,7 +248,7 @@ security:
 `LoginRateLimiter` compte trois choses à chaque `login_limiter.interval` : les tentatives par adresse — un client IPv6
 par son réseau /64 —, `network_max_attempts` ; par identifiant et adresse, `max_attempts` ; par identifiant, quelle que
 soit l'adresse, `account_max_attempts`. Les clés sont des empreintes à clé de l'adresse et de l'identifiant en
-minuscules : le cache ne garde ni l'une ni l'autre. Une connexion réussie efface les deux comptes de son identifiant et
+minuscules, sous une clé dérivée de `secret` par HKDF-SHA256 pour ce limiteur seul : le cache ne garde ni l'une ni l'autre. Une connexion réussie efface les deux comptes de son identifiant et
 rend son jeton à son adresse. Les options de `login_throttling` lui-même, `max_attempts` et `interval`, ne sont plus
 lues dès qu'un limiteur est nommé.
 

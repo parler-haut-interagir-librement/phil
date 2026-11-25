@@ -4,6 +4,18 @@ All notable changes to `phil/email-address-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha. The address fingerprints change at the update: a fingerprint stored before it no
+longer matches its address, so compute again those an application keeps.
+
+### Security
+
+- The address fingerprints were the HMAC under `fingerprint_key` itself, `%kernel.secret%` by default, which other
+  bundles keyed their own hashes of the same address with, so that two pseudonymous records joined on it.
+  `EmailAddresses` derives the key of `AddressFingerprint` by HKDF-SHA256 under `phil_email_address.fingerprint`
+  (`EmailAddresses::FINGERPRINT_USAGE`).
+
 ## 0.1.0-alpha - 2026-11-24
 
 ### Added

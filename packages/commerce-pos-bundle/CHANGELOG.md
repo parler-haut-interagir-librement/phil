@@ -11,15 +11,18 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - Requires the latest minor of each dependency (`doctrine/orm` 3.8, `symfony/polyfill-php86` 1.43), and of each
   development requirement (`doctrine/dbal` 4.6, `doctrine/doctrine-bundle` 3.4, `doctrine/persistence` 4.2,
   `symfony/password-hasher` 8.2, …).
+- It requires `phil/commerce-bundle` 0.5, the minor released the same evening.
 
 ### Fixed
 
 - It requires `phil/commerce-bundle` 0.4, the version published on 2026-11-20, beside which its requirement of 0.2 or
   0.3 kept it from installing.
 
-### Changed
+### Security
 
-- It requires `phil/commerce-bundle` 0.5, the minor released the same evening.
+- The fake terminal signed its notifications with the HMAC under `%kernel.secret%` itself, which other bundles keyed
+  their own hashes with. `FakePaymentTerminal` derives its key by HKDF-SHA256 under `phil_commerce_pos.fake_terminal`
+  (`FakePaymentTerminal::USAGE`); a test that signs a notification by hand derives the same key.
 
 ## 0.1.0-alpha - 2026-11-20
 

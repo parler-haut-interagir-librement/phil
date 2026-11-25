@@ -34,7 +34,7 @@ Untrusted input reaches the bundle at these places; each row names the first cod
 | `id_token_hint` | `/oidc/logout` | `Tokens::idTokenHint()`, then `Jws::decode()` |
 | Passkey registration and assertion | `/account/passkeys/register`, the passkey sign-in | `Domain\WebAuthn\RelyingParty`, `Cbor` |
 | One-time codes | the second step, re-authentication | `OneTimeCodeAuthenticator`, `Totp`, `RecoveryCodes` |
-| Signed links | `/verify-email`, `/reset-password`, sign-in links | `SignedLinks`, the `login_link` authenticator |
+| Signed links | `/verify-email`, `/reset-password`, sign-in links | `SignedLinks`, the `login_link` authenticator on a POST only (`LoginLinkPostOnlyPass`) |
 
 Where to look first in the JOSE layer:
 

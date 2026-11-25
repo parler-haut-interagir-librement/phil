@@ -261,7 +261,7 @@ final class PublicationEndpointsTest extends TestCase
         $url = $this->links(new MockClock('2026-11-04 12:00 UTC'))->url($reference, Locale::fromString('fr'));
         $expires = 1_793_793_600 + 3600;
 
-        self::assertSame(\sprintf('https://example.com/preview/example:1/fr?expires=%d&signature=v2.%s', $expires, hash_hmac('sha256', 'v2|16:host:example.com|9:example:1|2:fr|'.$expires, 'secret')), $url);
+        self::assertSame(\sprintf('https://example.com/preview/example:1/fr?expires=%d&signature=v2.%s', $expires, hash_hmac('sha256', 'v2|16:host:example.com|9:example:1|2:fr|'.$expires, hash_hkdf('sha256', 'secret', 32, 'phil_content.preview_link'))), $url);
 
         $response = $this->preview(new MockClock('2026-11-04 12:30 UTC'))(Request::create($url), 'example:1', 'fr');
         self::assertSame('news|Bientôt|example:1|fr|preview|stayed', $response->getContent());
@@ -277,7 +277,7 @@ final class PublicationEndpointsTest extends TestCase
         $url = $this->links(new MockClock('2026-11-04 12:00 UTC'))->url($reference, Locale::fromString('fr'));
         $request = Request::create($url);
         $signature = $request->query->getString('signature');
-        $sign = static fn (string $reference, string $locale): string => 'v2.'.hash_hmac('sha256', \sprintf('v2|16:host:example.com|%d:%s|%d:%s|%d', \strlen($reference), $reference, \strlen($locale), $locale, 1_793_793_600 + 3600), 'secret');
+        $sign = static fn (string $reference, string $locale): string => 'v2.'.hash_hmac('sha256', \sprintf('v2|16:host:example.com|%d:%s|%d:%s|%d', \strlen($reference), $reference, \strlen($locale), $locale, 1_793_793_600 + 3600), hash_hkdf('sha256', 'secret', 32, 'phil_content.preview_link'));
         $before = 'https://example.com/p?expires='.(1_793_793_600 + 3600).'&signature='.hash_hmac('sha256', 'example:1|fr|'.(1_793_793_600 + 3600), 'secret');
         $now = new MockClock('2026-11-04 12:00 UTC');
 
@@ -317,7 +317,7 @@ final class PublicationEndpointsTest extends TestCase
         $tenants->enter(TenantId::fromString('acme'));
         $signature = Request::create($links->url($reference, Locale::fromString('fr')))->query->getString('signature');
 
-        self::assertSame('v2.'.hash_hmac('sha256', 'v2|11:tenant:acme|9:example:1|2:fr|'.$expires, 'secret'), $signature);
+        self::assertSame('v2.'.hash_hmac('sha256', 'v2|11:tenant:acme|9:example:1|2:fr|'.$expires, hash_hkdf('sha256', 'secret', 32, 'phil_content.preview_link')), $signature);
         self::assertTrue($links->verify('example:1', 'fr', $expires, $signature, 'another.example'), 'Any host of the tenant.');
 
         $tenants->enter(TenantId::fromString('globex'));

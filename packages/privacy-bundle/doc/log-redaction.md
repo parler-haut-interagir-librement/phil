@@ -21,6 +21,7 @@ The placeholder is always `[redacted]` (`UrlRedactor::PLACEHOLDER`, also exposed
 | Input | Result | Rule |
 |---|---|---|
 | `['password' => 'hunter2']` | `['password' => '[redacted]']` | Denied key, any type, any depth |
+| `['email' => 'ada@example.com']` | `['email' => '[redacted]']` | A category of `#[PersonalData]`, denied by default |
 | `['token' => ['a' => 1]]` | `['token' => '[redacted]']` | A denied array is not walked |
 | `/reset?token=abc&lang=fr` | `/reset?[redacted]` | Every query string, parameter names included |
 | `what?now` | `what?[redacted]` | Any `?` followed by non-space characters |
@@ -29,7 +30,8 @@ The placeholder is always `[redacted]` (`UrlRedactor::PLACEHOLDER`, also exposed
 | `app:import --password=hunter2` | `app:import --password=[redacted]` | Value of a denied long option |
 | `app:import -p hunter2` (`p: password` declared) | `app:import -p [redacted]` | Value of a declared short option |
 | a `Throwable` under `exception` | an array: class, redacted message, code, file, line, previous | Stack trace dropped |
-| any other object | unchanged | Fixed at the call site |
+| any other object, at any depth | its class name, `App\Message\SignUp` | Its properties never reach the formatter |
+| a case of an enum | its class and case, `App\Status::Open` | |
 | `#frag` in a URL | unchanged | Browsers do not send fragments |
 
 ## `Denylist` — keys
@@ -48,6 +50,15 @@ test).
 - Only **string** keys are compared. Integer keys of a list are never denied; their values are walked.
 
 The list belongs to the application; the bundle decides only how a key is compared.
+
+### The categories of personal data
+
+`log_redaction.personal_data_categories` adds the names of categories of `#[PersonalData]` to the denylist. By
+default it holds the categories the PHIL packages declare, `RedactingProcessor::PERSONAL_DATA_CATEGORIES`: `email`,
+`person_name`, `nickname`, `phone`, `ip` and `contact`. A context that logs an address under `email`, a name under
+`personName` or a number under `Phone` logs `[redacted]` even with an empty `denylist`. Each entry is a category, a
+lowercase `snake_case` token, compared as a key: `email` denies `email` and `E-mail`, not `email_count`. An
+application lists its own categories there, beside these, and `personal_data_categories: []` turns the rule off.
 
 ## `UrlRedactor` — strings
 
@@ -106,7 +117,7 @@ case-sensitive. With no table, which is the default, no short option is read. `r
 | Method | Effect |
 |---|---|
 | `redactMessage(string $message): string` | URL redaction then command line redaction |
-| `redactContext(array $context): array` | Walks the array: denied string keys → placeholder; strings → both redactors; arrays → recursed; `Throwable` → redacted array; anything else unchanged |
+| `redactContext(array $context): array` | Walks the array: denied string keys → placeholder; strings → both redactors; arrays → recursed; `Throwable` → redacted array; an enum case → `Class::Case`; any other object → its class name; other scalars and null unchanged |
 
 A `Throwable` becomes:
 
@@ -122,8 +133,10 @@ A `Throwable` becomes:
 ```
 
 The exception message is where a failed request's URL most often lands. The trace is dropped because its
-arguments are not reachable without serialisation. Other objects are left as they are: reaching their content
-would need reflection or serialisation, which would make this a normaliser.
+arguments are not reachable without serialisation. Any other object becomes its class name: a formatter would
+otherwise write its public properties, or what it serialises to, and a message or a DTO of another bundle would
+reach the log whole, personal data included. A context that needs a value logs that value, under a key the
+denylist can judge.
 
 ## Failure mode
 
@@ -138,7 +151,8 @@ command line patterns fail: they read a value in runs, without backtracking, wha
 | Member | |
 |---|---|
 | `__construct(ContextRedactor $redactor)` | Build from your own redactor |
-| `static fromConfiguration(array $denylist, array $tokenPathPrefixes, array $shortOptions = []): self` | Build from plain lists, as the bundle does; throws `InvalidPrivacyValue` on a malformed entry |
+| `static fromConfiguration(array $denylist, array $tokenPathPrefixes, array $shortOptions = [], array $personalDataCategories = []): self` | Build from plain lists, as the bundle does, the categories denied as keys; throws `InvalidPrivacyValue` on a malformed entry |
+| `PERSONAL_DATA_CATEGORIES` | The categories the bundle denies by default |
 | `__invoke(LogRecord $record): LogRecord` | Returns `$record->with(message:, context:, extra:)`, all three redacted; channel, level and datetime unchanged |
 
 `extra` is redacted because other processors fill it — a web processor adds the request URI with its query
@@ -188,7 +202,7 @@ $logger->pushProcessor($webProcessor);
 
 ## What the processor does not cover
 
-- Objects in the context other than throwables.
+- The content of an object in the context: only its class name is kept.
 - Text written outside Monolog: web server access logs, error trackers with their own scrubbing, `var_dump`.
 - Secrets that are neither under a denied key, nor in a URL credential or query string, nor the value of a
   denied option: free text such as `"password is hunter2"` in a message is not recognised.

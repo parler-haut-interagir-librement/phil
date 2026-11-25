@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8a0b6e5a0d14debc1016064f8bfad0faf305cffc6d174cc8647c05bd31210e44 -->
+<!-- phil-dev source-sha256=8a93f55b31ff4f2a198962eb82102957fe93bf2d8686b9f068eeb01fdb201947 -->
 # Caviardage des journaux
 
 **État : implémenté, testé et branché depuis la configuration**, comme `RedactingProcessor`, étiqueté
@@ -23,6 +23,7 @@ Le texte de remplacement est toujours `[redacted]` (`UrlRedactor::PLACEHOLDER`, 
 | Entrée | Résultat | Règle |
 |---|---|---|
 | `['password' => 'hunter2']` | `['password' => '[redacted]']` | Clé refusée, de tout type, à toute profondeur |
+| `['email' => 'ada@example.com']` | `['email' => '[redacted]']` | Une catégorie de `#[PersonalData]`, refusée par défaut |
 | `['token' => ['a' => 1]]` | `['token' => '[redacted]']` | Un tableau refusé n'est pas parcouru |
 | `/reset?token=abc&lang=fr` | `/reset?[redacted]` | Chaque chaîne de requête, noms de paramètres compris |
 | `what?now` | `what?[redacted]` | Tout `?` suivi de caractères autres que des espaces |
@@ -31,7 +32,8 @@ Le texte de remplacement est toujours `[redacted]` (`UrlRedactor::PLACEHOLDER`, 
 | `app:import --password=hunter2` | `app:import --password=[redacted]` | La valeur d'une option longue refusée |
 | `app:import -p hunter2` (`p: password` déclaré) | `app:import -p [redacted]` | La valeur d'une option courte déclarée |
 | un `Throwable` sous `exception` | un tableau : classe, message caviardé, code, fichier, ligne, précédent | Pile d'appels abandonnée |
-| tout autre objet | inchangé | Corrigé là où il est journalisé |
+| tout autre objet, à toute profondeur | son nom de classe, `App\Message\SignUp` | Ses propriétés n'atteignent jamais le formateur |
+| un cas d'énumération | sa classe et son cas, `App\Status::Open` | |
 | `#frag` dans une adresse | inchangé | Les navigateurs n'envoient pas les fragments |
 
 ## `Denylist` — les clés
@@ -51,6 +53,16 @@ list<string>` rend les clés et les motifs normalisés, triés (utile pour véri
   parcourues.
 
 La liste appartient à l'application ; le bundle décide seulement de la façon de comparer une clé.
+
+### Les catégories de renseignements personnels
+
+`log_redaction.personal_data_categories` ajoute à la liste de refus les noms de catégories de `#[PersonalData]`. Par
+défaut, elle contient les catégories que déclarent les paquets PHIL, `RedactingProcessor::PERSONAL_DATA_CATEGORIES` :
+`email`, `person_name`, `nickname`, `phone`, `ip` et `contact`. Un contexte qui journalise une adresse sous `email`, un
+nom sous `personName` ou un numéro sous `Phone` journalise `[redacted]`, même avec une `denylist` vide. Chaque entrée est
+une catégorie, un jeton `snake_case` en minuscules, comparée comme une clé : `email` refuse `email` et `E-mail`, pas
+`email_count`. Une application y inscrit ses propres catégories, à côté de celles-ci, et `personal_data_categories: []`
+désactive la règle.
 
 ## `UrlRedactor` — les chaînes
 
@@ -113,7 +125,7 @@ un indicateur, et `--token -v` perd `-v`.
 | Méthode | Effet |
 |---|---|
 | `redactMessage(string $message): string` | Caviardage des adresses puis caviardage de la ligne de commande |
-| `redactContext(array $context): array` | Parcourt le tableau : clés chaînes refusées → texte de remplacement ; chaînes → les deux caviardeurs ; tableaux → parcourus ; `Throwable` → tableau caviardé ; tout le reste inchangé |
+| `redactContext(array $context): array` | Parcourt le tableau : clés chaînes refusées → texte de remplacement ; chaînes → les deux caviardeurs ; tableaux → parcourus ; `Throwable` → tableau caviardé ; un cas d'énumération → `Class::Case` ; tout autre objet → son nom de classe ; les autres scalaires et null inchangés |
 
 Un `Throwable` devient :
 
@@ -129,8 +141,10 @@ Un `Throwable` devient :
 ```
 
 Le message d'exception est l'endroit où atterrit le plus souvent l'adresse d'une requête en échec. La pile d'appels est
-abandonnée parce que ses arguments ne sont pas atteignables sans sérialisation. Les autres objets sont laissés tels
-quels : atteindre leur contenu demanderait la réflexion ou la sérialisation, ce qui ferait de ceci un normaliseur.
+abandonnée parce que ses arguments ne sont pas atteignables sans sérialisation. Tout autre objet devient son
+nom de classe : un formateur écrirait autrement ses propriétés publiques, ou ce qu'il devient sérialisé, et un message ou
+un DTO d'un autre bundle atteindrait le journal en entier, renseignements personnels compris. Un contexte qui a besoin
+d'une valeur journalise cette valeur, sous une clé que la liste de refus peut juger.
 
 ## En cas d'échec
 
@@ -146,7 +160,8 @@ que soit sa longueur.
 | Membre | |
 |---|---|
 | `__construct(ContextRedactor $redactor)` | Construire à partir de votre propre caviardeur |
-| `static fromConfiguration(array $denylist, array $tokenPathPrefixes, array $shortOptions = []): self` | Construire à partir de listes simples, comme le fait le bundle ; lève `InvalidPrivacyValue` sur une entrée mal formée |
+| `static fromConfiguration(array $denylist, array $tokenPathPrefixes, array $shortOptions = [], array $personalDataCategories = []): self` | Construire à partir de listes simples, comme le fait le bundle, les catégories refusées comme clés ; lève `InvalidPrivacyValue` sur une entrée mal formée |
+| `PERSONAL_DATA_CATEGORIES` | Les catégories que le bundle refuse par défaut |
 | `__invoke(LogRecord $record): LogRecord` | Rend `$record->with(message:, context:, extra:)`, les trois caviardés ; canal, niveau et date inchangés |
 
 `extra` est caviardé parce que d'autres processeurs le remplissent — un processeur web ajoute l'URI de la requête avec
@@ -197,7 +212,7 @@ $logger->pushProcessor($webProcessor);
 
 ## Ce que le processeur ne couvre pas
 
-- Les objets du contexte autres que les exceptions.
+- Le contenu d'un objet du contexte : seul son nom de classe est gardé.
 - Le texte écrit hors de Monolog : les journaux d'accès du serveur web, les traqueurs d'erreurs qui ont leur propre
   nettoyage, `var_dump`.
 - Les secrets qui ne sont ni sous une clé refusée, ni dans les identifiants ou la chaîne de requête d'une adresse, ni la

@@ -41,7 +41,7 @@ final class TableGuardTest extends TestCase
         $guard = new TableGuard(new Tokens(), 'secret');
         $seal = $guard->seal('t', '{"a":1}');
 
-        self::assertSame(hash_hmac('sha256', "t\0{\"a\":1}", 'secret'), $seal);
+        self::assertSame(hash_hmac('sha256', "t\0{\"a\":1}", hash_hkdf('sha256', 'secret', 32, 'phil_data_table.table_guard')), $seal);
         self::assertSame(['a' => 1], $guard->opened('t', '{"a":1}', $seal));
         self::assertSame(['a' => 1, 'b' => 2], $guard->opened('t', '{"a":1,"b":2}', $guard->seal('t', '{"a":1,"b":2}')));
         self::assertNotSame($seal, new TableGuard(new Tokens(), 'other')->seal('t', '{"a":1}'));

@@ -10,6 +10,9 @@ The next version is 0.1.1-alpha.
 
 ### Changed
 
+- The page of a group reads each chain from the top down, the exception thrown first, each previous one marked
+  "Caused by" and the root cause last marked "Root cause"; each run of frames under `vendor/` is folded into a
+  `<details>` element that tells how many it holds and opens without script.
 - The development requirements accept `phil/notifications-bundle` 0.4 and `phil/privacy-bundle` 0.3, the minor versions
   of their main branches and no earlier one, so that the package installs on its own beside those bundles.
 - Requires the latest minor of each dependency (`doctrine/dbal` 4.6, `symfony/service-contracts` 3.8), and of each
@@ -17,6 +20,12 @@ The next version is 0.1.1-alpha.
   `symfony/ux-twig-component` 3.8, …).
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
   2026-11-24.
+
+### Security
+
+- The throttle of the browser errors counted each client by the HMAC of its address under the secret itself,
+  `%kernel.secret%` by default, the same hash other bundles kept for the same address. `BrowserErrorReceiver` derives
+  its key by HKDF-SHA256 under `phil_error_tracking.browser_throttle` (`BrowserErrorReceiver::USAGE`).
 
 ## 0.1.0-alpha - 2026-11-20
 

@@ -66,6 +66,11 @@ See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
   decrypted and loaded. `Der::ecdsaSignature()` and `Der::certificate()`.
 - The documentation of identifiers, states, addresses by purpose, stored links, turning the lock off, attestation and
   the sources of the signing keys.
+- `password.semaphore` (`enabled`, `slots`, `wait`, `lock_factory`), on by default with 4 slots and a wait of 3
+  seconds: `Infrastructure\Security\PasswordCheckSemaphore`, `SemaphorePasswordHasher` and
+  `SemaphorePasswordHasherFactory`, a decorator of `security.password_hasher_factory`, cap the password hashes and
+  checks of the accounts computed at once on each server, by locks of the Lock component on flock files by default;
+  past the wait the sign-in is refused with `password.busy`, which never counts towards the lock of the account.
 
 ### Changed
 
@@ -138,6 +143,13 @@ See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
   (`LoginLinkPostOnlyPass`), and the route shows on GET a page whose button posts the link, without script, with no
   referrer and out of caches (`LoginLinkController::confirm()`, `login_link/confirm.html.twig`, the keys
   `login_link.confirm` and `action.sign_in_link`, in English and in French).
+- A burst of failed sign-ins spread over many accounts and addresses passed under the limiters and hashed every
+  password at once, each Argon2id hash taking tens of mebibytes, until the server ran out of memory: the hashes wait
+  for a slot of `password.semaphore`.
+- The limiters of the sign-ins and of the registrations keyed their counts by the HMAC of the address and of the
+  identifier under `secret` itself, the same hash other bundles kept for the same address. `LoginRateLimiter` and
+  `RegistrationRateLimiter` derive their keys by HKDF-SHA256 under `phil_identity_provider.login_limiter` and
+  `phil_identity_provider.registration_limiter` (`USAGE` of each). The counts start again at the update.
 
 ## 0.3.0-alpha - 2026-11-20
 

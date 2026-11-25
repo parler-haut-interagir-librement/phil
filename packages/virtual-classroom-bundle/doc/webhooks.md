@@ -1,7 +1,8 @@
 # Webhooks
 
 The servers call the application back at addresses of the bundle, each carrying a **proof**: the HMAC-SHA-256 of its
-provider, its room and its channel under `webhook_secret`, 32 characters of base64url.
+provider, its room and its channel under a key derived from `webhook_secret` by HKDF-SHA256 for that usage alone
+(`WebhookSigner::USAGE`), 32 characters of base64url.
 
 | Route | Path | Methods | Use |
 |---|---|---|---|

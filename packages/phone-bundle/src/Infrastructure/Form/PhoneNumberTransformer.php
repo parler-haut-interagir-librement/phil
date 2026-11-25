@@ -13,7 +13,8 @@ use Symfony\Component\Form\Exception\TransformationFailedException;
 
 /**
  * Between a `PhoneNumber` and the text of its field: a number of the field's country is shown nationally, any other
- * internationally; a number that is in no numbering plan is refused.
+ * internationally; a number that is in no numbering plan is refused. The messages of the refusals never hold the
+ * text typed, which is personal data and may reach a log.
  *
  * @implements DataTransformerInterface<PhoneNumber, string>
  */
@@ -48,7 +49,7 @@ final readonly class PhoneNumberTransformer implements DataTransformerInterface
         }
 
         if (!$number->isValid()) {
-            throw new TransformationFailedException(\sprintf('"%s" is in no numbering plan.', $number));
+            throw new TransformationFailedException('The number is in no numbering plan.');
         }
 
         return $number;

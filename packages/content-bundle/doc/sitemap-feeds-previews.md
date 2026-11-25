@@ -95,7 +95,8 @@ console's tenant is the one `phil/tenancy-bundle` reads from its command option.
 
 ### The signature
 
-The signature is `v2.` followed by the HMAC-SHA256, in hexadecimal, of the version, the scope, the reference and the
+The signature is `v2.` followed by the HMAC-SHA256, in hexadecimal, under a key derived from the secret by
+HKDF-SHA256 under `phil_content.preview_link`, of the version, the scope, the reference and the
 locale, each written after its length, then the expiry. The version comes first so that a new format can be told from
 an old one and refused cleanly; a signature that does not start with the current version is refused.
 

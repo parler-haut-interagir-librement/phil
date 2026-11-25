@@ -30,13 +30,20 @@ use Symfony\Component\Security\Http\SecurityRequestAttributes;
  */
 final class LoginRateLimiter extends AbstractRequestRateLimiter
 {
+    /** The usage label the key is derived under, by HKDF-SHA256, from the secret given. */
+    public const string USAGE = 'phil_identity_provider.login_limiter';
+
+    /** The key of this usage alone: no other usage of the same secret gives the same hash. */
+    private readonly string $key;
+
     public function __construct(
         private readonly RateLimiterFactoryInterface $network,
         private readonly RateLimiterFactoryInterface $local,
         private readonly RateLimiterFactoryInterface $account,
         #[SensitiveParameter]
-        private readonly string $secret,
+        string $secret,
     ) {
+        $this->key = hash_hkdf('sha256', $secret, 32, self::USAGE);
     }
 
     #[Override]
@@ -105,6 +112,6 @@ final class LoginRateLimiter extends AbstractRequestRateLimiter
      */
     private function key(string ...$parts): string
     {
-        return sodium_bin2base64(hash_hmac('sha256', implode("\0", $parts), $this->secret, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+        return sodium_bin2base64(hash_hmac('sha256', implode("\0", $parts), $this->key, true), \SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
     }
 }

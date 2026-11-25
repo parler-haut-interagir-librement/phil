@@ -19,6 +19,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   comment on where to find the secret of the server, and the service of a BigBlueButton or self-hosted Jitsi server
   refuses a secret that begins with `change-me` or `changeme` when it is built
   (`Infrastructure\DependencyInjection\ServerSecret`).
+- The proofs of the webhook addresses were the HMAC under `webhook_secret` itself, `%kernel.secret%` by default,
+  which other bundles keyed their own hashes with. `WebhookSigner` derives its key by HKDF-SHA256 under
+  `phil_virtual_classroom.webhook_address` (`WebhookSigner::USAGE`). An address given to a server before the update is
+  refused as an unknown one.
 
 ## 0.1.0-alpha - 2026-11-20
 
