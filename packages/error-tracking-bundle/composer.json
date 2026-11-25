@@ -43,7 +43,7 @@
         "easycorp/easyadmin-bundle": "^5.10",
         "monolog/monolog": "^3.13",
         "phil/monitoring-bundle": "^0.1.1@dev",
-        "phil/notifications-bundle": "^0.3@dev",
+        "phil/notifications-bundle": "^0.4@dev",
         "phil/privacy-bundle": "^0.3@dev",
         "phil/rate-limit-bundle": "^0.1.1@dev",
         "phpunit/phpunit": "^13.4",

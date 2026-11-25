@@ -10,6 +10,8 @@ The next version is 0.1.1-alpha.
 
 ### Changed
 
+- The served stylesheet carries the tokens of `phil/ux-css` 0.6: `--phil-neutral-15`, and the dark surface on
+  it.
 - Requires the latest minor of each dependency (`phil/ux-css` 0.5), and of each development requirement
   (`doctrine/doctrine-bundle` 3.4, `symfony/ux-twig-component` 3.8, `twig/extra-bundle` 3.31).
 

@@ -4,6 +4,17 @@ All notable changes to `phil/reviews-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements accept `phil/ux-kit` 0.6, the minor version of its main branch and no earlier one, so
+  that the package installs on its own beside that package.
+
 ## 0.1.0-alpha - 2026-11-24
 
 ### Added

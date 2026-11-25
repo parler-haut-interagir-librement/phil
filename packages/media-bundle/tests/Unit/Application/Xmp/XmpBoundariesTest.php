@@ -32,12 +32,12 @@ final class XmpBoundariesTest extends TestCase
 
     private const string HEADER = "http://ns.adobe.com/xap/1.0/\0";
 
-    private static function app1(string $packet = self::PACKET): string
+    private function app1(string $packet = self::PACKET): string
     {
         return "\xFF\xE1".pack('n', 2 + \strlen(self::HEADER.$packet)).self::HEADER.$packet;
     }
 
-    private static function segment(int $marker, string $data): string
+    private function segment(int $marker, string $data): string
     {
         return "\xFF".\chr($marker & 0xFF).pack('n', 2 + \strlen($data)).$data;
     }
@@ -59,40 +59,40 @@ final class XmpBoundariesTest extends TestCase
 
     public function testTheEndOfImageMarkerEndsTheHeaders(): void
     {
-        self::assertSame("\xFF\xD8".self::app1()."\xFF\xD9", JpegXmp::write("\xFF\xD8\xFF\xD9", self::PACKET));
+        self::assertSame("\xFF\xD8".$this->app1()."\xFF\xD9", JpegXmp::write("\xFF\xD8\xFF\xD9", self::PACKET));
     }
 
     public function testOnlyTheScanAndTheEndOfImageEndTheHeaders(): void
     {
-        $quantisation = self::segment(0xDB, 'table');
-        $startOfImage = self::segment(0xD8, '');
-        $exif = self::segment(0xE1, "Exif\0\0");
+        $quantisation = $this->segment(0xDB, 'table');
+        $startOfImage = $this->segment(0xD8, '');
+        $exif = $this->segment(0xE1, "Exif\0\0");
 
         self::assertSame(
-            "\xFF\xD8".self::app1().$quantisation."\xFF\xDA",
+            "\xFF\xD8".$this->app1().$quantisation."\xFF\xDA",
             JpegXmp::write("\xFF\xD8".$quantisation.$exif."\xFF\xDA", self::PACKET),
         );
         self::assertSame(
-            "\xFF\xD8".self::app1().$startOfImage."\xFF\xDA",
+            "\xFF\xD8".$this->app1().$startOfImage."\xFF\xDA",
             JpegXmp::write("\xFF\xD8".$startOfImage.$exif."\xFF\xDA", self::PACKET),
         );
     }
 
     public function testASegmentWithoutDataIsKept(): void
     {
-        $empty = self::segment(0xE2, '');
+        $empty = $this->segment(0xE2, '');
 
-        self::assertSame("\xFF\xD8".self::app1().$empty."\xFF\xDA", JpegXmp::write("\xFF\xD8".$empty."\xFF\xDA", self::PACKET));
+        self::assertSame("\xFF\xD8".$this->app1().$empty."\xFF\xDA", JpegXmp::write("\xFF\xD8".$empty."\xFF\xDA", self::PACKET));
     }
 
     public function testTheSegmentsOfTheJfifHeaderAreAllKeptFirst(): void
     {
-        $first = self::segment(0xE0, 'JFIF');
-        $second = self::segment(0xE0, 'JFXX');
-        $profile = self::segment(0xE2, 'profile');
+        $first = $this->segment(0xE0, 'JFIF');
+        $second = $this->segment(0xE0, 'JFXX');
+        $profile = $this->segment(0xE2, 'profile');
 
         self::assertSame(
-            "\xFF\xD8".$first.$second.self::app1().$profile."\xFF\xDA",
+            "\xFF\xD8".$first.$second.$this->app1().$profile."\xFF\xDA",
             JpegXmp::write("\xFF\xD8".$first.$second.$profile."\xFF\xDA", self::PACKET),
         );
     }
@@ -100,40 +100,40 @@ final class XmpBoundariesTest extends TestCase
     /**
      * @return array{string, string}
      */
-    private static function pngChunks(): array
+    private function pngChunks(): array
     {
         $signature = "\x89PNG\r\n\x1A\n";
-        $header = self::pngChunk('IHDR', pack('NNCCCCC', 1, 1, 8, 2, 0, 0, 0));
+        $header = $this->pngChunk('IHDR', pack('NNCCCCC', 1, 1, 8, 2, 0, 0, 0));
 
         return [$signature, $header];
     }
 
-    private static function pngChunk(string $type, string $data): string
+    private function pngChunk(string $type, string $data): string
     {
         return pack('N', \strlen($data)).$type.$data.pack('N', crc32($type.$data));
     }
 
     public function testAPngChunkKeepsItsDataAndTheNewChunkIsChecked(): void
     {
-        [$signature, $header] = self::pngChunks();
-        $data = self::pngChunk('IDAT', 'abcdef');
-        $end = self::pngChunk('IEND', '');
+        [$signature, $header] = $this->pngChunks();
+        $data = $this->pngChunk('IDAT', 'abcdef');
+        $end = $this->pngChunk('IEND', '');
         $written = PngXmp::write($signature.$header.$data.$end, self::PACKET);
-        $text = self::pngChunk('iTXt', "XML:com.adobe.xmp\0\0\0\0\0".self::PACKET);
+        $text = $this->pngChunk('iTXt', "XML:com.adobe.xmp\0\0\0\0\0".self::PACKET);
 
         self::assertSame($signature.$header.$text.$data.$end, $written);
     }
 
     public function testAFileWithoutPngSignatureIsRefusedWhateverItHolds(): void
     {
-        [, $header] = self::pngChunks();
+        [, $header] = $this->pngChunks();
 
-        self::assertNull(PngXmp::write('XXXXXXXX'.$header.self::pngChunk('IEND', ''), self::PACKET));
+        self::assertNull(PngXmp::write('XXXXXXXX'.$header.$this->pngChunk('IEND', ''), self::PACKET));
     }
 
     public function testAPngThatEndsInTheMiddleOfAChunkHeaderIsRefused(): void
     {
-        [$signature, $header] = self::pngChunks();
+        [$signature, $header] = $this->pngChunks();
 
         self::assertNull(PngXmp::write($signature.$header.'abc', self::PACKET));
         self::assertNull(PngXmp::write($signature.$header.str_repeat("\0", 11), self::PACKET));
@@ -142,17 +142,17 @@ final class XmpBoundariesTest extends TestCase
         self::assertNull(PngXmp::write($signature.$header.pack('N', 0).'IEND'."\0\0\0", self::PACKET));
     }
 
-    private static function webpChunk(string $type, string $data): string
+    private function webpChunk(string $type, string $data): string
     {
         return $type.pack('V', \strlen($data)).$data.(1 === \strlen($data) % 2 ? "\0" : '');
     }
 
-    private static function webp(string $body, ?int $size = null): string
+    private function webp(string $body, ?int $size = null): string
     {
         return 'RIFF'.pack('V', $size ?? 4 + \strlen($body)).'WEBP'.$body;
     }
 
-    private static function extended(int $flags, int $width, int $height): string
+    private function extended(int $flags, int $width, int $height): string
     {
         return \chr($flags & 0xFF)."\0\0\0".substr(pack('V', $width - 1), 0, 3).substr(pack('V', $height - 1), 0, 3);
     }
@@ -160,48 +160,48 @@ final class XmpBoundariesTest extends TestCase
     public function testALossyWebpOfTenBytesGivesItsCanvas(): void
     {
         $data = "\0\0\0\x9D\x01\x2A".pack('v', 301 | 0x4000).pack('v', 401 | 0x8000);
-        $lossy = self::webpChunk('VP8 ', $data);
+        $lossy = $this->webpChunk('VP8 ', $data);
 
         self::assertSame(10, \strlen($data));
         self::assertSame(
-            self::webp(self::webpChunk('VP8X', self::extended(0x04, 301, 401)).$lossy.self::webpChunk('XMP ', self::PACKET)),
-            WebpXmp::write(self::webp($lossy), self::PACKET),
+            $this->webp($this->webpChunk('VP8X', $this->extended(0x04, 301, 401)).$lossy.$this->webpChunk('XMP ', self::PACKET)),
+            WebpXmp::write($this->webp($lossy), self::PACKET),
         );
     }
 
     public function testAWebpOfOnePixelIsWritten(): void
     {
-        $lossy = self::webpChunk('VP8 ', "\0\0\0\x9D\x01\x2A\x01\0\x01\0");
-        $lossless = self::webpChunk('VP8L', "\x2F\0\0\0\0");
+        $lossy = $this->webpChunk('VP8 ', "\0\0\0\x9D\x01\x2A\x01\0\x01\0");
+        $lossless = $this->webpChunk('VP8L', "\x2F\0\0\0\0");
 
         self::assertSame(
-            self::webp(self::webpChunk('VP8X', self::extended(0x04, 1, 1)).$lossy.self::webpChunk('XMP ', self::PACKET)),
-            WebpXmp::write(self::webp($lossy), self::PACKET),
+            $this->webp($this->webpChunk('VP8X', $this->extended(0x04, 1, 1)).$lossy.$this->webpChunk('XMP ', self::PACKET)),
+            WebpXmp::write($this->webp($lossy), self::PACKET),
         );
         self::assertSame(
-            self::webp(self::webpChunk('VP8X', self::extended(0x04, 1, 1)).$lossless.self::webpChunk('XMP ', self::PACKET)),
-            WebpXmp::write(self::webp($lossless), self::PACKET),
+            $this->webp($this->webpChunk('VP8X', $this->extended(0x04, 1, 1)).$lossless.$this->webpChunk('XMP ', self::PACKET)),
+            WebpXmp::write($this->webp($lossless), self::PACKET),
         );
     }
 
     public function testALosslessWebpOfFiveBytesGivesItsCanvasAndItsAlpha(): void
     {
         $data = "\x2F".pack('V', 299 | 399 << 14 | 1 << 28);
-        $lossless = self::webpChunk('VP8L', $data);
+        $lossless = $this->webpChunk('VP8L', $data);
 
         self::assertSame(5, \strlen($data));
         self::assertSame(
-            self::webp(self::webpChunk('VP8X', self::extended(0x14, 300, 400)).$lossless.self::webpChunk('XMP ', self::PACKET)),
-            WebpXmp::write(self::webp($lossless), self::PACKET),
+            $this->webp($this->webpChunk('VP8X', $this->extended(0x14, 300, 400)).$lossless.$this->webpChunk('XMP ', self::PACKET)),
+            WebpXmp::write($this->webp($lossless), self::PACKET),
         );
     }
 
     public function testAWebpWithAnotherTagIsRefused(): void
     {
-        $body = self::webpChunk('VP8L', "\x2F\0\0\0\0");
+        $body = $this->webpChunk('VP8L', "\x2F\0\0\0\0");
 
-        self::assertNotNull(WebpXmp::write(self::webp($body), self::PACKET));
-        self::assertNull(WebpXmp::write('RIFX'.substr(self::webp($body), 4), self::PACKET));
+        self::assertNotNull(WebpXmp::write($this->webp($body), self::PACKET));
+        self::assertNull(WebpXmp::write('RIFX'.substr($this->webp($body), 4), self::PACKET));
         self::assertNull(WebpXmp::write('RIFF'.pack('V', 4 + \strlen($body)).'WEBX'.$body, self::PACKET));
         self::assertNull(WebpXmp::write('', self::PACKET));
         self::assertNull(WebpXmp::write('RIFF', self::PACKET));
@@ -209,32 +209,32 @@ final class XmpBoundariesTest extends TestCase
 
     public function testAWebpWhoseSizeRunsPastTheFileIsRefused(): void
     {
-        $body = self::webpChunk('VP8L', "\x2F\0\0\0\0");
+        $body = $this->webpChunk('VP8L', "\x2F\0\0\0\0");
 
-        self::assertNull(WebpXmp::write(self::webp($body, 4 + \strlen($body) + 1), self::PACKET));
-        self::assertNull(WebpXmp::write(self::webp($body, 4 + \strlen($body) + 0x01000000), self::PACKET));
+        self::assertNull(WebpXmp::write($this->webp($body, 4 + \strlen($body) + 1), self::PACKET));
+        self::assertNull(WebpXmp::write($this->webp($body, 4 + \strlen($body) + 0x01000000), self::PACKET));
     }
 
     public function testTheBytesPastTheSizeOfAWebpAreNotRead(): void
     {
-        $body = self::webpChunk('VP8L', "\x2F\0\0\0\0");
+        $body = $this->webpChunk('VP8L', "\x2F\0\0\0\0");
         $overrun = 'VP8L'.pack('V', 6)."\x2F\0\0\0\0";
 
-        self::assertNull(WebpXmp::write(self::webp($overrun, 4 + \strlen($overrun)).'x', self::PACKET));
-        self::assertNull(WebpXmp::write(self::webp($overrun, 4 + \strlen($overrun)).str_repeat("\0", 8), self::PACKET));
-        self::assertNotNull(WebpXmp::write(self::webp($body).'trailing bytes', self::PACKET));
+        self::assertNull(WebpXmp::write($this->webp($overrun, 4 + \strlen($overrun)).'x', self::PACKET));
+        self::assertNull(WebpXmp::write($this->webp($overrun, 4 + \strlen($overrun)).str_repeat("\0", 8), self::PACKET));
+        self::assertNotNull(WebpXmp::write($this->webp($body).'trailing bytes', self::PACKET));
     }
 
     public function testAChunkOfWebpIsReadAtTheEndOfTheFileAndNotBeyondIt(): void
     {
-        $lossless = self::webpChunk('VP8L', "\x2F\0\0\0\0");
+        $lossless = $this->webpChunk('VP8L', "\x2F\0\0\0\0");
         $empty = 'ABCD'.pack('V', 0);
-        $written = WebpXmp::write(self::webp($lossless.$empty), self::PACKET);
+        $written = WebpXmp::write($this->webp($lossless.$empty), self::PACKET);
 
-        self::assertSame(self::webp(self::webpChunk('VP8X', self::extended(0x04, 1, 1)).$lossless.$empty.self::webpChunk('XMP ', self::PACKET)), $written);
+        self::assertSame($this->webp($this->webpChunk('VP8X', $this->extended(0x04, 1, 1)).$lossless.$empty.$this->webpChunk('XMP ', self::PACKET)), $written);
         self::assertSame(
-            self::webp(self::webpChunk('VP8X', self::extended(0x04, 1, 1)).$lossless.self::webpChunk('XMP ', self::PACKET)),
-            WebpXmp::write(self::webp($lossless.str_repeat("\0", 7)), self::PACKET),
+            $this->webp($this->webpChunk('VP8X', $this->extended(0x04, 1, 1)).$lossless.$this->webpChunk('XMP ', self::PACKET)),
+            WebpXmp::write($this->webp($lossless.str_repeat("\0", 7)), self::PACKET),
         );
     }
 
@@ -242,14 +242,14 @@ final class XmpBoundariesTest extends TestCase
     {
         $chunk = 'VP8L'.pack('V', 0x01000005)."\x2F\0\0\0\0";
 
-        self::assertNull(WebpXmp::write(self::webp($chunk), self::PACKET));
+        self::assertNull(WebpXmp::write($this->webp($chunk), self::PACKET));
     }
 
     public function testAChunkThatRunsOneByteBeyondItsFileIsRefused(): void
     {
         $chunk = 'VP8L'.pack('V', 6)."\x2F\0\0\0\0";
 
-        self::assertNull(WebpXmp::write(self::webp($chunk), self::PACKET));
+        self::assertNull(WebpXmp::write($this->webp($chunk), self::PACKET));
     }
 
     public function testBytesBeforeTheStartReadAsZeros(): void
@@ -321,7 +321,7 @@ final class XmpBoundariesTest extends TestCase
      *
      * @return Locations
      */
-    private static function locations(array $items, int $offset = 4, int $length = 4, int $base = 0, int $version = 0): array
+    private function locations(array $items, int $offset = 4, int $length = 4, int $base = 0, int $version = 0): array
     {
         return [
             'version' => $version,
@@ -336,7 +336,7 @@ final class XmpBoundariesTest extends TestCase
      *
      * @return Item
      */
-    private static function item(int $id, array $extents, int $base = 0, int $method = 0, int $reference = 0): array
+    private function item(int $id, array $extents, int $base = 0, int $method = 0, int $reference = 0): array
     {
         return ['id' => $id, 'method' => $method, 'reference' => $reference, 'base' => $base, 'extents' => $extents];
     }
@@ -346,7 +346,7 @@ final class XmpBoundariesTest extends TestCase
      *
      * @return list<Item>|null the items of the box written, `null` when nothing is written
      */
-    private static function moved(array $locations, int $metaEnd = 100, int $delta = 7): ?array
+    private function moved(array $locations, int $metaEnd = 100, int $delta = 7): ?array
     {
         $box = ItemLocations::write($locations, $metaEnd, $delta, 5000, 99, 11);
 
@@ -362,68 +362,68 @@ final class XmpBoundariesTest extends TestCase
 
     public function testAnExtentAtTheEndOfTheMetaBoxMovesAndOneBeforeItStays(): void
     {
-        $items = self::moved(self::locations([self::item(1, [[0, 99, 5], [0, 100, 5], [0, 0, 5]])]));
-        $new = self::item(99, [[0, 5000, 11]]);
+        $items = $this->moved($this->locations([$this->item(1, [[0, 99, 5], [0, 100, 5], [0, 0, 5]])]));
+        $new = $this->item(99, [[0, 5000, 11]]);
 
-        self::assertSame([self::item(1, [[0, 99, 5], [0, 107, 5], [0, 0, 5]]), $new], $items);
+        self::assertSame([$this->item(1, [[0, 99, 5], [0, 107, 5], [0, 0, 5]]), $new], $items);
     }
 
     public function testTheBaseMovesWhenEveryExtentLiesAfterTheMetaBox(): void
     {
-        $locations = self::locations([self::item(1, [[0, 10, 5], [0, 20, 5]], 95)], 4, 4, 4);
+        $locations = $this->locations([$this->item(1, [[0, 10, 5], [0, 20, 5]], 95)], 4, 4, 4);
 
-        self::assertSame([self::item(1, [[0, 10, 5], [0, 20, 5]], 102), self::item(99, [[0, 5000, 11]])], self::moved($locations));
+        self::assertSame([$this->item(1, [[0, 10, 5], [0, 20, 5]], 102), $this->item(99, [[0, 5000, 11]])], $this->moved($locations));
     }
 
     public function testTheExtentsMoveWhenTheBaseIsNotStoredOrNotEveryExtentIsAfter(): void
     {
-        $withBase = self::locations([self::item(1, [[0, 4, 5], [0, 10, 5]], 95)], 4, 4, 4);
-        $withoutBase = self::locations([self::item(1, [[0, 200, 5]])]);
+        $withBase = $this->locations([$this->item(1, [[0, 4, 5], [0, 10, 5]], 95)], 4, 4, 4);
+        $withoutBase = $this->locations([$this->item(1, [[0, 200, 5]])]);
 
-        self::assertSame([self::item(1, [[0, 4, 5], [0, 17, 5]], 95), self::item(99, [[0, 5000, 11]], 0)], self::moved($withBase));
-        self::assertSame([self::item(1, [[0, 207, 5]]), self::item(99, [[0, 5000, 11]])], self::moved($withoutBase));
+        self::assertSame([$this->item(1, [[0, 4, 5], [0, 17, 5]], 95), $this->item(99, [[0, 5000, 11]], 0)], $this->moved($withBase));
+        self::assertSame([$this->item(1, [[0, 207, 5]]), $this->item(99, [[0, 5000, 11]])], $this->moved($withoutBase));
     }
 
     public function testAnItemWithoutExtentsKeepsItsBase(): void
     {
-        $locations = self::locations([self::item(1, [], 50)], 4, 4, 4);
+        $locations = $this->locations([$this->item(1, [], 50)], 4, 4, 4);
 
-        self::assertSame([self::item(1, [], 50), self::item(99, [[0, 5000, 11]])], self::moved($locations));
+        self::assertSame([$this->item(1, [], 50), $this->item(99, [[0, 5000, 11]])], $this->moved($locations));
     }
 
     public function testAnItemOutsideTheFileIsLeftAlone(): void
     {
-        $byMethod = self::locations([self::item(1, [[0, 200, 5]], 0, 1)], 4, 4, 0, 1);
-        $byReference = self::locations([self::item(1, [[0, 200, 5]], 0, 0, 3)], 4, 4, 0, 1);
+        $byMethod = $this->locations([$this->item(1, [[0, 200, 5]], 0, 1)], 4, 4, 0, 1);
+        $byReference = $this->locations([$this->item(1, [[0, 200, 5]], 0, 0, 3)], 4, 4, 0, 1);
 
-        self::assertSame([self::item(1, [[0, 200, 5]], 0, 1), self::item(99, [[0, 5000, 11]])], self::moved($byMethod));
-        self::assertSame([self::item(1, [[0, 200, 5]], 0, 0, 3), self::item(99, [[0, 5000, 11]])], self::moved($byReference));
+        self::assertSame([$this->item(1, [[0, 200, 5]], 0, 1), $this->item(99, [[0, 5000, 11]])], $this->moved($byMethod));
+        self::assertSame([$this->item(1, [[0, 200, 5]], 0, 0, 3), $this->item(99, [[0, 5000, 11]])], $this->moved($byReference));
     }
 
     public function testAnExtentOfNoLengthCannotBeMoved(): void
     {
-        self::assertNull(self::moved(self::locations([self::item(1, [[0, 200, 0]])])));
-        self::assertNull(self::moved(self::locations([self::item(1, [[0, 0, 0]])])));
-        self::assertSame([self::item(1, [[0, 0, 5]]), self::item(99, [[0, 5000, 11]])], self::moved(self::locations([self::item(1, [[0, 0, 5]])])));
+        self::assertNull($this->moved($this->locations([$this->item(1, [[0, 200, 0]])])));
+        self::assertNull($this->moved($this->locations([$this->item(1, [[0, 0, 0]])])));
+        self::assertSame([$this->item(1, [[0, 0, 5]]), $this->item(99, [[0, 5000, 11]])], $this->moved($this->locations([$this->item(1, [[0, 0, 5]])])));
     }
 
     public function testAnOffsetThatOutgrowsItsFieldIsRefused(): void
     {
-        self::assertSame(0xFFFFFFFF, self::moved(self::locations([self::item(1, [[0, 0xFFFFFFF8, 5]])]))[0]['extents'][0][1] ?? null);
-        self::assertNull(self::moved(self::locations([self::item(1, [[0, 0xFFFFFFF9, 5]])])));
+        self::assertSame(0xFFFFFFFF, $this->moved($this->locations([$this->item(1, [[0, 0xFFFFFFF8, 5]])]))[0]['extents'][0][1] ?? null);
+        self::assertNull($this->moved($this->locations([$this->item(1, [[0, 0xFFFFFFF9, 5]])])));
     }
 
     public function testABaseThatOutgrowsItsFieldIsRefused(): void
     {
-        self::assertSame(0xFFFFFFFF, self::moved(self::locations([self::item(1, [[0, 200, 5]], 0xFFFFFFF8)], 4, 4, 4))[0]['base'] ?? null);
-        self::assertNull(self::moved(self::locations([self::item(1, [[0, 200, 5]], 0xFFFFFFF9)], 4, 4, 4)));
+        self::assertSame(0xFFFFFFFF, $this->moved($this->locations([$this->item(1, [[0, 200, 5]], 0xFFFFFFF8)], 4, 4, 4))[0]['base'] ?? null);
+        self::assertNull($this->moved($this->locations([$this->item(1, [[0, 200, 5]], 0xFFFFFFF9)], 4, 4, 4)));
     }
 
     public function testTheNewItemNeedsAnOffsetAndALength(): void
     {
-        self::assertNull(self::moved(self::locations([], 0, 4)));
-        self::assertNull(self::moved(self::locations([], 4, 0)));
-        self::assertNull(self::moved(self::locations([], 0, 0)));
-        self::assertNotNull(self::moved(self::locations([], 8, 8)));
+        self::assertNull($this->moved($this->locations([], 0, 4)));
+        self::assertNull($this->moved($this->locations([], 4, 0)));
+        self::assertNull($this->moved($this->locations([], 0, 0)));
+        self::assertNotNull($this->moved($this->locations([], 8, 8)));
     }
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "139edfd8ed9e79adaa0cb71bfb9e2af3",
+    "content-hash": "71f9f65e2ebbf0660cc3b737efa6a7b0",
     "packages": [],
     "packages-dev": [
         {
@@ -4719,7 +4719,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/ux-css",
-                "reference": "272581e23c067e0249e2c4e2e0e58706341fb3bb"
+                "reference": "e89969aa32532cf9f0662f50dfe57cc1bed03bd3"
             },
             "require": {
                 "php": ">=8.5"
@@ -4730,7 +4730,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "0.5.x-dev"
+                    "dev-main": "0.6.x-dev"
                 }
             },
             "autoload": {
@@ -4776,7 +4776,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/ux-kit",
-                "reference": "5a34f2f2bb2a0f99e10940447645c137e9b5b5b2"
+                "reference": "61b98c997345eba4a81255726b1f82376e0f422e"
             },
             "require": {
                 "ext-mbstring": "*",
@@ -4825,7 +4825,7 @@
             "type": "symfony-bundle",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "0.5.x-dev"
+                    "dev-main": "0.6.x-dev"
                 }
             },
             "autoload": {

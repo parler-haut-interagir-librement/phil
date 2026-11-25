@@ -14,6 +14,9 @@ Development only.
 
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
   2026-11-24.
+- The development requirements accept `phil/certificates-bundle` 0.3, `phil/notifications-bundle` 0.4 and `phil/ux-kit`
+  0.6, the minor versions of their main branches and no earlier one, so that the package installs on its own beside
+  those packages.
 
 ## 0.3.0-alpha - 2026-11-24
 

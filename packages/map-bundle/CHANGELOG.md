@@ -10,6 +10,8 @@ The next version is 0.1.1-alpha.
 
 ### Changed
 
+- The development requirements accept `phil/ux-kit` 0.6, the minor version of its main branch and no earlier one, so
+  that the package installs on its own beside that package.
 - Requires the latest minor of each dependency (`twig/twig` 3.31, `symfony/cache-contracts` 3.8,
   `symfony/http-client-contracts` 3.8, `symfony/translation-contracts` 3.8, …), and of each development requirement
   (`symfony/ux-twig-component` 3.8, `symfony/stimulus-bundle` 3.8).

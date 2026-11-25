@@ -12,6 +12,8 @@ The next version is 0.3.1-alpha.
 
 - The development requirements take `twig/html-extra` 3.31.1 or later, which fixes the advisories of its sandbox
   published on 2026-11-24.
+- The development requirements accept `phil/notifications-bundle` 0.4, the minor version of its main branch and no
+  earlier one, so that the package installs on its own beside that bundle.
 
 ### Security
 
