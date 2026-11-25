@@ -9,7 +9,9 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 The next version is 0.4.0-alpha: the accounts take identifiers of up to 36 characters, a canonical address, a state in
 place of `disabled_at` and a table of addresses, to migrate with two updates; a table of revoked families to migrate;
 the instants are written in UTC, a database written in another time zone to convert once; a client assertion names
-the issuer alone in its `aud`, and a client without PKCE sends a `nonce`.
+the issuer alone in its `aud`, and a client without PKCE sends a `nonce`; sessions close after two hours without a
+request and twelve hours after they opened, unless `sessions.idle_timeout` and `sessions.max_age` say otherwise; a
+sign-in link is consumed by the button of the page it opens.
 See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
 
 ### Added
@@ -111,6 +113,19 @@ See [Upgrading from 0.2](doc/installation.md#upgrading-from-02).
 - The instants were written in the time zone of the process and read in the time zone of the reader: where the web
   server and the workers or the console ran in different zones, an expiry read back was shifted, and a token past its
   expiry could be accepted. They are written and read in UTC whatever the time zone of the process.
+
+### Security
+
+- A session of the provider lived as long as PHP kept it: a stolen session cookie stayed good. A session closes after
+  `sessions.idle_timeout` seconds without a request, 7200 by default, and `sessions.max_age` seconds after it opened,
+  43200 by default; `Sessions::touch()` and `Sessions::openFor()` close it as from another device, its tokens revoked,
+  and `identity.session.closed` carries the reason. `Sessions` takes both bounds, last and optional; 0 in the
+  configuration leaves a bound out.
+- A sign-in link was consumed by the GET that followed it: a mail scanner or a link preview burned its single use and
+  received the session. The bundle sets `check_post_only` on the `login_link` authenticator of its check route
+  (`LoginLinkPostOnlyPass`), and the route shows on GET a page whose button posts the link, without script, with no
+  referrer and out of caches (`LoginLinkController::confirm()`, `login_link/confirm.html.twig`, the keys
+  `login_link.confirm` and `action.sign_in_link`, in English and in French).
 
 ## 0.3.0-alpha - 2026-11-20
 

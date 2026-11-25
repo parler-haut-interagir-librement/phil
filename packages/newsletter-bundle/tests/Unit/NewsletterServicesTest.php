@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\NewsletterBundle\Tests\Unit;
 
+use ArrayObject;
 use Phil\EmailAddress\EmailValidator;
 use Phil\Markup\Markup;
 use Phil\NewsletterBundle\Application\ApprovalPolicy;
@@ -13,9 +14,12 @@ use Phil\NewsletterBundle\Application\Contract\ConfirmationThrottle;
 use Phil\NewsletterBundle\Application\Contract\SendThrottle;
 use Phil\NewsletterBundle\Application\Handler\DeliverAudienceWebhookHandler;
 use Phil\NewsletterBundle\Application\Handler\SendCampaignHandler;
+use Phil\NewsletterBundle\Application\NewsletterKey;
+use Phil\NewsletterBundle\Application\Sending\MessageComposer;
 use Phil\NewsletterBundle\Application\SendRuns;
 use Phil\NewsletterBundle\Application\Subscriptions;
 use Phil\NewsletterBundle\Application\Tracking\ClickTracker;
+use Phil\NewsletterBundle\Domain\Contract\SuppressionRepository;
 use Phil\NewsletterBundle\Domain\ValueObject\BreakerPolicy;
 use Phil\NewsletterBundle\Infrastructure\Dbal\NewsletterSchemaListener;
 use Phil\NewsletterBundle\Infrastructure\DependencyInjection\NewsletterServices;
@@ -124,6 +128,37 @@ final class NewsletterServicesTest extends TestCase
         }
 
         self::assertTrue($this->load(['subscription' => ['rate_limit' => ['resend_delay' => '1 second']]])->hasDefinition(NewsletterServices::SUBSCRIPTION_LIMITER));
+    }
+
+    public function testTheKeysOfEachUseAreDerivedFromTheValueTheEnvironmentGivesAtRunTime(): void
+    {
+        $container = $this->load(['secret' => '%env(NEWSLETTER_TEST_SECRET)%'] + self::FULL);
+        $runtime = new ContainerBuilder();
+        $keys = [];
+
+        foreach (['suppression' => $container->getDefinition(SuppressionRepository::class)->getArgument(2), 'verp' => $container->getDefinition(MessageComposer::class)->getArgument(1), 'bounces' => $container->getDefinition(BounceHandler::class)->getArgument(8)] as $name => $key) {
+            self::assertInstanceOf(Definition::class, $key);
+            self::assertSame([NewsletterKey::class, 'derive'], $key->getFactory());
+            self::assertSame(['%env(NEWSLETTER_TEST_SECRET)%', 'bounces' === $name ? 'verp' : $name], $key->getArguments());
+            $keys[$name] = $key;
+        }
+
+        $runtime->register('keys', ArrayObject::class)->setArguments([$keys])->setPublic(true);
+        $_SERVER['NEWSLETTER_TEST_SECRET'] = str_repeat('s', 32);
+
+        try {
+            $runtime->compile(true);
+            $derived = $runtime->get('keys');
+            self::assertInstanceOf(ArrayObject::class, $derived);
+
+            self::assertSame([
+                'suppression' => hash_hmac('sha256', 'suppression', str_repeat('s', 32)),
+                'verp' => hash_hmac('sha256', 'verp', str_repeat('s', 32)),
+                'bounces' => hash_hmac('sha256', 'verp', str_repeat('s', 32)),
+            ], $derived->getArrayCopy());
+        } finally {
+            unset($_SERVER['NEWSLETTER_TEST_SECRET']);
+        }
     }
 
     public function testTheSchemaListenerNeedsTheDoctrineExtension(): void

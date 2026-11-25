@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ae495bb3689b7b230b1edb688252057d60fa15c7a70c596c25d1b71fdb655578 -->
+<!-- phil-dev source-sha256=4c59db6dd22c87ca4b656fc30645610154621c91f6513b15c427154821fddbf6 -->
 # Référence
 
 Chaque classe du bundle, avec son rôle.
@@ -46,6 +46,7 @@ Chaque classe du bundle, avec son rôle.
 | `Phil\NewsletterBundle\Application\Message\SendCampaign` | `final readonly class` | Demande à un *worker* de mettre en file les messages d'une campagne |
 | `Phil\NewsletterBundle\Application\Message\SendConfirmation` | `final readonly class` | Demande à un *worker* d'envoyer la confirmation d'une double confirmation |
 | `Phil\NewsletterBundle\Application\Message\SendDelivery` | `final readonly class` | Demande à un *worker* d'envoyer un message mis en file |
+| `Phil\NewsletterBundle\Application\NewsletterKey` | `final class` | La clé de l'infolettre, vérifiée, et les clés qui en sont dérivées à l'exécution pour les étiquettes VERP et les empreintes de suppression |
 | `Phil\NewsletterBundle\Application\NewsletterUrls` | `final readonly class` | Les adresses absolues des pages de l'infolettre, écrites dans les messages qu'un *worker* envoie sans requête |
 | `Phil\NewsletterBundle\Application\SendRuns` | `final readonly class` | Les exécutions d'envoi des campagnes : une par tentative d'envoi, ses comptes à mesure que ses messages partent, et son disjoncteur |
 | `Phil\NewsletterBundle\Application\Sending\MessageComposer` | `final readonly class` | Construit le courriel d'un envoi |

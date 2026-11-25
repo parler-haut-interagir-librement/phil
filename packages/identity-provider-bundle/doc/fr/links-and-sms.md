@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ae0810cc7da06d58f319bab1f268159c5b52bb3c6a71a7d55ae9d5908e63c133 -->
+<!-- phil-dev source-sha256=da97b63c1046c0e9b076afa774871a2aea2f2d4bd07aaf53f946dbce79dc7965 -->
 # Liens de connexion et numéros de téléphone
 
 ## Liens de connexion
@@ -15,7 +15,16 @@ login_link:
     signature_properties: [userIdentifier, passwordChangedAt]
     lifetime: 600
     max_uses: 1
+    check_post_only: true
 ```
+
+Le lien n'est consommé que par POST. Le suivre affiche une page avec un seul bouton, « Me connecter », dont le
+formulaire envoie les paramètres du lien à la même route, sans script ; l'authentificateur les vérifie là et connecte la
+personne. Un analyseur de courriel ou un aperçu de lien qui suit le lien ne fait que lire cette page, et l'usage unique
+reste à la personne. Le bundle active `check_post_only: true` sur chaque authentificateur `login_link` qui vérifie
+`phil_identity_provider_login_link_check`, quoi qu'en dise le pare-feu (`LoginLinkPostOnlyPass`). La page ne reporte que
+les paramètres du lien — des noms de lettres, de chiffres, de `_`, de `.` et de `-`, de 16 caractères au plus —, n'envoie
+aucun référent (`Referrer-Policy: no-referrer`) et reste hors des caches et des moteurs de recherche.
 
 Le lien est généré sur `public_origin`, jamais sur l'hôte que la requête a nommé : voir
 [Où mènent les liens](accounts.md#où-mènent-les-liens).

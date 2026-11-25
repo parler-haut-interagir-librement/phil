@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f1cf228f6174964b67065d32a4e49438b46d94e8e28bf6177fd019039b14e756 -->
+<!-- phil-dev source-sha256=ed92c927ad5d3066ae33086cbdaaebc7bc2f514fb334a46a676904d661c5e8a5 -->
 # Installation
 
 ```sh
@@ -6,7 +6,7 @@ composer require phil/embed-bundle
 ```
 
 Avec Symfony Flex, la recette enregistre le bundle, écrit `config/packages/phil_embed.yaml` avec une clé lue dans
-`EMBED_KEY`, ajoute cette variable à `.env` et importe la route du script sous `/_embed`. Sans elle, enregistrez le
+`EMBED_KEY`, ajoute cette variable à `.env`, vide, et importe la route du script sous `/_embed`. Sans elle, enregistrez le
 bundle dans `config/bundles.php` :
 
 ```php
@@ -24,13 +24,17 @@ phil_embed:
 
 ## La clé
 
-La valeur de `EMBED_KEY` dans la recette est un substitut. Donnez à chaque environnement son propre secret de 32 octets
-ou plus, hors du dépôt — un secret Symfony, ou l'environnement du serveur :
+La recette laisse `EMBED_KEY` vide. Donnez à chaque environnement son propre secret de 32 octets ou plus, hors du
+dépôt — un secret Symfony, `.env.local` ou l'environnement du serveur :
 
 ```sh
 php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'
 php bin/console secrets:set EMBED_KEY
 ```
+
+Le bundle refuse un secret de moins de 32 octets — un secret vide compris — et un secret qui commence par `change-me`
+ou `changeme`, les substituts qu'emploient les exemples : le premier jeton signé ou vérifié échoue avec `InvalidEmbed`,
+et un secret écrit dans la configuration elle-même est refusé à la construction du conteneur.
 
 ## Le contrôleur du cadre
 

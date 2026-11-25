@@ -1,0 +1,15 @@
+{% extends layout %}
+{% set d = 'phil_identity_provider' %}
+
+{% block title %}{{ 'title.login_link'|trans({}, d) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'title.login_link'|trans({}, d) }}</h1>
+    <p>{{ 'login_link.confirm'|trans({}, d) }}</p>
+    <form method="post" action="{{ path('phil_identity_provider_login_link_check') }}">
+        {% for name, value in link %}
+            <input type="hidden" name="{{ name }}" value="{{ value }}">
+        {% endfor %}
+        {{ include('@PhilIdentityProvider/_submit.html.twig', {label: 'action.sign_in_link'|trans({}, d)}) }}
+    </form>
+{% endblock %}

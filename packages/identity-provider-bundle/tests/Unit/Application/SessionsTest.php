@@ -6,7 +6,9 @@ namespace Phil\IdentityProviderBundle\Tests\Unit\Application;
 
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Application\Sessions;
+use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
 use Phil\IdentityProviderBundle\Domain\Model\Oidc\IssuedToken;
+use Phil\IdentityProviderBundle\Domain\Model\Session\AccountSession;
 use Phil\IdentityProviderBundle\Domain\Oidc\TokenKind;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryAccountSessionRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Memory\InMemoryGrantRepository;
@@ -15,6 +17,7 @@ use Phil\IdentityProviderBundle\Tests\Unit\Fixture\RecordingMailer;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\RecordingTransactions;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -124,5 +127,138 @@ final class SessionsTest extends TestCase
         $seen = $open->lastSeenAt();
         $sessions->touch($open->id());
         self::assertEquals($seen, $sessions->openFor($account)[0]->lastSeenAt());
+    }
+
+    public function testAnIdleSessionClosesAtItsTimeoutWithItsTokens(): void
+    {
+        $services = new Services();
+        $store = new InMemoryAccountSessionRepository();
+        $grants = new InMemoryGrantRepository();
+        $sessions = new Sessions($store, $services->journal, $services->clock, null, $grants, 60, null, null, 600, null);
+        $account = $services->account();
+        $session = $sessions->open($account, 'Firefox on Linux', ['pwd']);
+        $grants->saveToken(IssuedToken::issue('jti', TokenKind::Access, 'f', 'app', $account->id(), [], $session->id(), $services->clock->now(), [], $services->clock->now(), $services->clock->now()->modify('+1 hour')));
+
+        $services->clock->modify('+599 seconds');
+        self::assertSame($session->id(), $sessions->touch($session->id(), $account->id())?->id(), 'One second before the timeout, the session goes on.');
+        $services->clock->modify('+599 seconds');
+        self::assertSame($session->id(), $sessions->touch($session->id())?->id(), 'A request moves the timeout.');
+        self::assertFalse($grants->token('jti')?->isRevoked());
+
+        $services->clock->modify('+600 seconds');
+        self::assertNull($sessions->touch($session->id(), $account->id()));
+        self::assertTrue($store->get($session->id())?->isClosed());
+        self::assertSame($services->clock->now()->getTimestamp(), $store->get($session->id())->closedAt()?->getTimestamp());
+        self::assertTrue($grants->token('jti')->isRevoked());
+        self::assertSame([IdentityEventType::SessionClosed->value, $account->id(), ['session' => $session->id(), 'reason' => 'idle_timeout']], array_last($services->audit->records));
+        self::assertNull($sessions->touch($session->id()));
+    }
+
+    public function testASessionClosesAtItsMaximumAgeHoweverActive(): void
+    {
+        $services = new Services();
+        $store = new InMemoryAccountSessionRepository();
+        $sessions = new Sessions($store, $services->journal, $services->clock, null, null, 0, null, null, 7200, 3600);
+        $account = $services->account();
+        $session = $sessions->open($account, 'Firefox on Linux', ['pwd']);
+
+        for ($minute = 1; $minute < 60; ++$minute) {
+            $services->clock->modify('+60 seconds');
+            self::assertNotNull($sessions->touch($session->id()));
+        }
+
+        $services->clock->modify('+59 seconds');
+        self::assertNotNull($sessions->touch($session->id()), 'One second before its maximum age, the session goes on.');
+        $services->clock->modify('+1 second');
+        self::assertNull($sessions->touch($session->id()));
+        self::assertTrue($store->get($session->id())?->isClosed());
+        self::assertSame([IdentityEventType::SessionClosed->value, $account->id(), ['session' => $session->id(), 'reason' => 'max_age']], array_last($services->audit->records));
+    }
+
+    public function testTheMaximumAgeIsToldBeforeTheIdleTimeout(): void
+    {
+        $services = new Services();
+        $sessions = new Sessions(new InMemoryAccountSessionRepository(), $services->journal, $services->clock, null, null, 300, null, null, 600, 600);
+        $session = $sessions->open($services->account(), 'A', []);
+        $services->clock->modify('+600 seconds');
+
+        self::assertNull($sessions->touch($session->id()));
+        self::assertSame(['session' => $session->id(), 'reason' => 'max_age'], array_last($services->audit->records)[2] ?? null);
+    }
+
+    public function testTheBoundsAreSecureByDefaultAndMayBeLeftOut(): void
+    {
+        $services = new Services();
+        $store = new InMemoryAccountSessionRepository();
+        $sessions = new Sessions($store, $services->journal, $services->clock, null, null, 0);
+        $account = $services->account();
+        $idle = $sessions->open($account, 'A', []);
+        $services->clock->modify('+7199 seconds');
+        self::assertNotNull($sessions->touch($idle->id()));
+        $services->clock->modify('+7200 seconds');
+        self::assertNull($sessions->touch($idle->id()), 'Idle two hours, the session ends.');
+
+        $active = $sessions->open($account, 'A', []);
+
+        for ($hour = 1; $hour < 12; ++$hour) {
+            $services->clock->modify('+3600 seconds');
+            self::assertNotNull($sessions->touch($active->id()));
+        }
+
+        $services->clock->modify('+3599 seconds');
+        self::assertNotNull($sessions->touch($active->id()));
+        $services->clock->modify('+1 second');
+        self::assertNull($sessions->touch($active->id()), 'Twelve hours after it opened, the session ends.');
+
+        $unbound = new Sessions($store, $services->journal, $services->clock, null, null, 0, null, null, null, null);
+        $kept = $unbound->open($account, 'A', []);
+        $services->clock->modify('+400 days');
+        self::assertSame($kept->id(), $unbound->touch($kept->id())?->id());
+    }
+
+    public function testTheListLeavesOutAndClosesTheExpiredSessions(): void
+    {
+        $services = new Services();
+        $store = new InMemoryAccountSessionRepository();
+        $sessions = new Sessions($store, $services->journal, $services->clock, null, null, 0, null, null, 600, null);
+        $account = $services->account();
+        $old = $sessions->open($account, 'A', []);
+        $services->clock->modify('+300 seconds');
+        $fresh = $sessions->open($account, 'A', []);
+        $services->clock->modify('+300 seconds');
+
+        self::assertSame([$fresh->id()], array_map(static fn (AccountSession $session): string => $session->id(), $sessions->openFor($account)));
+        self::assertTrue($store->get($old->id())?->isClosed());
+        self::assertFalse($store->get($fresh->id())?->isClosed());
+    }
+
+    /**
+     * @return iterable<string, array{?int, ?int}>
+     */
+    public static function invalidBounds(): iterable
+    {
+        yield 'idle zero' => [0, null];
+        yield 'idle negative' => [-1, 3600];
+        yield 'age zero' => [null, 0];
+        yield 'age negative' => [600, -1];
+    }
+
+    #[DataProvider('invalidBounds')]
+    public function testABoundIsAtLeastOneSecond(?int $idle, ?int $age): void
+    {
+        $services = new Services();
+
+        $this->expectException(InvalidValue::class);
+
+        new Sessions(new InMemoryAccountSessionRepository(), $services->journal, $services->clock, null, null, 300, null, null, $idle, $age);
+    }
+
+    public function testABoundOfOneSecondIsAccepted(): void
+    {
+        $services = new Services();
+        $sessions = new Sessions(new InMemoryAccountSessionRepository(), $services->journal, $services->clock, null, null, 0, null, null, 1, 1);
+        $session = $sessions->open($services->account(), 'A', []);
+
+        self::assertNotNull($sessions->touch($session->id()));
     }
 }

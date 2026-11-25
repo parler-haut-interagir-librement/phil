@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c64453466b5f65cfcd6c19c612dccc01dc7093944da8cd5beb961132bb249373 -->
+<!-- phil-dev source-sha256=86387dde841696cc50ee1717a7d2c529852d8f31586195e66a3b5c7018e137f3 -->
 # Installation
 
 ```sh
@@ -9,6 +9,11 @@ Avec Symfony Flex, la recette active le bundle, écrit `config/packages/phil_vir
 BigBlueButton lu dans `BBB_URL` et `BBB_SECRET`, et `config/routes/phil_virtual_classroom.yaml`, qui importe les routes
 sous `/virtual-classroom`. En développement, `allow_localhost` est activé ; dans les tests, les salles sont gardées en
 mémoire.
+
+`BBB_SECRET` est écrit vide : donnez-lui le secret que partage le serveur — `bbb-conf --secret` l'affiche —, hors du
+dépôt, dans `.env.local`, un secret Symfony ou l'environnement du serveur. Le service d'un serveur refuse un secret de
+moins de 16 octets — un secret vide compris — et un secret qui commence par `change-me` ou `changeme`, les substituts
+qu'emploient les exemples (`ServerSecret`), à sa première construction.
 
 Sans Flex, activez le bundle et importez ses routes :
 

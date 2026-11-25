@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8d8a4c6aac2d24d4afa9b5ca80929fb9ab50755d206e6cf47c3a7de5f52745c7 -->
+<!-- phil-dev source-sha256=6d8dd9f1492d400f40fec1254e49f82afb7400ddc9d15995b0c1e0d0fd8ee0a0 -->
 # Référence
 
 ## Domaine
@@ -35,6 +35,7 @@
 | `Infrastructure\Console\SyncCommand`, `WebhookUrlCommand` | Les commandes. |
 | `Infrastructure\Messenger\SyncRoom`, `SyncRoomHandler` | Le message d'une salle à synchroniser. |
 | `Infrastructure\DependencyInjection\VirtualClassroomServices` | Les services, à partir de la configuration. |
+| `Infrastructure\DependencyInjection\ServerSecret` | Le secret partagé avec un serveur, refusé quand c'est un substitut. |
 | `PhilVirtualClassroomBundle` | Le bundle et son arbre de configuration. |
 
 ## Routes

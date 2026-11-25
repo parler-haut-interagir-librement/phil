@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=36f04ddc1ab92f29d0485ea07fe9806da551ee5ea748d7b6a749ef086be66a8e -->
+<!-- phil-dev source-sha256=da385de03a97fc3e3780dbc5d331413fc8d268ce0147edf2bb0da79343155308 -->
 # Référence
 
 ## Types publics
@@ -25,6 +25,7 @@
 | `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions`, `LinkOrigin`, `ClaimsProvider`, `LogoutNotifier`, `AccountIdGenerator`, `AddressCanonicalizer`, `SigningKeySource`, `Signer` | Les ports. |
 | `Infrastructure\Routing\RouterLinkOrigin` | Les liens des courriels générés sur `public_origin`, et le démarrage refusé en `prod` sans lui ni `framework.trusted_hosts`. |
 | `Infrastructure\Security\RegistrationRateLimiter` | Les limites de l'inscription et le délai entre deux courriels de vérification. |
+| `Infrastructure\DependencyInjection\LoginLinkPostOnlyPass` | `check_post_only` activé sur l'authentificateur `login_link` de la route de vérification du bundle. |
 | `Infrastructure\Doctrine\BinaryKeysListener` | La collation binaire des clés sur MySQL et MariaDB. |
 | `Infrastructure\Messenger\SendLogoutToken`, `SendLogoutTokenHandler`, `MessengerLogoutNotifier` | La déconnexion par canal arrière, par Messenger. |
 | `Application\Exception\Refused`, `OAuthError`, `DeliveryFailed` | Ce que les services refusent, avec des clés de traduction ou des erreurs OAuth. |

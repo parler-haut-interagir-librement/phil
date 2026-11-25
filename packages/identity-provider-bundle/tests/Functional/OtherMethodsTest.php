@@ -26,6 +26,7 @@ use Phil\IdentityProviderBundle\Tests\Unit\Fixture\RecordingSms;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mime\Email;
 
 /**
@@ -65,9 +66,31 @@ final class OtherMethodsTest extends FunctionalTestCase
         self::assertStringStartsWith('http://localhost/login/link/check?user=', $url);
 
         $this->client->request('GET', $url);
-        self::assertResponseRedirects('/');
+        self::assertResponseIsSuccessful();
+        self::assertResponseHeaderSame('Referrer-Policy', 'no-referrer');
+        self::assertResponseHeaderSame('X-Robots-Tag', 'noindex, nofollow');
+        self::assertStringContainsString('no-store', (string) $this->client->getResponse()->headers->get('Cache-Control'));
+        $this->client->request('GET', '/account');
+        self::assertResponseRedirects(message: 'Following the link signs no one in.');
+
+        $crawler = $this->client->request('GET', $url.'&'.http_build_query(['x[]' => 'array', 'bad!name' => 'v', 'long' => str_repeat('a', 1025)]));
+        self::assertResponseIsSuccessful('A scanner that followed the link first used none of it.');
+        $form = $crawler->selectButton('Sign in')->form();
+        self::assertSame('POST', $form->getMethod());
+        self::assertSame('http://localhost/login/link/check', $form->getUri());
+        $keys = array_keys($form->getValues());
+        sort($keys);
+        self::assertSame(['expires', 'hash', 'user'], $keys, 'The parameters of the link only, and nothing malformed.');
+        $this->client->submit($form);
+        self::assertResponseRedirects('/account', message: 'The POST signs in, back to the page asked before.');
         $this->client->request('GET', '/account');
         self::assertResponseIsSuccessful();
+
+        $this->client->getCookieJar()->clear();
+        $this->client->submit($form);
+        self::assertResponseRedirects('/login', message: 'The link works once.');
+        $this->client->request('GET', '/account');
+        self::assertResponseRedirects();
     }
 
     public function testThePhoneNumber(): void
@@ -217,5 +240,15 @@ final class OtherMethodsTest extends FunctionalTestCase
         $this->expectException(LogicException::class);
 
         new AuthenticatorRouteController()();
+    }
+
+    public function testAPostToTheLinkCheckWithoutItsAuthenticatorSaysSo(): void
+    {
+        $controller = $this->service(LoginLinkController::class);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIsOrContains('login_link authenticator');
+
+        $controller->confirm(Request::create('/login/link/check?user=a&expires=1&hash=h', 'POST'));
     }
 }

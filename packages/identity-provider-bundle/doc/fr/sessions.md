@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6173c083ae4e850ba0c5c09625c309a1514fee0dda834508217d1a24dd8d8a63 -->
+<!-- phil-dev source-sha256=5d764e518fc6dcfd01ea63eed690c462b8a486ab1bb0dcacf140df48d395fa76 -->
 # Appareils et sessions
 
 Le module `sessions` lie chaque session PHP à une ligne de `phil_identity_session` : un identifiant opaque de 256 bits
@@ -13,6 +13,34 @@ le moment où elle a été ouverte, vue pour la dernière fois et fermée.
 - Chaque requête après le pare-feu voit la ligne, au plus une fois toutes les `sessions.touch_interval` secondes. Une
   ligne fermée depuis un autre appareil met fin à la session PHP sur-le-champ, et la requête se poursuit déconnectée.
 - Se déconnecter ferme la ligne.
+
+## Quand une session se termine d'elle-même
+
+Une session se ferme après `sessions.idle_timeout` secondes sans requête — 7200, deux heures, par défaut — et
+`sessions.max_age` secondes après son ouverture, quelle que soit son activité — 43200, douze heures, par défaut :
+
+```yaml
+phil_identity_provider:
+    sessions:
+        idle_timeout: 7200   # 0 for no bound
+        max_age: 43200       # 0 for no bound
+```
+
+`Sessions::touch()` vérifie les deux bornes avant d'enregistrer la requête, et `Sessions::openFor()` avant de lister les
+sessions d'un compte. Une session au-delà de l'une ou l'autre borne est fermée comme depuis un autre appareil : ses
+jetons sont révoqués, la ligne fermée, l'événement `identity.session.closed` écrit avec la raison, `idle_timeout` ou
+`max_age`, et la session PHP qui la détient prend fin à sa requête, qui se poursuit déconnectée. Se reconnecter ouvre
+une nouvelle session.
+
+La dernière requête n'est écrite qu'une fois toutes les `sessions.touch_interval` secondes au plus, de sorte qu'une
+session inactive peut se fermer jusqu'à ce nombre de secondes avant `sessions.idle_timeout` ; le délai d'inactivité est
+plus long que l'intervalle, et le bundle refuse une configuration où il ne l'est pas. La session PHP elle-même vit selon
+les réglages du framework (`framework.session.gc_maxlifetime`, `cookie_lifetime`) ; les bornes du bundle tiennent quels
+que soient ces réglages.
+
+Un jeton de rafraîchissement du fournisseur OpenID Connect émis dans une session est refusé une fois cette session
+fermée ; une session au-delà d'une borne et jamais touchée de nouveau est fermée quand le compte liste ses sessions, et
+`oidc.session_max_age` borne ces jetons à lui seul (voir [Fournisseur OpenID Connect](oidc-provider.md)).
 
 Une requête sans session préalable ne lit aucun jeton : le pare-feu paresseux reste paresseux, et le cache d'une page
 publique reste public.

@@ -5,7 +5,7 @@ composer require phil/embed-bundle
 ```
 
 With Symfony Flex, the recipe registers the bundle, writes `config/packages/phil_embed.yaml` with one key read from
-`EMBED_KEY`, adds that variable to `.env`, and imports the script's route under `/_embed`. Without it, register the
+`EMBED_KEY`, adds that variable to `.env`, empty, and imports the script's route under `/_embed`. Without it, register the
 bundle in `config/bundles.php`:
 
 ```php
@@ -23,13 +23,17 @@ phil_embed:
 
 ## The key
 
-The recipe's value of `EMBED_KEY` is a placeholder. Give each environment its own secret of 32 bytes or more, out of
-the repository — a Symfony secret, or the environment of the server:
+The recipe leaves `EMBED_KEY` empty. Give each environment its own secret of 32 bytes or more, out of the
+repository — a Symfony secret, `.env.local`, or the environment of the server:
 
 ```sh
 php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'
 php bin/console secrets:set EMBED_KEY
 ```
+
+The bundle refuses a secret shorter than 32 bytes — an empty one among them — and one that begins with `change-me` or
+`changeme`, the placeholders examples use: the first token signed or verified fails with `InvalidEmbed`, and a secret
+written in the configuration itself is refused when the container is built.
 
 ## The frame controller
 

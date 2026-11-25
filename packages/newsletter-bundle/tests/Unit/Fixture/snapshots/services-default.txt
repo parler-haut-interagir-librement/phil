@@ -56,7 +56,15 @@ Phil\NewsletterBundle\Application\Bounces\BounceHandler
   argument 5: @Phil\NewsletterBundle\Application\Contract\CurrentSite
   argument 6: @clock
   argument 7: NULL
-  argument 8: 'ec447a12f47823921d0c5f96167726d703a9e307da4a34370d1d6639c25a66ce'
+  argument 8: inline
+      class: string
+      public: no
+      factory: [
+          0 => 'Phil\\NewsletterBundle\\Application\\NewsletterKey'
+          1 => 'derive'
+        ]
+      argument 0: '%kernel.secret%'
+      argument 1: 'verp'
   argument 9: 3
   argument 10: @Phil\NewsletterBundle\Application\SendRuns
 Phil\NewsletterBundle\Application\Campaigns
@@ -197,7 +205,15 @@ Phil\NewsletterBundle\Application\Sending\MessageComposer
   class: (none)
   public: no
   argument 0: NULL
-  argument 1: 'ec447a12f47823921d0c5f96167726d703a9e307da4a34370d1d6639c25a66ce'
+  argument 1: inline
+      class: string
+      public: no
+      factory: [
+          0 => 'Phil\\NewsletterBundle\\Application\\NewsletterKey'
+          1 => 'derive'
+        ]
+      argument 0: '%kernel.secret%'
+      argument 1: 'verp'
 Phil\NewsletterBundle\Application\Sending\SenderProfiles
   class: (none)
   public: no
@@ -260,7 +276,15 @@ Phil\NewsletterBundle\Domain\Contract\SuppressionRepository
   public: no
   argument 0: @doctrine.dbal.default_connection
   argument 1: @clock
-  argument 2: '22f973f73d5a9f2b8aad00ea43e8e0c1f9afc525c1a91a339ffe81ee5a542af9'
+  argument 2: inline
+      class: string
+      public: no
+      factory: [
+          0 => 'Phil\\NewsletterBundle\\Application\\NewsletterKey'
+          1 => 'derive'
+        ]
+      argument 0: '%kernel.secret%'
+      argument 1: 'suppression'
 Phil\NewsletterBundle\Domain\Contract\TemplateRepository
   class: Phil\NewsletterBundle\Infrastructure\Dbal\DbalTemplateRepository
   public: no

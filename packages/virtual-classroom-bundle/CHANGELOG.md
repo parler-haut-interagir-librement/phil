@@ -8,12 +8,17 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.1-alpha.
 
-Development only.
-
 ### Changed
 
 - The development requirements accept `phil/courses-bundle` 0.3 and `phil/privacy-bundle` 0.3, the minor versions of
   their main branches and no earlier one, so that the package installs on its own beside those bundles.
+
+### Security
+
+- The Flex recipe wrote into `.env` an example value of `BBB_SECRET`. The recipe writes the variable empty, with a
+  comment on where to find the secret of the server, and the service of a BigBlueButton or self-hosted Jitsi server
+  refuses a secret that begins with `change-me` or `changeme` when it is built
+  (`Infrastructure\DependencyInjection\ServerSecret`).
 
 ## 0.1.0-alpha - 2026-11-20
 

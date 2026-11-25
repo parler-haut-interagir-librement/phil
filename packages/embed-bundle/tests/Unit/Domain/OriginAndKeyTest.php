@@ -80,6 +80,7 @@ final class OriginAndKeyTest extends TestCase
 
         self::assertSame(['2026-11_a', str_repeat('s', 32)], [$key->id, $key->secret]);
         self::assertSame(32, \strlen(SigningKey::of(str_repeat('k', 32), str_repeat('s', 64))->id));
+        self::assertSame('x-change-me-'.str_repeat('s', 32), SigningKey::of('k', 'x-change-me-'.str_repeat('s', 32))->secret, 'Only a secret that begins as a placeholder is one.');
     }
 
     /**
@@ -92,6 +93,9 @@ final class OriginAndKeyTest extends TestCase
         yield 'a dot' => ['a.b', str_repeat('s', 32), 'The identifier of a key, "a.b", is 1 to 32 letters, digits, "_" or "-".'];
         yield 'a new line' => ["a\n", str_repeat('s', 32), "The identifier of a key, \"a\n\", is 1 to 32 letters, digits, \"_\" or \"-\"."];
         yield 'short secret' => ['k', str_repeat('s', 31), 'The secret of the key "k" holds 32 bytes at least.'];
+        yield 'empty secret' => ['k', '', 'The secret of the key "k" holds 32 bytes at least.'];
+        yield 'the example of the recipe' => ['k', 'change-me-to-a-random-secret-of-32-bytes-or-more', 'The secret of the key "k" is a placeholder: give it random bytes of its own.'];
+        yield 'a placeholder in capitals' => ['k', 'CHANGEME'.str_repeat('s', 32), 'The secret of the key "k" is a placeholder: give it random bytes of its own.'];
     }
 
     #[DataProvider('refusedKeys')]

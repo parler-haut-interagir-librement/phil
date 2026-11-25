@@ -120,6 +120,8 @@ final class ConfigurationTest extends TestCase
         ],
         'sessions' => [
             'touch_interval' => 300,
+            'idle_timeout' => 7200,
+            'max_age' => 43200,
         ],
         'external' => [
             'link_verified_email' => false,
@@ -241,6 +243,32 @@ final class ConfigurationTest extends TestCase
         $this->assertRefused(['oidc' => ['extra_scopes' => [1]]]);
     }
 
+    public function testASessionIdlesLongerThanItIsSeenAndBothBoundsMayBeTurnedOff(): void
+    {
+        $sessions = $this->process(['sessions' => ['touch_interval' => 0, 'idle_timeout' => 60]])['sessions'];
+        self::assertIsArray($sessions);
+        self::assertSame(60, $sessions['idle_timeout']);
+        $this->assertRefused(['sessions' => ['touch_interval' => 0, 'idle_timeout' => 59]]);
+
+        $sessions = $this->process(['sessions' => ['touch_interval' => 300, 'idle_timeout' => 301]])['sessions'];
+        self::assertIsArray($sessions);
+        self::assertSame(301, $sessions['idle_timeout']);
+        $this->assertRefused(['sessions' => ['touch_interval' => 300, 'idle_timeout' => 300]]);
+
+        $sessions = $this->process(['sessions' => ['touch_interval' => 9000, 'idle_timeout' => 0, 'max_age' => 0]])['sessions'];
+        self::assertIsArray($sessions);
+        self::assertSame(0, $sessions['idle_timeout']);
+        self::assertSame(0, $sessions['max_age']);
+        $this->assertRefused(['sessions' => ['idle_timeout' => -1]], 'greater than or equal to 0');
+
+        $sessions = $this->process(['sessions' => ['max_age' => 60]])['sessions'];
+        self::assertIsArray($sessions);
+        self::assertSame(60, $sessions['max_age']);
+        $this->assertRefused(['sessions' => ['max_age' => 59]]);
+        $this->assertRefused(['sessions' => ['max_age' => 1]]);
+        $this->assertRefused(['sessions' => ['max_age' => -1]], 'greater than or equal to 0');
+    }
+
     public function testARegistrationCountMayBeOne(): void
     {
         $registration = $this->process(['registration' => ['rate_limit' => ['per_ip' => ['limit' => 1], 'per_address' => ['limit' => 1]]]])['registration'];
@@ -303,13 +331,14 @@ final class ConfigurationTest extends TestCase
     /**
      * @param array<string, mixed> $config
      */
-    private function assertRefused(array $config): void
+    private function assertRefused(array $config, string $reason = ''): void
     {
         try {
             $this->process($config);
             self::fail('The configuration is accepted.');
         } catch (InvalidConfigurationException $invalidConfigurationException) {
             self::assertStringContainsString('phil_identity_provider', $invalidConfigurationException->getMessage());
+            self::assertStringContainsString($reason, $invalidConfigurationException->getMessage());
         }
     }
 

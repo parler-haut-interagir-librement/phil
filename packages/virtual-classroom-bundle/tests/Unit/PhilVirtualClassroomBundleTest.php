@@ -22,6 +22,7 @@ use Phil\VirtualClassroomBundle\Infrastructure\Console\WebhookUrlCommand;
 use Phil\VirtualClassroomBundle\Infrastructure\Courses\CoursesCompletion;
 use Phil\VirtualClassroomBundle\Infrastructure\Courses\VirtualClassroomActivity;
 use Phil\VirtualClassroomBundle\Infrastructure\Dbal\DbalClassroomStore;
+use Phil\VirtualClassroomBundle\Infrastructure\DependencyInjection\ServerSecret;
 use Phil\VirtualClassroomBundle\Infrastructure\DependencyInjection\VirtualClassroomServices;
 use Phil\VirtualClassroomBundle\Infrastructure\Doctrine\ClassroomSchemaListener;
 use Phil\VirtualClassroomBundle\Infrastructure\Http\JoinController;
@@ -74,7 +75,7 @@ final class PhilVirtualClassroomBundleTest extends TestCase
         $bbb = $container->getDefinition('phil_virtual_classroom.provider.main');
         self::assertSame(BigBlueButton::class, $bbb->getClass());
         self::assertSame('http_client', $this->text($bbb->getArgument(0)));
-        self::assertSame('shared-secret-of-the-server-0123', $bbb->getArgument(2));
+        self::assertSame('shared-secret-of-the-server-0123', $this->secret($bbb->getArgument(2)));
         self::assertTrue($bbb->getArgument(6));
         self::assertTrue($bbb->getArgument(7));
         $budget = $bbb->getArgument(5);
@@ -126,7 +127,7 @@ final class PhilVirtualClassroomBundleTest extends TestCase
 
         $jitsi = $container->getDefinition('phil_virtual_classroom.provider.jitsi');
         self::assertSame([Jitsi::class, 'selfHosted'], $jitsi->getFactory());
-        self::assertSame(['app1', 'application-secret-0123'], [$jitsi->getArgument(1), $jitsi->getArgument(2)]);
+        self::assertSame(['app1', 'application-secret-0123'], [$jitsi->getArgument(1), $this->secret($jitsi->getArgument(2))]);
         self::assertSame([600, 'hooks-secret-0123456', 'meet', '*'], [$jitsi->getArgument(4), $jitsi->getArgument(5), $jitsi->getArgument(6), $jitsi->getArgument(7)]);
         $jaas = $container->getDefinition('phil_virtual_classroom.provider.jaas');
         self::assertSame([Jitsi::class, 'jaas'], $jaas->getFactory());
@@ -349,5 +350,19 @@ final class PhilVirtualClassroomBundleTest extends TestCase
         $container->compile(true);
 
         return $container;
+    }
+
+    /**
+     * The secret a server is given, checked by `ServerSecret` when its service is built.
+     */
+    private function secret(mixed $argument): string
+    {
+        self::assertInstanceOf(Definition::class, $argument);
+        self::assertSame('string', $argument->getClass());
+        self::assertSame([ServerSecret::class, 'check'], $argument->getFactory());
+        $secret = $argument->getArgument(0);
+        self::assertIsString($secret);
+
+        return $secret;
     }
 }

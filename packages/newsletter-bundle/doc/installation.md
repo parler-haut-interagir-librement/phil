@@ -9,8 +9,17 @@ scheduler, the rate limiter, CSRF protection and SecurityBundle, Twig 3.30 or la
 
 With Symfony Flex, the recipe registers the bundle, writes `config/packages/phil_newsletter.yaml` with the site's base
 address and one sender profile, imports the routes under `/newsletter` in `config/routes/phil_newsletter.yaml`, and
-adds `NEWSLETTER_SECRET` to `.env`: give it a random value of 32 bytes or more in production. Without Flex, register
-the bundle:
+adds `NEWSLETTER_SECRET` to `.env`, empty: give it a random value of 32 bytes or more, out of the repository — a
+Symfony secret, `.env.local`, or the environment of the server:
+
+```sh
+php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'
+php bin/console secrets:set NEWSLETTER_SECRET
+```
+
+The bundle refuses a key shorter than 16 bytes — an empty one among them — and one that begins with `change-me` or
+`changeme`, the placeholders examples use: the first service that signs a link, tags a VERP address or hashes a
+suppressed address fails with `LinkRefused`. Without Flex, register the bundle:
 
 ```php
 // config/bundles.php

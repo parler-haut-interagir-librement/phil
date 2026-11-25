@@ -30,9 +30,10 @@ final class RecipeTest extends TestCase
             'copy-from-recipe' => ['config/' => '%CONFIG_DIR%/'],
             'env' => [
                 'BBB_URL' => 'https://bbb.example.com/bigbluebutton/api/',
-                'BBB_SECRET' => 'change-me-to-the-shared-secret-of-the-server',
+                '#1' => 'The shared secret of the BigBlueButton server (bbb-conf --secret), in .env.local or the secrets vault',
+                'BBB_SECRET' => '',
             ],
-        ], $manifest);
+        ], $manifest, 'The recipe writes no secret anyone could read in it.');
     }
 
     public function testTheConfigurationPassesTheTreeOfTheBundleInEachEnvironment(): void

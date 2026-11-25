@@ -154,7 +154,7 @@ final class TestKernel extends Kernel
                 'provider' => 'accounts',
                 'user_checker' => IdentityProviderServices::USER_CHECKER,
                 'form_login' => ['login_path' => 'app_login', 'check_path' => 'app_login', 'enable_csrf' => false, 'default_target_path' => '/home'],
-                'login_link' => ['check_route' => 'phil_identity_provider_login_link_check', 'signature_properties' => ['userIdentifier', 'passwordChangedAt'], 'lifetime' => 600],
+                'login_link' => ['check_route' => 'phil_identity_provider_login_link_check', 'signature_properties' => ['userIdentifier', 'passwordChangedAt'], 'lifetime' => 600, 'max_uses' => 1],
                 'custom_authenticators' => [PasskeyAuthenticator::class, OneTimeCodeAuthenticator::class, ExternalAuthenticator::class],
                 'entry_point' => 'form_login',
                 're_authentication_entry_point' => IdentityProviderServices::RE_AUTHENTICATION_ENTRY_POINT,

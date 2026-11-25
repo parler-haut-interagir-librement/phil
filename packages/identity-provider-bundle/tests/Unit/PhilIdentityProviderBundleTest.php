@@ -25,6 +25,7 @@ use Phil\IdentityProviderBundle\Application\Oidc\SigningKeys;
 use Phil\IdentityProviderBundle\Application\Oidc\Tokens;
 use Phil\IdentityProviderBundle\Application\Passkeys;
 use Phil\IdentityProviderBundle\Application\SecondFactors;
+use Phil\IdentityProviderBundle\Application\Sessions;
 use Phil\IdentityProviderBundle\Application\SignedLinks;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Contract\GrantRepository;
@@ -41,6 +42,7 @@ use Phil\IdentityProviderBundle\Infrastructure\Console\SealKeyCommand;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\IdentityProviderServices;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KeyAndAttestationServices;
 use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
+use Phil\IdentityProviderBundle\Infrastructure\DependencyInjection\LoginLinkPostOnlyPass;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineAccountRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Doctrine\DoctrineLinkTokenRepository;
 use Phil\IdentityProviderBundle\Infrastructure\Http\AccountController;
@@ -310,6 +312,18 @@ final class PhilIdentityProviderBundleTest extends TestCase
 
         self::assertContains(KitSubdirectoryPass::class, $passes);
         self::assertContains(RateLimitGuard::class, $passes);
+        self::assertContains(LoginLinkPostOnlyPass::class, $passes);
+    }
+
+    public function testTheSessionBoundsOfZeroAreNoBoundAndOthersAreKept(): void
+    {
+        $unbound = $this->load([['sessions' => ['touch_interval' => 0, 'idle_timeout' => 0, 'max_age' => 0]]])->getDefinition(Sessions::class)->getArguments();
+        self::assertNull($unbound[8]);
+        self::assertNull($unbound[9]);
+
+        $bound = $this->load([['sessions' => ['touch_interval' => 0, 'idle_timeout' => 600, 'max_age' => 900]]])->getDefinition(Sessions::class)->getArguments();
+        self::assertSame(600, $bound[8]);
+        self::assertSame(900, $bound[9]);
     }
 
     public function testTheLimitsOfTheSignInLimiterAreOneOrMore(): void

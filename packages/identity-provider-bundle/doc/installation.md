@@ -129,6 +129,7 @@ security:
                 signature_properties: [userIdentifier, passwordChangedAt]
                 lifetime: 600
                 max_uses: 1
+                check_post_only: true         # set by the bundle whatever is written here
             custom_authenticators:
                 - Phil\IdentityProviderBundle\Infrastructure\Security\PasskeyAuthenticator     # passkeys
                 - Phil\IdentityProviderBundle\Infrastructure\Security\OneTimeCodeAuthenticator # totp

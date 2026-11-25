@@ -24,6 +24,7 @@
 | `Application\Contract\SecretCipher`, `ChallengeStore`, `SmsSender`, `AccountMailer`, `AuditRecorder`, `Transactions`, `LinkOrigin`, `ClaimsProvider`, `LogoutNotifier`, `AccountIdGenerator`, `AddressCanonicalizer`, `SigningKeySource`, `Signer` | The ports. |
 | `Infrastructure\Routing\RouterLinkOrigin` | The links of the emails generated on `public_origin`, and the boot refused in `prod` without it or `framework.trusted_hosts`. |
 | `Infrastructure\Security\RegistrationRateLimiter` | The limits of registration and the delay between two verification emails. |
+| `Infrastructure\DependencyInjection\LoginLinkPostOnlyPass` | `check_post_only` set on the `login_link` authenticator of the bundle's check route. |
 | `Infrastructure\Doctrine\BinaryKeysListener` | The binary collation of the keys on MySQL and MariaDB. |
 | `Infrastructure\Messenger\SendLogoutToken`, `SendLogoutTokenHandler`, `MessengerLogoutNotifier` | The back-channel logout, through Messenger. |
 | `Application\Exception\Refused`, `OAuthError`, `DeliveryFailed` | What the services refuse, with translation keys or OAuth errors. |

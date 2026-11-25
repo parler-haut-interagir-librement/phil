@@ -123,6 +123,8 @@ phil_identity_provider:
 | `step_up.attribute` | `PHIL_STEP_UP` | The attribute the bundle's sensitive actions need: `PHIL_STEP_UP`, or `IS_AUTHENTICATED_RECENTLY` of Symfony Security. |
 | `step_up.lifetime` | `300` | Seconds a proof grants `PHIL_STEP_UP`. |
 | `sessions.touch_interval` | `300` | The fewest seconds between two writes of when a session was last seen. |
+| `sessions.idle_timeout` | `7200` | Seconds without a request after which a session is closed: 0 for no bound, else at least 60 and longer than `sessions.touch_interval`. |
+| `sessions.max_age` | `43200` | Seconds after it opened past which a session is closed, however active: 0 for no bound, else at least 60. |
 | `external.link_verified_email` | `false` | Whether an identity whose provider verified an address links to the account that verified the same address, instead of asking the person to sign in first. |
 | `external.register` | `true` | Whether an unknown external identity creates an account. |
 | `oidc.issuer` | `null` | The https address clients know the provider by, without a trailing slash. |

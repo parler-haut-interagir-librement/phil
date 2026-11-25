@@ -16,7 +16,8 @@ use SodiumException;
  * application's key, cut to 128 bits, both in URL-safe base64.
  *
  * A link holds identifiers only: a subscriber's id, a list's or a campaign's, a link index. It is checked in constant
- * time, refused when it is longer than 512 characters, malformed, for another purpose, or expired.
+ * time, refused when it is longer than 512 characters, malformed, for another purpose, or expired. The key is checked by
+ * `NewsletterKey`.
  */
 final readonly class SignedLinks
 {
@@ -27,9 +28,7 @@ final readonly class SignedLinks
         private string $key,
         private ClockInterface $clock,
     ) {
-        if (\strlen($key) < 16) {
-            throw LinkRefused::because('The key of the newsletter links holds at least 16 bytes.');
-        }
+        NewsletterKey::check($key);
     }
 
     /**

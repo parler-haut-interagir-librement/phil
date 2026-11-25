@@ -60,6 +60,17 @@ an index. See [Upgrading to 0.3](doc/campaigns.md#upgrading-to-03).
 - Every message carries a `TrackingHeader` that turns off the mail provider's open and click tracking: a provider that
   tracks by default no longer adds a pixel per recipient nor rewrites the links, the signed ones included, through its
   own domain; `ClickTracker` alone counts the clicks of a campaign.
+- The keys of the VERP tags and of the suppression hashes were derived from `secret` when the container was built,
+  before an environment variable or `%kernel.secret%` had its value: they were an HMAC of the placeholder the
+  configuration held, a value anyone could compute, which changed with the parameters of the application. A forged
+  bounce could pass the VERP check, and the hashes of the forgotten addresses stopped matching after a change of
+  parameters. `NewsletterKey::derive()` builds them from the value of `secret` at run time. Bounces of messages sent
+  before the update no longer pass the VERP check, and a forgotten address that bounced or complained before it may
+  subscribe again; a site whose `secret` was a literal value keeps its keys.
+- The Flex recipe wrote into `.env` an example value of `NEWSLETTER_SECRET`: a site that kept it signed its links, its
+  VERP tags and its suppression hashes with a key known to everyone. The recipe writes the variable empty, with a
+  comment on how to fill it, and `NewsletterKey::check()`, which `SignedLinks` calls, refuses a key that begins with
+  `change-me` or `changeme`, as it refuses one shorter than 16 bytes.
 
 ## 0.3.0-alpha - 2026-11-20
 
