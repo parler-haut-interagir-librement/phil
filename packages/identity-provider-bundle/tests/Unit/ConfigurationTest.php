@@ -257,14 +257,14 @@ final class ConfigurationTest extends TestCase
         self::assertIsArray($sessions);
         self::assertSame(0, $sessions['idle_timeout']);
         self::assertSame(0, $sessions['max_age']);
-        $this->assertRefused(['sessions' => ['idle_timeout' => -1]]);
+        $this->assertRefused(['sessions' => ['idle_timeout' => -1]], 'greater than or equal to 0');
 
         $sessions = $this->process(['sessions' => ['max_age' => 60]])['sessions'];
         self::assertIsArray($sessions);
         self::assertSame(60, $sessions['max_age']);
         $this->assertRefused(['sessions' => ['max_age' => 59]]);
         $this->assertRefused(['sessions' => ['max_age' => 1]]);
-        $this->assertRefused(['sessions' => ['max_age' => -1]]);
+        $this->assertRefused(['sessions' => ['max_age' => -1]], 'greater than or equal to 0');
     }
 
     public function testARegistrationCountMayBeOne(): void
@@ -329,13 +329,14 @@ final class ConfigurationTest extends TestCase
     /**
      * @param array<string, mixed> $config
      */
-    private function assertRefused(array $config): void
+    private function assertRefused(array $config, string $reason = ''): void
     {
         try {
             $this->process($config);
             self::fail('The configuration is accepted.');
         } catch (InvalidConfigurationException $invalidConfigurationException) {
             self::assertStringContainsString('phil_identity_provider', $invalidConfigurationException->getMessage());
+            self::assertStringContainsString($reason, $invalidConfigurationException->getMessage());
         }
     }
 
