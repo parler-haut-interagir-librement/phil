@@ -49,6 +49,7 @@
         "doctrine/doctrine-bundle": "^3.4",
         "doctrine/persistence": "^4.2",
         "easycorp/easyadmin-bundle": "^5.10",
+        "ergebnis/phpunit-slow-test-detector": "^2.28",
         "league/flysystem-local": "^3.35",
         "league/flysystem-memory": "^3.31",
         "phil/browser-security-bundle": "^0.2@dev",

@@ -20,6 +20,8 @@ Development only.
 
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
   2026-11-24.
+- The development requirements include `ergebnis/phpunit-slow-test-detector`, whose `MaximumDuration` attribute a test
+  of the AVIF writer carries, so that the dependency check passes once the package is installed on its own.
 
 ## 0.2.1-alpha - 2026-11-24
 
