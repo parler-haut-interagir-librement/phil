@@ -8,6 +8,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.2.2-alpha.
 
+Development only.
+
 ### Added
 
 - An HTML5 differential test of the SVG purifier: every image kept, sanitized then made smaller, is parsed again by

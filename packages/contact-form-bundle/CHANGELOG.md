@@ -4,6 +4,14 @@ All notable changes to `phil/contact-form-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.1.2-alpha - 2026-11-24
 
 ### Changed
@@ -23,7 +31,6 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
   application routed it: the unrendered email, with the visitor's name, address and message in its context, kept by
   the Messenger transport and its failure transport. The email is rendered and sent in the request, through the Mailer
   transports, and a refusal of the transport reaches the page at once.
-- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
 
 ## 0.1.1-alpha - 2026-11-17
 

@@ -4,6 +4,14 @@ All notable changes to `phil/ux-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.1.1-alpha - 2026-11-24
 
 ### Changed
@@ -13,10 +21,6 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 ### Fixed
 
 - `phil/ux-css` 0.6 is accepted beside 0.5: the package would not install beside the version published on 2026-11-21.
-
-### Security
-
-- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
 
 ## 0.1.0-alpha - 2026-11-12
 

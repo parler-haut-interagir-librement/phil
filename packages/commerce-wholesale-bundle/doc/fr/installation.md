@@ -16,7 +16,7 @@
 | `symfony/uid` | ^8.2 | Les identifiants de créances |
 | `symfony/validator` | ^8.2 | La contrainte `AllowedQuantity`, vérifiée par le validateur dans les formulaires et le panier |
 
-Facultatif : `phil/commerce-logistics-bundle` 0.2 ou plus récent, dont l'acheteur à crédit reçoit alors les
+Facultatif : `phil/commerce-logistics-bundle` 0.3 ou plus récent, dont l'acheteur à crédit reçoit alors les
 expéditions avant de les payer ([Ventes à crédit](credit.md#expédier-avant-le-paiement)).
 
 ## Installer

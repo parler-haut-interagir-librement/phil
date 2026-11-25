@@ -4,6 +4,14 @@ All notable changes to `phil/certificates-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.3.0-alpha - 2026-11-24
 
 Instants are written and read in UTC, whatever the time zone of the process.
@@ -24,7 +32,6 @@ Instants are written and read in UTC, whatever the time zone of the process.
   a web server, a command and a worker in different time zones read the same instant, and an end of validity can no
   longer move by a few hours. The SQL type does not change; a database written outside UTC is converted once
   ([Upgrading from 0.2](doc/installation.md#upgrading-from-02)).
-- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
 
 ## 0.2.2-alpha - 2026-11-18
 

@@ -4,6 +4,17 @@ All notable changes to `phil/mentions-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.2-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
+  2026-11-24.
+
 ## 0.2.1-alpha - 2026-11-24
 
 ### Changed
@@ -11,11 +22,6 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 - Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `phil/notifications-bundle`
   0.4, `symfony/service-contracts` 3.8), and of each development requirement (`doctrine/doctrine-bundle` 3.4,
   `twig/twig` 3.31).
-
-### Changed
-
-- The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
-  2026-11-24.
 
 ### Fixed
 

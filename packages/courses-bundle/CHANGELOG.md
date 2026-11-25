@@ -8,6 +8,8 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.3.1-alpha.
 
+Development only.
+
 ### Changed
 
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on

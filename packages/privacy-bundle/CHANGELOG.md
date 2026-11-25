@@ -4,6 +4,14 @@ All notable changes to `phil/privacy-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+### Security
+
+- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
+
 ## 0.3.0-alpha - 2026-11-24
 
 The erasure can run as a workflow, one step per module through phil/outbox-bundle,
@@ -150,10 +158,6 @@ finds the new fields, and its Markdown ten columns more, a table of corrections 
 - Requires the latest minor of each dependency (`twig/twig` 3.31, `monolog/monolog` 3.13,
   `symfony/event-dispatcher-contracts` 3.8), and of each development requirement (`doctrine/orm` 3.8, `doctrine/dbal`
   4.6, `doctrine/persistence` 4.2, `symfony/dom-crawler` 8.2, …).
-
-### Security
-
-- Requires `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on 2026-11-24.
 
 ## 0.2.0-alpha - 2026-11-20
 
