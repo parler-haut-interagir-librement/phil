@@ -81,6 +81,7 @@ final class PhilCommerceLogisticsBundleTest extends TestCase
         self::assertSame(PhilCommerceLogisticsBundle::SHIPMENT_AUTHORIZATION_TAG, $authorizations->getTag());
         self::assertTrue($container->getDefinition(PaidShipmentAuthorization::class)->isAutowired());
         self::assertTrue($container->getDefinition(PaidShipmentAuthorization::class)->hasTag(PhilCommerceLogisticsBundle::SHIPMENT_AUTHORIZATION_TAG));
+        self::assertTrue($container->hasDefinition(DenyShipmentForcing::class));
         self::assertSame(DenyShipmentForcing::class, (string) $container->getAlias(ShipmentForcing::class));
         self::assertTrue($container->getAutoconfiguredInstanceof()[ShipmentAuthorization::class]->hasTag(PhilCommerceLogisticsBundle::SHIPMENT_AUTHORIZATION_TAG));
         self::assertTrue($container->getDefinition(DeliveryOptions::class)->isPublic());

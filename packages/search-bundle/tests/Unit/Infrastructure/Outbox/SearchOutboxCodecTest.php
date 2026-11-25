@@ -51,6 +51,18 @@ final class SearchOutboxCodecTest extends TestCase
         }
     }
 
+    public function testTheNameOfAClassNoLongerMappedIsCutToOneHundredAndTwentyColumns(): void
+    {
+        $class = 'App\\'.str_repeat('a', 200);
+
+        try {
+            $this->codec(true)->decode(...$this->record(IndexEntity::TYPE, ['class' => $class, 'id_id' => 'a-1']));
+            self::fail('A class that does not exist was decoded.');
+        } catch (ForgottenRecord $forgotten) {
+            self::assertSame('No entity manager maps App\\'.str_repeat('a', 115).'… any more.', $forgotten->getMessage());
+        }
+    }
+
     public function testARemovalNamesAnIndex(): void
     {
         $this->expectException(InvalidSearch::class);
@@ -62,6 +74,7 @@ final class SearchOutboxCodecTest extends TestCase
     {
         $key = OutboxIndexingListener::orderingKey(Article::class, ['id' => 'a-1']);
 
+        self::assertSame('phil_search:2bef86b7e46699612952cbd721056cd5', $key, 'the hash of the class, a NUL byte and the identifier as JSON');
         self::assertMatchesRegularExpression('/^phil_search:[0-9a-f]{32}$/D', $key);
         self::assertMatchesRegularExpression(OutboxRecord::KEY_PATTERN, $key);
         self::assertSame($key, OutboxIndexingListener::orderingKey(Article::class, ['id' => 'a-1']));

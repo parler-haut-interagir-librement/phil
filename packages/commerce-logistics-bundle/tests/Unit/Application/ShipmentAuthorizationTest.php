@@ -185,6 +185,16 @@ final class ShipmentAuthorizationTest extends TestCase
         self::assertSame([$shipment->id, '1', 'manager-2', '2026-11-24T10:00:00+00:00'], [$forced[0]->shipmentId, $forced[0]->orderNumber, $forced[0]->actor, $forced[0]->occurredAt()->format(\DATE_ATOM)]);
     }
 
+    public function testAForcedShipmentIsKeptWithoutADispatcher(): void
+    {
+        $this->stock->receive('DICE', 'warehouse', 5, $this->at);
+        $order = $this->order(2_000);
+        $this->stock->reserve($order, $this->at);
+        $shipments = new Shipments($this->stock, $this->repository, new SwitchableAuthorization(false), new SwitchableAuthorization());
+
+        self::assertTrue($shipments->force($order, 'manager-2', 'Reason', $this->at)->wasForced());
+    }
+
     public function testTheMomentOfAForcedShipmentIsAnnouncedInUtc(): void
     {
         $event = new ShipmentForced('s', '1', 'manager-2', new DateTimeImmutable('2026-11-24T05:00:00-05:00'));
@@ -223,6 +233,8 @@ final class ShipmentAuthorizationTest extends TestCase
         yield 'no reason' => ['manager-2', '', 'A forced shipment has a reason: 1 to 255 characters on one line.'];
         yield 'a blank reason' => ['manager-2', '   ', 'A forced shipment has a reason: 1 to 255 characters on one line.'];
         yield 'a reason on two lines' => ['manager-2', "Paid\nat the door", 'A forced shipment has a reason: 1 to 255 characters on one line.'];
+        yield 'a reason ending on a line break' => ['manager-2', "Paid\n", 'A forced shipment has a reason: 1 to 255 characters on one line.'];
+        yield 'a reason that is not UTF-8' => ['manager-2', "Caf\xE9", 'A forced shipment has a reason: 1 to 255 characters on one line.'];
         yield 'a long reason' => ['manager-2', str_repeat('é', 256), 'A forced shipment has a reason: 1 to 255 characters on one line.'];
         yield 'an email address as the actor' => ['ada@example.com', 'Reason', 'is not the stable identifier of a actor'];
         yield 'no actor' => ['', 'Reason', 'is not the stable identifier of a actor'];
