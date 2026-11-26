@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=26a4e684a0d41e5654d1a4e628dd6473c74782c074286f1da6734772d9a861d1 -->
+<!-- phil-dev source-sha256=7c1444c0791241045a3eed087fe526f785ccb748b3bdd6b58ceee7e8aee24089 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -20,6 +20,8 @@
 | `src/Application/CelebrationStream.php` | `Phil\UxKit\Application\CelebrationStream` : le `<turbo-stream action="celebrate">` qui joue une célébration depuis le serveur, et la liste des effets, `EFFECTS` |
 | `src/Application/CelebrationMessages.php` | `Phil\UxKit\Application\CelebrationMessages` : les mots de louange qu'une célébration dit à tour de rôle, en anglais et en français, selon la langue d'une locale |
 | `src/Infrastructure/Twig/CelebrationExtension.php` | `celebrate()` et `celebration_messages()` |
+| `src/Application/Festivities.php`, `src/Application/Festivity.php` | `Phil\UxKit\Application\Festivities` : les fêtes du décor de saison, chacune une règle de phil/almanac, leurs décors, `DECORS`, les fêtes par défaut, `DEFAULTS`, et celle où tombe un moment, une fête sobre d'abord, puis la première de la liste, sous la forme d'une `Festivity` |
+| `src/Infrastructure/Twig/SeasonalDecorExtension.php` | `seasonal_decor()`, la fête d'un jour, null tant que le décor de saison est éteint |
 | `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()`, `image_filters()`, `picture_props()`, `image_json_ld()` et `image_check()`, qui journalise les problèmes d'`ImageTextCheck` en avertissements quand `phil_ux_kit.image.check` est actif |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase` : un Chrome sans interface sur la page des recettes d'un kit, ses modes tels quels et sous la politique stricte, qui fait échouer un test sur tout ce que le navigateur a refusé, et les aides d'un test en navigateur |
 | `src/Test/Screenshots.php` | `Phil\UxKit\Test\Screenshots` : la capture d'une partie d'une page comparée à sa référence, toutes deux à une échelle de sa largeur CSS, dans une tolérance, sur GD |
@@ -134,6 +136,16 @@
 | `celebration/assets/controllers/celebration_controller.js` | Le contrôleur Stimulus `celebration` : le message, le choix de la personne, la lassitude de la session, le budget de l'appareil, les Turbo Streams, le canvas et le worker |
 | `celebration/assets/controllers/celebration_effects.js` | Les pièces de chaque effet, `EFFECTS`, et les rythmes des lasers et des feux d'artifice |
 | `celebration/assets/controllers/celebration_worker.js` | Le peintre, `Painter` : le mouvement et le dessin des pièces image par image, dans un worker sur un `OffscreenCanvas` ou sur la page |
+| `seasonal-decor/manifest.json`, `seasonal-decor/README.md` | La recette `SeasonalDecor` |
+| `seasonal-decor/templates/components/` | Le composant `SeasonalDecor`, et son coquelicot |
+| `seasonal-decor/assets/controllers/seasonal_decor_controller.js` | Le contrôleur Stimulus `seasonal-decor` : le canvas, l'image fixe, la fermeture retenue, la chasse aux œufs, le code secret |
+| `seasonal-decor/assets/controllers/seasonal_decor_shapes.js` | Les décors, `DECORS` : comment bougent leurs pièces, leurs couleurs, et comment chacun est dessiné |
+| `podium/manifest.json`, `podium/README.md` | La recette `Podium` |
+| `podium/templates/components/` | Le composant `Podium` |
+| `podium/assets/controllers/podium_controller.js` | Le contrôleur Stimulus `podium` : les états de la montée, son message, la célébration de la page |
+| `scratch-card/manifest.json`, `scratch-card/README.md` | La recette `ScratchCard` |
+| `scratch-card/templates/components/` | Le composant `ScratchCard` |
+| `scratch-card/assets/controllers/scratch_card_controller.js` | Le contrôleur Stimulus `scratch-card` : la couverture, la part grattée sur sa grille, la révélation, son message et son focus |
 | `animated-button/manifest.json`, `animated-button/README.md` | La recette `AnimatedButton` |
 | `animated-button/templates/components/` | Le composant `AnimatedButton` |
 | `stepper/manifest.json`, `stepper/README.md` | La recette `Stepper` |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c44a94cf2b43d7fe88ad9a629f336b00fecbeb9eb2c3f1c858553e25c43454f8 -->
+<!-- phil-dev source-sha256=bb7374ddf9eaf00dec5b44662e87416f78695ab480754da592260a161fa014e6 -->
 # Points d'extension
 
 | Point | Comment |
@@ -20,4 +20,8 @@
 | Combien une personne est célébrée | `data-celebrations="all"`, `discreet` ou `none` sur la racine, ou sur n'importe quel ancêtre d'une `Celebration` ; avec phil/settings-bundle, un choix de la section `display` dont l'`html_attribute` est `celebrations` : voir le README de la recette |
 | Ce que dit une célébration | `message`, ou `messages` pour des mots à tour de rôle : ceux de `celebration_messages()`, ou ceux de l'application, traduits par son traducteur |
 | Une célébration jouée par un bundle | `celebrate()` dans une réponse Turbo Stream, sur un sujet Mercure ou dans la page, ou `Phil\UxKit\Application\CelebrationStream` injecté pour produire le même flux en PHP |
+| Les fêtes du décor de saison | `phil_ux_kit.seasonal.holidays` : chacune une règle de phil/almanac, ses jours ou son `until`, son décor et si elle est sobre ; `phil_ux_kit.seasonal.enabled` l'active : voir le README de `SeasonalDecor` |
+| Les couleurs d'un décor de saison | `data-seasonal-decor-colors-value`, des propriétés personnalisées séparées par des espaces, à la place des couleurs du décor |
+| Un jeu du décor de saison | `eggs`, et les éléments de la page marqués `data-egg-nest` où ils se cachent ; `code`, les touches du code secret, vide pour le désactiver |
+| Ce qui suit un podium ou une carte à gratter | Les événements `podium:risen` et `scratch-card:revealed`, et `effect`, qui joue la `Celebration` de la page |
 | La suite navigateur d'un autre kit | Étendez `Phil\UxKit\Test\BrowserTestCase` et donnez-lui une `RecipesPage` : voir [Tests](testing.md#pour-un-autre-kit) |

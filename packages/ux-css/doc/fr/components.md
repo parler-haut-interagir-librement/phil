@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=45a80ff0731178aeb8b6e22e5df4f077f5b90dd148edd2f437761dba7a70c757 -->
+<!-- phil-dev source-sha256=a8bde4760172cc66ed79e74c3b2c89a44c6d6727a5d2ae91bf1e3e6ca22785eb -->
 # Composants
 
 Ce que la base sans classe ne peut pas deviner, dans la couche `phil.components`, et les utilitaires, en tout dernier.
@@ -470,6 +470,9 @@ Chaque recette écrit l'une de ces classes sur chacune de ses parties.
 |---|---|
 | Bouton de copie | `isCopyButton`, `isCopyButtonTrigger` |
 | Célébration | `isCelebration`, `isCelebrationMessage`, `isCelebrationCanvas`, posé sur la page sans prendre de clic et jamais dessiné en mouvement réduit |
+| Décor de saison | `isSeasonalDecor`, qui ne prend aucune place ; `isSeasonalDecorCanvas`, posé sur la page sans prendre de clic ; `isSeasonalDecorPoppy`, fixé dans un coin du bas ; `isSeasonalDecorClose`, le bouton qui le ferme, dans l'autre ; `isSeasonalEgg`, un œuf de la chasse, une cible de 2,75 rem ; `isSeasonalDecorCounter`, caché tant qu'il est vide |
+| Podium | `isPodium`, `isPodiumPlaces`, `isPodiumPlace` avec `data-place` de 1 à 3, la deuxième, la première et la troisième côte à côte ; `isPodiumName`, `isPodiumScore`, `isPodiumStep`, sa hauteur selon la place ; `isPodiumMessage`. `data-state="waiting"` garde les marches et les noms en bas, `rising` les lève, la troisième d'abord, seulement sans mouvement réduit |
+| Carte à gratter | `isScratchCard`, `isScratchCardPrize`, `isScratchCardCover`, le canvas sur le prix, gratté sans faire défiler ; `isScratchCardButton`, `isScratchCardMessage`, caché tant qu'il est vide |
 | Bouton animé | `isAnimatedButton` avec `hasShine`, `hasLift` ou `hasArrow` ; `isAnimatedButtonLabel`, `isAnimatedButtonArrow` |
 | Arbre | `isTree`, `isTreeItem`, `isTreeRow`, `isTreeToggle`, `isTreeLabel`, `isTreeGroup` |
 | Note | `isRating`, avec `isReadonly` pour la note seule ; `isRatingLegend`, `isRatingStars`, `isRatingStar`, avec `isFilled` ou `isHalf` en lecture seule ; `isRatingIcon`, `isRatingClear` |

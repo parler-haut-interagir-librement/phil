@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8c3ae6c6976a169f79bc1f3098f4171056aa348acf834353a956ab369f094f42 -->
+<!-- phil-dev source-sha256=a0bf5eb24d6a154295dfbdefddc74ee5d65495e862cf8b9b0d43e147b27ca4ee -->
 # Installation
 
 ## La feuille de style
@@ -100,6 +100,12 @@ Copiez les fichiers des recettes dont la page a besoin, depuis ce dossier, en ga
 | CopyButton | `copy-button/assets/controllers/` | `assets/controllers/` |
 | Celebration | `celebration/templates/components/` | `templates/components/` |
 | Celebration | `celebration/assets/controllers/` | `assets/controllers/` |
+| SeasonalDecor | `seasonal-decor/templates/components/` | `templates/components/` |
+| SeasonalDecor | `seasonal-decor/assets/controllers/` | `assets/controllers/` |
+| Podium | `podium/templates/components/` | `templates/components/` |
+| Podium | `podium/assets/controllers/` | `assets/controllers/` |
+| ScratchCard | `scratch-card/templates/components/` | `templates/components/` |
+| ScratchCard | `scratch-card/assets/controllers/` | `assets/controllers/` |
 | AnimatedButton | `animated-button/templates/components/` | `templates/components/` |
 | Stepper | `stepper/templates/components/` | `templates/components/` |
 | ActivityCalendar | `activity-calendar/templates/components/` | `templates/components/` |
