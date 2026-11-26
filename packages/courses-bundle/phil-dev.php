@@ -99,6 +99,8 @@ return [
             'CastInt' => ['ignoreSourceCodeByRegex' => [
                 '.*\\(int\\) \\$match\\[3\\] < .*',
                 '.*\\(int\\) \\$length > self::MAX_BYTES.*',
+                // The digits an amount matched by its pattern multiply and add as the numbers they read: only the type of the sum is at stake.
+                '.*self::hundredths\\(\\(int\\) \\$whole \\* 100 \\+ \\(int\\) str_pad.*',
             ]],
             // `finish` is a boolean whichever default stands in for its absence: both are checked as booleans.
             // Nothing sets a `Vary` on a response before it is answered: adding to the header or replacing it gives the same one.
