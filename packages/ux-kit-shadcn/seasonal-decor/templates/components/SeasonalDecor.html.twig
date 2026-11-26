@@ -1,0 +1,45 @@
+{#-
+ # A seasonal decor: snowflakes, hearts, bats, falling leaves… drawn over the page by the `seasonal-decor` controller
+ # for a few seconds, a still picture where motion is reduced, and a poppy, fixed and never animated, for a day of
+ # remembrance. It is decorative, hidden from screen readers and never in the way; a button closes it, remembered for
+ # the holiday. With `eggs`, eggs hide in the page for a hunt played by mouse or keyboard; a secret code typed on the
+ # page plays the `Celebration` of the page. Nothing is drawn for an unknown decor. No style is written here: the
+ # canvas waits in a template, and the controller sets it over the page through the CSSOM.
+ #}
+{%- props
+    ## 'snow'|'hearts'|'clovers'|'eggs'|'bats'|'leaves'|'petals'|'lanterns'|'maple-leaves'|'fleurs-de-lis'|'poppy' What is drawn, `seasonal_decor().decor` as a rule; nothing for any other name.
+    decor = '',
+    ## string What tells this holiday from the others, `seasonal_decor().id` as a rule: the closing is remembered under it; for the page alone without one.
+    holiday = '',
+    ## bool Whether it is a day of remembrance: a still picture, no hunt, no code; always for the poppy.
+    sober = false,
+    ## string The name of the button that closes it.
+    closeLabel = 'Hide the decorations',
+    ## int How many eggs hide in the elements marked `data-egg-nest`, for a hunt; none by default.
+    eggs = 0,
+    ## string The name of each egg, for screen readers.
+    eggLabel = 'A hidden egg',
+    ## string What the hunt says as each egg is found: `%found%` and `%total%` stand for the counts.
+    counter = 'Eggs found: %found% of %total%',
+    ## string What is said, and celebrated, when every egg is found.
+    hunted = 'Every egg found!',
+    ## string The keys of the secret code, separated by spaces, as `KeyboardEvent.key` names them; none when empty.
+    code = 'ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a',
+    ## string What the `Celebration` of the page says when the code is typed.
+    codeMessage = 'You found the secret code!',
+    ## string The effect the `Celebration` of the page plays when the code is typed, or when every egg is found.
+    codeEffect = 'fireworks',
+    ## int How long the decor moves, in milliseconds, kept by the controller between 2000 and 15000.
+    duration = 12000
+-%}
+{%- set decors = ['snow', 'hearts', 'clovers', 'eggs', 'bats', 'leaves', 'petals', 'lanterns', 'maple-leaves', 'fleurs-de-lis', 'poppy'] -%}
+{%- if decor in decors -%}
+{%- set quiet = sober or decor == 'poppy' -%}
+<div data-seasonal-decor-decor-value="{{ decor }}" data-seasonal-decor-holiday-value="{{ holiday }}" data-seasonal-decor-sober-value="{{ quiet ? 'true' : 'false' }}" data-seasonal-decor-eggs-value="{{ quiet ? 0 : eggs }}" data-seasonal-decor-egg-label-value="{{ eggLabel }}" data-seasonal-decor-counter-value="{{ counter }}" data-seasonal-decor-hunted-value="{{ hunted }}" data-seasonal-decor-code-value="{{ quiet ? '' : code }}" data-seasonal-decor-code-message-value="{{ codeMessage }}" data-seasonal-decor-code-effect-value="{{ codeEffect }}" data-seasonal-decor-duration-value="{{ duration }}" data-slot="seasonal-decor"{{ attributes.defaults({class: 'contents', 'data-controller': 'seasonal-decor'}) }}>
+{%- if decor == 'poppy' -%}
+<svg class="pointer-events-none fixed bottom-4 start-4 z-50 size-12" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M32 58 C33 48 35 42 40 36" fill="none" stroke="#2f6b2f" stroke-width="3" stroke-linecap="round"/><g fill="#c8102e"><circle cx="24" cy="20" r="13"/><circle cx="40" cy="20" r="13"/><circle cx="22" cy="33" r="12"/><circle cx="42" cy="33" r="12"/></g><circle cx="32" cy="26" r="6" fill="#111111"/></svg>
+{%- endif -%}
+<template data-seasonal-decor-target="stage"><canvas class="pointer-events-none fixed inset-0 z-50 size-full print:hidden" aria-hidden="true"></canvas></template><template data-seasonal-decor-target="egg"><button type="button" class="mx-1 inline-grid size-11 cursor-pointer place-items-center border-0 bg-transparent p-0 align-middle text-amber-500 print:hidden" aria-label="{{ eggLabel }}"><svg class="h-[1.875rem] w-6" viewBox="0 0 24 30" aria-hidden="true" focusable="false"><ellipse cx="12" cy="16" rx="10" ry="13" fill="currentColor"/><path d="M3 15 L7 12 L12 15 L17 12 L21 15" fill="none" stroke="#ffffff" stroke-width="2"/></svg></button></template>
+<p class="m-0 text-sm empty:hidden" role="status" aria-live="polite" data-seasonal-decor-target="counter"></p>
+<button type="button" class="fixed bottom-4 end-4 z-50 inline-grid size-11 cursor-pointer place-items-center rounded-full border border-border bg-background p-0 shadow-xs outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 print:hidden" aria-label="{{ closeLabel }}" data-seasonal-decor-target="close" data-action="seasonal-decor#close" hidden><svg class="size-5" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+{%- endif -%}

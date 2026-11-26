@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=223c44d67a5b798ab61b6445218eba597c497f4ba09f9c0b2c21c26735274f7b -->
+<!-- phil-dev source-sha256=0f9f0f482344090b95f39b459774fad6f0045e39b135fe68ac95ab108f76e09f -->
 # Installation
 
 ## Tailwind et le kit Shadcn
@@ -17,8 +17,8 @@ Shadcn, puis faites lire les composants installés par Tailwind :
 ```
 
 Les recettes dotées d'un contrôleur Stimulus (`AnimatedHeadline`, `Carousel`, `Celebration`, `Lightbox`, `ColorPicker`,
-`CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader` et l'aperçu flou d'`Image`) ont
-besoin du StimulusBundle, qui charge les contrôleurs que `ux:install` copie dans `assets/controllers/`.
+`CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader`,
+`SeasonalDecor`, `Podium`, `ScratchCard` et l'aperçu flou d'`Image`) ont besoin du StimulusBundle, qui charge les contrôleurs que `ux:install` copie dans `assets/controllers/`.
 
 ## Avec `ux:install`
 
@@ -62,6 +62,13 @@ Copiez les fichiers des recettes dont la page a besoin, depuis ce répertoire, e
 | Celebration | `celebration/assets/controllers/celebration_controller.js` | `assets/controllers/celebration_controller.js` |
 | Celebration | `celebration/assets/controllers/celebration_effects.js` | `assets/controllers/celebration_effects.js` |
 | Celebration | `celebration/assets/controllers/celebration_worker.js` | `assets/controllers/celebration_worker.js` |
+| SeasonalDecor | `seasonal-decor/templates/components/SeasonalDecor.html.twig` | `templates/components/SeasonalDecor.html.twig` |
+| SeasonalDecor | `seasonal-decor/assets/controllers/seasonal_decor_controller.js` | `assets/controllers/seasonal_decor_controller.js` |
+| SeasonalDecor | `seasonal-decor/assets/controllers/seasonal_decor_shapes.js` | `assets/controllers/seasonal_decor_shapes.js` |
+| Podium | `podium/templates/components/Podium.html.twig` | `templates/components/Podium.html.twig` |
+| Podium | `podium/assets/controllers/podium_controller.js` | `assets/controllers/podium_controller.js` |
+| ScratchCard | `scratch-card/templates/components/ScratchCard.html.twig` | `templates/components/ScratchCard.html.twig` |
+| ScratchCard | `scratch-card/assets/controllers/scratch_card_controller.js` | `assets/controllers/scratch_card_controller.js` |
 | AnimatedButton | `animated-button/templates/components/AnimatedButton.html.twig` | `templates/components/AnimatedButton.html.twig` |
 | Stepper | `stepper/templates/components/Stepper.html.twig` | `templates/components/Stepper.html.twig` |
 | ActivityCalendar | `activity-calendar/templates/components/ActivityCalendar.html.twig` | `templates/components/ActivityCalendar.html.twig` |

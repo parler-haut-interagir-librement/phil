@@ -10,6 +10,24 @@ The next version is 0.7.1-alpha.
 
 ### Added
 
+- The recipe `SeasonalDecor`: a decor for the holidays, drawn over the page for a few seconds on a canvas, then gone,
+  a still picture where motion is reduced: `snow`, `hearts`, `clovers`, `eggs`, `bats`, `leaves`, `petals`, `lanterns`,
+  `maple-leaves` and `fleurs-de-lis`; and `poppy`, a poppy fixed in a corner, never animated, for a day of remembrance.
+  Decorative and hidden from screen readers; a button closes it, remembered for the holiday in the local storage; with
+  `eggs`, eggs hide in the elements marked `data-egg-nest` for a hunt played by mouse or keyboard, counted in a polite
+  live region and remembered from page to page, the last one celebrated; the keys of `code`, the Konami code by default,
+  play the `Celebration` of the page. Nothing but a sober decor where the person chose `data-celebrations="none"`.
+- `seasonal_decor()` in Twig, and `Festivities` in PHP: the holiday of a day, from the rules of phil/almanac in
+  `phil_ux_kit.seasonal.holidays`, a sober holiday first, then the first of the list, its decor and an id for its year;
+  the seasonal decor is off until `phil_ux_kit.seasonal.enabled` turns it on. Nine holidays by default: winter holidays,
+  Lunar New Year, Valentine's Day, St. Patrick's Day, spring, Easter, autumn, Halloween and Remembrance Day.
+- The recipe `Podium`: the first three of a ranking on their steps, in their order for screen readers and side by side
+  on the screen, rising one after the other, the winner last, when the podium comes into view or by its action; then
+  its message is said and, with `effect`, the `Celebration` of the page plays. Standing from the start where motion is
+  reduced.
+- The recipe `ScratchCard`: a prize decided by the server under a cover painted on a canvas and scratched away by a
+  mouse, a finger or a pen, or revealed at once by its button, by the keyboard; hidden from screen readers and the
+  keyboard while covered, then said in a polite live region and given the focus, and, with `effect`, celebrated.
 - In the README of `Celebration`, the examples a demo renders: a gallery, one button for each of the eleven effects,
   nothing playing until one is pressed; the button and the words in turn as live examples too.
 

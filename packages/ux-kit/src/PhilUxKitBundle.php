@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Phil\UxKit;
 
+use DateTimeZone;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use LogicException;
 use Override;
+use Phil\Almanac\Almanac;
 use Phil\StructuredData\Contract\NodeCollector;
 use Phil\StructuredData\Type\ImageObject;
 use Phil\UxKit\Application\CelebrationMessages;
 use Phil\UxKit\Application\CelebrationStream;
 use Phil\UxKit\Application\Contract\PicturePropsProvider;
+use Phil\UxKit\Application\Festivities;
 use Phil\UxKit\Application\ImageMigration;
 use Phil\UxKit\Application\ImageOrigin;
 use Phil\UxKit\Application\ImageTextCheck;
@@ -21,6 +25,7 @@ use Phil\UxKit\Infrastructure\LiipImagine\ImageFilters;
 use Phil\UxKit\Infrastructure\StructuredData\ImageJsonLd;
 use Phil\UxKit\Infrastructure\Twig\CelebrationExtension;
 use Phil\UxKit\Infrastructure\Twig\ImageExtension;
+use Phil\UxKit\Infrastructure\Twig\SeasonalDecorExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -36,7 +41,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigura
  * `image_filters()` to the filter sets of LiipImagine, `picture_props()` to the services tagged
  * `phil_ux_kit.picture_props`, and `image_json_ld()` to phil/structured-data, each when it is installed; and
  * `celebrate()`, the Turbo Stream that plays a celebration from the server, with `celebration_messages()`, the words it
- * says in turn. With the Console component, `phil:ux-kit:migrate-images` proposes the image recipes in place of the
+ * says in turn; and `seasonal_decor()`, the holiday of the day and its decor, from the rules of phil/almanac in the
+ * configuration, when the seasonal decor is on. With the Console component, `phil:ux-kit:migrate-images` proposes the image recipes in place of the
  * images written by hand.
  */
 final class PhilUxKitBundle extends AbstractBundle
@@ -73,6 +79,35 @@ final class PhilUxKitBundle extends AbstractBundle
                         ->booleanNode('check')
                             ->info('Whether a text alternative that is the name of the file or says only "image", and a missing width or height, are logged as warnings: in debug when null.')
                             ->defaultNull()
+                        ->end()
+                    ->end()
+                ->end()
+                ->arrayNode('seasonal')
+                    ->info('The seasonal decor: the holidays, each a rule of phil/almanac, and the decor drawn on their days; off by default.')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('enabled')
+                            ->info('Whether seasonal_decor() gives the holiday of the day; it gives none while this is false. Needs phil/almanac.')
+                            ->defaultFalse()
+                        ->end()
+                        ->scalarNode('time_zone')
+                            ->info('The time zone the days of the holidays are counted in; that of PHP when null.')
+                            ->defaultNull()
+                        ->end()
+                        ->arrayNode('holidays')
+                            ->info('The holidays by key, in the order a day that falls in two chooses, a sober one first; these replace the default ones.')
+                            ->useAttributeAsKey('key')
+                            ->arrayPrototype()
+                                ->children()
+                                    ->scalarNode('title')->isRequired()->cannotBeEmpty()->end()
+                                    ->scalarNode('rule')->info('The rule of its first day, read by phil/almanac: "10-31 - 6 days", "easter", "2nd monday of october"…')->isRequired()->cannotBeEmpty()->end()
+                                    ->scalarNode('until')->info('A rule of its last day, in place of days.')->defaultNull()->end()
+                                    ->integerNode('days')->info('How many days it lasts.')->min(1)->max(366)->defaultValue(1)->end()
+                                    ->enumNode('decor')->values(Festivities::DECORS)->isRequired()->end()
+                                    ->booleanNode('sober')->info('Whether it is a day of remembrance, chosen before any other; true for the poppy when null.')->defaultNull()->end()
+                                ->end()
+                            ->end()
+                            ->defaultValue(Festivities::DEFAULTS)
                         ->end()
                     ->end()
                 ->end()
@@ -145,6 +180,35 @@ final class PhilUxKitBundle extends AbstractBundle
                 new ReferenceConfigurator(CelebrationMessages::class),
                 new ReferenceConfigurator('request_stack')->nullOnInvalid(),
             ])
+            ->tag('twig.attribute_extension')
+            ->tag('twig.runtime');
+
+        $this->loadSeasonal(\is_array($config['seasonal'] ?? null) ? $config['seasonal'] : [], $container);
+    }
+
+    /**
+     * `seasonal_decor()`, and the holidays it reads when the seasonal decor is on.
+     *
+     * @param array<array-key, mixed> $seasonal
+     */
+    private function loadSeasonal(array $seasonal, ContainerConfigurator $container): void
+    {
+        $zone = \is_string($seasonal['time_zone'] ?? null) ? $seasonal['time_zone'] : date_default_timezone_get();
+        $services = $container->services();
+        $services->set('phil_ux_kit.seasonal.time_zone', DateTimeZone::class)->args([$zone]);
+        $enabled = true === ($seasonal['enabled'] ?? false);
+
+        if ($enabled) {
+            if (!class_exists(Almanac::class)) {
+                throw new LogicException('The seasonal decor counts the days of its holidays with phil/almanac: composer require phil/almanac.');
+            }
+
+            $services->set(Festivities::class)
+                ->args([$seasonal['holidays'] ?? Festivities::DEFAULTS, new ReferenceConfigurator('phil_ux_kit.seasonal.time_zone')]);
+        }
+
+        $services->set(SeasonalDecorExtension::class)
+            ->args([$enabled ? new ReferenceConfigurator(Festivities::class) : null, new ReferenceConfigurator('phil_ux_kit.seasonal.time_zone')])
             ->tag('twig.attribute_extension')
             ->tag('twig.runtime');
     }

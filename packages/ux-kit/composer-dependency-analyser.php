@@ -10,14 +10,16 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  * functions, is under src/. src/Test, the browser test case and the page of recipes published for the browser suites
  * of other kits, runs in development only: the packages it uses are development requirements, suggested to the kits
  * that extend them, ext-gd among them for the screenshots. AssetMapper, LiipImagine and phil/structured-data are
- * suggested too: image_sources(), image_filters() and image_json_ld() read them when they are there; and the Console
- * component, for the command that proposes the image recipes.
+ * suggested too: image_sources(), image_filters() and image_json_ld() read them when they are there; phil/almanac,
+ * which seasonal_decor() needs once the seasonal decor is turned on; and the Console component, for the command that
+ * proposes the image recipes.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/tests', isDev: true)
     ->ignoreErrorsOnExtensions(['ext-gd'], [ErrorType::DEV_DEPENDENCY_IN_PROD])
     ->ignoreErrorsOnPackages([
         'liip/imagine-bundle',
+        'phil/almanac',
         'php-webdriver/webdriver',
         'phil/structured-data',
         'phpunit/phpunit',

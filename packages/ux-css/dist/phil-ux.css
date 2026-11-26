@@ -2159,7 +2159,10 @@
         }
 
         .isLightboxClose,
-        .isCelebrationCanvas {
+        .isCelebrationCanvas,
+        .isSeasonalDecorCanvas,
+        .isSeasonalDecorClose,
+        .isSeasonalEgg {
             display: none;
         }
 
@@ -3708,6 +3711,244 @@
     }
 
     [data-motion="reduce"] .isCelebrationCanvas {
+        display: none;
+    }
+
+    /*
+     * A seasonal decor: its canvas over the page, which never takes a click, a poppy fixed in a corner, the button that
+     * closes it in the other, the eggs of a hunt, small buttons slipped into the page, and the count of the hunt. The decor
+     * itself takes no room: its parts are laid over the page, but the count.
+     */
+    .isSeasonalDecor {
+        display: contents;
+    }
+
+    .isSeasonalDecor[hidden] {
+        display: none;
+    }
+
+    .isSeasonalDecorCanvas {
+        position: fixed;
+        inset: 0;
+        z-index: var(--phil-z-overlay);
+        inline-size: 100%;
+        block-size: 100%;
+        pointer-events: none;
+    }
+
+    .isSeasonalDecorPoppy {
+        position: fixed;
+        inset-block-end: var(--phil-space-md);
+        inset-inline-start: var(--phil-space-md);
+        z-index: var(--phil-z-overlay);
+        inline-size: 3rem;
+        block-size: 3rem;
+        pointer-events: none;
+    }
+
+    .isSeasonalDecorClose {
+        position: fixed;
+        inset-block-end: var(--phil-space-md);
+        inset-inline-end: var(--phil-space-md);
+        z-index: var(--phil-z-overlay);
+        display: inline-grid;
+        place-items: center;
+        inline-size: 2.75rem;
+        block-size: 2.75rem;
+        padding: 0;
+        border-radius: 50%;
+
+        svg {
+            inline-size: 1.25rem;
+            block-size: 1.25rem;
+        }
+    }
+
+    .isSeasonalDecorClose[hidden],
+    .isSeasonalDecorCounter:empty {
+        display: none;
+    }
+
+    .isSeasonalEgg {
+        display: inline-grid;
+        place-items: center;
+        inline-size: 2.75rem;
+        block-size: 2.75rem;
+        margin-inline: var(--phil-space-xs);
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--phil-color-warning-fill-loud);
+        vertical-align: middle;
+        cursor: pointer;
+
+        svg {
+            inline-size: 1.5rem;
+            block-size: 1.875rem;
+        }
+    }
+
+    /*
+     * A podium: the first three side by side, the second, the first, then the third, each on a step whose height tells its
+     * place; while `data-state="waiting"` the steps and the names wait below, and `rising` raises them, the third first,
+     * only without reduced motion.
+     */
+    .isPodium {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--phil-space-md);
+    }
+
+    .isPodiumPlaces {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: var(--phil-space-sm);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .isPodiumPlace {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--phil-space-xs);
+        inline-size: 7rem;
+        text-align: center;
+
+        &[data-place="1"] {
+            order: 2;
+        }
+
+        &[data-place="2"] {
+            order: 1;
+        }
+
+        &[data-place="3"] {
+            order: 3;
+        }
+    }
+
+    .isPodiumName {
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .isPodiumScore {
+        color: var(--phil-color-text-muted);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .isPodiumStep {
+        display: grid;
+        place-items: start center;
+        inline-size: 100%;
+        padding-block-start: var(--phil-space-sm);
+        border-radius: var(--phil-radius-sm) var(--phil-radius-sm) 0 0;
+        background: var(--phil-color-brand-fill-quiet);
+        color: var(--phil-color-brand-on-quiet);
+        font-size: var(--phil-text-lg);
+        font-weight: 700;
+        transform-origin: bottom;
+
+        [data-place="1"] > & {
+            block-size: 7rem;
+            background: var(--phil-color-brand-fill-loud);
+            color: var(--phil-color-brand-on-loud);
+        }
+
+        [data-place="2"] > & {
+            block-size: 5rem;
+        }
+
+        [data-place="3"] > & {
+            block-size: 3.5rem;
+        }
+    }
+
+    .isPodiumMessage {
+        margin: 0;
+        font-size: var(--phil-text-lg);
+        font-weight: 600;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .isPodium:is([data-state="waiting"], [data-state="rising"]) .isPodiumPlace {
+            & > .isPodiumStep,
+            & > .isPodiumName,
+            & > .isPodiumScore {
+                transition: transform 600ms ease-out, opacity 600ms ease-out;
+            }
+
+            &[data-place="2"] > * {
+                transition-delay: 300ms;
+            }
+
+            &[data-place="1"] > * {
+                transition-delay: 600ms;
+            }
+        }
+
+        .isPodium[data-state="waiting"] .isPodiumPlace {
+            & > .isPodiumStep {
+                transform: scaleY(0);
+            }
+
+            & > .isPodiumName,
+            & > .isPodiumScore {
+                opacity: 0;
+                transform: translateY(1rem);
+            }
+        }
+    }
+
+    @media (forced-colors: active) {
+        .isPodiumStep {
+            border: 1px solid CanvasText;
+        }
+    }
+
+    /*
+     * A scratch card: the prize, under the cover its controller paints over it, the button that reveals it at once, and
+     * what is said once it is.
+     */
+    .isScratchCard {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--phil-space-sm);
+    }
+
+    .isScratchCardPrize {
+        position: relative;
+        min-inline-size: 16rem;
+        padding: var(--phil-space-lg);
+        overflow: hidden;
+        border: 1px dashed var(--phil-color-neutral-border-loud);
+        border-radius: var(--phil-radius-md);
+
+        & > :first-child {
+            margin-block-start: 0;
+        }
+
+        & > :last-child {
+            margin-block-end: 0;
+        }
+    }
+
+    .isScratchCardCover {
+        position: absolute;
+        inset: 0;
+        inline-size: 100%;
+        block-size: 100%;
+        touch-action: none;
+        cursor: crosshair;
+    }
+
+    .isScratchCardButton[hidden],
+    .isScratchCardMessage:empty {
         display: none;
     }
 

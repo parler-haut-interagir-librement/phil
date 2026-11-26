@@ -1,0 +1,28 @@
+{#-
+ # A podium: the first three of a ranking, each on a step, in their order for screen readers and the second, the first
+ # and the third side by side on the screen. Where motion is not reduced, the `podium` controller makes them rise on
+ # their steps, the third first, when the podium comes into view or by the action `podium#rise`; then it says its
+ # message and may play the `Celebration` of the page. Without the controller, or where motion is reduced, they stand
+ # on their steps from the start.
+ #}
+{%- props
+    ## list<array{name:string,score?:string|int|float}> The first three of the ranking, in their order; any more are left out.
+    places = [],
+    ## string The name of the podium, for screen readers.
+    label = 'Podium',
+    ## string What is said once they stand on their steps: the winner, as a rule.
+    message = '',
+    ## ''|'confetti'|'fireworks'|'lasers'|'balloons'|'shooting-stars'|'streamers'|'coins'|'bubbles'|'aurora'|'spotlight'|'trophy' The effect the `Celebration` of the page plays once they stand on their steps; none when empty.
+    effect = '',
+    ## bool Whether they rise as soon as the podium comes into view; otherwise by the action `podium#rise`.
+    autoplay = true
+-%}
+<div data-podium-message-value="{{ message }}" data-podium-effect-value="{{ effect }}" data-podium-autoplay-value="{{ autoplay ? 'true' : 'false' }}" data-slot="podium"{{ attributes.defaults({class: 'group/podium flex flex-col items-center gap-4', 'data-controller': 'podium'}) }}>
+<ol class="m-0 flex list-none items-end justify-center gap-3 p-0" aria-label="{{ label }}">
+{%- for place in places|slice(0, 3) -%}
+<li class="group/place flex w-28 flex-col items-center gap-1 text-center data-[place=1]:order-2 data-[place=2]:order-1 data-[place=3]:order-3" data-place="{{ loop.index }}"><span class="font-semibold wrap-anywhere transition-[transform,opacity] duration-600 ease-out motion-reduce:transition-none group-data-[place=2]/place:delay-300 group-data-[place=1]/place:delay-600 motion-safe:group-data-[state=waiting]/podium:translate-y-4 motion-safe:group-data-[state=waiting]/podium:opacity-0">{{ place.name }}</span>{% if (place.score ?? null) is not null %}<span class="text-muted-foreground tabular-nums transition-[transform,opacity] duration-600 ease-out motion-reduce:transition-none group-data-[place=2]/place:delay-300 group-data-[place=1]/place:delay-600 motion-safe:group-data-[state=waiting]/podium:translate-y-4 motion-safe:group-data-[state=waiting]/podium:opacity-0">{{ place.score }}</span>{% endif %}<span class="grid w-full origin-bottom place-items-start justify-items-center rounded-t-md bg-muted pt-2 text-lg font-bold text-muted-foreground forced-colors:border group-data-[place=1]/place:h-28 group-data-[place=1]/place:bg-primary group-data-[place=1]/place:text-primary-foreground group-data-[place=2]/place:h-20 group-data-[place=3]/place:h-14 transition-[transform,opacity] duration-600 ease-out motion-reduce:transition-none group-data-[place=2]/place:delay-300 group-data-[place=1]/place:delay-600 motion-safe:group-data-[state=waiting]/podium:scale-y-0" aria-hidden="true">{{ loop.index }}</span></li>
+{%- endfor -%}
+</ol>
+{##- What follows the podium: a button with `data-action="podium#rise"`, or the rest of the ranking. -#}
+{%- block content %}{% endblock -%}
+<p class="m-0 text-lg font-semibold" role="status" aria-live="polite" data-podium-target="message"></p></div>

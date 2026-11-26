@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=79831b06a6cce4dd3e46def93fc2c97ff22591252847eb6f1dcc0421d9e952ac -->
+<!-- phil-dev source-sha256=83bea17d9c1fd11207d1ce0d48a13a99a0817d7259d99b7952ee3d36a6217d42 -->
 # phil/ux-kit-shadcn
 
 **Des versions Tailwind, dans le style du kit Shadcn, des recettes supplémentaires de PHIL UX, pour `ux:install --kit`.**
@@ -36,6 +36,9 @@ le champ de date natif du kit PHIL UX n'est pas repris ici.
 | [ColorPicker](color-picker/README.md) | composant | Le sélecteur de couleur du navigateur, sa valeur hexadécimale et des pastilles parmi lesquelles choisir. Le sélecteur est le champ : il fonctionne seul, sans script. | Implémenté et testé |
 | [CopyButton](copy-button/README.md) | composant | Un bouton qui copie un texte, donné ou lu dans un autre élément, et le dit. | Implémenté et testé |
 | [Celebration](celebration/README.md) | composant | Un message dit dans une région active, et un effet dessiné sur la page dans un canvas pendant quelques secondes, aux jetons `--primary` et `--chart-*` : confettis, feux d'artifice, jeu de lasers, ballons et sept autres ; le message seul là où le mouvement est réduit ou quand la personne n'en a choisi aucun, moins de pièces quand l'effet est discret ou la personne lasse. Jouée d'emblée, sur un événement, par un bouton ou par un Turbo Stream. | Implémenté et testé |
+| [SeasonalDecor](seasonal-decor/README.md) | composant | Un décor pour les fêtes, choisi par le site et éteint par défaut, dessiné sur la page pendant quelques secondes, une image fixe là où le mouvement est réduit, un coquelicot fixe pour un jour du souvenir, une chasse aux œufs et un code secret ; la fête du jour vient de `seasonal_decor()` de phil/ux-kit. | Implémenté et testé |
+| [Podium](podium/README.md) | composant | Les trois premiers d'un classement qui montent sur leurs marches, le gagnant en dernier, puis dits ; debout dès le départ là où le mouvement est réduit. | Implémenté et testé |
+| [ScratchCard](scratch-card/README.md) | composant | Un prix sous une couverture grattée par un pointeur, ou révélé d'un coup par son bouton, au jeton `--muted-foreground` ; puis dit et célébré. | Implémenté et testé |
 | [AnimatedButton](animated-button/README.md) | composant | Un bouton, ou un lien quand il a une adresse, qui bouge sous le pointeur et le focus : une lumière qui le balaie, une élévation ou sa flèche poussée vers l'avant. Du CSS seulement. | Implémenté et testé |
 | [Stepper](stepper/README.md) | composant | Les étapes d'un processus, celles qui sont terminées marquées, la courante annoncée, lues de haut en bas sur un téléphone. | Implémenté et testé |
 | [ActivityCalendar](activity-calendar/README.md) | composant | L'activité dans le temps : une case par jour, chacune lue par son libellé, la couleur jamais seule. Plus large que l'écran, il défile de lui-même et prend le focus pour le faire. | Implémenté et testé |
@@ -84,7 +87,8 @@ php bin/console ux:install coming-soon --kit=github.com/parler-haut-interagir-li
 Tailwind CSS 4 avec la feuille de style du kit Shadcn et tw-animate-css, comme le kit Shadcn les installe ; Symfony UX
 Twig Component 3.7 ou plus récent ; Symfony UX Toolkit 3.7.1 ou plus récent pour installer les recettes ; le
 StimulusBundle pour les recettes dotées d'un contrôleur (`AnimatedHeadline`, `Carousel`, `Celebration`, `Lightbox`,
-`ColorPicker`, `CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader`) et l'aperçu flou d'`Image` ; `twig/extra-bundle`, `twig/html-extra`,
+`ColorPicker`, `CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`,
+`StickyHeader`, `SeasonalDecor`, `Podium`, `ScratchCard`) et l'aperçu flou d'`Image` ; `twig/extra-bundle`, `twig/html-extra`,
 `symfony/web-link` et `phil/ux-kit`, dont le bundle liste les hôtes dont une page peut montrer les images, pour
 `Image` ; les jetons `--chart-1` à `--chart-5` du kit Shadcn pour `Chart` ; Symfony UX Chart.js pour `ChartJs`.
 

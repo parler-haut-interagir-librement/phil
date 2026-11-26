@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f5371aabc2790882821f26f5ebdfee38e6757c51e8082d8856de3c434f9ce921 -->
+<!-- phil-dev source-sha256=0e55909222225656f8399403479aae55e0b9fdbc2d6dd4e04d1d9e597a8b5a1d -->
 # Différences avec le kit PHIL UX
 
 Ce kit contient les recettes que le kit Shadcn du Toolkit n'offre pas, et un `Carousel` sur l'accrochage de défilement
@@ -8,7 +8,7 @@ le `DatePicker` du kit PHIL UX, dont le nom est celui du `DatePicker` du kit Sha
 
 | Identique dans les deux kits | |
 |---|---|
-| Les recettes et leurs manifestes | `logo`, `animated-headline`, `illustration`, `image`, `gallery`, `lightbox`, `hotspots`, `hero`, `video`, `figure`, `qr-code`, `autosave-status`, `reaction-button`, `reaction-picker`, `coming-soon`, `color-picker`, `copy-button`, `celebration`, `animated-button`, `stepper`, `activity-calendar`, `tree`, `rating`, `number-input`, `file-input`, `tag`, `relative-time`, `progress-ring`, `sparkline`, `before-after`, `carousel`, `login-form`, `signup-form`, `chart`, `chart-js` |
+| Les recettes et leurs manifestes | `logo`, `animated-headline`, `illustration`, `image`, `gallery`, `lightbox`, `hotspots`, `hero`, `video`, `figure`, `qr-code`, `autosave-status`, `reaction-button`, `reaction-picker`, `celebration`, `seasonal-decor`, `podium`, `scratch-card`, `animated-button`, `stepper`, `activity-calendar`, `tree`, `rating`, `number-input`, `file-input`, `tag`, `relative-time`, `progress-ring`, `sparkline`, `before-after`, `carousel`, `login-form`, `signup-form`, `chart`, `chart-js` |
 | Les propriétés, leurs types, leurs valeurs par défaut | Les déclarations `{% props %}` sont identiques |
 | Les blocs | `content` dans `ComingSoon`, `LoginForm` et `SignupForm` |
 | Le contrôleur de `phil/forms-autosave` | Les cibles `status`, `notice`, `message`, `useServer`, `discard` et `dismiss`, et les actions des trois boutons, dans `AutosaveStatus` |
@@ -16,6 +16,7 @@ le `DatePicker` du kit PHIL UX, dont le nom est celui du `DatePicker` du kit Sha
 | Le contrôleur de la visionneuse | `lightbox_controller.js` est le même fichier, avec la cible `dialog` et les actions `open`, `close` et `closeOnClickOutside` |
 | Le contrôleur de l'aperçu | `image_preview_controller.js` est le même fichier, avec la valeur `src` |
 | Le contrôleur de la célébration | `celebration_controller.js` et les modules à côté, `celebration_effects.js` et `celebration_worker.js`, sont les mêmes fichiers, avec les valeurs `message`, `messages`, `effect`, `autoplay`, `duration`, `colors` et `focus`, les cibles `message` et `stage`, l'action `play`, l'événement DOM `celebrate` et l'action de Turbo Stream `celebrate` |
+| Les contrôleurs du décor de saison, du podium et de la carte à gratter | `seasonal_decor_controller.js` et `seasonal_decor_shapes.js`, `podium_controller.js` et `scratch_card_controller.js` sont les mêmes fichiers, avec les mêmes valeurs, cibles, actions et événements |
 | Le contrôleur Stimulus | `animated_headline_controller.js` est le même fichier, avec les valeurs `pause`, `duration`, `loop`, `pauseLabel` et `playLabel`, les cibles `reveal`, `word` et `toggle`, et l'action `toggle` |
 | L'accessibilité | `alt` requis, le titre lu en entier, rien qui bouge sous le mouvement réduit, les repères |
 
@@ -37,6 +38,9 @@ le `DatePicker` du kit PHIL UX, dont le nom est celui du `DatePicker` du kit Sha
 | L'entrée de l'illustration | Un découpage en biais | `animate-in fade-in slide-in-from-end-8`, sous `motion-safe` |
 | Les couleurs d'une célébration | `--phil-color-brand-fill-loud` et les remplissages francs des tonalités de succès, d'avertissement, de danger et d'information | `--primary`, puis les jetons `chart-1` à `chart-5` du kit Shadcn |
 | Le canvas d'une célébration | `isCelebrationCanvas`, caché par phil-ux en mouvement réduit et sur papier | `pointer-events-none fixed inset-0 z-50 size-full motion-reduce:hidden in-data-[motion=reduce]:hidden print:hidden` |
+| Le décor de saison | `isSeasonalDecor`, qui ne prend aucune place, son canvas, son coquelicot, ses œufs et son bouton placés par phil-ux | `data-slot="seasonal-decor"`, `contents` ; le canvas `pointer-events-none fixed inset-0 z-50 size-full print:hidden`, le coquelicot `fixed bottom-4 start-4`, le bouton `fixed bottom-4 end-4`, les œufs `size-11 text-amber-500` |
+| La montée d'un podium | `isPodium` et son `data-state`, lus par phil-ux sous `prefers-reduced-motion: no-preference` | `data-slot="podium"`, `group/podium` et `group/place` ; `motion-safe:group-data-[state=waiting]/podium:scale-y-0` sur les marches, `translate-y-4` et `opacity-0` sur les noms, `delay-300` et `delay-600` selon la place |
+| La couverture d'une carte à gratter | `--phil-color-neutral-fill-loud` | `--muted-foreground` |
 | Le cadre d'une image | `hasRounded`, `hasFramed`, `hasRaised`, tirés des jetons de phil-ux et de `--phil-image-radius`, `--phil-image-frame-color`, `--phil-image-shadow` | `rounded-lg`, `border border-border`, `shadow-md` |
 | Un jeton | `hasToken`, son anneau `--phil-image-token-color` | `aspect-square object-cover rounded-full border-4 border-primary`, à la place du rapport, de l'ajustement, des coins et de la ligne |
 | Le pixel art | `hasPixelated` | `[image-rendering:pixelated]` |

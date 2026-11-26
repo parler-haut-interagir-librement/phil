@@ -34,6 +34,9 @@ kit is not repeated here.
 | [ColorPicker](color-picker/README.md) | component | The colour well of the browser, its hexadecimal value and swatches to choose from. The well is the field: it works alone without a script. | Implemented and tested |
 | [CopyButton](copy-button/README.md) | component | A button that copies a text, given or read from another element, and says so. | Implemented and tested |
 | [Celebration](celebration/README.md) | component | A message said in a live region, and an effect drawn over the page on a canvas for a few seconds, in the `--primary` and `--chart-*` tokens: confetti, fireworks, a laser show, balloons and seven more; the message alone where motion is reduced or the person chose none, fewer pieces when discreet or tired. Played at once, on an event, by a button or by a Turbo Stream. | Implemented and tested |
+| [SeasonalDecor](seasonal-decor/README.md) | component | A decor for the holidays, chosen by the site and off by default, drawn over the page for a few seconds, a still picture where motion is reduced, a fixed poppy for a day of remembrance, an egg hunt and a secret code; the holiday of the day from `seasonal_decor()` of phil/ux-kit. | Implemented and tested |
+| [Podium](podium/README.md) | component | The first three of a ranking rising on their steps, the winner last, then said; standing from the start where motion is reduced. | Implemented and tested |
+| [ScratchCard](scratch-card/README.md) | component | A prize under a cover scratched away by a pointer, or revealed at once by its button, in the `--muted-foreground` token; then said and celebrated. | Implemented and tested |
 | [AnimatedButton](animated-button/README.md) | component | A button, or a link when it has an address, that moves under the pointer and the focus: a light sweeping across it, a lift or its arrow pushed forward. Pure CSS. | Implemented and tested |
 | [Stepper](stepper/README.md) | component | The steps of a process, the finished ones marked, the current one announced, reading downwards on a phone. | Implemented and tested |
 | [ActivityCalendar](activity-calendar/README.md) | component | Activity over time: a cell per day, each read through its label, the colour never standing alone. Wider than the screen, it scrolls by itself and takes the focus to do so. | Implemented and tested |
@@ -78,11 +81,11 @@ php bin/console ux:install coming-soon --kit=github.com/parler-haut-interagir-li
 ```
 
 ## Requirements
-
-Tailwind CSS 4 with the Shadcn kit's stylesheet and tw-animate-css, as the Shadcn kit installs them; Symfony UX Twig
+ Tailwind CSS 4 with the Shadcn kit's stylesheet and tw-animate-css, as the Shadcn kit installs them; Symfony UX Twig
 Component 3.7 or later; Symfony UX Toolkit 3.7.1 or later to install the recipes; the StimulusBundle for the recipes
 with a controller (`AnimatedHeadline`, `Carousel`, `Celebration`, `Lightbox`, `ColorPicker`, `CopyButton`, `Tree`,
-`NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader`) and the blurred preview of `Image`; `twig/extra-bundle`, `twig/html-extra`, `symfony/web-link`
+`NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader`, `SeasonalDecor`,
+`Podium`, `ScratchCard`) and the blurred preview of `Image`; `twig/extra-bundle`, `twig/html-extra`, `symfony/web-link`
 and `phil/ux-kit`, whose bundle lists the hosts whose images a page may show, for `Image`; the `--chart-1` to
 `--chart-5` tokens of the Shadcn kit for `Chart`; Symfony UX Chart.js for `ChartJs`.
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4f414977740a6cc7f4008df33eb3e6a6c71789bb304163e60d5fc6e0d25c82f6 -->
+<!-- phil-dev source-sha256=5c9271a3f6f1578f021c48ad90d405be9d2941009763c835228ac390d6611b10 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -23,6 +23,12 @@
 | `copy-button/templates/components/` | Le composant `CopyButton` |
 | `celebration/templates/components/` | Le composant `Celebration` |
 | `celebration/assets/controllers/` | Le contrôleur Stimulus `celebration`, ses effets et son peintre, les mêmes fichiers que dans le kit PHIL UX |
+| `seasonal-decor/manifest.json`, `seasonal-decor/README.md`, `seasonal-decor/templates/components/` | La recette et le composant `SeasonalDecor` |
+| `seasonal-decor/assets/controllers/` | Le contrôleur Stimulus `seasonal-decor` et ses décors, les mêmes fichiers que dans le kit PHIL UX |
+| `podium/manifest.json`, `podium/README.md`, `podium/templates/components/` | La recette et le composant `Podium` |
+| `podium/assets/controllers/` | Le contrôleur Stimulus `podium`, le même fichier que dans le kit PHIL UX |
+| `scratch-card/manifest.json`, `scratch-card/README.md`, `scratch-card/templates/components/` | La recette et le composant `ScratchCard` |
+| `scratch-card/assets/controllers/` | Le contrôleur Stimulus `scratch-card`, le même fichier que dans le kit PHIL UX |
 | `animated-button/templates/components/` | Le composant `AnimatedButton` |
 | `stepper/templates/components/` | Le composant `Stepper` |
 | `activity-calendar/templates/components/` | Le composant `ActivityCalendar` |

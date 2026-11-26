@@ -222,6 +222,17 @@
             <twig:Button id="celebrate" data-action="celebration#play">Celebrate</twig:Button>
         </twig:Celebration>
     </section>
+    <section id="festive" class="isStack">
+        <twig:Podium id="podium" :places="[{name: 'Ada', score: 42}, {name: 'Grace', score: 37}, {name: 'Alan', score: 31}]" message="Ada wins" :autoplay="false">
+            <twig:Button id="rise" data-action="podium#rise">Reveal the podium</twig:Button>
+        </twig:Podium>
+        <twig:ScratchCard id="scratch" label="Reveal the prize" message="A free coffee" :threshold="20">
+            <p>A <strong>free coffee</strong></p>
+        </twig:ScratchCard>
+        <p id="nest" data-egg-nest>A nest for the eggs of the hunt.</p>
+        {#- The decor waits in a template, so that it draws only for the tests that put it in the page. -#}
+        <template id="decor"><twig:SeasonalDecor decor="snow" holiday="test-holiday" :eggs="2" code="g o" codeMessage="Secret found" :duration="2000" /></template>
+    </section>
 </main>
 </body>
 </html>

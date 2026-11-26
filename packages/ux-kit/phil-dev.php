@@ -9,7 +9,8 @@ return [
     'paths' => ['src', 'tests'],
     'deptrac' => [
         // Two layers rather than those of a bundle: the bundle and its Twig functions, which read phil/url, and
-        // phil/structured-data when it is installed, for the ImageObject of an image; and
+        // phil/structured-data when it is installed, for the ImageObject of an image, and phil/almanac, for the days of the
+        // holidays of the seasonal decor; and
         // src/Test, the browser test case and the page of recipes published for the browser suites of other kits, which
         // is test code: it sees PHPUnit, the WebDriver Panther drives and Twig, all development requirements, as the
         // infrastructure of a bundle sees what it integrates.
@@ -18,7 +19,7 @@ return [
             'PhilUxKitTest' => '^Phil\\\\UxKit\\\\Test\\\\.*',
         ],
         'ruleset' => [
-            'PhilUxKit' => ['DefaultAllowed', 'Forbidden', 'PhilUrl', 'PhilStructuredData'],
+            'PhilUxKit' => ['DefaultAllowed', 'Forbidden', 'PhilUrl', 'PhilStructuredData', 'PhilAlmanac'],
             'PhilUxKitTest' => ['DefaultAllowed', 'Forbidden'],
         ],
     ],

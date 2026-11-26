@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6b4617b2675b8987d75799e99e039ea3e42f328cfd8483739990e4a35fa2f4b4 -->
+<!-- phil-dev source-sha256=d858651e53f121a8b64f73aa5d62948d4b9831cd2f075079c7c92116d3beb1b1 -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -1402,6 +1402,78 @@ nouveau quand le schéma de couleurs ou un attribut de la racine change pendant 
 |---|---|
 | `celebrate(message, effect, focus)` | Un `<turbo-stream action="celebrate">` avec les valeurs données, chacune échappée, un effet inconnu écrit `confetti` ; dans une réponse Turbo Stream, sur un sujet Mercure ou dans la page, il joue la `Celebration` de la page |
 | `celebration_messages(locale)` | Les mots de louange d'une locale, ou de la requête, en anglais ou en français, l'anglais pour toute autre langue |
+
+## SeasonalDecor
+
+`<twig:SeasonalDecor>` : rien pour un décor inconnu ; sinon un `div` de classe `isSeasonalDecor`, qui ne prend aucune
+place : le coquelicot, un `svg` de classe `isSeasonalDecorPoppy` fixé dans un coin, pour le décor `poppy` ; le `template`
+de son canvas, de classe `isSeasonalDecorCanvas`, et celui d'un œuf, un bouton de classe `isSeasonalEgg` ; le paragraphe
+de classe `isSeasonalDecorCounter`, une région active polie ; le bouton de classe `isSeasonalDecorClose`, caché jusqu'à
+ce que le contrôleur le montre. Contrôleur `seasonal-decor` : l'action `close`, et un clic sur chaque œuf, qui écoute
+lui-même, les nids se trouvant hors du contrôleur ; les événements `seasonal-decor:closed`, `seasonal-decor:found`, dont
+le `detail` donne `found` et `total`, `seasonal-decor:hunted` et `seasonal-decor:code` ; l'événement DOM `celebrate` sur
+la fenêtre quand le dernier œuf est trouvé et quand le code est tapé. Les pièces bougent pendant la `duration` et
+s'estompent pendant ses 1,5 dernières secondes ; une image fixe là où le mouvement est réduit, par le système ou par
+`data-motion="reduce"` sur un ancêtre, ou un jour sobre ; rien quand la personne a choisi `data-celebrations="none"`,
+sauf un décor sobre. La fermeture et les œufs trouvés sont retenus dans le stockage local sous
+`phil-seasonal-decor:closed:<holiday>` et `phil-seasonal-decor:eggs:<holiday>`.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `decor` | `''` | Ce qui est dessiné : `snow`, `hearts`, `clovers`, `eggs`, `bats`, `leaves`, `petals`, `lanterns`, `maple-leaves`, `fleurs-de-lis` ou `poppy` ; rien pour tout autre nom |
+| `holiday` | `''` | Sous quoi la fermeture et les œufs trouvés sont retenus, en règle générale `seasonal_decor().id` ; pour la page seule sans lui |
+| `sober` | `false` | Un jour du souvenir : une image fixe, pas de chasse, pas de code ; toujours pour le coquelicot |
+| `closeLabel` | `Hide the decorations` | Le nom du bouton qui le ferme |
+| `eggs` | `0` | Combien d'œufs se cachent dans les éléments marqués `data-egg-nest`, dans le décor sans eux |
+| `eggLabel` | `A hidden egg` | Le nom de chaque œuf |
+| `counter` | `Eggs found: %found% of %total%` | Ce que dit la chasse à chaque œuf trouvé |
+| `hunted` | `Every egg found!` | Ce qui est dit, et célébré, quand le dernier œuf est trouvé |
+| `code` | Le code Konami | Les touches du code secret, séparées par des espaces, comme les nomme `KeyboardEvent.key` ; aucune quand il est vide |
+| `codeMessage` | `You found the secret code!` | Ce que dit la `Celebration` de la page quand le code est tapé |
+| `codeEffect` | `fireworks` | L'effet qu'elle joue alors, et quand le dernier œuf est trouvé |
+| `duration` | `12000` | Combien de temps le décor bouge, en millisecondes, que le contrôleur garde entre 2000 et 15000 |
+
+| Fonction Twig | |
+|---|---|
+| `seasonal_decor(at)` | La fête où tombe un moment, maintenant sans argument, une date ou un texte lu dans le fuseau horaire de `phil_ux_kit.seasonal.time_zone` : ses `key`, `title`, `decor`, `sober`, `start` et `id`, la clé et le premier jour ; une fête sobre d'abord, puis la première de la liste ; null un jour sans fête, ou tant que `phil_ux_kit.seasonal.enabled` est false, ce qu'il est par défaut |
+
+## Podium
+
+`<twig:Podium>` : un `div` de classe `isPodium` : la liste ordonnée de classe `isPodiumPlaces`, nommée par `label`, des
+trois premiers de `places`, chacun un `isPodiumPlace` avec son `data-place`, son nom, `isPodiumName`, son score,
+`isPodiumScore`, quand il en a un, et sa marche, `isPodiumStep`, cachée aux lecteurs d'écran ; ce qui suit, dans son bloc
+`content` ; le paragraphe de classe `isPodiumMessage`, une région active polie. Contrôleur `podium` : l'action `rise` ;
+`data-state` sur le podium, `waiting`, puis `rising`, puis `risen` 1,2 seconde plus tard pour trois places, la troisième
+montant la première ; l'événement `podium:risen` et, avec un `effect`, l'événement DOM `celebrate` sur la fenêtre. Là où
+le mouvement est réduit, par le système ou par `data-motion="reduce"` sur un ancêtre, les places sont debout dès le
+départ.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `places` | `[]` | Les trois premiers du classement, dans leur ordre, chacun un `name` et un `score` facultatif ; les suivants laissés de côté |
+| `label` | `Podium` | Le nom de la liste, pour les lecteurs d'écran |
+| `message` | `''` | Ce qui est dit une fois qu'ils sont debout sur leurs marches |
+| `effect` | `''` | L'effet que joue la `Celebration` de la page une fois qu'ils sont debout ; aucun quand il est vide |
+| `autoplay` | `true` | Si elles montent dès que le podium entre dans la vue ; sinon par l'action `podium#rise` |
+
+## ScratchCard
+
+`<twig:ScratchCard>` : un `div` de classe `isScratchCard` : le prix, dans son bloc `content`, dans un `div` de classe
+`isScratchCardPrize` ; le `template` de sa couverture, un canvas de classe `isScratchCardCover` ; le bouton de classe
+`isScratchCardButton`, caché jusqu'à ce que le contrôleur le montre ; le paragraphe de classe `isScratchCardMessage`, une
+région active polie. Contrôleur `scratch-card` : les actions `press`, `scratch` et `release` du pointeur sur la
+couverture, et `reveal` ; l'événement `scratch-card:revealed` et, avec un `effect`, l'événement DOM `celebrate` sur la
+fenêtre. Tant qu'il est couvert, le prix est `aria-hidden` et `inert` ; la part grattée est comptée sur une grille de 12
+par 8 cellules ; une fois révélée, la couverture s'estompe en 300 millisecondes, d'un coup là où le mouvement est
+réduit, et le focus passe au prix quand il était sur le bouton. La couverture est peinte en
+`--phil-color-neutral-fill-loud`.
+
+| Prop | Par défaut | |
+|---|---|---|
+| `label` | `Reveal` | Les mots du bouton qui révèle le prix d'un coup |
+| `message` | `''` | Ce qui est dit une fois le prix révélé ; son texte quand il est vide |
+| `threshold` | `50` | La part de la couverture, en pourcentage, qui révèle le prix une fois grattée, gardée entre 10 et 90 |
+| `effect` | `''` | L'effet que joue la `Celebration` de la page une fois le prix révélé ; aucun quand il est vide |
 
 ## AnimatedButton
 

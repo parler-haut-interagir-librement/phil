@@ -34,6 +34,7 @@
     "require-dev": {
         "ext-gd": "*",
         "liip/imagine-bundle": "^2.19",
+        "phil/almanac": "^0.1@dev",
         "phil/qr-code-bundle": "^0.1@dev",
         "phil/structured-data": "^0.1@dev",
         "php-webdriver/webdriver": "^1.16",
@@ -56,6 +57,7 @@
     "suggest": {
         "ext-gd": "To compare the screenshots of the browser test case of src/Test/ with their references",
         "liip/imagine-bundle": "For image_filters(), the props of a picture from the filter sets of LiipImagine",
+        "phil/almanac": "For seasonal_decor(), the holiday of the day and its decor, from the rules of the configuration",
         "phil/structured-data": "For image_json_ld(), the ImageObject of an image in JSON-LD, which the structured prop of the image recipes writes",
         "php-webdriver/webdriver": "To extend the browser test case of src/Test/",
         "phpunit/phpunit": "To extend the browser test case of src/Test/",
