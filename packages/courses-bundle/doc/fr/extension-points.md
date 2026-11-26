@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fba11ce86e98a2537f4be766b333b7323ab1a51c83442483bb782fc2d342db22 -->
+<!-- phil-dev source-sha256=16bd96806a5e0393a634c959691bba8ee17b676c148f808732d70c1e7bb5c1c1 -->
 # Points d'extension
 
 Le bundle est en versions `0.x` : les ports, les événements et les services ci-dessous peuvent changer dans une version
@@ -97,6 +97,16 @@ membre, les unités au-dessus comprises sauf si `phil_courses.catalogues.units_b
 son propre service dans `phil_courses.catalogues.learner_units`. Sans service, les apprenants ne voient que les
 catalogues publics. Voir [Catalogues](catalogues.md#catalogues-publics-et-catalogues-dunité).
 
+## `TrainingCosts` et `TrainingUnits`
+
+Ce que les [rapports de formation](training-reports.md) de phil/reporting-bundle lisent d'un achèvement en plus de ses
+heures, dans `Phil\CoursesBundle\Application\Contract` : `TrainingCosts::cost(TranscriptEntry $entry)`, un `TrainingCost`
+en unités mineures de `phil_courses.reporting.currency`, nommé dans `phil_courses.reporting.costs` ; et
+`TrainingUnits::unitOf(LearnerId $learner)`, l'identifiant de l'unité de l'apprenant ou `null`, nommé dans
+`phil_courses.reporting.units`. Avec phil/organizations-bundle enregistré, `OrganizationsTrainingUnits` répond à la
+seconde à partir de `UnitTree::unitIdsOf()`. `Infrastructure\Reporting\CoursesTrainingSource` est le `TrainingSource` de
+phil/reporting-bundle qui les lit ; une application fait de ce port un alias vers un service à elle pour le remplacer.
+
 ## `CourseCheckout`
 
 Où un apprenant paie un cours que vend un catalogue : `checkout(CatalogueEntry $entry, LearnerId $learner)` ajoute
@@ -139,8 +149,10 @@ quand ce bundle est enregistré ; une application nomme le sien dans `phil_cours
 
 Les entrepôts des assignations et des obligations, et des relevés et des crédits, des alias de leurs ports vers
 `DbalAssignmentRepository` et `DbalTranscriptRepository`. `AssignmentRepository::actionable()` lit les obligations sur
-lesquelles une exécution agit une page à la fois, après la clé de la dernière de la page précédente ; `removeOf()` sur
-les deux sert le module de vie privée.
+lesquelles une exécution agit une page à la fois, après la clé de la dernière de la page précédente ;
+`TranscriptRepository::completedBetween()` lit les achèvements de tous les apprenants dans un intervalle de temps ligne
+par ligne, les plus anciens d'abord, pour les rapports de formation ; `removeOf()` sur les deux sert le module de vie
+privée.
 
 ## `PackageOpener` et `PackageArchive`
 

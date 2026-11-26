@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d53742ebc60c41e164e77e62c21a3c65c35848a835f993865c0b50d09841a25a -->
+<!-- phil-dev source-sha256=b56bbac1347a5800d56b58cad5e781dcc6deb490801114ed57f2684063bbf64f -->
 # phil/courses-bundle
 
 **Cours en ligne pour Symfony : du contenu SCORM, cmi5 et xAPI exécuté dans la plateforme, la formation obligatoire, les relevés.**
@@ -128,6 +128,7 @@ utilisent DBAL, et sont testés sur SQLite, MySQL 8.4 et PostgreSQL 17.
 | [Activités xAPI](doc/fr/xapi-activities.md) | Les paquets xAPI comme activités : le lancement, les énoncés, le résultat qu'ils enregistrent, leur import, la vie privée. |
 | [Formation obligatoire](doc/fr/mandatory-training.md) | Les cours assignés pour une échéance, les groupes et les unités, les états, les rappels, l'exécution et son calendrier, la recertification. |
 | [Crédits et relevés](doc/fr/credits-and-transcripts.md) | Les crédits des cours, le relevé en page, JSON et CSV, et sa vie privée. |
+| [Rapports de formation](doc/fr/training-reports.md) | Les achèvements comme source de formation de phil/reporting-bundle : heures et coûts par unité organisationnelle et par période, le gabarit du 1 % de la masse salariale, les coûts et les unités que fournit l'application. |
 | [Parcours d'apprentissage](doc/fr/learning-paths.md) | Des cours ordonnés avec prérequis, l'inscription à un parcours, sa progression et son achèvement, certificats et insignes, vie privée. |
 | [Cours équivalents](doc/fr/equivalent-courses.md) | Une formation en plusieurs langues : les groupes, le cours de la langue de l'apprenant, l'achèvement reconnu dans tout le groupe. |
 | [Catalogues](doc/fr/catalogues.md) | Le catalogue public et ceux des unités, l'ordre des cours, les filtres, les tris et les pages, l'autoinscription, les cours vendus par phil/commerce-bundle, les pages. |

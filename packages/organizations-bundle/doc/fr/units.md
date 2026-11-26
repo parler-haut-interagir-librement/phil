@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8ea2e07f8f765276de7dddebdd14d96411406394eef33b2350cb0e8addf41571 -->
+<!-- phil-dev source-sha256=f04079651f53651f4f29da35d5b357d6f9523645e3efe088af4df565a3dbeb72 -->
 # Unités
 
 Une organisation détient des **unités** — départements, services, succursales, classes — en arbre : une unité est une
@@ -97,6 +97,9 @@ module s'appuie :
 Les unités archivées sont laissées de côté sauf si on les demande. Chaque liste d'unités est triée par chemin : un parent
 vient avant ses enfants, et l'ordre des frères et sœurs suit leurs identifiants, octet par octet. Un écran qui liste des
 unités sœurs par nom les trie lui-même.
+
+Avec `phil/reporting-bundle`, les rapports de formation lisent l'arbre par `ReportingUnitDirectory` : voir
+[Intégrations](integrations.md#philreporting-bundle).
 
 Un catalogue qui appartient à une unité et qui est offert aux membres de cette unité et des unités en dessous lit
 `unitIdsOf($organizationId, $member, withAncestors: true)` et garde les catalogues de ces unités.

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=905b224a7e514344a564cd2828f3dbaa4cb81a20ababf3ccb78ed81c77b5b26a -->
+<!-- phil-dev source-sha256=f936b1292d15593d9be0a2f00d64c66ffc87c313c5ece9a97abcaeae66cb5f93 -->
 # Crédits et relevés
 
 Un cours peut accorder des crédits — des unités de formation continue ou des heures — à son achèvement. Chaque
@@ -32,6 +32,9 @@ Avec les [groupes de cours équivalents](equivalent-courses.md), un groupe est c
 n'accorde aucun crédit lui-même accorde ceux du premier cours de son groupe, par langue, qui en accorde ; et un
 achèvement qui ne remplit aucune obligation alors que le relevé de l'apprenant contient déjà un cours équivalent entre
 dans le relevé sans crédits. Un achèvement qui remplit le cycle suivant d'une recertification est crédité de nouveau.
+
+Avec phil/reporting-bundle, les achèvements de chaque relevé alimentent ses rapports d'heures et de coûts de formation
+par unité et par période, et son gabarit du 1 % de la masse salariale : voir [Rapports de formation](training-reports.md).
 
 `Transcripts::of(LearnerId $learner)` donne un `Transcript` : ses entrées, la plus récente d'abord ;
 `total(CreditUnit $unit)`, les centièmes de cette unité ; `toArray()` ; et `csv()`.
