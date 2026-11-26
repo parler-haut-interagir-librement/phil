@@ -10,6 +10,7 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  *
  * The optional integrations — `doctrine/orm` for the schema listener, `phil/privacy-bundle` for the exporter and
  * eraser, `phil/access-bundle`, `phil/resource-permissions` and `phil/resource` for the relations and tuples,
+ * `phil/reporting-bundle` for the unit directory of its training reports,
  * `symfony/console` for the commands, `symfony/security-core` for the voter, Twig, the CSRF protection, HttpFoundation,
  * HttpKernel and routing for the administration pages of the units — are used by the production code but only required
  * in development and suggested: the bundle registers each only when it is installed.
@@ -21,6 +22,7 @@ return new Configuration()
         'doctrine/orm',
         'phil/access-bundle',
         'phil/privacy-bundle',
+        'phil/reporting-bundle',
         'phil/resource',
         'phil/resource-permissions',
         'symfony/console',

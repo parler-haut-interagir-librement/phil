@@ -11,6 +11,8 @@ use Phil\OrganizationsBundle\Application\Units;
 use Phil\OrganizationsBundle\Application\UnitTree;
 use Phil\OrganizationsBundle\Infrastructure\Access\OrganizationRelations;
 use Phil\OrganizationsBundle\Infrastructure\Http\UnitAdminController;
+use Phil\OrganizationsBundle\Infrastructure\Reporting\ReportingUnitDirectory;
+use Phil\ReportingBundle\Application\Contract\UnitDirectory;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -19,12 +21,13 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  *
  * - the units, when its store keeps none — a store of its own that implements `OrganizationStore` and not
  *   `UnitStore` —; the services that read the units only when there are some — the members, the erasure, the privacy
- *   and the voter — then go without, and the units stay out of the access model of `phil/access-bundle`;
+ *   and the voter — then go without, the units stay out of the access model of `phil/access-bundle`, and
+ *   `phil/reporting-bundle` reports each unit alone;
  * - the administration pages of the units, without Twig, the router or the CSRF token manager.
  */
 final readonly class UnitServicesPass implements CompilerPassInterface
 {
-    public const array UNIT_SERVICES = [UnitAccess::class, Units::class, UnitTree::class, UnitAdminController::class];
+    public const array UNIT_SERVICES = [UnitAccess::class, Units::class, UnitTree::class, UnitAdminController::class, ReportingUnitDirectory::class];
 
     public const array PAGE_SERVICES = ['twig', 'router', 'security.csrf.token_manager'];
 
@@ -36,6 +39,10 @@ final readonly class UnitServicesPass implements CompilerPassInterface
 
             foreach (self::UNIT_SERVICES as $id) {
                 $container->removeDefinition($id);
+            }
+
+            if ($container->hasAlias(UnitDirectory::class) && ReportingUnitDirectory::class === (string) $container->getAlias(UnitDirectory::class)) {
+                $container->removeAlias(UnitDirectory::class);
             }
 
             if ($container->hasDefinition(OrganizationRelations::class)) {

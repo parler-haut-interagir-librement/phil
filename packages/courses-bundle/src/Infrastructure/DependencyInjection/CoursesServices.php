@@ -105,10 +105,12 @@ use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
 use Phil\CoursesBundle\Infrastructure\Import\ElearningXapiPackageReader;
 use Phil\CoursesBundle\Infrastructure\Notifications\NotificationsTrainingNotifier;
 use Phil\CoursesBundle\Infrastructure\Organizations\OrganizationsLearnerUnits;
+use Phil\CoursesBundle\Infrastructure\Organizations\OrganizationsTrainingUnits;
 use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\PathsPrivacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\TrainingPrivacy;
+use Phil\CoursesBundle\Infrastructure\Reporting\CoursesTrainingSource;
 use Phil\CoursesBundle\Infrastructure\Routing\RoutedCmi5Endpoints;
 use Phil\CoursesBundle\Infrastructure\Scheduler\TrainingSchedule;
 use Phil\CoursesBundle\Infrastructure\Security\SecurityCurrentLearner;
@@ -125,6 +127,7 @@ use Phil\OrganizationsBundle\Application\Organizations;
 use Phil\OrganizationsBundle\Application\UnitTree;
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
 use Phil\PrivacyBundle\PhilPrivacyBundle;
+use Phil\ReportingBundle\Application\Contract\TrainingSource;
 use Phil\SafeHttp\Limits;
 use Phil\SafeHttp\SafeHttpClient;
 use Symfony\Component\Console\Command\Command;
@@ -147,7 +150,8 @@ use Twig\Environment;
  * chances with phil/audit-bundle, and the SCORM attempts in the access and erasure requests of phil/privacy-bundle;
  * the xAPI activities on the endpoint of cmi5; the mandatory training, its pages, commands, schedule and
  * notifications; the learning paths and the groups of equivalent courses; the catalogues, the units of
- * phil/organizations-bundle they are shown to, and the courses they sell through phil/commerce-bundle.
+ * phil/organizations-bundle they are shown to, and the courses they sell through phil/commerce-bundle; and the
+ * completions as the training source of phil/reporting-bundle.
  *
  * @phpstan-type Config array{
  *     connection: string,
@@ -164,6 +168,7 @@ use Twig\Environment;
  *     scorm: array{enabled: bool, token_ttl: int, secret: string},
  *     training: array{enabled: bool, reminder_days: int, renewal_grace_days: int, max_members: int, run_at: string, schedule: bool, manager_role: string, notifier: ?string, keep_transcripts: bool},
  *     catalogues: array{learner_units: ?string, units_below: bool, checkout: ?string, tax_category: string},
+ *     reporting: array{enabled: bool, currency: string, ceu_hours: int<1, 1000>, costs: ?string, units: ?string},
  *     admin: array{role: string},
  *     audit: array{enabled: bool, segment: string}
  * }
@@ -223,6 +228,7 @@ final class CoursesServices
         self::cmi5($container, $clock, $events, $config);
         self::training($container, $clock, $events, $config, $bundles);
         self::catalogues($container, $clock, $config, $bundles);
+        self::reporting($container, $config, $bundles);
 
         if (class_exists(Command::class)) {
             $container->register(ImportCommand::class, ImportCommand::class)->setArguments([new Reference(CourseImporter::class)])->addTag('console.command');
@@ -494,6 +500,40 @@ final class CoursesServices
                 ->addTag(PhilPrivacyBundle::EXPORTER_TAG)
                 ->addTag(PhilPrivacyBundle::ERASER_TAG);
         }
+    }
+
+    /**
+     * The completions of the transcripts as the training source of phil/reporting-bundle, when it is registered, the
+     * mandatory training — which keeps the transcripts — enabled and the source not disabled: their costs from the
+     * application's `TrainingCosts`, their units from its `TrainingUnits` or from the tree of units of
+     * phil/organizations-bundle when it is registered.
+     *
+     * @param Config          $config
+     * @param list<array-key> $bundles
+     */
+    private static function reporting(ContainerBuilder $container, array $config, array $bundles): void
+    {
+        $reporting = $config['reporting'];
+
+        if (!$reporting['enabled'] || !$config['training']['enabled'] || !interface_exists(TrainingSource::class) || !\in_array('PhilReportingBundle', $bundles, true)) {
+            return;
+        }
+
+        $units = $reporting['units'];
+
+        if (null === $units && class_exists(UnitTree::class) && \in_array('PhilOrganizationsBundle', $bundles, true)) {
+            $container->register(OrganizationsTrainingUnits::class, OrganizationsTrainingUnits::class)->setArguments([new Reference(Organizations::class), new Reference(UnitTree::class)]);
+            $units = OrganizationsTrainingUnits::class;
+        }
+
+        $container->register(CoursesTrainingSource::class, CoursesTrainingSource::class)->setArguments([
+            new Reference(TranscriptRepository::class),
+            $reporting['currency'],
+            $reporting['ceu_hours'],
+            null === $reporting['costs'] ? null : new Reference($reporting['costs']),
+            null === $units ? null : new Reference($units),
+        ]);
+        $container->setAlias(TrainingSource::class, CoursesTrainingSource::class);
     }
 
     /**

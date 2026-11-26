@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2d102aee9ff5b0da13d87c9c74cedee12be216aae8713425e81fdade27fbe890 -->
+<!-- phil-dev source-sha256=9e74c296a6885c04df6bde14651a8e97d048d08062f065b8d8f3433f5df8ab87 -->
 # phil/organizations-bundle
 
 **Des organisations pour Symfony, destinées à quiconque construit son propre service d'identité et d'accès : membres,
@@ -78,7 +78,7 @@ recettes du kit PHIL UX.
 | [Invitations](doc/fr/invitations.md) | Créer, accepter, révoquer et purger des invitations ; adhérer par un domaine vérifié. |
 | [Agir au nom de l'organisation](doc/fr/on-behalf.md) | Agir comme l'organisation pendant que le véritable auteur est consigné. |
 | [Événements](doc/fr/events.md) | Chaque événement, quand il est émis et ce qu'il porte. |
-| [Intégrations](doc/fr/integrations.md) | Le voter, `phil/privacy-bundle`, `phil/access-bundle`, `phil/audit-bundle`. |
+| [Intégrations](doc/fr/integrations.md) | Le voter, `phil/privacy-bundle`, `phil/access-bundle`, `phil/reporting-bundle`, `phil/audit-bundle`. |
 | [Console](doc/fr/console.md) | Les quatre commandes. |
 | [Notes de sécurité](doc/fr/security.md) | Ce dont le bundle se défend, et ce qu'il laisse à l'application. |
 | [Points d'extension](doc/fr/extension-points.md) | Les services à remplacer, les contrats à implémenter, et quand ils sont stables. |

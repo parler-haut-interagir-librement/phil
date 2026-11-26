@@ -357,6 +357,7 @@ final class CourseTables
                 ->addColumn(self::column('cycle', Types::INTEGER, false))
                 ->addPrimaryKeyConstraint(self::primary('id'))
                 ->addIndex(self::index('idx_phil_course_transcript_learner', 'learner', 'completed_at'))
+                ->addIndex(self::index('idx_phil_course_transcript_completed', 'completed_at'))
                 ->create(),
             self::CREDITS => Table::editor()->setUnquotedName(self::CREDITS)
                 ->addColumn(self::id('course_id'))

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6a518c9e1b58063d1e7450ee95654b6dfeddbd5c4d77e4d83dd919771b892204 -->
+<!-- phil-dev source-sha256=2c1a8851e6d31004bf72c611c1d10dd557ba33d661206b0e0a390a0b0238a370 -->
 # Intégrations
 
 ## Le voter
@@ -121,6 +121,20 @@ Les unités restent hors du modèle d'accès avec `access.unit_kind: null`, ou q
 Les genres s'appellent `organization`, `team` et `unit`, à moins que `access.organization_kind`, `access.team_kind` et
 `access.unit_kind` n'en disent autrement ; un genre déjà présent dans le modèle arrête le conteneur. Les identifiants de
 membre suivent la règle du `MemberId` de `phil/access-bundle`.
+
+## `phil/reporting-bundle`
+
+Quand `phil/reporting-bundle` est installé, `ReportingUnitDirectory` est le `UnitDirectory` que lisent ses rapports de
+formation : le chemin d'une unité depuis sa racine, par `UnitTree::unit()` et `UnitTree::ancestors()`, chaque unité étant
+nommée par son identifiant et son nom. Le rapport des heures et des coûts de formation place alors chaque unité sous son
+parent, additionne les unités en dessous d'elle et garde une unité archivée à sa place. Un texte qui n'est pas un
+identifiant d'unité, ou une unité que l'arbre ne connaît pas, n'a pas de chemin : le rapport la montre seule, nommée par
+son identifiant.
+
+Une application qui fait de `Phil\ReportingBundle\Application\Contract\UnitDirectory` un alias vers un service à elle le
+conserve. Avec un entrepôt qui ne garde aucune unité, l'adaptateur est omis et les rapports nomment chaque unité seule.
+Quel apprenant appartient à quelle unité, c'est au système d'apprentissage de le dire : phil/courses-bundle y répond à
+partir du même arbre.
 
 ## `phil/audit-bundle`
 

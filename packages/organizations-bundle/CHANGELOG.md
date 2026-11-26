@@ -19,6 +19,9 @@ names the units otherwise. See [Upgrading](doc/upgrading.md#from-02-to-03).
   created or moves and when its members join, change roles or leave it.
 - The configuration `access.unit_kind`, `unit` by default, `null` to leave the units out of the access model, as a
   store that keeps no units does.
+- `ReportingUnitDirectory`, the `UnitDirectory` of phil/reporting-bundle when it is installed: its training reports
+  name each unit and place it under its parent, archived units included; left out with the units of a store that keeps
+  none.
 
 ### Changed
 

@@ -92,6 +92,9 @@ Archived units are left out unless asked for. Every list of units is sorted by p
 and the order of siblings follows their identifiers, byte by byte. A screen that lists siblings by name sorts them
 itself.
 
+With `phil/reporting-bundle`, the training reports read the tree through `ReportingUnitDirectory`: see
+[Integrations](integrations.md#philreporting-bundle).
+
 A catalogue that belongs to a unit and is offered to the members of that unit and of the units below it reads
 `unitIdsOf($organizationId, $member, withAncestors: true)` and keeps the catalogues of those units.
 

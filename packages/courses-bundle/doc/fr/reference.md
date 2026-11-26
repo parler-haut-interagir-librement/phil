@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fe072d2c46d7e9b2d439d2995b9b55c5e8f8dea0addc9b0fec58bb7968195422 -->
+<!-- phil-dev source-sha256=63ecdb478f0d84fc56eda6e06c8265ca4a080ced1620e2c63837f579deac3a2d -->
 # Référence
 
 ## Bundle
@@ -85,7 +85,7 @@
 | `Application\Launch`, `LaunchWindow`, `LaunchUrl` | L'endroit où l'apprenant va pour suivre une activité, et les paramètres ajoutés à son URL |
 | `Application\ContentUrls` | Les adresses des fichiers sur l'origine du contenu |
 | `Application\CourseOutline`, `ModuleOutline`, `ActivityStatus` | Un cours lu comme un plan, et où en est une activité |
-| `Application\Contract\ActivityType`, `CurrentLearner`, `ContentStorage`, `LearningRecordStore`, `Cmi5Endpoints`, `XapiPackageReader`, `AssigneeMembers`, `TrainingNotifier`, `LearnerUnits`, `CourseCheckout` | Les ports ; les paquets sont ouverts par le `PackageOpener` de phil/elearning-packages |
+| `Application\Contract\ActivityType`, `CurrentLearner`, `ContentStorage`, `LearningRecordStore`, `Cmi5Endpoints`, `XapiPackageReader`, `AssigneeMembers`, `TrainingNotifier`, `LearnerUnits`, `CourseCheckout`, `TrainingCosts`, `TrainingUnits` | Les ports ; les paquets sont ouverts par le `PackageOpener` de phil/elearning-packages |
 | `Application\Import\CourseImporter` | Importe un paquet ou une structure de cours, lus par phil/elearning-packages |
 | `Application\Import\ScormPlanner`, `Cmi5Planner`, `XapiPlanner`, `ImportPlan`, `PlannedModule`, `PlannedBlock`, `PlannedActivity` | Transforment un manifeste en cours à créer |
 | `Application\Import\XapiPackage`, `XapiLaunchable` | Ce qu'un lecteur de paquets xAPI a trouvé |
@@ -108,6 +108,7 @@
 | `Application\Training\TrainingRun`, `TrainingReport`, `TrainingSettings` | Une exécution de rappels, de renouvellements et de nouveaux membres, et ses réglages |
 | `Application\Training\Recertification` | Quand un achèvement est renouvelé, par phil/recurrence |
 | `Application\Training\Transcripts`, `Transcript` | Les crédits des cours et les relevés, en tableau et en CSV |
+| `Application\Training\TrainingCost` | Ce qu'un achèvement a coûté et sa part admissible, en unités mineures, bornés |
 | `Application\Training\TrainingCompletions` | Écoute `CourseCompleted` : les obligations, puis le relevé |
 | `Application\Message\RunTraining`, `Application\Handler\RunTrainingHandler` | Le message du calendrier et son handler |
 | `Application\Cmi5\Cmi5Satisfaction` | Émet les énoncés `satisfied` des blocs et du cours, une seule fois pour chaque inscription ; interne, atteint par `Cmi5Statements::satisfy()` |
@@ -123,6 +124,8 @@
 | `Infrastructure\Doctrine\DbalCatalogueRepository` | Les catalogues et leurs entrées par DBAL, les cours offerts lus en une requête |
 | `Infrastructure\Http\CatalogueController` | Les pages des catalogues et l'inscription depuis un catalogue |
 | `Infrastructure\Organizations\OrganizationsLearnerUnits` | Les unités dont les catalogues atteignent un apprenant, d'après l'arbre d'unités de phil/organizations-bundle |
+| `Infrastructure\Organizations\OrganizationsTrainingUnits` | L'unité dans laquelle compte la formation d'un apprenant, d'après l'arbre d'unités de phil/organizations-bundle |
+| `Infrastructure\Reporting\CoursesTrainingSource` | Les achèvements des relevés comme `TrainingSource` de phil/reporting-bundle : leurs heures d'après leurs crédits, leurs coûts et leurs unités d'après les ports |
 | `Infrastructure\Commerce\CourseSellables`, `CoursePurchases` | Les cours vendus par phil/commerce-bundle : les articles vendables de type `course`, et l'acheteur inscrit à chaque `OrderPurchased` |
 | `Infrastructure\Import\ElearningXapiPackageReader` | Le lecteur de paquets xAPI sur le `XapiCourseReader` de phil/elearning-packages |
 | `Infrastructure\Privacy\PathsPrivacy` | Les inscriptions aux parcours d'apprentissage dans les demandes d'accès et d'effacement de phil/privacy-bundle |

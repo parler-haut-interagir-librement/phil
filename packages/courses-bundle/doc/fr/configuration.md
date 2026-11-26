@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a5e2090ee6936c83b446a544e9e8effeee75893e01df38a2e981558d950f5496 -->
+<!-- phil-dev source-sha256=b6db3ea7e803713cd0ea3bfcf02d52f5ddc2c2825b9822db3600d6a9b0ce02d9 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_courses`. Chaque option a une valeur par défaut ; une application nomme
@@ -68,6 +68,12 @@ phil_courses:
         units_below: true
         checkout: null
         tax_category: standard
+    reporting:
+        enabled: true
+        currency: CAD
+        ceu_hours: 10
+        costs: null
+        units: null
     admin:
         role: ROLE_COURSES_TEACHER
     audit:
@@ -129,6 +135,11 @@ phil_courses:
 | `catalogues.units_below` | `true` | Si le catalogue d'une unité atteint aussi les membres des unités en dessous d'elle : un catalogue de Sales montré aux membres de sa succursale de l'est. `false` le garde aux membres de l'unité elle-même. `OrganizationsLearnerUnits` la lit ; un `LearnerUnits` propre à l'application répond de lui-même. Voir [Catalogues](catalogues.md#catalogues-publics-et-catalogues-dunité). |
 | `catalogues.checkout` | `null` | Un service `CourseCheckout` qui ajoute un cours vendu au panier de l'apprenant et répond où il paie ; les cours avec un prix sont montrés sans formulaire quand la valeur est `null`. Voir [Catalogues](catalogues.md#cours-vendus-par-philcommerce-bundle). |
 | `catalogues.tax_category` | `standard` | La catégorie de taxe des cours vendus par phil/commerce-bundle, que lit son `TaxRateResolver`. |
+| `reporting.enabled` | `true` | Si les achèvements des relevés sont la source de formation de phil/reporting-bundle, quand ce bundle est enregistré et la formation obligatoire activée. Voir [Rapports de formation](training-reports.md). |
+| `reporting.currency` | `CAD` | Le code ISO 4217 de la devise dans laquelle sont comptés les coûts des achèvements, trois majuscules. |
+| `reporting.ceu_hours` | `10` | Les heures d'une unité de formation continue, de 1 à 1000, pour les cours dont les crédits sont en de telles unités. |
+| `reporting.costs` | `null` | Un service `TrainingCosts` qui répond ce que chaque achèvement a coûté ; chaque achèvement coûte zéro quand il est nul. |
+| `reporting.units` | `null` | Un service `TrainingUnits` qui nomme l'unité dans laquelle compte la formation d'un apprenant ; `OrganizationsTrainingUnits`, sur l'arbre d'unités de phil/organizations-bundle, quand il est nul et que ce bundle est enregistré ; aucun autrement. |
 | `admin.role` | `ROLE_COURSES_TEACHER` | Le rôle qu'un enseignant détient pour voir et trancher les secondes chances sur la page d'administration. |
 | `audit.enabled` | `true` | Écrit les secondes chances — demandées, accordées, refusées, dispensées — dans la piste de phil/audit-bundle, quand ce bundle est enregistré. |
 | `audit.segment` | `courses` | Le segment de la piste. |

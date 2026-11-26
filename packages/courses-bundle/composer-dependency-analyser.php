@@ -16,7 +16,8 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  * the SCORM attempts, the cmi5 and xAPI records and the training in the access and erasure requests,
  * phil/notifications-bundle for the reminders of the mandatory training, Symfony Messenger and Scheduler for their
  * schedule, phil/organizations-bundle for the units the catalogues are shown to, phil/commerce-bundle and phil/money
- * for the courses the catalogues sell, and ext-intl and symfony/intl to write their prices.
+ * for the courses the catalogues sell, ext-intl and symfony/intl to write their prices, and phil/reporting-bundle for
+ * the training source of its reports.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
@@ -30,6 +31,7 @@ return new Configuration()
         'phil/notifications-bundle',
         'phil/organizations-bundle',
         'phil/privacy-bundle',
+        'phil/reporting-bundle',
         'phil/safe-http',
         'psr/log',
         'symfony/console',

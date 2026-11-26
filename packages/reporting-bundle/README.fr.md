@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=858602ccb4d4e81bcd8e0193dc2980b8f72be6cc0b0064d8b27ba2cbeb532694 -->
+<!-- phil-dev source-sha256=0fd4d7dcc570ff2d521765ebb5fa57359a720625c1fd24820de1ebef4e9eb9de -->
 # phil/reporting-bundle
 
 **Des tableaux de bord et des rapports pour les applications Symfony : des chiffres fournis par n'importe quel bundle,
@@ -27,7 +27,7 @@ lire. C'est le *claim check*.
 Deux rapports sont fournis avec le bundle pour un système d'apprentissage : les heures et les coûts de formation de
 chaque période et unité organisationnelle, et le gabarit du 1 % de la masse salariale du Québec pour le développement
 des compétences de la main-d'œuvre — heures, coûts admissibles, masse salariale, investissement requis, ratio et
-écart à combler. Le système d'apprentissage, l'arbre des unités et la masse salariale se branchent chacun par un port.
+écart à combler. Le système d'apprentissage, l'arbre des unités et la masse salariale se branchent chacun par un port : phil/courses-bundle branche ses achèvements et phil/organizations-bundle son arbre d'unités quand ils sont installés, et la masse salariale est toujours à l'application de la fournir.
 
 Il s'appuie sur la bibliothèque `phil/svg-chart` pour dessiner les images ; Symfony UX, Messenger, Scheduler, Mailer,
 Notifier, Console et EasyAdmin sont chacun utilisés quand ils sont installés.

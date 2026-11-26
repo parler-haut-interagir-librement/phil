@@ -31,6 +31,9 @@ no credits of its own grants those of the first course of its group, by language
 fulfils no obligation while the learner's transcript already holds an equivalent course enters the transcript without
 credits. A completion that fulfils the next cycle of a recertification is credited again.
 
+With phil/reporting-bundle, the completions of every transcript feed its reports of training hours and costs by unit
+and period, and its template of the 1 % of payroll: see [Training reports](training-reports.md).
+
 `Transcripts::of(LearnerId $learner)` gives a `Transcript`: its entries, the latest first; `total(CreditUnit $unit)`,
 the hundredths of that unit; `toArray()`; and `csv()`.
 

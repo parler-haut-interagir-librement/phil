@@ -95,6 +95,16 @@ ones a unit catalogue names. With phil/organizations-bundle registered, `Organiz
 `phil_courses.catalogues.learner_units`. Without one, the learners see the public catalogues only. See
 [Catalogues](catalogues.md#public-and-unit-catalogues).
 
+## `TrainingCosts` and `TrainingUnits`
+
+What the [training reports](training-reports.md) of phil/reporting-bundle read of a completion besides its hours, in
+`Phil\CoursesBundle\Application\Contract`: `TrainingCosts::cost(TranscriptEntry $entry)`, a `TrainingCost` in minor
+units of `phil_courses.reporting.currency`, named in `phil_courses.reporting.costs`; and
+`TrainingUnits::unitOf(LearnerId $learner)`, the identifier of the learner's unit or `null`, named in
+`phil_courses.reporting.units`. With phil/organizations-bundle registered, `OrganizationsTrainingUnits` answers the
+second from `UnitTree::unitIdsOf()`. `Infrastructure\Reporting\CoursesTrainingSource` is the `TrainingSource` of
+phil/reporting-bundle that reads them; an application aliases that port to a service of its own to replace it.
+
 ## `CourseCheckout`
 
 Where a learner pays for a course a catalogue sells: `checkout(CatalogueEntry $entry, LearnerId $learner)` adds
@@ -137,8 +147,9 @@ is registered; an application names its own in `phil_courses.training.notifier`.
 
 The stores of the assignments and obligations, and of the transcripts and credits, aliased by their ports to
 `DbalAssignmentRepository` and `DbalTranscriptRepository`. `AssignmentRepository::actionable()` reads the obligations a
-run acts on a page at a time, after the key of the last one of the page before; `removeOf()` on both serves the
-privacy module.
+run acts on a page at a time, after the key of the last one of the page before; `TranscriptRepository::completedBetween()`
+reads the completions of every learner in a span of time row by row, the oldest first, for the training reports;
+`removeOf()` on both serves the privacy module.
 
 ## `PackageOpener` and `PackageArchive`
 

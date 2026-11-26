@@ -1,18 +1,24 @@
-<!-- phil-dev source-sha256=98941910ad721c4dd25da73906e81340d6ad0f44e348fbbe8c5cc1fcd22f59d2 -->
+<!-- phil-dev source-sha256=27ee1cf31771eb724b09a8cde1508e031af43e21a2a09bfa664829827bd8c152 -->
 # Heures et coûts de formation
 
 Le rapport `training_hours` totalise la formation d'une organisation par période et par unité organisationnelle : le
 nombre d'activités, leurs heures, leurs coûts et la part de ces coûts que la loi compte. Les chiffres viennent du
 système d'apprentissage par un port ; l'arbre des unités, du répertoire des unités de l'application par un autre. Le
-bundle ne dépend ni de l'un ni de l'autre : une application les branche avec deux petits adaptateurs.
+bundle ne dépend ni de l'un ni de l'autre : phil/courses-bundle et phil/organizations-bundle se branchent d'eux-mêmes
+quand ils sont installés, et une application branche tout autre système avec deux petits adaptateurs.
 
 | Port | Implémenté par | Requis |
 |---|---|---|
-| `TrainingSource` | Le système d'apprentissage : cours terminés, séances suivies | Oui : sans lui, les rapports de formation ne sont pas enregistrés |
-| `UnitDirectory` | Le répertoire des unités organisationnelles, un arbre | Non : sans lui, chaque unité est rapportée seule, nommée par son identifiant |
+| `TrainingSource` | Le système d'apprentissage : cours terminés, séances suivies ; phil/courses-bundle | Oui : sans lui, les rapports de formation ne sont pas enregistrés |
+| `UnitDirectory` | Le répertoire des unités organisationnelles, un arbre ; phil/organizations-bundle | Non : sans lui, chaque unité est rapportée seule, nommée par son identifiant |
 | `PayrollSource` | Le système de paie | Non : lu seulement par le [gabarit du 1 % de la masse salariale](quebec-one-percent.md) |
 
 ## Les activités : `TrainingSource`
+
+Avec phil/courses-bundle enregistré et sa formation obligatoire activée, les achèvements de ses relevés sont la source :
+chaque achèvement est une activité, ses heures sont celles des crédits qu'il a accordés, son coût et l'unité de
+l'apprenant ce que répondent les ports de l'application de ce bundle. Sa documentation des rapports de formation les
+décrit. Un autre système d'apprentissage implémente le port :
 
 ```php
 use Phil\ReportingBundle\Application\Contract\TrainingSource;
@@ -81,31 +87,22 @@ interface UnitDirectory
 }
 ```
 
-Avec phil/organizations-bundle 0.2, dont `UnitTree` répond aux questions des autres modules sur son arbre d'unités,
-l'adaptateur est :
+Avec phil/organizations-bundle installé, son `ReportingUnitDirectory` est le répertoire : le chemin d'une unité depuis sa
+racine, par son arbre d'unités, unités archivées comprises. Un autre répertoire implémente le port :
 
 ```php
-use Phil\OrganizationsBundle\Application\UnitTree;
-use Phil\OrganizationsBundle\Domain\Model\Unit;
-use Phil\OrganizationsBundle\Domain\ValueObject\UnitId;
 use Phil\ReportingBundle\Application\Contract\UnitDirectory;
 use Phil\ReportingBundle\Domain\Training\UnitNode;
 
-final readonly class OrganizationUnits implements UnitDirectory
+final readonly class Departments implements UnitDirectory
 {
-    public function __construct(private UnitTree $tree) {}
+    public function __construct(private DepartmentRepository $departments) {}
 
     public function path(string $unit): array
     {
-        $found = $this->tree->unit(UnitId::fromString($unit));
-
-        if (!$found instanceof Unit) {
-            return [];
-        }
-
         return array_map(
-            static fn (Unit $node): UnitNode => new UnitNode($node->id->value, $node->name->value),
-            [...$this->tree->ancestors($found->id), $found],
+            static fn (Department $department): UnitNode => new UnitNode($department->id, $department->name),
+            $this->departments->pathFromRoot($unit),
         );
     }
 }
@@ -113,7 +110,7 @@ final readonly class OrganizationUnits implements UnitDirectory
 
 ```yaml
 services:
-    Phil\ReportingBundle\Application\Contract\UnitDirectory: '@App\Reporting\OrganizationUnits'
+    Phil\ReportingBundle\Application\Contract\UnitDirectory: '@App\Reporting\Departments'
 ```
 
 Le rapport demande le chemin de chaque unité une fois par export. Une unité que le répertoire ne connaît pas — une unité
