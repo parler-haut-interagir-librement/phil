@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phil\CoursesBundle\Infrastructure\Http\CatalogueController;
 use Phil\CoursesBundle\Infrastructure\Http\CourseController;
 use Phil\CoursesBundle\Infrastructure\Http\ScormController;
 use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
@@ -29,6 +30,18 @@ return static function (RoutingConfigurator $routes): void {
         ->defaults(['_format' => 'html'])
         ->requirements(['_format' => implode('|', TrainingController::FORMATS)])
         ->methods(['GET']);
+    $catalogue = ['catalogue' => CourseController::UUID];
+    $routes->add(CatalogueController::INDEX_ROUTE, '/catalogues')
+        ->controller([CatalogueController::class, 'index'])
+        ->methods(['GET']);
+    $routes->add(CatalogueController::SHOW_ROUTE, '/catalogues/{catalogue}')
+        ->controller([CatalogueController::class, 'show'])
+        ->requirements($catalogue)
+        ->methods(['GET']);
+    $routes->add(CatalogueController::ENROLL_ROUTE, '/catalogues/{catalogue}/{course}/enroll')
+        ->controller([CatalogueController::class, 'enroll'])
+        ->requirements($catalogue + $course)
+        ->methods(['POST']);
     $routes->add(CourseController::OUTLINE_ROUTE, '/{course}')
         ->controller([CourseController::class, 'outline'])
         ->requirements($course)

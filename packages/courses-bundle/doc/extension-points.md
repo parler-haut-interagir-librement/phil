@@ -78,12 +78,46 @@ named in `phil_courses.import.xapi_reader` for an archive that holds `tincan.xml
 An application names its own service to read the packages of a tool that phil/elearning-packages does not read. See
 [xAPI activities](xapi-activities.md#importing-an-xapi-package).
 
-## `LearningPathRepository` and `EquivalenceRepository`
+## `LearningPathRepository`, `EquivalenceRepository` and `CatalogueRepository`
 
-The stores of the learning paths, their steps and their enrollments, and of the groups of equivalent courses, aliased
-by their ports to `DbalLearningPathRepository` and `DbalEquivalenceRepository`, public, so that an application
-replaces them by aliasing the port to its own service. See [learning paths](learning-paths.md) and
-[equivalent courses](equivalent-courses.md).
+The stores of the learning paths, their steps and their enrollments, of the groups of equivalent courses, and of the
+catalogues and their entries, aliased by their ports to `DbalLearningPathRepository`, `DbalEquivalenceRepository` and
+`DbalCatalogueRepository`, public, so that an application replaces them by aliasing the port to its own service. See
+[learning paths](learning-paths.md), [equivalent courses](equivalent-courses.md) and [catalogues](catalogues.md).
+
+## `LearnerUnits`
+
+The units of an organization whose catalogues reach a learner — the units they belong to and the units above them —,
+in `Phil\CoursesBundle\Application\Contract`: `units(LearnerId $learner)`, a list of opaque unit identifiers, the
+ones a unit catalogue names. With phil/organizations-bundle registered, `OrganizationsLearnerUnits` answers it from
+`UnitTree::unitIdsOf()` in each organization the learner is a member of; an application names its own service in
+`phil_courses.catalogues.learner_units`. Without one, the learners see the public catalogues only. See
+[Catalogues](catalogues.md#public-and-unit-catalogues).
+
+## `CourseCheckout`
+
+Where a learner pays for a course a catalogue sells: `checkout(CatalogueEntry $entry, LearnerId $learner)` adds
+`$entry->sellable()` to the learner's cart and answers an address of the site itself, which the page redirects to; an
+address of another site is refused. The application implements it on its store — with phil/commerce-bundle, an order
+whose customer is the learner's identifier — and names it in `phil_courses.catalogues.checkout`. See
+[Catalogues](catalogues.md#courses-sold-through-philcommerce-bundle).
+
+```php
+final readonly class StoreCheckout implements CourseCheckout
+{
+    public function __construct(private Carts $carts, private OrderModifier $orders, private ClockInterface $clock, private UrlGeneratorInterface $urls) {}
+
+    public function checkout(CatalogueEntry $entry, LearnerId $learner): string
+    {
+        $cart = $this->carts->of($learner->value);
+        $this->orders->add($cart, SellableReference::fromValue($entry->sellable()), 1, PricingContext::of(1, $this->clock->now()));
+
+        return $this->urls->generate('app_cart');
+    }
+}
+```
+
+`Carts` is the application's: the store keeps no cart of its own for a customer.
 
 ## `AssigneeMembers`
 
@@ -169,7 +203,9 @@ The learning paths dispatch `LearnerEnrolledInPath` and `PathCompleted`; see [le
 Every entry point is a public service named by its class: `Courses`, `Enrollments`, `Availabilities`, `Learning`,
 `Completions`, `SecondChances`, `CourseImporter`, `ResultImporter`, `Cmi5Statements`, `Cmi5Tokens`, `Cmi5Launcher`,
 `ActivityTypes`, `ScormRuntime`, `ScormTokens`, `XapiLauncher`, `XapiStatements`, `Assignments`, `Transcripts`,
-`TrainingRun`, and the controllers of the pages, `SecondChancesController`, `ScormController`, `ScormFrameController`
-and `TrainingController` among them.
+`TrainingRun`, `LearningPaths`, `Equivalences`, `Catalogues`, and the controllers of the pages,
+`SecondChancesController`, `ScormController`, `ScormFrameController`, `TrainingController` and `CatalogueController`
+among them.
 The stores are aliased by their ports: `CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`,
-`LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository`.
+`LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository`,
+`LearningPathRepository`, `EquivalenceRepository`, `CatalogueRepository`.

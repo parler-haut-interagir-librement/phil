@@ -53,7 +53,7 @@ interface CourseRepository
 
     /**
      * Removes the course with its modules, blocks, activities, enrollments, progress and satisfied blocks, its steps in
-     * the learning paths and its place in a group of equivalent courses.
+     * the learning paths, its place in a group of equivalent courses and its entries in the catalogues.
      */
     public function remove(CourseId $id): void;
 }

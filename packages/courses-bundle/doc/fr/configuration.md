@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=dc65b491a1fafcb24537ef09f31b314d6077863532f4686f0d851d6514fb27da -->
+<!-- phil-dev source-sha256=e7687e75aae1e5d6d54fec09a419ccef8fccdadf190ebf21f16c0ea6319a9c1f -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_courses`. Chaque option a une valeur par défaut ; une application nomme
@@ -63,6 +63,10 @@ phil_courses:
         manager_role: ROLE_COURSES_MANAGER
         notifier: null
         keep_transcripts: false
+    catalogues:
+        learner_units: null
+        checkout: null
+        tax_category: standard
     admin:
         role: ROLE_COURSES_TEACHER
     audit:
@@ -120,6 +124,9 @@ phil_courses:
 | `training.manager_role` | `ROLE_COURSES_MANAGER` | Le rôle qu'un gestionnaire détient pour voir la formation de chaque apprenant et leurs relevés. |
 | `training.notifier` | `null` | Un service `TrainingNotifier` ; les notifications de phil/notifications-bundle quand il vaut null et que ce bundle est enregistré, aucune sinon. |
 | `training.keep_transcripts` | `false` | Si les relevés survivent à une demande d'effacement, en vertu d'une obligation légale de les garder. |
+| `catalogues.learner_units` | `null` | Un service `LearnerUnits` qui nomme les unités dont les catalogues atteignent un apprenant ; `OrganizationsLearnerUnits`, sur l'arbre d'unités de phil/organizations-bundle, quand la valeur est `null` et que ce bundle est enregistré ; aucun sinon, et les apprenants ne voient que les catalogues publics. Voir [Catalogues](catalogues.md#catalogues-publics-et-catalogues-dunité). |
+| `catalogues.checkout` | `null` | Un service `CourseCheckout` qui ajoute un cours vendu au panier de l'apprenant et répond où il paie ; les cours avec un prix sont montrés sans formulaire quand la valeur est `null`. Voir [Catalogues](catalogues.md#cours-vendus-par-philcommerce-bundle). |
+| `catalogues.tax_category` | `standard` | La catégorie de taxe des cours vendus par phil/commerce-bundle, que lit son `TaxRateResolver`. |
 | `admin.role` | `ROLE_COURSES_TEACHER` | Le rôle qu'un enseignant détient pour voir et trancher les secondes chances sur la page d'administration. |
 | `audit.enabled` | `true` | Écrit les secondes chances — demandées, accordées, refusées, dispensées — dans la piste de phil/audit-bundle, quand ce bundle est enregistré. |
 | `audit.segment` | `courses` | Le segment de la piste. |

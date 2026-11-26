@@ -54,6 +54,14 @@ The same training given in several languages is a group of equivalent courses, o
 shows the other languages, and an address leads to the course of the learner's language. Completing one course of the
 group completes them all: for the paths, the mandatory training, the credits — granted once — and the certificates.
 
+Catalogues list the courses a learner may take: a public catalogue shown to everyone, visitors signed out included,
+and private catalogues, each shown to the members of one unit of an organization and of the units below it — with
+phil/organizations-bundle, read from its tree of units. A catalogue places its courses in an order, filters them by
+words, tag and price, sorts them by title, by date or by price, a page at a time, and lists a group of equivalent
+courses once, in the learner's language, with where the learner stands in each — enrolled, completed, mandatory for
+them. A learner enrolls themselves in a free course the catalogue opens to it; a course with a price is sold through
+phil/commerce-bundle, and its buyer is enrolled once the order is paid.
+
 Another part of the application — certificates, badges, a report — asks `Completions` whether a learner completed a
 course, and keeps its own model; with phil/certificates-bundle, the bundle answers its `CourseCompletions` port, for the
 courses and for the learning paths.
@@ -85,6 +93,8 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | Learning paths: ordered courses with prerequisites, the enrollment in the path, its completion with `PathCompleted` and through the `CourseCompletions` port of phil/certificates-bundle, its privacy module | Implemented, tested on SQLite, MySQL and PostgreSQL |
 | Groups of equivalent courses: one course per language, the course of the learner's language, the completion recognised across the group for the paths, the mandatory training and the credits | Implemented, tested on SQLite, MySQL and PostgreSQL |
 | The pages of the learning paths and of the groups of equivalent courses | Not yet: the application draws them on `LearningPaths` and `Equivalences` |
+| Catalogues: a public one and one per unit of an organization, the units of phil/organizations-bundle, courses placed in order, filters, sorts and pages, a group of equivalent courses listed once, where the learner stands, self-enrollment, and their pages with the recipes of the kit, English and French | Implemented, tested on SQLite, MySQL and PostgreSQL, and fuzzed |
+| Courses sold from a catalogue through phil/commerce-bundle: the sellables of type `course`, the buyer enrolled once the order is paid, the `CourseCheckout` port to the application's cart | Implemented and tested |
 | Mandatory training: courses assigned to a learner, a group or a unit by a due moment, reminders before, on and after it through phil/notifications-bundle and Symfony Scheduler, the overdue state on the learner's and the managers' pages | Implemented and tested |
 | Recertification through phil/recurrence: a completion renewed after a number of months, the enrollment starting again | Implemented and tested |
 | Credits in continuing education units or hours, the transcript as a page, JSON and CSV, its privacy module | Implemented and tested |
@@ -97,7 +107,7 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | The Flex recipe: the bundle, its configuration and its routes | Written in `recipe/0.2`, for the recipes repository of PHIL; `recipe/0.1` serves the versions 0.1 |
 | Branching lessons through phil/story-graph, quizzes through phil/assessment, access through phil/content-access | Planned, as activity types and an access port, once those libraries are written |
 | LTI 1.3 activities, hosted video with consented watch tracking | Planned, as activity types the LTI and video bundles add |
-| Cohorts with live meetings, courses sold through the catalogue, catalogues by unit, multilingual courses of translated content | Planned |
+| Cohorts with live meetings, multilingual courses of translated content | Planned |
 
 ## Documentation
 
@@ -114,7 +124,8 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | [Credits and transcripts](doc/credits-and-transcripts.md) | The credits of the courses, the transcript as a page, JSON and CSV, and its privacy. |
 | [Learning paths](doc/learning-paths.md) | Ordered courses with prerequisites, the enrollment in a path, its progress and its completion, certificates and badges, privacy. |
 | [Equivalent courses](doc/equivalent-courses.md) | One training in several languages: the groups, the course of the learner's language, the completion recognised across the group. |
-| [Security](doc/security.md) | The bounds of the archive and the manifest, the content origin and its headers, the SCORM run time, the remote store, the administration page. |
+| [Catalogues](doc/catalogues.md) | The public catalogue and those of the units, the order of the courses, filters, sorts and pages, self-enrollment, the courses sold through phil/commerce-bundle, the pages. |
+| [Security](doc/security.md) | The bounds of the archive and the manifest, the content origin and its headers, the SCORM run time, the remote store, the administration page, the catalogues. |
 | [Extension points](doc/extension-points.md) | The ports, the events, the services to replace, and when they are stable. |
 | [Testing](doc/testing.md) | The bundle's tests, the servers and the learning record store its integration tests read, and the fuzz target. |
 | [Reference](doc/reference.md) | Every class and file of the bundle. |
@@ -123,7 +134,7 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 
 ```sh
 composer require phil/courses-bundle
-php bin/console ux:install button badge progress textarea --kit=github.com/parler-haut-interagir-librement/ux-kit
+php bin/console ux:install button badge input native-select progress textarea --kit=github.com/parler-haut-interagir-librement/ux-kit
 ```
 
 ```yaml

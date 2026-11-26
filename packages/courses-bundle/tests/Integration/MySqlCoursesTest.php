@@ -6,6 +6,7 @@ namespace Phil\CoursesBundle\Tests\Integration;
 
 use Override;
 use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCatalogueRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalLaunchSessionRepository;
@@ -21,6 +22,7 @@ use PHPUnit\Framework\Attributes\Group;
  */
 #[CoversClass(CourseTables::class)]
 #[CoversClass(DbalCourseRepository::class)]
+#[CoversClass(DbalCatalogueRepository::class)]
 #[CoversClass(DbalEnrollmentRepository::class)]
 #[CoversClass(DbalRetryRequestRepository::class)]
 #[CoversClass(DbalLaunchSessionRepository::class)]

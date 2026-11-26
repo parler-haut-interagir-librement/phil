@@ -9,6 +9,8 @@ use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 use LogicException;
 use Phil\AuditBundle\Application\AuditTrail;
 use Phil\CertificatesBundle\Domain\Contract\CourseCompletions;
+use Phil\CommerceBundle\Domain\Event\OrderPurchased;
+use Phil\CommerceBundle\Domain\Repository\OrderRepository;
 use Phil\CoursesBundle\Application\ActivityType\Cmi5Activity;
 use Phil\CoursesBundle\Application\ActivityType\LinkActivity;
 use Phil\CoursesBundle\Application\ActivityType\PageActivity;
@@ -16,6 +18,7 @@ use Phil\CoursesBundle\Application\ActivityType\ScormActivity;
 use Phil\CoursesBundle\Application\ActivityType\XapiActivity;
 use Phil\CoursesBundle\Application\ActivityTypes;
 use Phil\CoursesBundle\Application\Availabilities;
+use Phil\CoursesBundle\Application\Catalogue\Catalogues;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Launcher;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Settings;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Statements;
@@ -27,7 +30,9 @@ use Phil\CoursesBundle\Application\Contract\ActivityType;
 use Phil\CoursesBundle\Application\Contract\AssigneeMembers;
 use Phil\CoursesBundle\Application\Contract\Cmi5Endpoints;
 use Phil\CoursesBundle\Application\Contract\ContentStorage;
+use Phil\CoursesBundle\Application\Contract\CourseCheckout;
 use Phil\CoursesBundle\Application\Contract\CurrentLearner;
+use Phil\CoursesBundle\Application\Contract\LearnerUnits;
 use Phil\CoursesBundle\Application\Contract\LearningRecordStore;
 use Phil\CoursesBundle\Application\Contract\TrainingNotifier;
 use Phil\CoursesBundle\Application\Courses;
@@ -51,6 +56,7 @@ use Phil\CoursesBundle\Application\Training\Transcripts;
 use Phil\CoursesBundle\Application\Xapi\XapiLauncher;
 use Phil\CoursesBundle\Application\Xapi\XapiStatements;
 use Phil\CoursesBundle\Domain\Contract\AssignmentRepository;
+use Phil\CoursesBundle\Domain\Contract\CatalogueRepository;
 use Phil\CoursesBundle\Domain\Contract\CourseRepository;
 use Phil\CoursesBundle\Domain\Contract\EnrollmentRepository;
 use Phil\CoursesBundle\Domain\Contract\EquivalenceRepository;
@@ -67,6 +73,8 @@ use Phil\CoursesBundle\Domain\Event\RetryRequested;
 use Phil\CoursesBundle\Domain\Event\RetryWaived;
 use Phil\CoursesBundle\Infrastructure\Audit\AuditSecondChances;
 use Phil\CoursesBundle\Infrastructure\Certificates\CertificatesCourseCompletions;
+use Phil\CoursesBundle\Infrastructure\Commerce\CoursePurchases;
+use Phil\CoursesBundle\Infrastructure\Commerce\CourseSellables;
 use Phil\CoursesBundle\Infrastructure\Console\AssignCommand;
 use Phil\CoursesBundle\Infrastructure\Console\CreditsCommand;
 use Phil\CoursesBundle\Infrastructure\Console\ImportCommand;
@@ -74,6 +82,7 @@ use Phil\CoursesBundle\Infrastructure\Console\ImportResultsCommand;
 use Phil\CoursesBundle\Infrastructure\Console\RetriesCommand;
 use Phil\CoursesBundle\Infrastructure\Console\TrainingCommand;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalAssignmentRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCatalogueRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEquivalenceRepository;
@@ -84,6 +93,7 @@ use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalTranscriptRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\SchemaListener;
+use Phil\CoursesBundle\Infrastructure\Http\CatalogueController;
 use Phil\CoursesBundle\Infrastructure\Http\Cmi5Controller;
 use Phil\CoursesBundle\Infrastructure\Http\ContentController;
 use Phil\CoursesBundle\Infrastructure\Http\CourseController;
@@ -94,6 +104,7 @@ use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
 use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
 use Phil\CoursesBundle\Infrastructure\Import\ElearningXapiPackageReader;
 use Phil\CoursesBundle\Infrastructure\Notifications\NotificationsTrainingNotifier;
+use Phil\CoursesBundle\Infrastructure\Organizations\OrganizationsLearnerUnits;
 use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\PathsPrivacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
@@ -110,6 +121,8 @@ use Phil\ElearningPackages\Contract\PackageOpener;
 use Phil\ElearningPackages\PackageLimits;
 use Phil\ElearningPackages\PackageReader;
 use Phil\NotificationsBundle\Application\Notifications;
+use Phil\OrganizationsBundle\Application\Organizations;
+use Phil\OrganizationsBundle\Application\UnitTree;
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
 use Phil\PrivacyBundle\PhilPrivacyBundle;
 use Phil\SafeHttp\Limits;
@@ -133,7 +146,8 @@ use Twig\Environment;
  * run time, its commit endpoint and the frame of its API; the schema listener with the ORM, the trail of the second
  * chances with phil/audit-bundle, and the SCORM attempts in the access and erasure requests of phil/privacy-bundle;
  * the xAPI activities on the endpoint of cmi5; the mandatory training, its pages, commands, schedule and
- * notifications; the learning paths and the groups of equivalent courses.
+ * notifications; the learning paths and the groups of equivalent courses; the catalogues, the units of
+ * phil/organizations-bundle they are shown to, and the courses they sell through phil/commerce-bundle.
  *
  * @phpstan-type Config array{
  *     connection: string,
@@ -149,6 +163,7 @@ use Twig\Environment;
  *     cmi5: array{actor_home_page: ?string, session_ttl: int, secret: string, allowed_origins: list<string>, lrs: ?string, remote_lrs: array{enabled: bool, endpoint: ?string, username: ?string, password: ?string, version: string, timeout: float, max_duration: float}},
  *     scorm: array{enabled: bool, token_ttl: int, secret: string},
  *     training: array{enabled: bool, reminder_days: int, renewal_grace_days: int, max_members: int, run_at: string, schedule: bool, manager_role: string, notifier: ?string, keep_transcripts: bool},
+ *     catalogues: array{learner_units: ?string, checkout: ?string, tax_category: string},
  *     admin: array{role: string},
  *     audit: array{enabled: bool, segment: string}
  * }
@@ -207,6 +222,7 @@ final class CoursesServices
 
         self::cmi5($container, $clock, $events, $config);
         self::training($container, $clock, $events, $config, $bundles);
+        self::catalogues($container, $clock, $config, $bundles);
 
         if (class_exists(Command::class)) {
             $container->register(ImportCommand::class, ImportCommand::class)->setArguments([new Reference(CourseImporter::class)])->addTag('console.command');
@@ -247,6 +263,7 @@ final class CoursesServices
             TranscriptRepository::class => DbalTranscriptRepository::class,
             LearningPathRepository::class => DbalLearningPathRepository::class,
             EquivalenceRepository::class => DbalEquivalenceRepository::class,
+            CatalogueRepository::class => DbalCatalogueRepository::class,
         ] as $port => $store) {
             $container->register($store, $store)->setArguments([$connection]);
             $container->setAlias($port, $store)->setPublic(true);
@@ -480,6 +497,51 @@ final class CoursesServices
     }
 
     /**
+     * The catalogues: the units of a learner from phil/organizations-bundle when it is registered and the configuration
+     * names no `LearnerUnits`, the mandatory training assigned to the learner when it is enabled, and the courses sold —
+     * their sellables and the enrollment of their buyers once paid — when phil/commerce-bundle is registered.
+     *
+     * @param Config          $config
+     * @param list<array-key> $bundles
+     */
+    private static function catalogues(ContainerBuilder $container, Reference $clock, array $config, array $bundles): void
+    {
+        $units = $config['catalogues']['learner_units'];
+
+        if (null === $units && class_exists(UnitTree::class) && \in_array('PhilOrganizationsBundle', $bundles, true)) {
+            $container->register(OrganizationsLearnerUnits::class, OrganizationsLearnerUnits::class)->setArguments([new Reference(Organizations::class), new Reference(UnitTree::class)]);
+            $units = OrganizationsLearnerUnits::class;
+        }
+
+        if (null !== $units) {
+            $container->setAlias(LearnerUnits::class, $units);
+        }
+
+        if (null !== $config['catalogues']['checkout']) {
+            $container->setAlias(CourseCheckout::class, $config['catalogues']['checkout']);
+        }
+
+        self::service($container, Catalogues::class, [
+            new Reference(CatalogueRepository::class),
+            new Reference(CourseRepository::class),
+            new Reference(Enrollments::class),
+            new Reference(Completions::class),
+            $clock,
+            new Reference(LearnerUnits::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            $config['training']['enabled'] ? new Reference(AssignmentRepository::class) : null,
+        ]);
+
+        if (class_exists(OrderPurchased::class) && \in_array('PhilCommerceBundle', $bundles, true)) {
+            $container->register(CourseSellables::class, CourseSellables::class)
+                ->setArguments([new Reference(Catalogues::class), new Reference(CourseRepository::class), $config['catalogues']['tax_category']])
+                ->addTag('phil_commerce.sellable_resolver');
+            $container->register(CoursePurchases::class, CoursePurchases::class)
+                ->setArguments([new Reference(OrderRepository::class), new Reference(Catalogues::class)])
+                ->addTag('kernel.event_listener', ['event' => OrderPurchased::class, 'method' => '__invoke']);
+        }
+    }
+
+    /**
      * The SCORM run time, its tokens and its privacy module when phil/privacy-bundle is installed.
      *
      * @param Config $config
@@ -579,6 +641,18 @@ final class CoursesServices
                 $config['self_enrollment'],
                 'show' === $config['locked_activities'],
                 new Reference(Equivalences::class),
+            ])
+            ->addTag('controller.service_arguments')
+            ->setPublic(true);
+        $container->register(CatalogueController::class, CatalogueController::class)
+            ->setArguments([
+                new Reference(Catalogues::class),
+                new Reference(CurrentLearner::class),
+                new Reference(CourseRequest::class),
+                new Reference('twig'),
+                new Reference('router'),
+                $config['layout'],
+                new Reference(CourseCheckout::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
             ->addTag('controller.service_arguments')
             ->setPublic(true);

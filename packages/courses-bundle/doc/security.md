@@ -130,3 +130,16 @@ authorization checker; without a checker, or without a teacher signed in, it is 
 stateless CSRF token of the forms, and a request the browser says came from another site is refused. The reason a
 learner gave and the note of a teacher are kept in the tables, escaped on the page, and never written to the audit
 trail, which keeps identifiers only.
+
+## The catalogues
+
+A catalogue of a unit is shown to the learners whose `LearnerUnits` name that unit, and to nobody else: to anyone
+else, visitors signed out included, it answers 404, as a catalogue that does not exist, and its courses are never
+listed. The enrollment from a catalogue asks for a learner signed in and the stateless CSRF token of the forms, and
+enrolls them only in a free course of a catalogue shown to them that is open to self-enrollment; a course with a price
+is enrolled in only once the store says its order is paid, for the customer of that order. The address a `CourseCheckout`
+answers is followed only when it is a path or an address of the request's origin, so that a checkout cannot send a
+learner to another site. The query string of a catalogue page is read within bounds — 100 characters of words, a tag of
+the shape an entry keeps, a page up to 1 000 — and what it does not say reads as the default; it is fuzzed. A listing
+reads one query for the courses of the catalogue, a thousand at most, and a few for each of the 20 courses of the page;
+the units of a learner are read once, 500 at most.

@@ -12,14 +12,18 @@ use Doctrine\DBAL\Tools\DsnParser;
 use Doctrine\DBAL\Types\Types;
 use Override;
 use Phil\CoursesBundle\Application\ActivityStatus;
+use Phil\CoursesBundle\Domain\Catalogue\CatalogueAudience;
+use Phil\CoursesBundle\Domain\Catalogue\OfferedCourse;
 use Phil\CoursesBundle\Domain\Cmi5\Cmi5Verb;
 use Phil\CoursesBundle\Domain\Cmi5\SessionState;
 use Phil\CoursesBundle\Domain\Course\CourseOrigin;
 use Phil\CoursesBundle\Domain\Model\Activity;
+use Phil\CoursesBundle\Domain\Model\Catalogue;
 use Phil\CoursesBundle\Domain\Model\PathEnrollment;
 use Phil\CoursesBundle\Domain\Progress\AvailabilityStatus;
 use Phil\CoursesBundle\Domain\Progress\CompletionRequirement;
 use Phil\CoursesBundle\Domain\Scorm\AttemptState;
+use Phil\CoursesBundle\Domain\ValueObject\CoursePrice;
 use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
 use Phil\CoursesBundle\Domain\ValueObject\Outcome;
 use Phil\CoursesBundle\Domain\ValueObject\Release;
@@ -305,6 +309,51 @@ abstract class ServerTestCase extends TestCase
         self::assertSame([], $store->pathStore->openEnrollmentsWith($ada, [$english->id]));
         self::assertNull($store->enrollments->of($english->id, $ada)?->completedAt);
         self::assertSame($englishPage->course->value, $english->id->value);
+    }
+
+    public function testACatalogueKeepsItsCoursesInOrderAndIsShownToItsUnit(): void
+    {
+        $store = new Store($this->connection);
+        $public = $store->catalogues->create('Everyone', 'é ✓');
+        $sales = $store->catalogues->create('Sales', '', CatalogueAudience::Unit, 'sales');
+        $welding = $store->courses->create('Welding');
+        $painting = $store->courses->create('Painting');
+        $group = $store->equivalences->create('Welding');
+        $store->equivalences->add($group->id, $welding->id, 'en');
+        $store->catalogues->offer($public->id, $welding->id, false, CoursePrice::of(CoursePrice::MAX_MINOR_UNITS, 'CAD'), ['Métal']);
+        $store->catalogues->offer($public->id, $painting->id, before: $welding->id);
+        $store->catalogues->offer($sales->id, $painting->id);
+
+        $offered = $store->catalogueStore->offered($public->id);
+        self::assertSame(['Painting', 'Welding'], array_map(static fn (OfferedCourse $course): string => $course->course->title, $offered));
+        self::assertSame([null, 'en'], array_map(static fn (OfferedCourse $course): ?string => $course->language, $offered));
+        self::assertSame([CoursePrice::MAX_MINOR_UNITS, 'CAD', false, ['métal']], [$offered[1]->entry->price?->minorUnits, $offered[1]->entry->price?->currency, $offered[1]->entry->selfEnrollment, $offered[1]->entry->tags]);
+        self::assertSame('é ✓', $store->catalogues->get($public->id)->description);
+        self::assertSame(['Everyone', 'Sales'], array_map(static fn (Catalogue $catalogue): string => $catalogue->title, $store->catalogueStore->shownTo(['east', 'sales'])));
+        self::assertSame(['Everyone'], array_map(static fn (Catalogue $catalogue): string => $catalogue->title, $store->catalogueStore->shownTo([])));
+
+        $store->courses->remove($painting->id);
+        self::assertSame([], $store->catalogues->entries($sales->id));
+        $store->catalogues->remove($public->id);
+        self::assertNull($store->catalogueStore->find($public->id));
+    }
+
+    public function testTheTablesOfTheCataloguesAreAddedByTheUpgrade(): void
+    {
+        $tables = [CourseTables::CATALOGUE_ENTRY, CourseTables::CATALOGUE];
+
+        foreach ($tables as $table) {
+            $this->connection->executeStatement('DROP TABLE '.$table);
+        }
+
+        $upgrade = CourseTables::upgrade($this->connection);
+        self::assertCount(2, array_filter($upgrade, static fn (string $sql): bool => str_starts_with($sql, 'CREATE TABLE')));
+
+        foreach ($upgrade as $sql) {
+            $this->connection->executeStatement($sql);
+        }
+
+        self::assertSame([], CourseTables::upgrade($this->connection));
     }
 
     public function testTheTimeOfTheScormAttemptsIsAddedToTheirTable(): void

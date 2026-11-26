@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=55679662119c112b588a11f69e8a9fb5941366ac2e450209481b3eaf3151abdc -->
+<!-- phil-dev source-sha256=23b37d7a5019aef1801900b154e7268ffe7cceeaa275899adf1fca820339d928 -->
 # Sécurité
 
 Un paquet vient d'une autre plateforme, et ses fichiers contiennent des scripts que personne sur ce site n'a écrits.
@@ -141,3 +141,17 @@ Security ; sans vérificateur, ou sans enseignant connecté, elle est refusée. 
 des formulaires, et une requête que le navigateur dit venir d'un autre site est refusée. La raison qu'un apprenant a
 donnée et la note d'un enseignant sont conservées dans les tables, échappées sur la page, et jamais écrites dans la piste
 d'audit, qui ne garde que des identifiants.
+
+## Les catalogues
+
+Un catalogue d'unité est montré aux apprenants dont les `LearnerUnits` nomment cette unité, et à personne d'autre : à
+quiconque d'autre, visiteurs déconnectés compris, il répond 404, comme un catalogue qui n'existe pas, et ses cours ne sont
+jamais listés. L'inscription depuis un catalogue demande un apprenant connecté et le jeton CSRF sans état des formulaires,
+et n'inscrit celui-ci qu'à un cours gratuit d'un catalogue qui lui est montré et qui est ouvert à l'autoinscription ; un
+cours avec un prix n'est inscrit qu'une fois que la boutique dit sa commande payée, pour le client de cette commande.
+L'adresse qu'un `CourseCheckout` répond n'est suivie que si c'est un chemin ou une adresse de l'origine de la requête, de
+sorte qu'un passage à la caisse ne peut pas envoyer un apprenant vers un autre site. La chaîne de requête d'une page de
+catalogue est lue dans des limites — 100 caractères de mots, une étiquette de la forme que garde une entrée, une page
+jusqu'à 1 000 — et ce qu'elle ne dit pas se lit comme la valeur par défaut ; elle est soumise au fuzzing. Un listage lit
+une requête pour les cours du catalogue, mille au plus, et quelques-unes pour chacun des 20 cours de la page ; les unités
+d'un apprenant sont lues une fois, 500 au plus.

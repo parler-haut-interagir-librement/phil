@@ -55,18 +55,21 @@ of reach would.
 The fuzz target `cmi5-statement` feeds statements nobody wrote to the checks of the xAPI endpoint, from the seeds of
 `tests/Fuzz/corpus/cmi5-statement`: a statement is accepted only for the actor, registration and session of its launch,
 or refused. The fuzz target `scorm-commit` feeds bodies nobody wrote to the reading of a commit and to the data model of
-each version: a body is read or refused, and what is kept stays within its bound. The readers of the packages and the
-data model are fuzzed in phil/elearning-packages.
+each version: a body is read or refused, and what is kept stays within its bound. The fuzz target `catalogue-query`
+feeds query strings nobody wrote to the reading of a catalogue page: whatever they hold, the query read stays within its
+bounds, and the query string it writes back reads as the same query. The readers of the packages and the data model are
+fuzzed in phil/elearning-packages.
 
 ```sh
-composer fuzz -- cmi5-statement scorm-commit
+composer fuzz -- cmi5-statement scorm-commit catalogue-query
 ```
 
 ## Benchmarks
 
 `tests/Benchmark/CoursesBench.php` measures checking a statement, placing the activities of a course of a hundred
-activities for a learner, and the commit of a SCORM session whose attempt holds fifty interactions. The readers of the
-packages are measured in phil/elearning-packages.
+activities for a learner, the commit of a SCORM session whose attempt holds fifty interactions, and a page of a
+catalogue of five hundred courses filtered by words and sorted by title, with where the learner stands. The readers of
+the packages are measured in phil/elearning-packages.
 
 ## Testing code that uses the bundle
 

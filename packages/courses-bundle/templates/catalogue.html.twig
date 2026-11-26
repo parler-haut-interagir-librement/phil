@@ -1,0 +1,93 @@
+{#
+ # One catalogue, a page at a time: the form of its filters — words, tag, price — and of its order, sent by GET; then
+ # each course with its price or the word free, its tags, where the learner stands — enrolled, completed, assigned to
+ # them —, and the form that enrolls them in a free course open to self-enrollment, or sends them to pay for a course
+ # sold when the site has a checkout; the links to the other pages. The fields are the recipes `Input` and
+ # `NativeSelect` of the kit, the states `Badge`, the forms `Button`.
+ #
+ # page: CataloguePage. signed_in: bool. checkout: bool, whether the site sells the courses with a price.
+ #}
+{% extends layout %}
+
+{% set catalogue = page.catalogue %}
+{% set query = page.query %}
+
+{% block title %}{{ catalogue.title }}{% endblock %}
+
+{% block main %}
+<h1>{{ catalogue.title }}</h1>
+{%- if catalogue.description is not empty %}
+<p class="phil-courses__description">{{ catalogue.description }}</p>
+{%- endif %}
+<form method="get" class="phil-courses__filters" role="search" action="{{ path('phil_courses_catalogue', {catalogue: catalogue.id.value}) }}">
+    <label for="phil-courses-q">{{ 'catalogue.search'|trans({}, 'phil_courses') }}</label>
+    {% component (phil_courses_kit('Input')) with {id: 'phil-courses-q', type: 'search', name: 'q', value: query.text ?? '', maxlength: 100} %}{% endcomponent %}
+    {%- if page.tags is not empty %}
+    <label for="phil-courses-tag">{{ 'catalogue.tag'|trans({}, 'phil_courses') }}</label>
+    {% component (phil_courses_kit('NativeSelect')) with {id: 'phil-courses-tag', name: 'tag'} %}{% block content %}
+        <option value="">{{ 'catalogue.any_tag'|trans({}, 'phil_courses') }}</option>
+        {%- for tag in page.tags %}
+        <option value="{{ tag }}"{% if tag is same as(query.tag) %} selected{% endif %}>{{ tag }}</option>
+        {%- endfor %}
+    {% endblock %}{% endcomponent %}
+    {%- endif %}
+    <label for="phil-courses-price">{{ 'catalogue.price'|trans({}, 'phil_courses') }}</label>
+    {% component (phil_courses_kit('NativeSelect')) with {id: 'phil-courses-price', name: 'price'} %}{% block content %}
+        {%- for price in ['any', 'free', 'paid'] %}
+        <option value="{{ price }}"{% if price is same as(query.price.value) %} selected{% endif %}>{{ ('catalogue.price_' ~ price)|trans({}, 'phil_courses') }}</option>
+        {%- endfor %}
+    {% endblock %}{% endcomponent %}
+    <label for="phil-courses-sort">{{ 'catalogue.sort'|trans({}, 'phil_courses') }}</label>
+    {% component (phil_courses_kit('NativeSelect')) with {id: 'phil-courses-sort', name: 'sort'} %}{% block content %}
+        {%- for sort in ['placed', 'title', 'newest', 'price'] %}
+        <option value="{{ sort }}"{% if sort is same as(query.sort.value) %} selected{% endif %}>{{ ('catalogue.sort_' ~ sort)|trans({}, 'phil_courses') }}</option>
+        {%- endfor %}
+    {% endblock %}{% endcomponent %}
+    {% component (phil_courses_kit('Button')) with {type: 'submit', variant: 'secondary'} %}{% block content %}{{ 'catalogue.filter'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+</form>
+<p class="phil-courses__count">{{ 'catalogue.count'|trans({'%count%': page.total}, 'phil_courses') }}</p>
+{%- if page.items is not empty %}
+<ul class="phil-courses__offered">
+    {%- for item in page.items %}
+    {%- set entry = item.entry %}
+    <li class="phil-courses__offer">
+        <h2><a href="{{ path('phil_courses_outline', {course: item.course.id.value}) }}"{% if item.offered.language is not null %} lang="{{ item.offered.language }}"{% endif %}>{{ item.course.title }}</a></h2>
+        {%- if item.course.description is not empty %}
+        <p class="phil-courses__description">{{ item.course.description }}</p>
+        {%- endif %}
+        <p class="phil-courses__terms">
+            {% component (phil_courses_kit('Badge')) with {variant: 'outline'} %}{% block content %}{{ entry.free ? 'catalogue.free'|trans({}, 'phil_courses') : phil_courses_price(entry.price, app.request.locale) }}{% endblock %}{% endcomponent %}
+            {%- if item.completed %}
+            {% component (phil_courses_kit('Badge')) with {variant: 'default'} %}{% block content %}{{ 'catalogue.completed'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+            {%- elseif item.enrolled %}
+            {% component (phil_courses_kit('Badge')) with {variant: 'secondary'} %}{% block content %}{{ 'catalogue.enrolled'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+            {%- endif %}
+            {%- if item.assigned %}
+            {% component (phil_courses_kit('Badge')) with {variant: 'destructive'} %}{% block content %}{{ 'catalogue.assigned'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+            {%- endif %}
+            {%- for tag in entry.tags %}
+            <a class="phil-courses__tag" href="{{ path('phil_courses_catalogue', {catalogue: catalogue.id.value, tag: tag}) }}">{{ tag }}</a>
+            {%- endfor %}
+        </p>
+        {%- if signed_in and not item.enrolled and entry.selfEnrollment and (entry.free or checkout) %}
+        <form method="post" action="{{ path('phil_courses_catalogue_enroll', {catalogue: catalogue.id.value, course: item.course.id.value}) }}">
+            <input type="hidden" name="_token" value="{{ token }}">
+            {% component (phil_courses_kit('Button')) with {type: 'submit', size: 'sm'} %}{% block content %}{{ (entry.free ? 'catalogue.enroll' : 'catalogue.buy')|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+        </form>
+        {%- endif %}
+    </li>
+    {%- endfor %}
+</ul>
+{%- endif %}
+{%- if page.pages > 1 %}
+<nav class="phil-courses__pages" aria-label="{{ 'catalogue.pages'|trans({}, 'phil_courses') }}">
+    {%- if page.hasPrevious %}
+    <a rel="prev" href="{{ path('phil_courses_catalogue', {catalogue: catalogue.id.value}|merge(query.onPage(query.page - 1).parameters)) }}">{{ 'catalogue.previous'|trans({}, 'phil_courses') }}</a>
+    {%- endif %}
+    <span>{{ 'catalogue.page'|trans({'%page%': query.page, '%pages%': page.pages}, 'phil_courses') }}</span>
+    {%- if page.hasNext %}
+    <a rel="next" href="{{ path('phil_courses_catalogue', {catalogue: catalogue.id.value}|merge(query.onPage(query.page + 1).parameters)) }}">{{ 'catalogue.next'|trans({}, 'phil_courses') }}</a>
+    {%- endif %}
+</nav>
+{%- endif %}
+{% endblock %}

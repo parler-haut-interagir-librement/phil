@@ -28,7 +28,9 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  * with their fetch URL and a learning record store inside the bundle that checks the statements against the rules of
  * cmi5, the tree of the blocks kept and their `satisfied` statements issued, or a remote xAPI store; xAPI activities,
  * launched against the same endpoint; the mandatory training — courses assigned by a due date, reminders through
- * phil/notifications-bundle, recertifications, credits and transcripts —; and the administration pages. The pages
+ * phil/notifications-bundle, recertifications, credits and transcripts —; the catalogues, public or of a unit of
+ * phil/organizations-bundle, with self-enrollment and the courses sold through phil/commerce-bundle; and the
+ * administration pages. The pages
  * draw the recipes of the kit.
  *
  * @phpstan-import-type Config from CoursesServices
@@ -62,6 +64,7 @@ final class PhilCoursesBundle extends AbstractBundle
         $this->cmi5($children);
         $this->scorm($children);
         $this->training($children);
+        $this->catalogues($children);
 
         $children
             ->arrayNode('admin')
@@ -203,6 +206,20 @@ final class PhilCoursesBundle extends AbstractBundle
                     ->scalarNode('manager_role')->info('The role a manager holds to see the training of every learner and their transcripts.')->cannotBeEmpty()->defaultValue('ROLE_COURSES_MANAGER')->end()
                     ->scalarNode('notifier')->info('A TrainingNotifier service; the notifications of phil/notifications-bundle when null and it is registered, none otherwise.')->defaultNull()->end()
                     ->booleanNode('keep_transcripts')->info('Whether the transcripts survive an erasure request, under a legal obligation to keep them.')->defaultFalse()->end()
+                ->end()
+            ->end();
+    }
+
+    private function catalogues(NodeBuilder $children): void
+    {
+        $children
+            ->arrayNode('catalogues')
+                ->info('The catalogues of courses: the public ones, those of the units of an organization, and the courses they sell.')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('learner_units')->info('A LearnerUnits service naming the units whose catalogues reach a learner; the tree of units of phil/organizations-bundle when null and it is registered, none otherwise.')->defaultNull()->end()
+                    ->scalarNode('checkout')->info("A CourseCheckout service that adds a course sold to the learner's cart and answers where they pay; the courses with a price are shown without a form when null.")->defaultNull()->end()
+                    ->scalarNode('tax_category')->info('The tax category of the courses sold through phil/commerce-bundle.')->cannotBeEmpty()->defaultValue('standard')->end()
                 ->end()
             ->end();
     }

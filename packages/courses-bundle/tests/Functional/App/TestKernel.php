@@ -20,8 +20,9 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * An application as small as the bundle needs: FrameworkBundle with its CSRF protection and the translator in
- * English, DoctrineBundle on SQLite, TwigBundle with the components and the recipes `Button`, `Badge`, `Progress` and
- * `Textarea` of the kit, the learner named by the `X-User` header, a site at http://localhost whose content origin is
+ * English, DoctrineBundle on SQLite, TwigBundle with the components and the recipes `Button`, `Badge`, `Input`,
+ * `NativeSelect`, `Progress` and `Textarea` of the kit, the learner named by the `X-User` header and their units by
+ * `X-Units`, a cart that sells the courses, a site at http://localhost whose content origin is
  * http://content.localhost, the pages under `/courses`, the cmi5 endpoints under `/cmi5` and the content under
  * `/content`.
  */
@@ -81,7 +82,7 @@ final class TestKernel extends Kernel
             static fn (string $directory): bool => is_file($directory.'/manifest.json'),
         ) ?? __DIR__.'/../../../vendor/phil/ux-kit';
 
-        foreach (['button' => 'Button', 'badge' => 'Badge', 'progress' => 'Progress', 'textarea' => 'Textarea'] as $directory => $recipe) {
+        foreach (['button' => 'Button', 'badge' => 'Badge', 'input' => 'Input', 'native-select' => 'NativeSelect', 'progress' => 'Progress', 'textarea' => 'Textarea'] as $directory => $recipe) {
             if (!copy($kit.'/'.$directory.'/templates/components/'.$recipe.'.html.twig', $target.'/'.$recipe.'.html.twig')) {
                 throw new RuntimeException(\sprintf('The recipe %s of the kit cannot be copied from %s.', $recipe, $kit));
             }
@@ -114,6 +115,7 @@ final class TestKernel extends Kernel
             'storage' => ['directory' => $this->storage()],
             'content' => ['base_url' => 'http://content.localhost/content', 'allow_localhost' => true],
             'cmi5' => ['actor_home_page' => 'http://localhost/', 'allowed_origins' => ['https://units.example.net'], 'lrs' => SwitchableStore::class],
+            'catalogues' => ['learner_units' => HeaderUnits::class, 'checkout' => CartCheckout::class],
         ]);
 
         $services = $container->services()->defaults()->autowire();
@@ -125,6 +127,8 @@ final class TestKernel extends Kernel
         $services->alias(PsrEventDispatcherInterface::class, 'event_dispatcher');
         $services->set('clock', MockClock::class)->args(['2026-11-13 10:00:00 UTC'])->public();
         $services->set(HeaderLearner::class)->args([new Reference('request_stack')]);
+        $services->set(HeaderUnits::class)->args([new Reference('request_stack')]);
+        $services->set(CartCheckout::class)->public();
         $services->set('security.authorization_checker', HeaderAuthorization::class)->args([new Reference('request_stack')]);
         $services->set(SwitchableStore::class)->args([new Reference(DbalLearningRecordStore::class)])->public();
     }
