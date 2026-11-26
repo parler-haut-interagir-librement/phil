@@ -9,6 +9,11 @@ use Phil\DddBundle\Application\Bus\CommandHandler;
 use Phil\DddBundle\Application\Bus\QueryBus;
 use Phil\DddBundle\Application\Bus\QueryHandler;
 use Phil\DddBundle\Infrastructure\HttpKernel\IdentifierValueResolver;
+use Phil\DddBundle\Infrastructure\Maker\MakeDddCommand;
+use Phil\DddBundle\Infrastructure\Maker\MakeDddContext;
+use Phil\DddBundle\Infrastructure\Maker\MakeDddEvent;
+use Phil\DddBundle\Infrastructure\Maker\MakeDddIdentifier;
+use Phil\DddBundle\Infrastructure\Maker\MakeDddQuery;
 use Phil\DddBundle\Infrastructure\Messenger\MessengerCommandBus;
 use Phil\DddBundle\Infrastructure\Messenger\MessengerQueryBus;
 use Phil\DddBundle\Infrastructure\Serializer\IdentifierNormalizer;
@@ -76,6 +81,16 @@ final class PhilDddBundleTest extends TestCase
             [[]],
             $container->getDefinition(IdentifierNormalizer::class)->getTag('serializer.normalizer'),
         );
+    }
+
+    public function testTheMakersAreTaggedAsMakerCommands(): void
+    {
+        $container = $this->load([]);
+
+        foreach ([MakeDddContext::class, MakeDddIdentifier::class, MakeDddCommand::class, MakeDddQuery::class, MakeDddEvent::class] as $maker) {
+            self::assertTrue($container->hasDefinition($maker), $maker);
+            self::assertSame([[]], $container->getDefinition($maker)->getTag('maker.command'), $maker);
+        }
     }
 
     /**

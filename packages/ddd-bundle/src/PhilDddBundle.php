@@ -10,9 +10,15 @@ use Phil\DddBundle\Application\Bus\CommandHandler;
 use Phil\DddBundle\Application\Bus\QueryBus;
 use Phil\DddBundle\Application\Bus\QueryHandler;
 use Phil\DddBundle\Infrastructure\HttpKernel\IdentifierValueResolver;
+use Phil\DddBundle\Infrastructure\Maker\MakeDddCommand;
+use Phil\DddBundle\Infrastructure\Maker\MakeDddContext;
+use Phil\DddBundle\Infrastructure\Maker\MakeDddEvent;
+use Phil\DddBundle\Infrastructure\Maker\MakeDddIdentifier;
+use Phil\DddBundle\Infrastructure\Maker\MakeDddQuery;
 use Phil\DddBundle\Infrastructure\Messenger\MessengerCommandBus;
 use Phil\DddBundle\Infrastructure\Messenger\MessengerQueryBus;
 use Phil\DddBundle\Infrastructure\Serializer\IdentifierNormalizer;
+use Symfony\Bundle\MakerBundle\Maker\AbstractMaker;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -30,8 +36,9 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  * on commands, no transaction on queries — is a decision of the application, and it reads in the
  * application's `messenger.yaml`. The bundle only plugs into it through the configured service ids.
  *
- * Two integrations follow the components the application installs: the controller argument resolver of identifiers
- * with `symfony/http-kernel`, the identifier normaliser with `symfony/serializer`.
+ * Three integrations follow the packages the application installs: the controller argument resolver of identifiers
+ * with `symfony/http-kernel`, the identifier normaliser with `symfony/serializer`, and the `make:ddd:*` commands with
+ * `symfony/maker-bundle`.
  */
 final class PhilDddBundle extends AbstractBundle
 {
@@ -91,6 +98,13 @@ final class PhilDddBundle extends AbstractBundle
         if (interface_exists(NormalizerInterface::class)) {
             $services->set(IdentifierNormalizer::class)
                 ->tag('serializer.normalizer');
+        }
+
+        if (class_exists(AbstractMaker::class)) {
+            foreach ([MakeDddContext::class, MakeDddIdentifier::class, MakeDddCommand::class, MakeDddQuery::class, MakeDddEvent::class] as $maker) {
+                $services->set($maker)
+                    ->tag('maker.command');
+            }
         }
     }
 

@@ -48,8 +48,10 @@ Two more services follow the components the application installs:
 |---|---|---|
 | `Phil\DddBundle\Infrastructure\HttpKernel\IdentifierValueResolver` | `controller.argument_value_resolver`, named after its class | `symfony/http-kernel` is installed |
 | `Phil\DddBundle\Infrastructure\Serializer\IdentifierNormalizer` | `serializer.normalizer` | `symfony/serializer` is installed |
+| `Phil\DddBundle\Infrastructure\Maker\MakeDddContext`, `MakeDddIdentifier`, `MakeDddCommand`, `MakeDddQuery`, `MakeDddEvent` | `maker.command` | `symfony/maker-bundle` is installed |
 
-See [identifiers-in-controllers-and-serializer.md](identifiers-in-controllers-and-serializer.md).
+See [identifiers-in-controllers-and-serializer.md](identifiers-in-controllers-and-serializer.md), and
+[maker.md](maker.md) for the `make:ddd:*` commands.
 
 The bundle registers no Doctrine type, no event listener and no Messenger bus. Identifier column types are
 registered by the application ([doctrine-identifier-type.md](doctrine-identifier-type.md)).

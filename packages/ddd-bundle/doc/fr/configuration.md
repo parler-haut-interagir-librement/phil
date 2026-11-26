@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5e63001a4cc3946cbdd55d799dd12ebdea52d31614307391b7601c3cee34418e -->
+<!-- phil-dev source-sha256=4f43b0a61bbe9769025490250bef3a6eb4ca67e051bcf035262eac42fc8c68a8 -->
 # Référence de la configuration
 
 La configuration se trouve sous la clé `phil_ddd`. Elle a deux clés, toutes deux facultatives.
@@ -50,8 +50,10 @@ Deux autres services suivent les composants que l'application installe :
 |---|---|---|
 | `Phil\DddBundle\Infrastructure\HttpKernel\IdentifierValueResolver` | `controller.argument_value_resolver`, nommée d'après sa classe | `symfony/http-kernel` est installé |
 | `Phil\DddBundle\Infrastructure\Serializer\IdentifierNormalizer` | `serializer.normalizer` | `symfony/serializer` est installé |
+| `Phil\DddBundle\Infrastructure\Maker\MakeDddContext`, `MakeDddIdentifier`, `MakeDddCommand`, `MakeDddQuery`, `MakeDddEvent` | `maker.command` | `symfony/maker-bundle` est installé |
 
-Voir [identifiers-in-controllers-and-serializer.md](identifiers-in-controllers-and-serializer.md).
+Voir [identifiers-in-controllers-and-serializer.md](identifiers-in-controllers-and-serializer.md), et
+[maker.md](maker.md) pour les commandes `make:ddd:*`.
 
 Le bundle n'enregistre aucun type Doctrine, aucun écouteur d'événements et aucun bus Messenger. Les types de colonne
 des identifiants sont enregistrés par l'application ([doctrine-identifier-type.md](doctrine-identifier-type.md)).

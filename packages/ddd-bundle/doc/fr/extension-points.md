@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=63572df2d2eecf20d6afd71b54b6d346353c798965f0dbd5ce85b8e34ba74795 -->
+<!-- phil-dev source-sha256=b2e7b9380cda1b7332549e2c5e688d2679aa72d1034aeb10beb4abb80bac97f6 -->
 # Points d'extension
 
 Le bundle n'a aucun port que l'application doit implémenter avant qu'il fonctionne. Ce que l'application écrit contre
@@ -106,3 +106,12 @@ final readonly class LoggingCommandBus implements CommandBus
 
 - Dans un test unitaire, une implémentation en mémoire de l'un ou l'autre port tient en quelques lignes ; voir
   [testing.md](testing.md).
+
+## Les gabarits de `make:ddd:*`
+
+- Contrat : `DddSkeleton` reçoit l'espace de noms racine, le répertoire des sources et le dossier de ses gabarits. Les
+  commandes le construisent avec l'espace de noms racine de MakerBundle, `src` et `templates/maker/` du bundle ; un
+  projet qui veut d'autres gabarits construit son propre `DddSkeleton` sur une copie de ce dossier, avec les mêmes noms
+  de fichiers et les mêmes paramètres substituables.
+- Invariants : un gabarit est du texte avec des paramètres `{{…}}`, jamais exécuté ; le PHP produit doit être analysable.
+- Voir [maker.md](maker.md).

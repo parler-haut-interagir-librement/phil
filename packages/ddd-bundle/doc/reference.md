@@ -23,6 +23,8 @@ Depends on `symfony/uid` only.
 | `Bus\QueryBus` | port | `ask(Query): mixed`, typed `TResult` | Implemented |
 | `Bus\CommandHandler` | autoconfiguration marker | Tags the handler on the command bus | Implemented |
 | `Bus\QueryHandler` | autoconfiguration marker | Tags the handler on the query bus | Implemented |
+| `Maker\DddSkeleton` | `final readonly class` | Renders the files of the `make:ddd:*` commands from `templates/maker/`, without writing them; refuses a name that is not a PascalCase word | Implemented |
+| `Maker\SkeletonFile` | `final readonly class` | One rendered file: its path, relative to the project, and its contents | Implemented |
 
 ## `Phil\DddBundle\Infrastructure`
 
@@ -33,12 +35,13 @@ Depends on `symfony/uid` only.
 | `Doctrine\IdentifierType` | `abstract class`, DBAL `Type`, `@template T of Identifier` | Column type of one identifier class: native UUID or 16-byte binary | Implemented; optional, needs `doctrine/dbal` 4.2 or later |
 | `HttpKernel\IdentifierValueResolver` | `final readonly class`, `ValueResolverInterface` | Turns the request attribute named like a controller argument into the identifier class it declares; 404 for any other value | Implemented; registered when `symfony/http-kernel` is installed |
 | `Serializer\IdentifierNormalizer` | `final readonly class`, `NormalizerInterface`, `DenormalizerInterface` | An identifier as its canonical string, built back to the requested class; `NotNormalizableValueException` for any other value | Implemented; registered when `symfony/serializer` is installed |
+| `Maker\MakeDddContext`, `Maker\MakeDddIdentifier`, `Maker\MakeDddCommand`, `Maker\MakeDddQuery`, `Maker\MakeDddEvent` | `final class`, MakerBundle `AbstractMaker` through `Maker\AbstractDddMaker` | The `make:ddd:*` commands: write what `DddSkeleton` renders, never over an existing file | Implemented; registered when `symfony/maker-bundle` is installed |
 
 ## The bundle
 
 | Type | Kind | Role | State |
 |---|---|---|---|
-| `PhilDddBundle` | `final class`, `AbstractBundle` | Configuration alias `phil_ddd`; wires the two adapters, their aliases, the marker autoconfiguration, and the resolver and normaliser of identifiers when their components are installed | Implemented |
+| `PhilDddBundle` | `final class`, `AbstractBundle` | Configuration alias `phil_ddd`; wires the two adapters, their aliases, the marker autoconfiguration, the resolver and normaliser of identifiers, and the `make:ddd:*` commands, when their packages are installed | Implemented |
 
 ## Not in the code yet
 
