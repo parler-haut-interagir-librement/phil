@@ -90,7 +90,8 @@ catalogues and their entries, aliased by their ports to `DbalLearningPathReposit
 The units of an organization whose catalogues reach a learner — the units they belong to and the units above them —,
 in `Phil\CoursesBundle\Application\Contract`: `units(LearnerId $learner)`, a list of opaque unit identifiers, the
 ones a unit catalogue names. With phil/organizations-bundle registered, `OrganizationsLearnerUnits` answers it from
-`UnitTree::unitIdsOf()` in each organization the learner is a member of; an application names its own service in
+`UnitTree::unitIdsOf()` in each organization the learner is a member of, the units above included unless
+`phil_courses.catalogues.units_below` is false; an application names its own service in
 `phil_courses.catalogues.learner_units`. Without one, the learners see the public catalogues only. See
 [Catalogues](catalogues.md#public-and-unit-catalogues).
 

@@ -185,6 +185,10 @@ final class CatalogueIntegrationsTest extends TestCase
         self::assertSame([], $learnerUnits->units(LearnerId::of('eve')));
         self::assertSame([], $learnerUnits->units(LearnerId::of('a:b')));
 
+        $ownUnitsOnly = new OrganizationsLearnerUnits($organizations, new UnitTree($organizationStore), false);
+        self::assertSame([$east->id->value], $ownUnitsOnly->units(LearnerId::of('ann')));
+        self::assertSame([$north->id->value], $ownUnitsOnly->units(LearnerId::of('ada')));
+
         $store = new Store();
         $store->units->units = ['ann' => $learnerUnits->units(LearnerId::of('ann'))];
 
