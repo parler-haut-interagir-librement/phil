@@ -39,6 +39,29 @@ of the animation in milliseconds, kept between 600 and 4000. Nothing plays until
 
 ## Examples
 
+### Every effect
+
+One button for each effect; nothing plays until one is pressed. Where motion is reduced, or where the person asked for
+none, the message alone is said; there is never a sound.
+
+```twig {"preview":true}
+<twig:Celebration message="Well done!">
+    <div class="isCluster">
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="confetti">Confetti</button>
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="fireworks">Fireworks</button>
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="lasers">Laser show</button>
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="balloons">Balloons</button>
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="shooting-stars">Shooting stars</button>
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="streamers">Streamers</button>
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="coins">Coins</button>
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="bubbles">Bubbles</button>
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="aurora">Aurora</button>
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="spotlight">Spotlight</button>
+        <button type="button" data-action="celebration#play" data-celebration-effect-param="trophy">Trophy</button>
+    </div>
+</twig:Celebration>
+```
+
 ### On a page that arrives on a victory
 
 With `autoplay`, it plays as soon as the page shows it: the page of a result, a podium, a full bingo card. The message is
@@ -95,7 +118,7 @@ Without Turbo, the streams already in the page when the controller connects are 
 
 A button inside it plays it by the action `celebration#play`; its params `message` and `effect` stand in for the props.
 
-```twig
+```twig {"preview":true}
 <twig:Celebration message="Well done">
     <button type="button" data-action="celebration#play" data-celebration-effect-param="fireworks">Celebrate</button>
 </twig:Celebration>
@@ -107,8 +130,10 @@ Without a `message`, `messages` is said in turn, one at random each time, never 
 screen reader does not repeat "Bravo" every time. `celebration_messages()` gives eight words of praise in the language of
 the request, English or French; an application gives its own, translated by its translator, for other languages.
 
-```twig
-<twig:Celebration :messages="celebration_messages()" effect="aurora" />
+```twig {"preview":true}
+<twig:Celebration :messages="celebration_messages()" effect="aurora">
+    <button type="button" data-action="celebration#play">Say well done</button>
+</twig:Celebration>
 ```
 
 ## The choice of each person

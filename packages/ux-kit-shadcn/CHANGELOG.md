@@ -4,6 +4,19 @@ All notable changes to `phil/ux-kit-shadcn` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+### Added
+
+- In the README of `Celebration`, as in the PHIL UX kit, the examples a demo renders: a gallery, one button for each of
+  the eleven effects, nothing playing until one is pressed; the button and the words in turn as live examples too.
+
+### Changed
+
+- The `effect` of `Celebration` names its eleven values in its type, as in the PHIL UX kit.
+
 ## 0.3.0-alpha - 2026-11-25
 
 ### Added

@@ -4,6 +4,20 @@ All notable changes to `phil/ux-kit` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.7.1-alpha.
+
+### Added
+
+- In the README of `Celebration`, the examples a demo renders: a gallery, one button for each of the eleven effects,
+  nothing playing until one is pressed; the button and the words in turn as live examples too.
+
+### Changed
+
+- The `effect` of `Celebration` names its eleven values in its type, `'confetti'|'fireworks'|…|'trophy'`, so that a
+  demo or a playground offers each of them.
+
 ## 0.7.0-alpha - 2026-11-25
 
 ### Added
