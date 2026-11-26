@@ -254,6 +254,7 @@
             "npm ci --ignore-scripts --no-audit --no-fund --prefix packages/form-logic/tests/Browser",
             "npm ci --ignore-scripts --no-audit --no-fund --prefix packages/forms-bundle/tests/Browser",
             "npm ci --ignore-scripts --no-audit --no-fund --prefix packages/map-bundle/tests/Browser",
+            "@putenv PHIL_STIMULUS_JS=packages/ux-kit/tests/Browser/node_modules/@hotwired/stimulus/dist/stimulus.js",
             "vendor/bin/phpunit --configuration=phpunit.browser.dist.xml"
         ],
         "test:integration": "@php vendor/bin/phil-dev test --suite=Integration",

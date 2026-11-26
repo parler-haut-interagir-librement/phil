@@ -20,7 +20,8 @@ emptied between two. A test that reacts, then reads the page again, uses the Doc
 ## In a browser
 
 The browser suite runs apart from the others, with the chromedriver of the system and a build of Stimulus named by
-`PHIL_STIMULUS_JS`; it is skipped without it:
+`PHIL_STIMULUS_JS`, absolute or relative to the working directory; it is skipped without it. In the monorepo,
+`composer test:browser` names the build the kit's browser suite installs. By hand:
 
 ```sh
 PHIL_STIMULUS_JS=node_modules/@hotwired/stimulus/dist/stimulus.js \
