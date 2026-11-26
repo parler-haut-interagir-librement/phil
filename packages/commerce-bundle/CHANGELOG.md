@@ -4,6 +4,15 @@ All notable changes to `phil/commerce-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.5.2-alpha.
+
+### Changed
+
+- Accepts `phil/ddd-bundle` 0.2 as well as 0.1 (`^0.1@dev || ^0.2@dev`), so that it installs beside the typed identifiers in
+  controllers and the Serializer.
+
 ## 0.5.1-alpha - 2026-11-25
 
 ### Changed

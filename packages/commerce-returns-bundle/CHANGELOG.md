@@ -12,6 +12,8 @@ Development only.
 
 ### Changed
 
+- Accepts `phil/ddd-bundle` 0.2 as well as 0.1 (`^0.1@dev || ^0.2@dev`), so that it installs beside the typed identifiers in
+  controllers and the Serializer.
 - The development requirements accept `phil/commerce-stored-value-bundle` 0.2, the minor version of its main branch and
   no earlier one, so that the package installs on its own beside that bundle.
 

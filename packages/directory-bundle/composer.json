@@ -27,7 +27,7 @@
         "phil/contact": "^0.1@dev",
         "phil/contact-bundle": "^0.1@dev",
         "phil/content-bundle": "^0.3@dev",
-        "phil/ddd-bundle": "^0.1@dev",
+        "phil/ddd-bundle": "^0.1@dev || ^0.2@dev",
         "phil/geo": "^0.1@dev",
         "phil/geo-bundle": "^0.1@dev",
         "phil/indexing-consent": "^0.1@dev",

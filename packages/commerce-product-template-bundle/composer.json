@@ -28,7 +28,7 @@
         "phil/commerce-bundle": "^0.5@dev",
         "phil/commerce-catalog-bundle": "^0.1@dev",
         "phil/commerce-product-template": "^0.1@dev",
-        "phil/ddd-bundle": "^0.1@dev",
+        "phil/ddd-bundle": "^0.1@dev || ^0.2@dev",
         "phil/money": "^0.1@dev",
         "phil/print-compositor": "^0.1@dev",
         "symfony/config": "^8.2",

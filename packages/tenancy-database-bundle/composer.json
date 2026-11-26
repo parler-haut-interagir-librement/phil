@@ -24,7 +24,7 @@
         "doctrine/dbal": "^4.6",
         "doctrine/orm": "^3.8",
         "doctrine/persistence": "^4.2",
-        "phil/ddd-bundle": "^0.1@dev",
+        "phil/ddd-bundle": "^0.1@dev || ^0.2@dev",
         "phil/tenancy-bundle": "^0.2@dev",
         "psr/cache": "^3.0",
         "psr/log": "^3.0",

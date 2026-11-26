@@ -4,6 +4,15 @@ All notable changes to `phil/feature-flags-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+### Changed
+
+- Accepts `phil/ddd-bundle` 0.2 as well as 0.1 (`^0.1@dev || ^0.2@dev`), so that it installs beside the typed identifiers in
+  controllers and the Serializer.
+
 ## 0.1.2-alpha - 2026-11-25
 
 ### Security

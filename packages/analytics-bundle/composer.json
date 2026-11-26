@@ -18,7 +18,7 @@
         "ext-sodium": "*",
         "ext-uri": "*",
         "phil/bot-detection-bundle": "^0.1@dev",
-        "phil/ddd-bundle": "^0.1@dev",
+        "phil/ddd-bundle": "^0.1@dev || ^0.2@dev",
         "phil/ip-anonymizer": "^0.1@dev",
         "phil/rate-limit": "^0.1@dev",
         "psr/cache": "^3.0",

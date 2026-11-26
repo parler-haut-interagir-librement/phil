@@ -16,7 +16,7 @@
         "php": ">=8.5",
         "easycorp/easyadmin-bundle": "^5.10.4",
         "phil/audit-bundle": "^0.1@dev",
-        "phil/ddd-bundle": "^0.1@dev",
+        "phil/ddd-bundle": "^0.1@dev || ^0.2@dev",
         "psr/clock": "^1.0",
         "symfony/config": "^8.2",
         "symfony/dependency-injection": "^8.2",

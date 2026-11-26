@@ -20,7 +20,7 @@
         "ext-sodium": "*",
         "doctrine/dbal": "^4.6",
         "doctrine/orm": "^3.8",
-        "phil/ddd-bundle": "^0.1@dev",
+        "phil/ddd-bundle": "^0.1@dev || ^0.2@dev",
         "phil/money": "^0.1@dev",
         "phil/paged-media": "^0.1@dev",
         "phil/tax": "^0.1@dev",

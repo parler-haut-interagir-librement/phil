@@ -10,6 +10,8 @@ The next version is 0.2.1-alpha.
 
 ### Changed
 
+- Accepts `phil/ddd-bundle` 0.2 as well as 0.1 (`^0.1@dev || ^0.2@dev`), so that it installs beside the typed identifiers in
+  controllers and the Serializer.
 - Requires the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6, `doctrine/persistence` 4.2),
   and of each development requirement (`doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, `symfony/cache-contracts`
   3.8).

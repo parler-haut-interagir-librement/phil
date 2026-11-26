@@ -28,7 +28,7 @@
         "ext-mbstring": "*",
         "doctrine/orm": "^3.8",
         "phil/commerce-bundle": "^0.5@dev",
-        "phil/ddd-bundle": "^0.1@dev",
+        "phil/ddd-bundle": "^0.1@dev || ^0.2@dev",
         "phil/money": "^0.1@dev",
         "phil/url": "^0.1@dev",
         "psr/clock": "^1.0",
