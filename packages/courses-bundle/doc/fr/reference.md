@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2685cd2c3b5b33056122f9334e15fb2d3b19045579b99f96d01aea90f98334bf -->
+<!-- phil-dev source-sha256=fe072d2c46d7e9b2d439d2995b9b55c5e8f8dea0addc9b0fec58bb7968195422 -->
 # Référence
 
 ## Bundle
@@ -42,6 +42,9 @@
 | `Domain\Model\EquivalenceGroup`, `EquivalentCourse` | Un groupe de cours équivalents, et un cours du groupe avec sa langue |
 | `Domain\Equivalence\LanguageTag` | La forme d'une étiquette de langue, normalisée en minuscules avec `-` |
 | `Domain\ValueObject\LearningPathId`, `PathEnrollmentId`, `EquivalenceGroupId` | Les identifiants d'un parcours, d'une inscription à un parcours et d'un groupe de cours équivalents |
+| `Domain\Model\Catalogue`, `CatalogueEntry` | Un catalogue : titre, description, montré à tous ou à une unité ; un cours à sa place dans un catalogue, ouvert ou non à l'autoinscription, son prix et ses étiquettes, et la référence qui le vend |
+| `Domain\Catalogue\CatalogueAudience`, `CatalogueSort`, `PriceFilter`, `OfferedCourse` | `public` ou `unit` ; `placed`, `title`, `newest`, `price` ; `any`, `free`, `paid` ; un cours tel qu'un catalogue l'offre, avec son groupe de cours équivalents et sa langue dans celui-ci |
+| `Domain\ValueObject\CatalogueId`, `CoursePrice` | L'identifiant d'un catalogue ; un prix en unités mineures d'une devise ISO 4217 |
 | `Domain\Xapi\XapiVerb` | Les verbes d'ADL avec lesquels une activité xAPI rapporte, et `voided` |
 | `Domain\ValueObject\CourseId`, `ModuleId`, `BlockId`, `ActivityId`, `EnrollmentId`, `RetryRequestId`, `LaunchSessionId` | Des identifiants, UUID version 7 quand le bundle les tire |
 | `Domain\ValueObject\LearnerId` | L'identifiant stable d'un apprenant, jamais une adresse courriel |
@@ -54,11 +57,12 @@
 | `Domain\Progress\RetryDecision` | `pending`, `granted`, `refused`, `waived` |
 | `Domain\Course\CourseOrigin` | `native`, `scorm12`, `scorm2004`, `cmi5`, `xapi` ; `of()` le format d'un paquet |
 | `Domain\Cmi5\Cmi5Verb`, `Cmi5Iri`, `SessionState` | Les verbes, les IRI et les états de session de cmi5 ; les modes de lancement sont le `LaunchMethod` de phil/elearning-packages |
-| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository`, `LearningPathRepository`, `EquivalenceRepository` | Les entrepôts |
+| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository`, `LearningPathRepository`, `EquivalenceRepository`, `CatalogueRepository` | Les entrepôts |
 | `Domain\Event\ScormSessionEnded` | Une session d'une activité SCORM a pris fin, et si sa tentative aussi |
 | `Domain\Exception\AttemptRefused` | Une validation refusée : son jeton, son apprenant ou sa session n'est pas celui de la tentative |
 | `Domain\Event\*` | `LearnerEnrolled`, `ActivityProgressed`, `ActivitySatisfied`, `CourseCompleted`, `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived`, `BlockSatisfied`, `CourseImported`, `StatementRecorded`, `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted`, `LearnerEnrolledInPath`, `PathCompleted` |
 | `Domain\Exception\CoursesException` | Ce qu'est chaque échec du bundle |
+| `Domain\Exception\EnrollmentRefused` | Une inscription depuis un catalogue refusée, et si le cours est acheté à la place |
 | `Domain\Exception\InvalidCourse`, `UnknownRecord`, `ActivityUnavailable`, `PackageRefused`, `StatementRefused`, `RecordStoreUnavailable` | Une valeur refusée, un enregistrement manquant, une activité non ouverte, un paquet refusé, un énoncé refusé, un énoncé que l'entrepôt de traces d'apprentissage n'a pas conservé |
 | `Domain\Identifiers` | La forme des identifiants et des titres |
 
@@ -72,6 +76,7 @@
 | `Application\Equivalences` | Les groupes de cours équivalents, le cours d'une langue, les équivalents d'un cours |
 | `Application\Path\LearningPaths`, `PathProgress`, `StepStatus` | Les parcours d'apprentissage, leurs étapes, l'inscription à ceux-ci, la progression d'un apprenant et son achèvement |
 | `Application\Path\PathCompletions` | Fait avancer les parcours de l'apprenant à chaque `CourseCompleted` |
+| `Application\Catalogue\Catalogues`, `CatalogueQuery`, `CataloguePage`, `CatalogueItem` | Les catalogues, les cours qu'ils placent, les catalogues montrés à un apprenant, une page de l'un d'eux telle qu'une requête la liste avec où en est l'apprenant, l'autoinscription et les cours achetés |
 | `Application\Availabilities` | Où en est chaque activité pour un apprenant |
 | `Application\Learning` | Lance une activité et la marque terminée pour l'apprenant |
 | `Application\SecondChances`, `RetryReview` | Secondes chances demandées, accordées, refusées ou dispensées, et leur revue |
@@ -80,7 +85,7 @@
 | `Application\Launch`, `LaunchWindow`, `LaunchUrl` | L'endroit où l'apprenant va pour suivre une activité, et les paramètres ajoutés à son URL |
 | `Application\ContentUrls` | Les adresses des fichiers sur l'origine du contenu |
 | `Application\CourseOutline`, `ModuleOutline`, `ActivityStatus` | Un cours lu comme un plan, et où en est une activité |
-| `Application\Contract\ActivityType`, `CurrentLearner`, `ContentStorage`, `LearningRecordStore`, `Cmi5Endpoints`, `XapiPackageReader`, `AssigneeMembers`, `TrainingNotifier` | Les ports ; les paquets sont ouverts par le `PackageOpener` de phil/elearning-packages |
+| `Application\Contract\ActivityType`, `CurrentLearner`, `ContentStorage`, `LearningRecordStore`, `Cmi5Endpoints`, `XapiPackageReader`, `AssigneeMembers`, `TrainingNotifier`, `LearnerUnits`, `CourseCheckout` | Les ports ; les paquets sont ouverts par le `PackageOpener` de phil/elearning-packages |
 | `Application\Import\CourseImporter` | Importe un paquet ou une structure de cours, lus par phil/elearning-packages |
 | `Application\Import\ScormPlanner`, `Cmi5Planner`, `XapiPlanner`, `ImportPlan`, `PlannedModule`, `PlannedBlock`, `PlannedActivity` | Transforment un manifeste en cours à créer |
 | `Application\Import\XapiPackage`, `XapiLaunchable` | Ce qu'un lecteur de paquets xAPI a trouvé |
@@ -115,6 +120,10 @@
 | `Infrastructure\Doctrine\DbalCourseRepository`, `DbalEnrollmentRepository`, `DbalRetryRequestRepository`, `DbalLaunchSessionRepository`, `DbalLearningRecordStore`, `Rows` | Les entrepôts DBAL |
 | `Infrastructure\Certificates\CertificatesCourseCompletions` | L'adaptateur du port `CourseCompletions` de phil/certificates-bundle, pour les cours et, après `path:`, les parcours d'apprentissage |
 | `Infrastructure\Doctrine\DbalLearningPathRepository`, `DbalEquivalenceRepository` | Les parcours d'apprentissage et les groupes de cours équivalents par DBAL |
+| `Infrastructure\Doctrine\DbalCatalogueRepository` | Les catalogues et leurs entrées par DBAL, les cours offerts lus en une requête |
+| `Infrastructure\Http\CatalogueController` | Les pages des catalogues et l'inscription depuis un catalogue |
+| `Infrastructure\Organizations\OrganizationsLearnerUnits` | Les unités dont les catalogues atteignent un apprenant, d'après l'arbre d'unités de phil/organizations-bundle |
+| `Infrastructure\Commerce\CourseSellables`, `CoursePurchases` | Les cours vendus par phil/commerce-bundle : les articles vendables de type `course`, et l'acheteur inscrit à chaque `OrderPurchased` |
 | `Infrastructure\Import\ElearningXapiPackageReader` | Le lecteur de paquets xAPI sur le `XapiCourseReader` de phil/elearning-packages |
 | `Infrastructure\Privacy\PathsPrivacy` | Les inscriptions aux parcours d'apprentissage dans les demandes d'accès et d'effacement de phil/privacy-bundle |
 | `Infrastructure\Xapi\HttpLearningRecordStore` | L'entrepôt de traces d'apprentissage xAPI distant, par phil/safe-http, pour les énoncés ; les documents d'état restent dans `DbalLearningRecordStore` |
@@ -137,7 +146,7 @@
 | `Infrastructure\Console\ImportCommand`, `ImportResultsCommand`, `RetriesCommand`, `AssignCommand`, `CreditsCommand`, `TrainingCommand` | Les commandes |
 | `Infrastructure\Audit\AuditSecondChances` | La piste des secondes chances |
 | `Infrastructure\Security\SecurityCurrentLearner` | L'apprenant tiré de Symfony Security |
-| `Infrastructure\Twig\CoursesExtension`, `KitComponents` | `phil_courses_kit()` et les noms des recettes |
+| `Infrastructure\Twig\CoursesExtension`, `KitComponents` | `phil_courses_kit()` et les noms des recettes, `phil_courses_price()` |
 | `Infrastructure\DependencyInjection\CoursesServices`, `KitSubdirectoryPass` | Les services |
 
 ## Commandes

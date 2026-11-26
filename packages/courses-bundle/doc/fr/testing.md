@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d4f322c498addb47557dc8429257cce3b846a4a82a8957377b1fbcec795932bd -->
+<!-- phil-dev source-sha256=6c521130396168afae84daca266be7420062a3aace95c5d1a52d6a4ac430ceb5 -->
 # Tests
 
 ## Les tests du paquet
@@ -55,17 +55,21 @@ La cible de fuzzing `cmi5-statement` donne aux vérifications du point de termin
 écrits, à partir des germes de `tests/Fuzz/corpus/cmi5-statement` : un énoncé est accepté seulement pour l'acteur,
 l'enregistrement et la session de son lancement, ou refusé. La cible de fuzzing `scorm-commit` donne à la lecture d'une
 validation et au modèle de données de chaque version des corps que personne n'a écrits : un corps est lu ou refusé, et ce
-qui est conservé reste dans sa limite. Les lecteurs des paquets et le modèle de données sont soumis au fuzzing dans
-phil/elearning-packages.
+qui est conservé reste dans sa limite. La cible de fuzzing `catalogue-query` donne à la lecture d'une page de catalogue des
+chaînes de requête que personne n'a écrites : quoi qu'elles contiennent, la requête lue reste dans ses limites, et la
+chaîne de requête qu'elle écrit se lit comme la même requête. Les lecteurs des paquets et le modèle de données sont
+soumis au fuzzing dans phil/elearning-packages.
 
 ```sh
-composer fuzz -- cmi5-statement scorm-commit
+composer fuzz -- cmi5-statement scorm-commit catalogue-query
 ```
 
 ## Bancs d'essai
 
 `tests/Benchmark/CoursesBench.php` mesure la vérification d'un énoncé, le placement des activités d'un cours de cent
-activités pour un apprenant, et la validation d'une session SCORM dont la tentative contient cinquante interactions. Les lecteurs des paquets sont mesurés dans phil/elearning-packages.
+activités pour un apprenant, la validation d'une session SCORM dont la tentative contient cinquante interactions, et une page d'un catalogue de cinq
+cents cours filtrés par mots et triés par titre, avec où en est l'apprenant. Les lecteurs des paquets sont mesurés dans
+phil/elearning-packages.
 
 ## Tester le code qui utilise le bundle
 

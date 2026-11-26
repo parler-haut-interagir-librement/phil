@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=031207cc748f6ec4ffe06263eb54786b3802004d9d820384f24a3e71f5cc9fc1 -->
+<!-- phil-dev source-sha256=e20224594ff4144bce414f61efa6f08bb1e5a85c2c0cb56b680171b343df16c2 -->
 # Points d'extension
 
 Le bundle est en versions `0.x` : les ports, les événements et les services ci-dessous peuvent changer dans une version
@@ -79,12 +79,47 @@ par défaut, `ElearningXapiPackageReader`, l'adaptateur du lecteur de phil/elear
 propre service pour lire les paquets d'un outil que phil/elearning-packages ne lit pas. Voir
 [activités xAPI](xapi-activities.md#importer-un-paquet-xapi).
 
-## `LearningPathRepository` et `EquivalenceRepository`
+## `LearningPathRepository`, `EquivalenceRepository` et `CatalogueRepository`
 
-Les entrepôts des parcours d'apprentissage, de leurs étapes et de leurs inscriptions, et des groupes de cours
-équivalents, des alias de leurs ports vers `DbalLearningPathRepository` et `DbalEquivalenceRepository`, publics, de sorte
-qu'une application les remplace en faisant de l'alias du port un alias vers son propre service. Voir
-[parcours d'apprentissage](learning-paths.md) et [cours équivalents](equivalent-courses.md).
+Les entrepôts des parcours d'apprentissage, de leurs étapes et de leurs inscriptions, des groupes de cours équivalents, et
+des catalogues et de leurs entrées, des alias de leurs ports vers `DbalLearningPathRepository`,
+`DbalEquivalenceRepository` et `DbalCatalogueRepository`, publics, de sorte qu'une application les remplace en faisant de
+l'alias du port un alias vers son propre service. Voir [parcours d'apprentissage](learning-paths.md),
+[cours équivalents](equivalent-courses.md) et [catalogues](catalogues.md).
+
+## `LearnerUnits`
+
+Les unités d'une organisation dont les catalogues atteignent un apprenant — les unités dont il est membre et les unités
+au-dessus d'elles —, dans `Phil\CoursesBundle\Application\Contract` : `units(LearnerId $learner)`, une liste
+d'identifiants d'unité opaques, ceux que nomme un catalogue d'unité. Avec phil/organizations-bundle enregistré,
+`OrganizationsLearnerUnits` y répond à partir de `UnitTree::unitIdsOf()` dans chaque organisation dont l'apprenant est
+membre ; une application nomme son propre service dans `phil_courses.catalogues.learner_units`. Sans service, les
+apprenants ne voient que les catalogues publics. Voir [Catalogues](catalogues.md#catalogues-publics-et-catalogues-dunité).
+
+## `CourseCheckout`
+
+Où un apprenant paie un cours que vend un catalogue : `checkout(CatalogueEntry $entry, LearnerId $learner)` ajoute
+`$entry->sellable()` au panier de l'apprenant et répond une adresse du site lui-même, vers laquelle la page redirige ; une
+adresse d'un autre site est refusée. L'application l'implémente sur sa boutique — avec phil/commerce-bundle, une commande
+dont le client est l'identifiant de l'apprenant — et la nomme dans `phil_courses.catalogues.checkout`. Voir
+[Catalogues](catalogues.md#cours-vendus-par-philcommerce-bundle).
+
+```php
+final readonly class StoreCheckout implements CourseCheckout
+{
+    public function __construct(private Carts $carts, private OrderModifier $orders, private ClockInterface $clock, private UrlGeneratorInterface $urls) {}
+
+    public function checkout(CatalogueEntry $entry, LearnerId $learner): string
+    {
+        $cart = $this->carts->of($learner->value);
+        $this->orders->add($cart, SellableReference::fromValue($entry->sellable()), 1, PricingContext::of(1, $this->clock->now()));
+
+        return $this->urls->generate('app_cart');
+    }
+}
+```
+
+`Carts` est celui de l'application : la boutique ne garde aucun panier propre pour un client.
 
 ## `AssigneeMembers`
 
@@ -174,8 +209,9 @@ Les parcours d'apprentissage envoient `LearnerEnrolledInPath` et `PathCompleted`
 
 Chaque point d'entrée est un service public nommé par sa classe : `Courses`, `Enrollments`, `Availabilities`,
 `Learning`, `Completions`, `SecondChances`, `CourseImporter`, `ResultImporter`, `Cmi5Statements`, `Cmi5Tokens`,
-`Cmi5Launcher`, `ActivityTypes`, `ScormRuntime`, `ScormTokens`, `XapiLauncher`, `XapiStatements`, `Assignments`, `Transcripts`, `TrainingRun`, et les
-contrôleurs des pages, dont `SecondChancesController`, `ScormController`, `ScormFrameController` et
-`TrainingController`.
+`Cmi5Launcher`, `ActivityTypes`, `ScormRuntime`, `ScormTokens`, `XapiLauncher`, `XapiStatements`, `Assignments`,
+`Transcripts`, `TrainingRun`, `LearningPaths`, `Equivalences`, `Catalogues`, et les contrôleurs des pages,
+dont `SecondChancesController`, `ScormController`, `ScormFrameController`, `TrainingController` et `CatalogueController`.
 Les entrepôts sont des alias de leurs ports : `CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`,
-`LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository`.
+`LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository`,
+`LearningPathRepository`, `EquivalenceRepository`, `CatalogueRepository`.

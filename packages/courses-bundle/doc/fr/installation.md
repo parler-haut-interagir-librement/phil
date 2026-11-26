@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=80e603d19f90c9b15874be63e59db6f6c528f4a9741d2b8f98cf57d5a8913655 -->
+<!-- phil-dev source-sha256=20f58f35c447fed3e6a62b16b5e449fdfdef7b33e309075752605e1e5647ea5c -->
 # Installation
 
 ```sh
@@ -64,7 +64,7 @@ phil_courses_admin:
 
 | Fichier | Routes | Pare-feu |
 |---|---|---|
-| `config/routes.php` | Les pages d'un cours : le plan, le cours de la langue de l'apprenant, l'inscription, le lancement, l'achèvement, la seconde chance, et le point de terminaison de validation des sessions SCORM, la formation et le relevé de l'apprenant | Derrière le pare-feu de l'application : les pages exigent un apprenant, et une validation nomme sa tentative par son jeton |
+| `config/routes.php` | Les pages d'un cours : le plan, le cours de la langue de l'apprenant, l'inscription, le lancement, l'achèvement, la seconde chance, et le point de terminaison de validation des sessions SCORM, la formation et le relevé de l'apprenant ; les catalogues et l'inscription depuis un catalogue | Derrière le pare-feu de l'application : les pages exigent un apprenant, et une validation nomme sa tentative par son jeton. Les pages des catalogues répondent aussi à un visiteur déconnecté, avec les catalogues publics : une application qui les montre à tous laisse passer `/catalogues` dans son contrôle d'accès |
 | `config/cmi5_routes.php` | L'URL de récupération et le point de terminaison xAPI auxquels parlent les unités cmi5 et les activités xAPI | En dehors : chaque requête porte le jeton de sa session, non les témoins de connexion de l'apprenant |
 | `config/content_routes.php` | Les fichiers des paquets importés, et le cadre de l'environnement d'exécution SCORM sous `_phil/scorm/` | En dehors, et servis sur l'origine du contenu seulement |
 | `config/admin_routes.php` | Les pages d'administration : les secondes chances, la formation en retard ou bientôt due, les relevés des apprenants | Derrière le pare-feu de l'application : les pages demandent les rôles `phil_courses.admin.role` et `phil_courses.training.manager_role` |
@@ -139,15 +139,25 @@ php bin/console messenger:consume scheduler_phil_courses_training
 Sans eux, `phil:courses:training` s'exécute depuis cron ; voir [formation obligatoire](mandatory-training.md#lexécution).
 Les rappels passent par phil/notifications-bundle quand il est enregistré.
 
+## Les tables des catalogues
+
+`phil_course_catalogue` et `phil_course_catalogue_entry` conservent les catalogues et les cours que chacun offre — les
+étiquettes d'une entrée en liste JSON, son prix en unités mineures et une devise. Elles viennent avec les autres tables, et
+`CourseTables::upgrade()` les crée pour une application qui exécute une version antérieure ; avec l'ORM,
+`doctrine:migrations:diff` écrit la même migration.
+
 ## Les pages
 
 Les pages étendent `@PhilCourses/layout.html.twig`, ou la mise en page que nomme `phil_courses.layout`, qui remplit les
-blocs `title` et `main`. Elles utilisent les recettes `Button`, `Badge`, `Progress` et `Textarea` du kit, que le Symfony
-UX Toolkit installe dans l'application :
+blocs `title` et `main`. Elles utilisent les recettes `Button`, `Badge`, `Input`, `NativeSelect`, `Progress` et `Textarea` du kit, que le
+Symfony UX Toolkit installe dans l'application :
 
 ```sh
-php bin/console ux:install button badge progress textarea --kit=github.com/parler-haut-interagir-librement/ux-kit
+php bin/console ux:install button badge input native-select progress textarea --kit=github.com/parler-haut-interagir-librement/ux-kit
 ```
+
+Les prix des catalogues sont écrits comme la locale de la requête les écrit avec `ext-intl`, avec les décimales que
+`symfony/intl` donne à chaque devise.
 
 Les pages d'administration demandent Symfony Security : son vérificateur d'autorisation accorde le rôle de
 `phil_courses.admin.role` pour les secondes chances et de `phil_courses.training.manager_role` pour la formation des
