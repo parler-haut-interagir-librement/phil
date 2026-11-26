@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\UxKit\Tests\Functional;
 
+use Phil\UxKit\Application\CelebrationStream;
 use PHPUnit\Framework\Attributes\CoversNothing;
 
 #[CoversNothing]
@@ -79,6 +80,30 @@ final class CelebrationTest extends KitTestCase
         self::assertSame('Well done!', $this->render('{{ celebration_messages()|first }}'));
         [$html] = $this->renderInRequest("{{ app.request.setLocale('fr') }}{{ celebration_messages()|first }}");
         self::assertSame('Bien joué!', $html);
+    }
+
+    /**
+     * The live examples of its README, which a demo renders: a button for each effect, and nothing that plays on load.
+     */
+    public function testTheExamplesOfItsReadmeOfferAButtonForEachEffectAndNothingPlaysOnLoad(): void
+    {
+        $readme = (string) file_get_contents(\dirname(__DIR__, 2).'/celebration/README.md');
+        self::assertGreaterThan(1, preg_match_all('/^```twig \{"preview":true\}\R(.*?)\R```$/ms', $readme, $examples));
+        $html = implode("\n", array_map($this->render(...), $examples[1]));
+
+        foreach (CelebrationStream::EFFECTS as $effect) {
+            self::assertStringContainsString(\sprintf('<button type="button" data-action="celebration#play" data-celebration-effect-param="%s">', $effect), $html, $effect);
+        }
+
+        self::assertStringNotContainsString('data-celebration-autoplay-value="true"', $html);
+        self::assertStringNotContainsString('<turbo-stream', $html);
+    }
+
+    public function testItsEffectNamesEachEffectOfTheControllerInItsType(): void
+    {
+        $template = (string) file_get_contents(\dirname(__DIR__, 2).'/celebration/templates/components/Celebration.html.twig');
+
+        self::assertStringContainsString("## '".implode("'|'", CelebrationStream::EFFECTS)."' What is drawn;", $template);
     }
 
     public function testNoStyleIsWritten(): void
