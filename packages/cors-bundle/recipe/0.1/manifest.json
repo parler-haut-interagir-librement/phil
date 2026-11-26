@@ -1,0 +1,11 @@
+{
+    "bundles": {
+        "Phil\\CorsBundle\\PhilCorsBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "CORS_ALLOW_ORIGIN": "'^https?://(localhost|127\\.0\\.0\\.1)(:[0-9]+)?$'"
+    }
+}
