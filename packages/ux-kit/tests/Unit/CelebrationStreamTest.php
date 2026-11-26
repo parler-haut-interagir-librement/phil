@@ -23,7 +23,19 @@ final class CelebrationStreamTest extends TestCase
     public function testWithoutAMessageNorAFocusTheyAreLeftOut(): void
     {
         self::assertSame('<turbo-stream action="celebrate" effect="confetti"><template></template></turbo-stream>', new CelebrationStream()->render());
-        self::assertSame('<turbo-stream action="celebrate" effect="confetti"><template></template></turbo-stream>', new CelebrationStream()->render('', 'confetti', ''));
+        self::assertSame('<turbo-stream action="celebrate" effect="confetti"><template></template></turbo-stream>', new CelebrationStream()->render('', 'confetti', '', ''));
+    }
+
+    public function testTheReactionThatRainsAfterTheFocus(): void
+    {
+        self::assertSame(
+            '<turbo-stream action="celebrate" effect="reactions" focus="#post" reaction="&lt;3"><template></template></turbo-stream>',
+            new CelebrationStream()->render(null, 'reactions', '#post', '<3'),
+        );
+        self::assertSame(
+            '<turbo-stream action="celebrate" effect="reactions" reaction="👏"><template></template></turbo-stream>',
+            new CelebrationStream()->render(null, 'reactions', null, '👏'),
+        );
     }
 
     public function testEveryValueIsEscapedAsAnAttribute(): void

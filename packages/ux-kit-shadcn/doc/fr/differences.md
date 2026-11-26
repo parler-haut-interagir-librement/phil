@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0e55909222225656f8399403479aae55e0b9fdbc2d6dd4e04d1d9e597a8b5a1d -->
+<!-- phil-dev source-sha256=d55a5e80cce1dd882f7d564289ee2f8391ca7dd1591a71441e248a7e14720632 -->
 # Différences avec le kit PHIL UX
 
 Ce kit contient les recettes que le kit Shadcn du Toolkit n'offre pas, et un `Carousel` sur l'accrochage de défilement
@@ -15,7 +15,7 @@ le `DatePicker` du kit PHIL UX, dont le nom est celui du `DatePicker` du kit Sha
 | Le contrôleur de `phil/reactions-bundle` | Les cibles `summary`, `search`, `status`, `empty`, `group` et `option`, et les actions de la recherche, dans `ReactionPicker` |
 | Le contrôleur de la visionneuse | `lightbox_controller.js` est le même fichier, avec la cible `dialog` et les actions `open`, `close` et `closeOnClickOutside` |
 | Le contrôleur de l'aperçu | `image_preview_controller.js` est le même fichier, avec la valeur `src` |
-| Le contrôleur de la célébration | `celebration_controller.js` et les modules à côté, `celebration_effects.js` et `celebration_worker.js`, sont les mêmes fichiers, avec les valeurs `message`, `messages`, `effect`, `autoplay`, `duration`, `colors` et `focus`, les cibles `message` et `stage`, l'action `play`, l'événement DOM `celebrate` et l'action de Turbo Stream `celebrate` |
+| Le contrôleur de la célébration | `celebration_controller.js` et les modules à côté, `celebration_effects.js`, `celebration_sounds.js` et `celebration_worker.js`, sont les mêmes fichiers, avec les valeurs `message`, `messages`, `effect`, `autoplay`, `duration`, `colors`, `focus`, `reaction`, `shapes`, `mascot` et `vibrate`, les cibles `message`, `stage` et `sound`, les actions `play` et `toggleSound`, l'événement DOM `celebrate` et l'action de Turbo Stream `celebrate` |
 | Les contrôleurs du décor de saison, du podium et de la carte à gratter | `seasonal_decor_controller.js` et `seasonal_decor_shapes.js`, `podium_controller.js` et `scratch_card_controller.js` sont les mêmes fichiers, avec les mêmes valeurs, cibles, actions et événements |
 | Le contrôleur Stimulus | `animated_headline_controller.js` est le même fichier, avec les valeurs `pause`, `duration`, `loop`, `pauseLabel` et `playLabel`, les cibles `reveal`, `word` et `toggle`, et l'action `toggle` |
 | L'accessibilité | `alt` requis, le titre lu en entier, rien qui bouge sous le mouvement réduit, les repères |

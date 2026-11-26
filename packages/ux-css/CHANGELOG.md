@@ -24,6 +24,8 @@ The next version is 0.6.1-alpha.
 - The documentation of the elements gives the shape of a table of data the styles assume: one row of column headers
   with `scope="col"`, row headers with `scope="row"`, no header cell over several columns or rows and no `headers`
   attribute, a group of columns as a table of its own with its `caption`, a row of totals headed in its first column.
+- `css/layers/components.css`: the button of the sounds of a celebration, `isCelebrationSound`, in small type, left out
+  on paper.
 
 ## 0.6.0-alpha - 2026-11-24
 

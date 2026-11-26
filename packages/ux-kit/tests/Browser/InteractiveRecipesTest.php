@@ -8,6 +8,7 @@ use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverDimension;
 use Facebook\WebDriver\WebDriverKeys;
 use Override;
+use Phil\UxKit\Application\CelebrationStream;
 use Phil\UxKit\Test\BrowserTestCase;
 use Phil\UxKit\Test\RecipesPage;
 use Phil\UxKit\Tests\Functional\App\TestKernel;
@@ -1083,17 +1084,59 @@ final class InteractiveRecipesTest extends BrowserTestCase
             $this->open($page);
             $this->perform(self::WATCH);
 
-            foreach (['confetti', 'fireworks', 'lasers', 'balloons', 'shooting-stars', 'streamers', 'coins', 'bubbles', 'aurora', 'spotlight', 'trophy'] as $effect) {
-                $this->perform(\sprintf('window.dispatchEvent(new CustomEvent("celebrate", {detail: {message: "Won with %1$s", effect: "%1$s"}}))', $effect));
+            $this->perform('document.body.insertAdjacentHTML("beforeend", "<ul id=\\"wave-row\\"><li>One</li><li>Two</li></ul>")');
+
+            foreach (CelebrationStream::EFFECTS as $effect) {
+                $this->perform(\sprintf('window.dispatchEvent(new CustomEvent("celebrate", {detail: {message: "Won with %1$s", effect: "%1$s", focus: "#wave-row"}}))', $effect));
                 $this->waitUntil(\sprintf('document.querySelector("#victory .isCelebrationMessage").textContent === "Won with %s"', $effect));
             }
 
             usleep(300_000);
 
             self::assertSame(0, $this->read('window.drawn'));
+            self::assertSame(0, $this->read('document.getAnimations().filter((animation) => animation.effect?.target?.closest?.("#wave-row")).length'), 'nothing lifted');
         } finally {
             $this->emulate([]);
         }
+    }
+
+    /**
+     * The effects drawn on a canvas since the wave: each comes over the page, draws, and goes; without images of the site,
+     * the shapes fall as confetti and the mascot is a little figure.
+     */
+    #[DataProvider('plainAndStrict')]
+    public function testTheRocketTheRainbowTheDrumRollTheApplauseTheReactionsTheShapesAndTheMascotDrawAndGo(string $page): void
+    {
+        $this->open($page);
+
+        foreach (['rocket', 'rainbow', 'drum-roll', 'applause', 'reactions', 'shapes', 'mascot'] as $effect) {
+            $this->perform(\sprintf('window.dispatchEvent(new CustomEvent("celebrate", {detail: {message: "Won with %1$s", effect: "%1$s", reaction: "👏"}}))', $effect));
+            $this->waitUntil('document.querySelector("#victory canvas")');
+            $this->waitUntil(self::DRAWN);
+            $this->waitUntil(\sprintf('document.querySelector("#victory .isCelebrationMessage").textContent === "Won with %s"', $effect));
+            $this->waitUntil('!document.querySelector("#victory canvas")');
+        }
+    }
+
+    /**
+     * The wave lifts the children of its focus one after the other, by animations added to their transforms, draws
+     * nothing, and sets them down.
+     */
+    #[DataProvider('plainAndStrict')]
+    public function testTheWaveLiftsTheChildrenOfItsFocusAndDrawsNothing(string $page): void
+    {
+        $this->open($page);
+        $this->perform('document.body.insertAdjacentHTML("beforeend", "<ul id=\\"wave-row\\"><li>One</li><li>Two</li><li>Three</li></ul>"); '.self::WATCH);
+        $this->perform('window.dispatchEvent(new CustomEvent("celebrate", {detail: {message: "The wave", effect: "wave", focus: "#wave-row"}}))');
+
+        self::assertSame(
+            [3, 'add', [0, 120, 240]],
+            $this->read('(() => { const animations = document.getAnimations().filter((animation) => animation.effect?.target?.closest?.("#wave-row")); return [animations.length, animations[0]?.effect.composite, animations.map((animation) => animation.effect.getTiming().delay)]; })()'),
+        );
+        $this->waitUntil('document.querySelector("#victory .isCelebrationMessage").textContent === "The wave"');
+        $this->waitUntil('0 === document.getAnimations().filter((animation) => animation.effect?.target?.closest?.("#wave-row")).length');
+
+        self::assertSame(0, $this->read('window.drawn'));
     }
 
     /**

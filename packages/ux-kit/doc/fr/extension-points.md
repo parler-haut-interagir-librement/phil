@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bb7374ddf9eaf00dec5b44662e87416f78695ab480754da592260a161fa014e6 -->
+<!-- phil-dev source-sha256=ab5e9d5e4388253b814cf0b8c167698d57fb3de617a9dceda2aaa0013ad66087 -->
 # Points d'extension
 
 | Point | Comment |
@@ -19,6 +19,8 @@
 | Le graphe de la page | Un `NodeCollector` de `phil/structured-data`, que rejoint l'`ImageObject` d'une image structurée au lieu d'un script à elle |
 | Combien une personne est célébrée | `data-celebrations="all"`, `discreet` ou `none` sur la racine, ou sur n'importe quel ancêtre d'une `Celebration` ; avec phil/settings-bundle, un choix de la section `display` dont l'`html_attribute` est `celebrations` : voir le README de la recette |
 | Ce que dit une célébration | `message`, ou `messages` pour des mots à tour de rôle : ceux de `celebration_messages()`, ou ceux de l'application, traduits par son traducteur |
+| L'allure du site dans une célébration | `shapes`, les images dans lesquelles tombent les confettis, et `mascot`, l'image qui saute à travers l'écran, servies par le site |
+| Sons et vibration | `sounds`, le bouton par lequel la personne active les sons, libellé par `soundLabel` ; `vibrate` |
 | Une célébration jouée par un bundle | `celebrate()` dans une réponse Turbo Stream, sur un sujet Mercure ou dans la page, ou `Phil\UxKit\Application\CelebrationStream` injecté pour produire le même flux en PHP |
 | Les fêtes du décor de saison | `phil_ux_kit.seasonal.holidays` : chacune une règle de phil/almanac, ses jours ou son `until`, son décor et si elle est sobre ; `phil_ux_kit.seasonal.enabled` l'active : voir le README de `SeasonalDecor` |
 | Les couleurs d'un décor de saison | `data-seasonal-decor-colors-value`, des propriétés personnalisées séparées par des espaces, à la place des couleurs du décor |

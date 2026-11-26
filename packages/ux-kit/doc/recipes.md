@@ -1361,9 +1361,10 @@ action `copy`, the event `copy-button:copied`.
 
 `<twig:Celebration>`: a `div` of class `isCelebration`: what plays it, in its block `content`, the paragraph of class
 `isCelebrationMessage`, a polite live region, and the `template` of its canvas, of class `isCelebrationCanvas`, hidden
-from screen readers. Controller `celebration`: the action `play`, whose params `message`, `effect` and `focus` stand in
-for the props; the DOM event `celebrate`, dispatched on any element or on the window, whose `detail` may give a
-`message`, an `effect` and a `focus`, a selector or an element; a `<turbo-stream action="celebrate">`, which
+from screen readers; with `sounds`, a button of class `isCelebrationSound` before the message, `aria-pressed` while the
+sounds are on. Controller `celebration`: the action `play`, whose params `message`, `effect`, `focus` and `reaction`
+stand in for the props, and the action `toggleSound`; the DOM event `celebrate`, dispatched on any element or on the
+window, whose `detail` may give a `message`, an `effect`, a `focus`, a selector or an element, and a `reaction`; a `<turbo-stream action="celebrate">`, which
 `celebrate()` writes; the events `celebration:start` and `celebration:end`. Where motion is reduced, by the system or
 by `data-motion="reduce"` on an ancestor, or where the person chose `data-celebrations="none"`, the message alone;
 `data-celebrations="discreet"` draws 30 % of the pieces for 60 % of the run, and so do the celebrations of a session
@@ -1373,20 +1374,31 @@ page through the CSSOM, without taking a click, painted in a worker on an `Offsc
 on the page otherwise, held while the tab is hidden, and removed at the end or when the element leaves the page; the
 colours those of `--phil-color-brand-fill-loud`, `--phil-color-success-fill-loud`, `--phil-color-warning-fill-loud`,
 `--phil-color-danger-fill-loud` and `--phil-color-info-fill-loud`, resolved where the canvas stands, and resolved again
-when the colour scheme or an attribute of the root changes while it plays.
+when the colour scheme or an attribute of the root changes while it plays. The `wave` draws nothing: it lifts the
+children of its focus, or of `main`, 24 at most, by animations of the Web Animations API added to their transforms. A
+`drum-roll` says its message when its roll ends, 70 % of the run. The images of `shapes` and `mascot` are loaded when it
+connects, and drawn into bitmaps of 128 pixels across; `autoplay` waits for them. Its sounds, made by the Web Audio API,
+play once the person turned them on, kept under `phil-celebrations-sound` in the local storage, and never before a
+gesture on the page; with `vibrate`, `navigator.vibrate()` where it exists, when something is drawn.
 
 | Prop | Default | |
 |---|---|---|
 | `message` | `''` | The words of the victory, said when it plays, and shown where motion is reduced |
 | `messages` | `[]` | Words said in turn when there is no `message`, one at random each time, another than the last; `celebration_messages()` gives a set in English or French |
-| `effect` | `confetti` | What is drawn: `confetti`, `fireworks`, `lasers`, `balloons`, `shooting-stars`, `streamers`, `coins`, `bubbles`, `aurora`, `spotlight` or `trophy`; `confetti` for any other name |
+| `effect` | `confetti` | What is drawn: `confetti`, `fireworks`, `lasers`, `balloons`, `shooting-stars`, `streamers`, `coins`, `bubbles`, `aurora`, `spotlight`, `trophy`, `wave`, `rocket`, `rainbow`, `drum-roll`, `applause`, `reactions`, `shapes` or `mascot`; `confetti` for any other name |
 | `autoplay` | `false` | Whether it plays as soon as the page shows it, the message, or the first of the messages, written in the page from the start |
 | `duration` | `2500` | How long the animation runs, in milliseconds, kept by the controller between 600 and 4000 |
-| `focus` | `''` | The selector of what `spotlight` lights and where `trophy` lands; the middle of the screen without one |
+| `focus` | `''` | The selector of what `spotlight` lights, where `trophy` lands, `rocket` takes off and `drum-roll` rolls, and whose children `wave` lifts; the middle of the screen, or `main` for the wave, without one |
+| `reaction` | `''` | What `reactions` rains, an emoji or a short word, eight characters at most; 🎉 without one |
+| `shapes` | `[]` | The addresses of the images `shapes` falls in, eight at most; strips of paper without them |
+| `mascot` | `''` | The address of the image that `mascot` hops across the screen; a little figure in a pointed hat without one |
+| `vibrate` | `false` | Whether a device that can vibrates briefly when something is drawn |
+| `sounds` | `false` | Whether the button of the sounds is shown; silent until the person turns them on |
+| `soundLabel` | `'Sounds'` | The label of the button of the sounds |
 
 | Twig function | |
 |---|---|
-| `celebrate(message, effect, focus)` | A `<turbo-stream action="celebrate">` with the values given, each escaped, an unknown effect written as `confetti`; in a Turbo Stream response, on a Mercure topic or in the page, it plays the `Celebration` of the page |
+| `celebrate(message, effect, focus, reaction)` | A `<turbo-stream action="celebrate">` with the values given, each escaped, an unknown effect written as `confetti`; in a Turbo Stream response, on a Mercure topic or in the page, it plays the `Celebration` of the page |
 | `celebration_messages(locale)` | The words of praise of a locale, or of the request, in English or in French, English for any other language |
 
 ## SeasonalDecor

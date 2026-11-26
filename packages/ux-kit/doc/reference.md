@@ -132,8 +132,9 @@
 | `copy-button/assets/controllers/` | The Stimulus controller of the recipe |
 | `celebration/manifest.json`, `celebration/README.md` | The `Celebration` recipe |
 | `celebration/templates/components/` | The `Celebration` component |
-| `celebration/assets/controllers/celebration_controller.js` | The Stimulus controller `celebration`: the message, the choice of the person, the fatigue of the session, the budget of the device, the Turbo Streams, the canvas and the worker |
-| `celebration/assets/controllers/celebration_effects.js` | The pieces of each effect, `EFFECTS`, and the rhythms of the lasers and the fireworks |
+| `celebration/assets/controllers/celebration_controller.js` | The Stimulus controller `celebration`: the message, the choice of the person, the fatigue of the session, the budget of the device, the Turbo Streams, the canvas and the worker, the wave, the images of the site, the button of the sounds and the vibration |
+| `celebration/assets/controllers/celebration_effects.js` | The pieces of each effect, `EFFECTS`, the effects that move the page rather than draw, `DOM_EFFECTS`, and the rhythms of the lasers, the fireworks, the applause and the drum roll |
+| `celebration/assets/controllers/celebration_sounds.js` | The sounds of the effects, made by the Web Audio API on the device, and whether the person turned them on, in the local storage |
 | `celebration/assets/controllers/celebration_worker.js` | The painter, `Painter`: the motion and the drawing of the pieces frame by frame, in a worker on an `OffscreenCanvas` or on the page |
 | `seasonal-decor/manifest.json`, `seasonal-decor/README.md` | The `SeasonalDecor` recipe |
 | `seasonal-decor/templates/components/` | The `SeasonalDecor` component, and its poppy |

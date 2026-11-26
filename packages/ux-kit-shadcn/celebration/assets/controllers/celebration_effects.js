@@ -4,7 +4,45 @@
  */
 
 /** The effects drawn, the first by default. */
-export const EFFECTS = ['confetti', 'fireworks', 'lasers', 'balloons', 'shooting-stars', 'streamers', 'coins', 'bubbles', 'aurora', 'spotlight', 'trophy'];
+export const EFFECTS = [
+    'confetti',
+    'fireworks',
+    'lasers',
+    'balloons',
+    'shooting-stars',
+    'streamers',
+    'coins',
+    'bubbles',
+    'aurora',
+    'spotlight',
+    'trophy',
+    'wave',
+    'rocket',
+    'rainbow',
+    'drum-roll',
+    'applause',
+    'reactions',
+    'shapes',
+    'mascot',
+];
+
+/** The effects that move the elements of the page rather than draw on a canvas. */
+export const DOM_EFFECTS = ['wave'];
+
+/** The reaction that rains when none is given. */
+export const REACTION = '🎉';
+
+/** The most characters of a reaction that rains, an emoji or a short word. */
+export const REACTION_LENGTH = 8;
+
+/** The share of the run of a drum roll before what it reveals: the rest bursts into sparks. */
+export const ROLL_SHARE = 0.7;
+
+/** How many times a second a pair of hands claps at most, a motion and never a flash. */
+export const CLAP_RATE = 2.5;
+
+/** How many times a second a stick of the drum roll strikes, a motion and never a flash. */
+export const STRIKE_RATE = 8;
 
 /** The fewest milliseconds between two bursts of fireworks: two a second at most, under the three flashes of WCAG 2.3.1. */
 export const BURST_GAP = 500;
@@ -23,6 +61,9 @@ export const BEAM_SWING = 0.5;
 
 /** How long the spotlight takes to dim the page, in milliseconds. */
 export const SPOT_RISE = 400;
+
+/** How far above the bottom of the box the mascot stands, in pixels. */
+const FEET = 8;
 
 /** The fewest pieces an effect makes at any scale. */
 const FEWEST = 1;
@@ -329,12 +370,254 @@ export function trophy({ width, height, colors, duration, random = Math.random, 
     return [cup, ...sparks];
 }
 
+/** A reaction kept to `REACTION_LENGTH` characters, whole ones, without spaces at its ends; `REACTION` when empty. */
+export function reaction(text) {
+    const kept = Array.from(String(text ?? '').trim())
+        .slice(0, REACTION_LENGTH)
+        .join('')
+        .trim();
+
+    return '' === kept ? REACTION : kept;
+}
+
+/** How long a drum roll lasts before what it reveals, in milliseconds, for the run of the celebration. */
+export function rollOf(duration) {
+    return Math.round(duration * ROLL_SHARE);
+}
+
+/**
+ * A rocket taking off from the bottom of the box, or from under what `focus` names, a progress bar at 100 % as a rule,
+ * faster and faster up and out by the top, a trail of sparks behind it.
+ */
+export function rocket({ width, height, colors, duration, random = Math.random, scale = 1, focus }) {
+    const size = between(24, 48, Math.min(width, height) * 0.06);
+    const x = focus?.x ?? width / 2;
+    const from = Math.min(height + size, (focus?.y ?? height) + size);
+    const to = -size * 3;
+    const travel = Math.max(400, duration * 0.8);
+    const count = scaled(30, scale);
+    const body = {
+        shape: 'rocket',
+        x,
+        y: from,
+        from,
+        to,
+        travel,
+        ease: 'in',
+        vx: 0,
+        vy: 0,
+        size,
+        angle: 0,
+        spin: 0,
+        color: colors[0],
+        delay: 0,
+        life: Infinity,
+    };
+    const trail = Array.from({ length: count }, (_, index) => {
+        const delay = (travel * index) / count;
+        const done = delay / travel;
+
+        return {
+            shape: 'spark',
+            x: x + (random() - 0.5) * size * 0.3,
+            y: from + (to - from) * done ** 3 + size,
+            vx: (random() - 0.5) * 0.05,
+            vy: 0.04 + random() * 0.06,
+            size: 1.5 + random() * 2,
+            angle: 0,
+            spin: 0,
+            color: colors[(index % Math.max(1, colors.length - 1)) + (colors.length > 1 ? 1 : 0)],
+            delay,
+            life: 500,
+        };
+    });
+
+    return [body, ...trail];
+}
+
+/** A rainbow drawn from one edge of the box to the other, one band of each colour after the other, around its bottom. */
+export function rainbow({ width, height, colors, duration }) {
+    const radius = Math.min(width * 0.45, height * 0.8);
+    const band = between(6, 18, radius / 14);
+    const bands = Math.max(3, colors.length);
+    const draw = Math.max(300, duration * 0.5);
+
+    return Array.from({ length: bands }, (_, index) => ({
+        shape: 'arc',
+        x: width / 2,
+        y: height,
+        vx: 0,
+        vy: 0,
+        size: band,
+        radius: radius - index * band,
+        draw,
+        angle: 0,
+        spin: 0,
+        color: colors[index % colors.length],
+        delay: index * 80,
+        life: Infinity,
+    }));
+}
+
+/**
+ * A drum roll: a drum under what `focus` names, or at the bottom of the box, its two sticks striking in turn for
+ * `rollOf(duration)`, then gone, and a burst of sparks on what is revealed when the roll ends.
+ */
+export function drumRoll({ width, height, colors, duration, random = Math.random, scale = 1, focus }) {
+    const roll = rollOf(duration);
+    const size = between(40, 90, Math.min(width, height) * 0.1);
+    const x = focus?.x ?? width / 2;
+    const y = Math.min(height - size, (focus?.y ?? height * 0.4) + (focus?.radius ?? 0) + size);
+    const count = scaled(32, scale);
+    const drum = {
+        shape: 'drum',
+        x,
+        y,
+        vx: 0,
+        vy: 0,
+        size,
+        strike: STRIKE_RATE,
+        angle: 0,
+        spin: 0,
+        color: colors[0],
+        delay: 0,
+        life: roll + 200,
+    };
+    const life = Math.max(1, Math.min(BURST_LIFE, duration - roll));
+    const sparks = Array.from({ length: count }, (_, index) => {
+        const direction = (Math.PI * 2 * index) / count;
+        const speed = 0.1 + random() * 0.12;
+
+        return {
+            shape: 'spark',
+            x,
+            y: focus?.y ?? height * 0.4,
+            vx: Math.cos(direction) * speed,
+            vy: Math.sin(direction) * speed,
+            size: 2 + random(),
+            angle: 0,
+            spin: 0,
+            color: colors[(index % Math.max(1, colors.length - 1)) + (colors.length > 1 ? 1 : 0)],
+            delay: roll,
+            life,
+        };
+    });
+
+    return [drum, ...sparks];
+}
+
+/** Pairs of hands clapping along the bottom of the box, rising a little, each at its own pace, `CLAP_RATE` at most. */
+export function applause({ width, height, colors, random = Math.random, scale = 1 }) {
+    const count = scaled(between(3, 8, Math.round(width / 160)), scale);
+
+    return Array.from({ length: count }, (_, index) => {
+        const size = 22 + random() * 10;
+
+        return {
+            shape: 'hands',
+            x: (width * (index + 0.5)) / count + (random() - 0.5) * 30,
+            y: height + size * 2,
+            vx: 0,
+            vy: -(0.06 + random() * 0.04),
+            size,
+            clap: CLAP_RATE * (0.7 + random() * 0.3),
+            phase: random() * Math.PI * 2,
+            angle: (random() - 0.5) * 0.4,
+            spin: 0,
+            color: colors[index % colors.length],
+            delay: random() * 300,
+            life: Infinity,
+        };
+    });
+}
+
+/** A reaction raining from above the top of the box, an emoji or a short word, swaying as it falls. */
+export function reactions({ width, height, colors, random = Math.random, scale = 1, reaction: text }) {
+    const count = scaled(between(15, 50, Math.round((width * height) / 25000)), scale);
+    const glyph = reaction(text);
+
+    return Array.from({ length: count }, (_, index) => ({
+        shape: 'glyph',
+        text: glyph,
+        x: random() * width,
+        y: -random() * height * 0.4 - 32,
+        vx: 0,
+        vy: 0.08 + random() * 0.12,
+        size: 22 + random() * 16,
+        angle: (random() - 0.5) * 0.6,
+        spin: (random() - 0.5) * 0.002,
+        sway: { amplitude: 8 + random() * 10, speed: 0.002, phase: random() * Math.PI * 2 },
+        color: colors[index % colors.length],
+        delay: random() * 500,
+        life: Infinity,
+    }));
+}
+
+/**
+ * Confetti in the shapes of the site, the images it gives, a logo or a mascot, falling and turning; strips of paper
+ * when it gives none.
+ */
+export function shapes({ width, height, colors, random = Math.random, scale = 1, images = 0 }) {
+    if (images < 1) {
+        return confetti(width, height, colors, random, scale);
+    }
+
+    const count = scaled(between(20, 80, Math.round((width * height) / 15000)), scale);
+
+    return Array.from({ length: count }, (_, index) => ({
+        shape: 'image',
+        image: index % images,
+        x: random() * width,
+        y: -random() * height * 0.3 - 40,
+        vx: (random() - 0.5) * 0.2,
+        vy: 0.08 + random() * 0.16,
+        size: 20 + random() * 16,
+        angle: random() * Math.PI * 2,
+        spin: (random() - 0.5) * 0.004,
+        color: colors[index % colors.length],
+        delay: 0,
+        life: Infinity,
+    }));
+}
+
+/**
+ * The mascot of the site, its image, or a little figure in a pointed hat without one, hopping across the bottom of the
+ * box from the side where reading starts to the other.
+ */
+export function mascot({ width, height, colors, duration, images = 0, direction = 'ltr' }) {
+    const size = between(48, 120, Math.round(Math.min(width, height) * 0.14));
+    const start = -size;
+    const end = width + size;
+    const rtl = 'rtl' === direction;
+
+    return [
+        {
+            shape: 'sprite',
+            image: images > 0 ? 0 : undefined,
+            x: rtl ? end : start,
+            y: height - FEET,
+            cross: { from: rtl ? end : start, to: rtl ? start : end, floor: height - FEET, hop: size * 0.4, hops: 6 },
+            travel: duration,
+            vx: 0,
+            vy: 0,
+            size,
+            angle: 0,
+            spin: 0,
+            color: colors[0],
+            delay: 0,
+            life: Infinity,
+        },
+    ];
+}
+
 /**
  * The pieces of an effect of `EFFECTS` for a box, in its colours, for a duration, at a scale; `focus`, the centre and the
- * radius of what the spotlight lights and where the trophy lands.
+ * radius of what the spotlight lights, where the trophy lands, the rocket takes off and the drum rolls; `reaction`, what
+ * rains; `images`, how many images of the site the shapes and the mascot have; `direction`, that of the text. An effect
+ * of `DOM_EFFECTS` draws nothing.
  */
-export function pieces(name, { width, height, colors, duration, random = Math.random, scale = 1, focus }) {
-    const box = { width, height, colors, duration, random, scale, focus };
+export function pieces(name, { width, height, colors, duration, random = Math.random, scale = 1, focus, reaction: text, images = 0, direction = 'ltr' }) {
+    const box = { width, height, colors, duration, random, scale, focus, reaction: text, images, direction };
 
     switch (name) {
         case 'fireworks':
@@ -357,6 +640,22 @@ export function pieces(name, { width, height, colors, duration, random = Math.ra
             return spotlight(box);
         case 'trophy':
             return trophy(box);
+        case 'wave':
+            return [];
+        case 'rocket':
+            return rocket(box);
+        case 'rainbow':
+            return rainbow(box);
+        case 'drum-roll':
+            return drumRoll(box);
+        case 'applause':
+            return applause(box);
+        case 'reactions':
+            return reactions(box);
+        case 'shapes':
+            return shapes(box);
+        case 'mascot':
+            return mascot(box);
         default:
             return confetti(width, height, colors, random, scale);
     }

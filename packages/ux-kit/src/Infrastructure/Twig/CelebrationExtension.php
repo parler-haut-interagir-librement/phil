@@ -24,12 +24,12 @@ final readonly class CelebrationExtension
 
     /**
      * `<turbo-stream action="celebrate">`: in a Turbo Stream response, on a Mercure topic, or in the page, it plays the
-     * celebration of the page with the message, the effect and the focus given.
+     * celebration of the page with the message, the effect, the focus and the reaction given.
      */
     #[AsTwigFunction(name: 'celebrate', isSafe: ['html'])]
-    public function celebrate(?string $message = null, string $effect = CelebrationStream::EFFECTS[0], ?string $focus = null): string
+    public function celebrate(?string $message = null, string $effect = CelebrationStream::EFFECTS[0], ?string $focus = null, ?string $reaction = null): string
     {
-        return $this->stream->render($message, $effect, $focus);
+        return $this->stream->render($message, $effect, $focus, $reaction);
     }
 
     /**

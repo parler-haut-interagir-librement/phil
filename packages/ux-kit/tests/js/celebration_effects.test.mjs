@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
+    applause,
     aurora,
     balloons,
     BEAM_GAP,
@@ -10,15 +11,29 @@ import {
     BEAM_SWING,
     bubbles,
     coins,
+    CLAP_RATE,
     confetti,
+    DOM_EFFECTS,
+    drumRoll,
     EFFECTS,
     fireworks,
     lasers,
+    mascot,
     pieces,
+    rainbow,
+    REACTION,
+    REACTION_LENGTH,
+    reaction,
+    reactions,
+    rocket,
+    ROLL_SHARE,
+    rollOf,
     scaled,
+    shapes,
     shootingStars,
     SPOT_RISE,
     spotlight,
+    STRIKE_RATE,
     streamers,
     trophy,
 } from '../../celebration/assets/controllers/celebration_effects.js';
@@ -34,6 +49,8 @@ import {
     opacity,
     Painter,
     PHYSICS,
+    GLYPH_FONTS,
+    RAINBOW_ALPHA,
     place,
     pop,
     POP_LIFE,
@@ -75,9 +92,31 @@ class RecordingContext {
 const names = (context) => context.calls.map(([name]) => name);
 
 test('effects: the list the controller and the server know, confetti first', () => {
-    assert.deepEqual(EFFECTS, ['confetti', 'fireworks', 'lasers', 'balloons', 'shooting-stars', 'streamers', 'coins', 'bubbles', 'aurora', 'spotlight', 'trophy']);
+    assert.deepEqual(EFFECTS, [
+        'confetti',
+        'fireworks',
+        'lasers',
+        'balloons',
+        'shooting-stars',
+        'streamers',
+        'coins',
+        'bubbles',
+        'aurora',
+        'spotlight',
+        'trophy',
+        'wave',
+        'rocket',
+        'rainbow',
+        'drum-roll',
+        'applause',
+        'reactions',
+        'shapes',
+        'mascot',
+    ]);
     assert.deepEqual(Object.keys(PHYSICS).sort(), [...EFFECTS].sort(), 'each effect has its physics');
-    for (const name of EFFECTS) {
+    assert.deepEqual(DOM_EFFECTS, ['wave']);
+    assert.deepEqual(pieces('wave', box()), [], 'the wave draws nothing');
+    for (const name of EFFECTS.filter((known) => !DOM_EFFECTS.includes(known))) {
         const made = pieces(name, box());
         assert.ok(made.length > 0, `${name} makes pieces`);
         assert.ok(made.every((piece) => Number.isFinite(piece.x) && Number.isFinite(piece.y) && 'string' === typeof piece.color), name);
@@ -256,6 +295,155 @@ test('trophy: comes down to its place, eased, then bursts into sparks', () => {
     assert.deepEqual([placed.x, placed.to, placed.travel], [40, 50, 240]);
     assert.equal(trophy(box({ width: 100, height: 100 }))[0].size, 48);
     assert.equal(trophy(box({ width: 4000, height: 4000 }))[0].size, 120);
+});
+
+test('rocket: takes off from the bottom or from under its focus, faster and faster, a trail of sparks behind', () => {
+    const [body, ...trail] = rocket(box());
+    assert.deepEqual([body.shape, body.x, body.from, body.to, body.travel, body.ease, body.size], ['rocket', 500, 848, -144, 2000, 'in', 48]);
+    assert.equal(trail.length, 30);
+    assert.deepEqual([trail[0].delay, trail[0].y], [0, 896]);
+    assert.ok(trail.every((spark, index) => 'spark' === spark.shape && 500 === spark.life && spark.delay === (2000 * index) / 30));
+    assert.ok(trail.every((spark) => 'red' !== spark.color), 'the trail in the other colours');
+    advance([body], 1000, 16, PHYSICS.rocket);
+    assert.equal(body.y, 848 - 992 * 0.125, 'eased in: slow, then fast');
+    advance([body], 5000, 16, PHYSICS.rocket);
+    assert.equal(body.y, -144, 'out by the top');
+    const [placed] = rocket(box({ focus: { x: 100, y: 300, radius: 20 }, duration: 400 }));
+    assert.deepEqual([placed.x, placed.from, placed.travel], [100, 348, 400]);
+    assert.equal(rocket(box({ width: 100, height: 100 }))[0].size, 24);
+    assert.equal(rocket(box({ colors: ['red'] }))[1].color, 'red', 'one colour for all');
+    assert.equal(rocket(box({ scale: 0.5 })).length, 16);
+});
+
+test('rainbow: one band of each colour around the bottom, drawn from the left edge to the right', () => {
+    const bands = rainbow(box());
+    assert.deepEqual(bands.map((band) => [band.shape, band.x, band.y, band.radius, band.size, band.draw, band.delay, band.color]), [
+        ['arc', 500, 800, 450, 18, 1250, 0, 'red'],
+        ['arc', 500, 800, 432, 18, 1250, 80, 'blue'],
+        ['arc', 500, 800, 414, 18, 1250, 160, 'green'],
+    ]);
+    assert.equal(rainbow(box({ colors: ['red'] })).length, 3, 'three bands at least');
+    assert.equal(rainbow(box({ colors: ['a', 'b', 'c', 'd', 'e'] })).length, 5);
+    assert.equal(rainbow(box({ duration: 400 }))[0].draw, 300);
+    assert.equal(rainbow(box({ width: 100 }))[0].size, 6);
+    const context = new RecordingContext();
+    const lit = [];
+    Object.defineProperty(context, 'globalAlpha', { set: (value) => lit.push(value), get: () => 1 });
+    draw(context, [{ ...bands[0] }], 625, 2500, 1000, 800);
+    const arc = context.calls.find(([name]) => 'arc' === name);
+    assert.deepEqual(arc.slice(1), [500, 800, 450, Math.PI, Math.PI * 1.5], 'half drawn at half its draw');
+    assert.ok(lit.includes(RAINBOW_ALPHA), 'a veil of colour');
+    assert.ok(lit.every((value) => value <= RAINBOW_ALPHA || 1 === value));
+    const none = new RecordingContext();
+    draw(none, [{ ...bands[0], delay: 0 }], 0, 2500, 1000, 800);
+    assert.ok(!names(none).includes('arc'), 'nothing before it starts');
+});
+
+test('drum roll: a drum whose sticks strike for most of the run, then sparks on what it reveals', () => {
+    assert.equal(ROLL_SHARE, 0.7);
+    assert.equal(rollOf(2500), 1750);
+    assert.equal(rollOf(1001), 701);
+    const [drum, ...sparks] = drumRoll(box());
+    assert.deepEqual([drum.shape, drum.x, drum.y, drum.size, drum.strike, drum.life], ['drum', 500, 400, 80, STRIKE_RATE, 1950]);
+    assert.equal(sparks.length, 32);
+    assert.ok(sparks.every((spark) => 'spark' === spark.shape && 1750 === spark.delay && 750 === spark.life && 320 === spark.y));
+    const [under] = drumRoll(box({ focus: { x: 40, y: 100, radius: 30 } }));
+    assert.deepEqual([under.x, under.y], [40, 210]);
+    const [low] = drumRoll(box({ focus: { x: 40, y: 790, radius: 30 } }));
+    assert.equal(low.y, 720, 'kept on the screen');
+    const context = new RecordingContext();
+    draw(context, [{ ...drum }], 100, 2500, 1000, 800);
+    assert.equal(names(context).filter((name) => 'stroke' === name).length, 2, 'two sticks');
+    assert.ok(!context.calls.some(([name, , , width, height]) => 'fillRect' === name && 1000 === width && 800 === height), 'never a fill of the screen');
+});
+
+test('applause: pairs of hands along the bottom, rising, clapping at most CLAP_RATE a second', () => {
+    const pairs = applause(box());
+    assert.equal(pairs.length, 6);
+    assert.ok(pairs.every((pair) => 'hands' === pair.shape && pair.vy < 0 && pair.clap <= CLAP_RATE && pair.clap >= CLAP_RATE * 0.7));
+    assert.ok(pairs.every((pair) => 854 === pair.y), 'from below the bottom');
+    assert.equal(applause(box({ width: 100 })).length, 3);
+    assert.equal(applause(box({ width: 5000 })).length, 8);
+    const context = new RecordingContext();
+    draw(context, [{ ...pairs[0], delay: 0 }], 100, 2500, 1000, 800);
+    assert.equal(names(context).filter((name) => 'ellipse' === name).length, 2, 'two palms');
+});
+
+test('reactions: the reaction given, or the default one, raining and swaying; a few characters at most', () => {
+    assert.equal(REACTION_LENGTH, 8);
+    assert.equal(reaction(undefined), REACTION);
+    assert.equal(reaction('   '), REACTION);
+    assert.equal(reaction(' 👍 '), '👍');
+    assert.equal(reaction('👍🏽 hello world'), '👍🏽 hello');
+    assert.equal(reaction('abcdefg  h'), 'abcdefg', 'no space at its end');
+    const rain = reactions(box({ reaction: '❤️' }));
+    assert.equal(rain.length, 32);
+    assert.ok(rain.every((drop) => 'glyph' === drop.shape && '❤️' === drop.text && drop.y < 0 && drop.vy > 0 && undefined !== drop.sway));
+    assert.ok(reactions(box()).every((drop) => REACTION === drop.text));
+    assert.equal(pieces('reactions', box({ reaction: '👏' }))[0].text, '👏');
+    const context = new RecordingContext();
+    draw(context, [{ ...rain[0], delay: 0 }], 100, 2500, 1000, 800);
+    const written = context.calls.find(([name]) => 'fillText' === name);
+    assert.deepEqual(written.slice(1), ['❤️', 0, 0]);
+    assert.ok(context.font.endsWith(GLYPH_FONTS), 'in the fonts of the emoji');
+});
+
+test('shapes: the images of the site falling and turning, or confetti without them', () => {
+    assert.ok(shapes(box()).every((piece) => 'piece' === piece.shape));
+    const falling = shapes(box({ images: 2 }));
+    assert.equal(falling.length, 53);
+    assert.deepEqual(falling.slice(0, 4).map((piece) => piece.image), [0, 1, 0, 1]);
+    assert.ok(falling.every((piece) => 'image' === piece.shape && piece.y < 0 && piece.size >= 20 && piece.size <= 36));
+    const bitmap = { width: 100, height: 50 };
+    const context = new RecordingContext();
+    draw(context, [{ ...falling[0], delay: 0, angle: 0 }], 100, 2500, 1000, 800, [bitmap]);
+    const drawn = context.calls.find(([name]) => 'drawImage' === name);
+    assert.equal(drawn[1], bitmap);
+    assert.deepEqual(drawn.slice(4), [28, 14], 'its proportions kept');
+    const missing = new RecordingContext();
+    draw(missing, [{ ...falling[1], delay: 0 }], 100, 2500, 1000, 800, [bitmap]);
+    assert.ok(names(missing).includes('fillRect') && !names(missing).includes('drawImage'), 'a strip of paper for a missing image');
+});
+
+test('mascot: hops across the bottom from where reading starts, its image or a figure in a pointed hat', () => {
+    const [figure] = mascot(box());
+    assert.deepEqual([figure.shape, figure.image, figure.x, figure.y, figure.size, figure.travel], ['sprite', undefined, -112, 792, 112, 2500]);
+    assert.deepEqual(figure.cross, { from: -112, to: 1112, floor: 792, hop: 112 * 0.4, hops: 6 });
+    const [rtl] = mascot(box({ direction: 'rtl', images: 1 }));
+    assert.deepEqual([rtl.image, rtl.cross.from, rtl.cross.to], [0, 1112, -112]);
+    advance([figure], 1250, 16, PHYSICS.mascot);
+    assert.equal(figure.x, 500);
+    assert.ok(Math.abs(figure.y - 792) < 1e-9, 'on the ground between two hops');
+    advance([figure], 2500 / 12, 16, PHYSICS.mascot);
+    assert.ok(Math.abs(figure.y - (792 - 44.8)) < 1e-9, 'at the top of a hop');
+    advance([figure], 9000, 16, PHYSICS.mascot);
+    assert.equal(figure.x, 1112);
+    const drawn = new RecordingContext();
+    draw(drawn, [{ ...figure }], 100, 2500, 1000, 800);
+    assert.ok(names(drawn).includes('ellipse') && !names(drawn).includes('drawImage'), 'a figure without an image');
+    assert.ok(!drawn.calls.some(([name, x]) => 'scale' === name && -1 === x), 'turned towards the right');
+    const turned = new RecordingContext();
+    const bitmap = { width: 0, height: 0 };
+    draw(turned, [{ ...rtl, delay: 0 }], 100, 2500, 1000, 800, [bitmap]);
+    assert.ok(turned.calls.some(([name, x, y]) => 'scale' === name && -1 === x && 1 === y), 'turned towards the left');
+    assert.deepEqual(turned.calls.find(([name]) => 'drawImage' === name).slice(2), [-56, -112, 112, 112]);
+});
+
+test('painter: the images of the site it was given are drawn, and let go at its end', () => {
+    const frames = [];
+    const painter = new Painter(() => {}, { frame: (callback) => frames.push(callback), cancel: () => {} });
+    const context = new RecordingContext();
+    const canvas = { width: 0, height: 0, getContext: () => context };
+    const bitmap = { width: 10, height: 10 };
+    painter.start({ canvas, pieces: shapes(box({ images: 1, scale: 0.02 })), width: 1000, height: 800, duration: 2500, effect: 'shapes', images: [bitmap] });
+    assert.deepEqual(painter.images, [bitmap]);
+    frames.shift()(16);
+    frames.shift()(400);
+    assert.ok(names(context).includes('drawImage'));
+    painter.stop();
+    assert.deepEqual(painter.images, []);
+    painter.start({ canvas, pieces: [], width: 10, height: 10, duration: 100, effect: 'shapes', images: 'none' });
+    assert.deepEqual(painter.images, [], 'a list or none');
 });
 
 test('painter: draws every shape it knows, in its colour, skipping one it does not', () => {

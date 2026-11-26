@@ -11,6 +11,7 @@ import CelebrationController, {
     BURST_GAP,
     confetti,
     DISCREET,
+    DOM_EFFECTS,
     draw,
     DURATION,
     effect,
@@ -30,6 +31,23 @@ import CelebrationController, {
     preference,
     PREFERENCES,
     remember,
+    addresses,
+    images,
+    localOf,
+    rollOf,
+    SOUND_KEY,
+    SOUND_ON,
+    VIBRATION,
+    VIBRATIONS,
+    vibration,
+    WAVE_GAP,
+    WAVE_LIMIT,
+    WAVE_RISE,
+    WAVE_STEP,
+    waveGap,
+    waveTargets,
+    SHAPES_LIMIT,
+    SPRITE_SIZE,
     seen,
     SHORTEST,
     STAGE,
@@ -180,12 +198,15 @@ test('celebration: a duration kept within its bounds, an effect among the known 
 });
 
 test('celebration: the message and the effect of an action params first, then of an event detail', () => {
-    assert.deepEqual(optionsOf(undefined), { message: undefined, effect: undefined, focus: undefined });
-    assert.deepEqual(optionsOf({ detail: 1, params: {} }), { message: undefined, effect: undefined, focus: undefined });
-    assert.deepEqual(optionsOf({ detail: null, params: null }), { message: undefined, effect: undefined, focus: undefined });
-    assert.deepEqual(optionsOf({ detail: { message: 'Bingo', effect: 'fireworks' } }), { message: 'Bingo', effect: 'fireworks', focus: undefined });
-    assert.deepEqual(optionsOf({ detail: { message: 'Bingo' }, params: { message: 'Yes', effect: '' } }), { message: 'Yes', effect: undefined, focus: undefined });
-    assert.deepEqual(optionsOf({ detail: { message: 3, effect: ['x'] } }), { message: undefined, effect: undefined, focus: undefined });
+    const none = { message: undefined, effect: undefined, focus: undefined, reaction: undefined };
+    assert.deepEqual(optionsOf(undefined), none);
+    assert.deepEqual(optionsOf({ detail: 1, params: {} }), none);
+    assert.deepEqual(optionsOf({ detail: null, params: null }), none);
+    assert.deepEqual(optionsOf({ detail: { message: 'Bingo', effect: 'fireworks' } }), { ...none, message: 'Bingo', effect: 'fireworks' });
+    assert.deepEqual(optionsOf({ detail: { message: 'Bingo' }, params: { message: 'Yes', effect: '' } }), { ...none, message: 'Yes' });
+    assert.deepEqual(optionsOf({ detail: { message: 3, effect: ['x'], reaction: 4 } }), none);
+    assert.equal(optionsOf({ detail: { reaction: '👍' }, params: { reaction: '' } }).reaction, '👍');
+    assert.equal(optionsOf({ detail: { reaction: '👍' }, params: { reaction: '❤️' } }).reaction, '❤️');
 });
 
 test('celebration: confetti across the width, above the top, as many as the area allows', () => {
@@ -585,9 +606,10 @@ function stream(attributes) {
 
 test('celebration: a Turbo Stream of the action celebrate plays the celebrations, once', () => {
     assert.equal(STREAM_ACTION, 'celebrate');
-    assert.deepEqual(streamOptions(stream({ action: 'celebrate', message: 'First', effect: 'trophy', focus: '#a' })), { message: 'First', effect: 'trophy', focus: '#a' });
-    assert.deepEqual(streamOptions(stream({ message: '' })), { message: undefined, effect: undefined, focus: undefined });
-    assert.deepEqual(streamOptions(undefined), { message: undefined, effect: undefined, focus: undefined });
+    assert.deepEqual(streamOptions(stream({ action: 'celebrate', message: 'First', effect: 'trophy', focus: '#a', reaction: undefined })), { message: 'First', effect: 'trophy', focus: '#a', reaction: undefined });
+    assert.deepEqual(streamOptions(stream({ message: '' })), { message: undefined, effect: undefined, focus: undefined, reaction: undefined });
+    assert.equal(streamOptions(stream({ action: 'celebrate', effect: 'reactions', reaction: '👏' })).reaction, '👏');
+    assert.deepEqual(streamOptions(undefined), { message: undefined, effect: undefined, focus: undefined, reaction: undefined });
 
     const other = { detail: { newStream: stream({ action: 'append' }), render: 'kept' } };
     onStream(other);
@@ -601,7 +623,7 @@ test('celebration: a Turbo Stream of the action celebrate plays the celebrations
     globalThis.lastWindowEvent = undefined;
     event.detail.render(element);
     assert.equal(globalThis.lastWindowEvent.type, EVENT);
-    assert.deepEqual(globalThis.lastWindowEvent.detail, { message: 'Bingo', effect: 'lasers', focus: undefined });
+    assert.deepEqual(globalThis.lastWindowEvent.detail, { message: 'Bingo', effect: 'lasers', focus: undefined, reaction: undefined });
     globalThis.lastWindowEvent = undefined;
     perform(element);
     assert.equal(globalThis.lastWindowEvent, undefined, 'played once');
@@ -753,13 +775,13 @@ test('celebration: the spotlight lights the element of its focus', () => {
 });
 
 test('celebration: reduced-motion parity, every effect says the same message and draws nothing', async () => {
-    for (const name of EFFECTS) {
+    for (const name of EFFECTS.filter((known) => !DOM_EFFECTS.includes(known))) {
         const shown = celebration({ effect: name, message: `Won with ${name}` });
         shown.controller.connect();
         shown.controller.play();
         assert.equal(canvases(shown.element).length, 1, `${name} is drawn`);
         assert.equal(shown.controller.dispatched[0][1].detail.effect, name);
-        await sleep(ANNOUNCE_DELAY + 20);
+        await sleep(ANNOUNCE_DELAY + 20 + ('drum-roll' === name ? rollOf(1000) : 0));
         const said = shown.message.textContent;
         shown.controller.disconnect();
 
@@ -975,4 +997,424 @@ test('celebration: a worker refused, or a canvas that cannot be handed over, is 
     assert.ok(kept.controller.painter);
     kept.controller.disconnect();
     FakeWorker.refuse = false;
+});
+
+/** An element the wave can lift: what it is asked to animate, and an animation whose end the test decides. */
+function animatable() {
+    const element = new FakeElement();
+    element.animate = (keyframes, options) => {
+        let finish;
+        let fail;
+        const animation = {
+            keyframes,
+            options,
+            state: 'running',
+            finished: new Promise((resolve, reject) => {
+                finish = resolve;
+                fail = reject;
+            }),
+            cancel() {
+                this.state = 'cancelled';
+                fail(new Error('cancelled'));
+            },
+            pause() {
+                this.state = 'paused';
+            },
+            play() {
+                this.state = 'running';
+            },
+            finish() {
+                finish(this);
+            },
+        };
+        element.animation = animation;
+
+        return animation;
+    };
+
+    return element;
+}
+
+test('celebration: the wave lifts the children of its focus, or of main, at most WAVE_LIMIT, apart in time', () => {
+    const children = Array.from({ length: 30 }, animatable);
+    const main = new FakeElement({ children: [new FakeElement(), ...children] });
+    const list = new FakeElement({ children: children.slice(0, 3) });
+    const root = { querySelector: (selector) => ({ main, '#list': list })[selector] ?? (selector.startsWith('[') ? (() => { throw new Error('bad'); })() : null) };
+    assert.equal(waveTargets(undefined, root).length, WAVE_LIMIT, 'those that can be animated, WAVE_LIMIT at most');
+    assert.equal(waveTargets(undefined, root)[0], children[0]);
+    assert.deepEqual(waveTargets('#list', root), children.slice(0, 3));
+    assert.deepEqual(waveTargets(list, root), children.slice(0, 3));
+    assert.deepEqual(waveTargets('#none', root), []);
+    assert.deepEqual(waveTargets('[bad', root), [], 'not a selector');
+    assert.deepEqual(waveTargets(undefined, { querySelector: () => null }), []);
+    assert.deepEqual(waveTargets(undefined, undefined), []);
+    assert.equal(waveGap(1, 2500), 0);
+    assert.equal(waveGap(3, 2500), WAVE_GAP, 'WAVE_GAP at most');
+    assert.equal(waveGap(21, 2600), 100, 'all set down within the run');
+    assert.equal(waveGap(5, 400), 0, 'a run shorter than a step');
+    assert.deepEqual([WAVE_LIMIT, WAVE_RISE, WAVE_STEP, WAVE_GAP], [24, 12, 600, 120]);
+});
+
+test('celebration: the wave draws nothing, lifts each element by an animation added to its transform, then ends', async () => {
+    const children = [animatable(), animatable(), animatable()];
+    const main = new FakeElement({ children });
+    globalThis.document.querySelector = (selector) => ('main' === selector ? main : null);
+    const { controller, element, message } = celebration({ effect: 'wave', duration: 2500 });
+    controller.connect();
+    controller.play();
+    assert.equal(canvases(element).length, 0, 'no canvas');
+    assert.equal(frames.size, 0);
+    assert.deepEqual(controller.dispatched[0], ['start', { detail: { effect: 'wave' } }]);
+    assert.deepEqual(
+        children.map((child) => child.animation.options),
+        [0, 1, 2].map((index) => ({ duration: WAVE_STEP, delay: index * WAVE_GAP, easing: 'ease-in-out', composite: 'add' })),
+    );
+    assert.deepEqual(children[0].animation.keyframes, [{ transform: 'translateY(0)' }, { transform: 'translateY(-12px)', offset: 0.5 }, { transform: 'translateY(0)' }]);
+
+    const other = celebration({ effect: 'wave' });
+    other.controller.connect();
+    other.controller.play();
+    assert.equal(other.controller.dispatched.length, 0, 'one at a time');
+    other.controller.disconnect();
+
+    globalThis.document.hidden = true;
+    controller.visibility();
+    assert.ok(children.every((child) => 'paused' === child.animation.state), 'held while hidden');
+    globalThis.document.hidden = false;
+    controller.visibility();
+    assert.ok(children.every((child) => 'running' === child.animation.state));
+
+    for (const child of children) {
+        child.animation.finish();
+    }
+    await sleep(0);
+    assert.equal(controller.dispatched.at(-1)[0], 'end');
+    assert.ok(children.every((child) => 'cancelled' === child.animation.state), 'set down, their own transforms kept');
+    await sleep(ANNOUNCE_DELAY + 20);
+    assert.equal(message.textContent, 'You won');
+
+    controller.play();
+    assert.equal(controller.dispatched.at(-1)[1].detail.effect, 'wave', 'another may play');
+    controller.disconnect();
+    assert.equal(controller.dispatched.at(-1)[0], 'end', 'stopped when it leaves the page');
+    controller.disconnect();
+    assert.equal(controller.dispatched.filter(([name]) => 'end' === name).length, 2, 'once');
+});
+
+test('celebration: a wave with nothing to lift, or under reduced motion, says its message alone', async () => {
+    globalThis.document.querySelector = () => null;
+    const { controller, message } = celebration({ effect: 'wave' });
+    controller.connect();
+    controller.play();
+    assert.deepEqual(controller.dispatched, []);
+    await sleep(ANNOUNCE_DELAY + 20);
+    assert.equal(message.textContent, 'You won');
+    const next = celebration({ effect: 'confetti' });
+    next.controller.connect();
+    next.controller.play();
+    assert.equal(canvases(next.element).length, 1, 'nothing held the page');
+    next.controller.disconnect();
+    controller.disconnect();
+
+    const child = animatable();
+    globalThis.document.querySelector = () => new FakeElement({ children: [child] });
+    const reduced = celebration({ effect: 'wave' }, { reducedAncestor: true });
+    reduced.controller.connect();
+    reduced.controller.play();
+    assert.equal(child.animation, undefined, 'nothing lifted');
+    reduced.controller.disconnect();
+});
+
+test('celebration: a drum roll says its message when its roll ends, at once when nothing is drawn', async () => {
+    const { controller, message } = celebration({ effect: 'drum-roll', duration: 1000 });
+    controller.connect();
+    controller.play();
+    assert.equal(controller.pieces[0].shape, 'drum');
+    await sleep(ANNOUNCE_DELAY + 20);
+    assert.equal(message.textContent, '', 'suspense');
+    await sleep(rollOf(1000));
+    assert.equal(message.textContent, 'You won', 'revealed');
+    controller.disconnect();
+
+    const reduced = celebration({ effect: 'drum-roll', duration: 1000 }, { reducedAncestor: true });
+    reduced.controller.connect();
+    reduced.controller.play();
+    await sleep(ANNOUNCE_DELAY + 20);
+    assert.equal(reduced.message.textContent, 'You won');
+    reduced.controller.disconnect();
+});
+
+test('celebration: the reactions rain the reaction of the action, of the event, or of its value', () => {
+    const { controller } = celebration({ effect: 'reactions', reaction: '❤️' });
+    controller.connect();
+    controller.play();
+    assert.ok(controller.pieces.every((piece) => 'glyph' === piece.shape && '❤️' === piece.text));
+    controller.stop();
+    controller.play({ params: { reaction: '👍' } });
+    assert.equal(controller.pieces[0].text, '👍');
+    controller.stop();
+    listeners.window.get(EVENT)({ detail: { effect: 'reactions', reaction: '👏' } });
+    assert.equal(controller.pieces[0].text, '👏');
+    controller.disconnect();
+    const plain = celebration({ effect: 'reactions' });
+    plain.controller.connect();
+    plain.controller.play();
+    assert.equal(plain.controller.pieces[0].text, '🎉');
+    plain.controller.disconnect();
+});
+
+test('celebration: a vibration only with vibrate, on a device that can, when something is drawn', () => {
+    assert.deepEqual(vibration('applause'), VIBRATIONS.applause);
+    assert.deepEqual(vibration('confetti'), VIBRATION);
+    assert.deepEqual(vibration('drum-roll', 1000), [20, 60, 120]);
+    assert.deepEqual(vibration('drum-roll', 4000), [20, 60, 20, 60, 20, 60, 20, 60, 20, 60, 20, 60, 120]);
+    assert.deepEqual(vibration('drum-roll'), [20, 60, 20, 60, 20, 60, 20, 60, 120]);
+    for (const name of ['applause', 'fireworks', 'rocket', 'confetti', 'drum-roll']) {
+        assert.ok(vibration(name, 4000).reduce((sum, value) => sum + value, 0) <= 600, `${name} is short`);
+    }
+
+    const felt = [];
+    globalThis.navigator.vibrate = (pattern) => felt.push(pattern);
+    const off = celebration({ effect: 'applause' });
+    off.controller.connect();
+    off.controller.play();
+    assert.deepEqual(felt, [], 'off by default');
+    off.controller.disconnect();
+
+    const on = celebration({ effect: 'applause', vibrate: true });
+    on.controller.connect();
+    on.controller.play();
+    assert.deepEqual(felt, [VIBRATIONS.applause]);
+    on.controller.disconnect();
+
+    const reduced = celebration({ effect: 'rocket', vibrate: true }, { reducedAncestor: true });
+    reduced.controller.connect();
+    reduced.controller.play();
+    assert.equal(felt.length, 1, 'nothing drawn, nothing felt');
+    reduced.controller.disconnect();
+
+    globalThis.navigator.vibrate = () => {
+        throw new Error('refused');
+    };
+    const refused = celebration({ vibrate: true });
+    refused.controller.connect();
+    assert.doesNotThrow(() => refused.controller.play());
+    refused.controller.disconnect();
+    delete globalThis.navigator.vibrate;
+    const without = celebration({ vibrate: true });
+    without.controller.connect();
+    assert.doesNotThrow(() => without.controller.play());
+    without.controller.disconnect();
+});
+
+/** An audio context that records the sounds asked of it. */
+class FakeAudio {
+    static made = [];
+
+    constructor() {
+        this.state = 'suspended';
+        this.currentTime = 0;
+        this.sampleRate = 8;
+        this.destination = {};
+        this.started = [];
+        this.resumed = 0;
+        this.closed = false;
+        FakeAudio.made.push(this);
+    }
+
+    resume() {
+        this.resumed++;
+        this.state = 'running';
+
+        return Promise.resolve();
+    }
+
+    close() {
+        this.closed = true;
+
+        return Promise.resolve();
+    }
+
+    createBuffer(channels, length) {
+        const data = new Float32Array(length);
+
+        return { getChannelData: () => data };
+    }
+
+    node() {
+        const param = () => ({ setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} });
+
+        return {
+            gain: param(),
+            frequency: param(),
+            Q: param(),
+            connect: (next) => next,
+            start: (at) => this.started.push(at),
+            stop() {},
+        };
+    }
+
+    createBufferSource() {
+        return this.node();
+    }
+
+    createBiquadFilter() {
+        return this.node();
+    }
+
+    createGain() {
+        return this.node();
+    }
+
+    createOscillator() {
+        return this.node();
+    }
+}
+
+test('celebration: silent until the person turns the sounds on by its button, kept in the local storage', async () => {
+    FakeAudio.made = [];
+    globalThis.AudioContext = FakeAudio;
+    const local = memory();
+    local.removeItem = (key) => local.items.delete(key);
+    globalThis.window.localStorage = local;
+    const button = new FakeElement();
+    const { controller, element } = celebration();
+    Object.defineProperty(controller, 'soundTargets', { get: () => [button] });
+    controller.connect();
+    assert.equal(button.getAttribute('aria-pressed'), 'false');
+    controller.play();
+    assert.equal(FakeAudio.made.length, 0, 'no sound by default');
+    controller.stop();
+
+    controller.toggleSound();
+    assert.equal(button.getAttribute('aria-pressed'), 'true');
+    assert.equal(local.getItem(SOUND_KEY), SOUND_ON);
+    const [audio] = FakeAudio.made;
+    assert.equal(audio.resumed, 1, 'its click is the gesture that lets the audio run');
+    controller.play();
+    assert.equal(audio.started.length, 3, 'a chime of three notes');
+    controller.stop();
+
+    element.closest = (selector) => ('[data-celebrations]' === selector ? { getAttribute: () => 'none' } : null);
+    controller.play();
+    assert.equal(audio.started.length, 3, 'none where the person chose none');
+    controller.disconnect();
+    assert.ok(audio.closed, 'the audio closed with the page');
+
+    const again = celebration({ effect: 'applause' });
+    const pressed = new FakeElement();
+    Object.defineProperty(again.controller, 'soundTargets', { get: () => [pressed] });
+    again.controller.connect();
+    assert.equal(pressed.getAttribute('aria-pressed'), 'true', 'remembered');
+    globalThis.navigator.userActivation = { isActive: false };
+    again.controller.play();
+    assert.equal(FakeAudio.made[1].started.length, 0, 'never by itself on a page that has seen no gesture');
+    again.controller.stop();
+    globalThis.navigator.userActivation = { isActive: true };
+    again.controller.play();
+    assert.equal(FakeAudio.made[1].started.length, 40, 'claps, after a gesture');
+    again.controller.stop();
+    again.controller.toggleSound();
+    assert.equal(local.getItem(SOUND_KEY), null);
+    assert.equal(pressed.getAttribute('aria-pressed'), 'false');
+    again.controller.disconnect();
+    delete globalThis.navigator.userActivation;
+
+    delete globalThis.AudioContext;
+    const mute = celebration();
+    mute.controller.connect();
+    mute.controller.toggleSound();
+    assert.doesNotThrow(() => mute.controller.play(), 'a browser without audio plays nothing');
+    mute.controller.disconnect();
+    globalThis.AudioContext = class {
+        constructor() {
+            throw new Error('refused');
+        }
+    };
+    const refused = celebration();
+    refused.controller.connect();
+    assert.doesNotThrow(() => refused.controller.play());
+    refused.controller.disconnect();
+    delete globalThis.AudioContext;
+    delete globalThis.window.localStorage;
+    assert.equal(localOf({ get localStorage() { throw new Error('blocked'); } }), null);
+});
+
+test('celebration: the images of the site, decoded into bitmaps a worker paints, those that fail left out', async () => {
+    assert.deepEqual(addresses(['/a.svg', '', '  ', 3, '/b.png']), ['/a.svg', '/b.png']);
+    assert.equal(addresses(Array.from({ length: 12 }, (_, index) => `/${index}.svg`)).length, SHAPES_LIMIT);
+    assert.deepEqual(addresses('/a.svg'), []);
+    assert.deepEqual(addresses(['/a.svg', '/b.svg'], 1), ['/a.svg']);
+    assert.deepEqual(await images(['/a.svg'], {}), { images: [], bitmaps: true }, 'nothing without images');
+
+    class FakeImage {
+        decode() {
+            return this.src.includes('broken') ? Promise.reject(new Error('broken')) : Promise.resolve();
+        }
+
+        get naturalWidth() {
+            return this.src.includes('wide') ? 200 : 0;
+        }
+
+        get naturalHeight() {
+            return this.src.includes('wide') ? 100 : 0;
+        }
+    }
+    const made = [];
+    const scope = {
+        Image: FakeImage,
+        createImageBitmap: async (image, options) => {
+            made.push([image.src, image.decoding, options]);
+
+            return { bitmap: image.src };
+        },
+    };
+    const { images: found, bitmaps } = await images(['/wide.png', '/broken.svg', '/logo.svg'], scope);
+    assert.deepEqual(found, [{ bitmap: '/wide.png' }, { bitmap: '/logo.svg' }]);
+    assert.ok(bitmaps);
+    assert.deepEqual(made, [
+        ['/wide.png', 'async', { resizeWidth: SPRITE_SIZE, resizeHeight: SPRITE_SIZE / 2 }],
+        ['/logo.svg', 'async', { resizeWidth: SPRITE_SIZE, resizeHeight: SPRITE_SIZE }],
+    ]);
+    const plain = await images(['/logo.svg'], { Image: FakeImage });
+    assert.equal(plain.images[0].src, '/logo.svg', 'the image itself without bitmaps');
+    assert.equal(plain.bitmaps, false);
+});
+
+test('celebration: the shapes and the mascot of the site; autoplay waits for their images', async () => {
+    class FakeImage {
+        decode() {
+            return Promise.resolve();
+        }
+    }
+    globalThis.Image = FakeImage;
+    const { controller } = celebration({ effect: 'shapes', shapes: ['/logo.svg', '/gnome.svg'], mascot: '/gnome.svg', autoplay: true });
+    controller.connect();
+    assert.equal(controller.pieces, null, 'it waits for the images');
+    await sleep(0);
+    assert.equal(controller.sprites.shapes.length, 2);
+    assert.equal(controller.sprites.mascot.length, 1);
+    assert.equal(controller.sprites.bitmaps, false);
+    assert.ok(controller.pieces.every((piece) => 'image' === piece.shape));
+    assert.ok(controller.painter, 'images that are not bitmaps are painted on the page');
+    controller.stop();
+    controller.play({ params: { effect: 'mascot' } });
+    assert.equal(controller.pieces[0].image, 0);
+    controller.stop();
+    controller.play({ params: { effect: 'confetti' } });
+    assert.equal(controller.pieces[0].shape, 'piece');
+    controller.disconnect();
+
+    const gone = celebration({ effect: 'shapes', shapes: ['/logo.svg'], autoplay: true });
+    gone.controller.connect();
+    gone.controller.disconnect();
+    await sleep(0);
+    assert.equal(gone.controller.pieces, null, 'nothing plays once it has left the page');
+
+    const bare = celebration({ effect: 'mascot', mascot: '' });
+    bare.controller.connect();
+    bare.controller.play();
+    assert.equal(bare.controller.pieces[0].image, undefined, 'a figure without an image');
+    bare.controller.disconnect();
+    delete globalThis.Image;
 });

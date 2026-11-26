@@ -456,7 +456,7 @@ Each recipe writes one of these classes on each of its parts.
 | Recipe | Classes |
 |---|---|
 | Copy button | `isCopyButton`, `isCopyButtonTrigger` |
-| Celebration | `isCelebration`, `isCelebrationMessage`, `isCelebrationCanvas`, laid over the page without taking a click and never drawn under reduced motion |
+| Celebration | `isCelebration`, `isCelebrationSound`, the button of its sounds, pressed while they are on and left out on paper, `isCelebrationMessage`, `isCelebrationCanvas`, laid over the page without taking a click and never drawn under reduced motion |
 | Seasonal decor | `isSeasonalDecor`, which takes no room; `isSeasonalDecorCanvas`, laid over the page without taking a click; `isSeasonalDecorPoppy`, fixed in a lower corner; `isSeasonalDecorClose`, the button that closes it, in the other; `isSeasonalEgg`, an egg of the hunt, a target of 2.75rem; `isSeasonalDecorCounter`, hidden while empty |
 | Podium | `isPodium`, `isPodiumPlaces`, `isPodiumPlace` with `data-place` from 1 to 3, the second, the first and the third side by side; `isPodiumName`, `isPodiumScore`, `isPodiumStep`, its height by place; `isPodiumMessage`. `data-state="waiting"` holds the steps and the names below, `rising` raises them, the third first, only without reduced motion |
 | Scratch card | `isScratchCard`, `isScratchCardPrize`, `isScratchCardCover`, the canvas over the prize, scratched without scrolling; `isScratchCardButton`, `isScratchCardMessage`, hidden while empty |

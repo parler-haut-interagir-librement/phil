@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d858651e53f121a8b64f73aa5d62948d4b9831cd2f075079c7c92116d3beb1b1 -->
+<!-- phil-dev source-sha256=8cb2d8263a03727293fa5dc01cfa01298bc22cb1e5250dedbf35323c7d754a97 -->
 # Recettes
 
 Chaque recette a son propre README, avec des exemples, dans son dossier ; cette page rassemble leurs props. Chaque
@@ -1374,10 +1374,11 @@ l'action `copy`, l'événement `copy-button:copied`.
 
 `<twig:Celebration>` : un `div` de classe `isCelebration` : ce qui la joue, dans son bloc `content`, le paragraphe de
 classe `isCelebrationMessage`, une région active polie, et le `template` de son canvas, de classe
-`isCelebrationCanvas`, caché aux lecteurs d'écran. Contrôleur `celebration` : l'action `play`, dont les paramètres
-`message`, `effect` et `focus` remplacent les props ; l'événement DOM `celebrate`, émis sur n'importe quel élément ou sur
-la fenêtre, dont le `detail` peut donner un `message`, un `effect` et un `focus`, sélecteur ou élément ; un
-`<turbo-stream action="celebrate">`, qu'écrit `celebrate()` ; les événements `celebration:start` et `celebration:end`.
+`isCelebrationCanvas`, caché aux lecteurs d'écran ; avec `sounds`, un bouton de classe `isCelebrationSound` avant le message, `aria-pressed`
+tant que les sons sont activés. Contrôleur `celebration` : l'action `play`, dont les paramètres `message`, `effect`,
+`focus` et `reaction` remplacent les props, et l'action `toggleSound` ; l'événement DOM `celebrate`, émis sur n'importe
+quel élément ou sur la fenêtre, dont le `detail` peut donner un `message`, un `effect`, un `focus`, sélecteur ou élément,
+et une `reaction` ; un `<turbo-stream action="celebrate">`, qu'écrit `celebrate()` ; les événements `celebration:start` et `celebration:end`.
 Là où le mouvement est réduit, par le système ou par `data-motion="reduce"` sur un ancêtre, ou quand la personne a choisi
 `data-celebrations="none"`, le message seul ; `data-celebrations="discreet"` dessine 30 % des pièces pendant 60 % de la
 durée, tout comme les célébrations d'une session après la sixième, celles après la troisième dessinant la moitié des
@@ -1387,20 +1388,32 @@ sans prendre de clic, peint dans un worker sur un `OffscreenCanvas` là où le n
 suspendu tant que l'onglet est caché, et retiré à la fin ou quand l'élément quitte la page ; les couleurs celles de
 `--phil-color-brand-fill-loud`, `--phil-color-success-fill-loud`, `--phil-color-warning-fill-loud`,
 `--phil-color-danger-fill-loud` et `--phil-color-info-fill-loud`, résolues là où se trouve le canvas, puis résolues de
-nouveau quand le schéma de couleurs ou un attribut de la racine change pendant qu'elle joue.
+nouveau quand le schéma de couleurs ou un attribut de la racine change pendant qu'elle joue. La `wave` ne dessine rien :
+elle soulève les enfants de son focus, ou de `main`, 24 au plus, par des animations de l'API Web Animations ajoutées à
+leurs transformations. Un `drum-roll` dit son message quand son roulement finit, à 70 % de la durée. Les images de
+`shapes` et de `mascot` sont chargées à la connexion, et dessinées en images matricielles de 128 pixels de large ;
+`autoplay` les attend. Ses sons, produits par l'API Web Audio, jouent une fois que la personne les a activés, gardés sous
+`phil-celebrations-sound` dans le stockage local, et jamais avant un geste sur la page ; avec `vibrate`,
+`navigator.vibrate()` là où il existe, quand quelque chose est dessiné.
 
 | Prop | Par défaut | |
 |---|---|---|
 | `message` | `''` | Les mots de la victoire, dits quand elle joue, et affichés là où le mouvement est réduit |
 | `messages` | `[]` | Des mots dits à tour de rôle quand il n'y a pas de `message`, un au hasard chaque fois, différent du dernier ; `celebration_messages()` en donne un ensemble en anglais ou en français |
-| `effect` | `confetti` | Ce qui est dessiné : `confetti`, `fireworks`, `lasers`, `balloons`, `shooting-stars`, `streamers`, `coins`, `bubbles`, `aurora`, `spotlight` ou `trophy` ; `confetti` pour tout autre nom |
+| `effect` | `confetti` | Ce qui est dessiné : `confetti`, `fireworks`, `lasers`, `balloons`, `shooting-stars`, `streamers`, `coins`, `bubbles`, `aurora`, `spotlight`, `trophy`, `wave`, `rocket`, `rainbow`, `drum-roll`, `applause`, `reactions`, `shapes` ou `mascot` ; `confetti` pour tout autre nom |
 | `autoplay` | `false` | Si elle joue dès que la page l'affiche, le message, ou le premier des messages, écrit dans la page dès le départ |
 | `duration` | `2500` | La durée de l'animation, en millisecondes, que le contrôleur garde entre 600 et 4000 |
-| `focus` | `''` | Le sélecteur de ce qu'éclaire `spotlight` et de l'endroit où se pose `trophy` ; le milieu de l'écran sans lui |
+| `focus` | `''` | Le sélecteur de ce qu'éclaire `spotlight`, de l'endroit où se pose `trophy`, où décolle `rocket` et où roule `drum-roll`, et dont `wave` soulève les enfants ; le milieu de l'écran, ou `main` pour la vague, sans lui |
+| `reaction` | `''` | Ce que fait pleuvoir `reactions`, un émoji ou un mot court, huit caractères au plus ; 🎉 sans lui |
+| `shapes` | `[]` | Les adresses des images dans lesquelles tombe `shapes`, huit au plus ; des bandes de papier sans elles |
+| `mascot` | `''` | L'adresse de l'image que `mascot` fait sauter à travers l'écran ; un petit personnage au chapeau pointu sans elle |
+| `vibrate` | `false` | Si un appareil qui le peut vibre brièvement quand quelque chose est dessiné |
+| `sounds` | `false` | Si le bouton des sons est affiché ; muette jusqu'à ce que la personne les active |
+| `soundLabel` | `'Sounds'` | Le libellé du bouton des sons |
 
 | Fonction Twig | |
 |---|---|
-| `celebrate(message, effect, focus)` | Un `<turbo-stream action="celebrate">` avec les valeurs données, chacune échappée, un effet inconnu écrit `confetti` ; dans une réponse Turbo Stream, sur un sujet Mercure ou dans la page, il joue la `Celebration` de la page |
+| `celebrate(message, effect, focus, reaction)` | Un `<turbo-stream action="celebrate">` avec les valeurs données, chacune échappée, un effet inconnu écrit `confetti` ; dans une réponse Turbo Stream, sur un sujet Mercure ou dans la page, il joue la `Celebration` de la page |
 | `celebration_messages(locale)` | Les mots de louange d'une locale, ou de la requête, en anglais ou en français, l'anglais pour toute autre langue |
 
 ## SeasonalDecor
