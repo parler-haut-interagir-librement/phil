@@ -19,6 +19,9 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // Past the five hundredth target the loop only reads the rest of the outline: a `continue` there names none
+            // either, so the answer is the same and only the walk is longer.
+            'Break_' => ['ignore' => [ScormRuntime::class.'::targets::313']],
             // Twig and the CSRF tokens are installed together in the tests: the pages are wired with both, and the `||`
             // that skips them when either is missing reads as `&&` there.
             'LogicalOr' => ['ignoreSourceCodeByRegex' => ['.*!class_exists\\(Environment::class\\) \\|\\| !interface_exists\\(CsrfTokenManagerInterface::class\\).*']],
@@ -86,8 +89,6 @@ return [
             // No enrollment asks for no row, and the query of an empty list reads none either.
             'ReturnRemoval' => ['ignore' => [
                 DbalScormAttemptRepository::class.'::ofEnrollments::94',
-                // A target no activity has leaves for the outline, as the line after the branch does.
-                ScormRuntime::class.'::navigation::316',
                 // A transcript holds none of no course, and the query of an empty list reads none either.
                 Transcripts::class.'::holdsAny::91',
                 DbalLearningPathRepository::class.'::openEnrollmentsWith::144',

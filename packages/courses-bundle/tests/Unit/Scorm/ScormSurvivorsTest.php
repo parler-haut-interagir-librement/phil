@@ -84,6 +84,7 @@ final class ScormSurvivorsTest extends TestCase
         $this->store->courses->addActivity($module->id, 'Long', 'scorm', ['path' => 'e.html', 'scorm_version' => 'scorm2004'], source: str_repeat('x', 201));
         $this->store->courses->addActivity($module->id, 'Longest', 'scorm', ['path' => 'f.html', 'scorm_version' => 'scorm2004'], source: str_repeat('y', 200));
         $this->store->courses->addActivity($module->id, 'Unnamed', 'page');
+        $this->store->courses->addActivity($module->id, 'Lined', 'scorm', ['path' => 'h.html', 'scorm_version' => 'scorm2004'], source: "line\n");
 
         $twelve = $this->store->courses->addActivity($module->id, 'Twelve', 'scorm', ['path' => 'g.html', 'scorm_version' => 'scorm12'], source: 'old');
         $enrollment = $this->store->enrollments->enroll($course->id, LearnerId::of('ada'));

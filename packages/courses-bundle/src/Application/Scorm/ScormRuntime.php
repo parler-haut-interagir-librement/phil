@@ -348,8 +348,6 @@ final readonly class ScormRuntime
                     return [$candidate->id, false];
                 }
             }
-
-            return [null, true];
         }
 
         return [null, true];
