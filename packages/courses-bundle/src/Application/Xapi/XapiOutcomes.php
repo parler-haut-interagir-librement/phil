@@ -11,8 +11,10 @@ use Phil\CoursesBundle\Domain\Xapi\XapiVerb;
 /**
  * The outcome a checked statement reports about the activity launched, or none: `completed` completes it, `passed`
  * passes it and `failed` fails it, each with its scaled score; a `result.completion` or a `result.success` the
- * statement adds is read too. With a mastery score, a scaled score decides success instead: at or above it the
- * learner passed, below it they failed. A statement about another activity, or of another verb, reports nothing.
+ * statement adds is read too. A statement of another verb — `mastered`, `experienced`, a verb of the authoring tool —
+ * reports only through its result: `completion` true completes the activity, a boolean `success` passes or fails it.
+ * With a mastery score, a scaled score decides success instead: at or above it the learner passed, below it they
+ * failed. A statement about another activity, or of another verb without such a result, reports nothing.
  */
 final class XapiOutcomes
 {
@@ -38,7 +40,7 @@ final class XapiOutcomes
         $object = \is_array($statement['object'] ?? null) ? $statement['object'] : [];
         $verb = XapiVerb::tryFrom(self::verbOf($statement));
 
-        if (($object['id'] ?? null) !== $context->activityIri || !\in_array($verb, [XapiVerb::Completed, XapiVerb::Passed, XapiVerb::Failed], true)) {
+        if (($object['id'] ?? null) !== $context->activityIri) {
             return null;
         }
 
@@ -51,6 +53,10 @@ final class XapiOutcomes
             XapiVerb::Failed => false,
             default => \is_bool($result['success'] ?? null) ? $result['success'] : null,
         };
+
+        if (!$completed && null === $success) {
+            return null;
+        }
 
         if (null !== $context->masteryScore && null !== $scaled && XapiVerb::Failed !== $verb) {
             $success = $scaled >= $context->masteryScore;

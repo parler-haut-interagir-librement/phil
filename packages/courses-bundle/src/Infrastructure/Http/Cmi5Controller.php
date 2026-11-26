@@ -15,6 +15,7 @@ use Phil\CoursesBundle\Domain\Exception\CoursesException;
 use Phil\CoursesBundle\Domain\Exception\RecordStoreUnavailable;
 use Phil\CoursesBundle\Domain\Exception\StatementRefused;
 use Phil\CoursesBundle\Domain\Model\LaunchSession;
+use stdClass;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
  * The endpoints an assignable unit talks to, outside the application's firewall: the fetch URL, which gives a
  * session's token once; and the part of the xAPI an assignable unit needs — statements, kept through the learning
  * record store once the rules of cmi5 accept them; the `LMS.LaunchData` state document, read only, and the unit's own
- * state documents; the learner preferences, which the platform keeps none of; and `about`. Every xAPI request carries
+ * state documents, put whole or posted as a JSON object merged into the one kept; the learner preferences, which the platform keeps none of; and `about`. Every xAPI request carries
  * its session's token and the `X-Experience-API-Version` header; cross-origin requests are answered for the content
  * origin and the origins the configuration allows, never for any origin. The sessions of xAPI activities talk to the
  * same endpoints: their statements are checked by `XapiStatements` instead of the cmi5 rules, and their state documents
@@ -183,9 +184,62 @@ final readonly class Cmi5Controller
             return $this->error($request, Response::HTTP_REQUEST_ENTITY_TOO_LARGE, \sprintf('A state document is %d bytes at most.', self::STATE_BYTES));
         }
 
+        if ($request->isMethod('POST')) {
+            $document = $this->merge($this->store->state($activityIri, $registration, $stateId), $document);
+
+            if (null === $document) {
+                return $this->error($request, Response::HTTP_BAD_REQUEST, 'A state is posted as a JSON object, merged into the JSON object kept; a document of another kind is put.');
+            }
+
+            if (\strlen($document) > self::STATE_BYTES) {
+                return $this->error($request, Response::HTTP_REQUEST_ENTITY_TOO_LARGE, \sprintf('A state document is %d bytes at most.', self::STATE_BYTES));
+            }
+        }
+
         $this->store->saveState($activityIri, $registration, $stateId, $document);
 
         return $this->answer($request, new Response('', Response::HTTP_NO_CONTENT));
+    }
+
+    /**
+     * The document a POST leaves, as xAPI merges JSON documents: the posted object as it was written when nothing is
+     * kept, else the kept object with the properties of the posted one added or replaced at its top level; null when
+     * either is not a JSON object.
+     */
+    private function merge(?string $kept, string $posted): ?string
+    {
+        $object = $this->object($posted);
+
+        if (!$object instanceof stdClass) {
+            return null;
+        }
+
+        if (null === $kept) {
+            return $posted;
+        }
+
+        $base = $this->object($kept);
+
+        if (!$base instanceof stdClass) {
+            return null;
+        }
+
+        foreach (get_object_vars($object) as $property => $value) {
+            $base->{$property} = $value;
+        }
+
+        return json_encode($base, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_PRESERVE_ZERO_FRACTION);
+    }
+
+    private function object(string $json): ?stdClass
+    {
+        try {
+            $value = json_decode($json, false, 64, \JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return null;
+        }
+
+        return $value instanceof stdClass ? $value : null;
     }
 
     /**

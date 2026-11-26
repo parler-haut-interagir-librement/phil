@@ -75,6 +75,12 @@ final class TrainingAndXapiTest extends WebTestCase
         self::assertResponseStatusCodeSame(204);
         $this->client->request('GET', $state, server: $xapi);
         self::assertSame('{"page":4}', $this->client->getResponse()->getContent());
+        $this->client->request('POST', $state, server: $xapi, content: '{"score":0.5,"page":5}');
+        self::assertResponseStatusCodeSame(204);
+        $this->client->request('GET', $state, server: $xapi);
+        self::assertSame('{"page":5,"score":0.5}', $this->client->getResponse()->getContent());
+        $this->client->request('POST', $state, server: $xapi, content: '["page"]');
+        self::assertResponseStatusCodeSame(400);
         $this->client->request('GET', str_replace('xapi%2Fknots', 'xapi%2Fsails', $state), server: $xapi);
         self::assertResponseStatusCodeSame(403);
 

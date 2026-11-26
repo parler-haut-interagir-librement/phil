@@ -21,4 +21,18 @@ enum XapiWarningKind: string
     case InteractionTypeWithoutInteraction = 'interaction_type_without_interaction';
     /** A name or a description is written in more languages than the reader keeps. */
     case TooManyLanguages = 'too_many_languages';
+    /** A question declares a list of components its interaction type does not use, which is left out. */
+    case MisplacedComponents = 'misplaced_components';
+    /** A component has no identifier, or one that is too long or holds white space, and is left out. */
+    case InvalidComponent = 'invalid_component';
+    /** A second component of a list uses an identifier, and is left out. */
+    case DuplicateComponent = 'duplicate_component';
+    /** A list holds more components than the reader keeps. */
+    case TooManyComponents = 'too_many_components';
+    /** An activity declares correct responses without an interaction type, and they are left out. */
+    case MisplacedResponses = 'misplaced_responses';
+    /** A question declares more correct responses than the reader keeps. */
+    case TooManyResponses = 'too_many_responses';
+    /** A correct response names a component its question does not declare; the response is kept. */
+    case UnknownResponseComponent = 'unknown_response_component';
 }

@@ -54,9 +54,47 @@ first launchable activity.
 | `XapiActivity::$names`, `$descriptions` | Each `<name>` and `<description>` by its `lang` attribute in lower case — `und` when absent or not a language tag —, the first of each language kept, empty texts left out, 32 languages at most |
 | `XapiActivity::$launch` | The `<launch>` in the language asked for, else the first: a file of the package, resolved and checked, its query and fragment kept; or an absolute `http` or `https` address, in its canonical form |
 | `XapiActivity::$interactionType` | `<interactionType>`, an `InteractionType`, without case |
+| `XapiActivity::$correctResponses` | Each `<correctResponsePattern>` of `<correctResponsePatterns>`, as written, the first 32 kept, for a question with an interaction type |
+| `XapiActivity::$components` | `<choices>`, `<scale>`, `<source>`, `<target>` and `<steps>`, each a list of `<component>` with its `<id>` — or its `id` attribute — and its `<description>` by language, 100 components at most per list, by their `ComponentList` value |
 
 `name()` and `description()` choose a text in a language: the tag itself, else the first text of its primary language
 — `fr` and `fr-FR` choose `fr-CA` —, else the first written. A name defaults to the IRI.
+
+## Questions
+
+An activity of type `cmi.interaction` is a question. Its interaction type says which lists of components it offers, and
+`ComponentList::of()` gives them:
+
+| Interaction type | Lists |
+|---|---|
+| `choice`, `sequencing` | `Choices` |
+| `likert` | `Scale` |
+| `matching` | `Source`, `Target` |
+| `performance` | `Steps` |
+| the others | none |
+
+```php
+use Phil\ElearningPackages\Xapi\ComponentList;
+
+$question = $course->activity('https://example.org/xapi/quiz-1/q1');
+
+$question->correctResponses;                         // ['golf[,]tetris']
+$question->components(ComponentList::Choices);       // InteractionComponent values, in order
+$question->components(ComponentList::Choices)[0]->id;
+$question->components(ComponentList::Choices)[0]->description('fr');
+$question->definition();                             // the activity definition of xAPI
+```
+
+A component's identifier is 1 to 255 bytes without white space: it is what a correct response, and the response of a
+learner, name the component by. Each correct response is checked against the lists the question declares — the
+choices of a `choice` or `sequencing` response separated by `[,]`, the point of a `likert` one, the source and the
+target of each `source[.]target` pair of a `matching` one, the step of each `step[.]answer` of a `performance` one —,
+the delimiters `{case_matters=…}`, `{order_matters=…}` and `{lang=…}` at its start set apart. A list the question does
+not declare is not checked, so that a package that gives correct responses without components reads without a note.
+
+`definition()` gives the activity as a statement or a learning record store carries it: `name` and `description` as
+language maps, `type`, `interactionType`, `correctResponsesPattern` and each list of components with `id` and
+`description`; what the package does not give is left out.
 
 ## Warnings and refusals
 
@@ -71,6 +109,13 @@ sentence:
 | `UnknownInteractionType` | An interaction type is not one xAPI defines: it is left out |
 | `InteractionTypeWithoutInteraction` | An activity names an interaction type without being of type `cmi.interaction`: the type is kept |
 | `TooManyLanguages` | A name or a description is written in more than 32 languages: the others are left out |
+| `MisplacedResponses` | An activity without an interaction type declares correct responses: they are left out |
+| `TooManyResponses` | A question declares more than 32 correct responses: the others are left out |
+| `MisplacedComponents` | A question declares a list of components its interaction type does not use: the list is left out |
+| `InvalidComponent` | A component has no identifier of 1 to 255 bytes without white space: it is left out |
+| `DuplicateComponent` | A second component of a list uses an identifier: it is left out |
+| `TooManyComponents` | A list holds more than 100 components: the others are left out |
+| `UnknownResponseComponent` | A correct response names a component its question does not declare: the response is kept |
 
 What cannot be set aside refuses the package with `PackageRefused`: a document that is unsafe or malformed, without a
 `<tincan>` root or `<activities>`, an activity without an IRI, more activities than `PackageLimits::$items`, no
@@ -81,7 +126,8 @@ or an absolute address that `phil/url` refuses, such as one holding a user name 
 
 `tincan.xml` is read as the other manifests are: bounded in size, refused when it declares a document type or an
 entity, its XML nodes and their depth counted before it is loaded, parsed without network access. Its activities count
-against `PackageLimits::$items`. An absolute launch address is read by `phil/url`, as a browser reads it, then kept in
+against `PackageLimits::$items`; the correct responses and the components of a question are bounded too, and each
+response is checked in one pass over its parts. An absolute launch address is read by `phil/url`, as a browser reads it, then kept in
 its canonical form.
 
 ## What the library leaves to its caller

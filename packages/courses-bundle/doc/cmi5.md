@@ -67,7 +67,7 @@ unit sends it as HTTP Basic credentials with each xAPI request.
 |---|---|---|
 | `statements` | `POST`, `PUT` with `statementId` | Checks each statement, keeps it through the learning record store, applies it; `GET` is refused |
 | `activities/state` with `stateId=LMS.LaunchData` | `GET` | The launch data: the context template, the launch mode, the `moveOn`, the mastery score, the launch parameters, the entitlement key; writing it is refused |
-| `activities/state` with another `stateId` | `GET`, `PUT`, `POST`, `DELETE` | The unit's own state documents, 64 KiB each, through the learning record store |
+| `activities/state` with another `stateId` | `GET`, `PUT`, `POST`, `DELETE` | The unit's own state documents, 64 KiB each, through the learning record store; a `POST` merges a JSON object into the one kept, at its top level, and answers `400` for any other document |
 | `agents/profile` | `GET` | Not found: the platform keeps no learner preferences; writing one is refused |
 | `about` | `GET` | `{"version": ["1.0.3"]}` |
 

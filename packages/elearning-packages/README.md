@@ -39,7 +39,7 @@ or a migration tool that lists what a set of packages holds. It is a plain PHP l
 | The manifest read without document type or entity, bounded in size, XML nodes, depth and items | Implemented, tested and fuzzed |
 | SCORM 1.2 and SCORM 2004 manifests: version, organizations, items, resources, sequencing kept as XML | Implemented, tested and fuzzed |
 | cmi5 course structures: course, blocks, assignable units, in the language asked for | Implemented, tested and fuzzed |
-| xAPI packages (`tincan.xml`): activities, names and descriptions by language, launch, interaction types, typed warnings | Implemented, tested and fuzzed |
+| xAPI packages (`tincan.xml`): activities, names and descriptions by language, launch, questions with their correct responses and components checked against each other, activity definitions, typed warnings | Implemented, tested and fuzzed |
 | The format told, the launch files and declared files checked | Implemented and tested |
 | What a run time hands a SCO, read from the manifest: launch data, mastery score, scaled passing score, completion threshold, time allowed and its action | Implemented and tested |
 | The SCORM run-time data model: the elements of SCORM 1.2 and 2004, their read and write rules and error codes, commits, statuses, scores, times, the API and its states | Implemented, tested and fuzzed |

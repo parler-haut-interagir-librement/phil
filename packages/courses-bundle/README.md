@@ -35,8 +35,8 @@ staying in the application's database, and an application's own store plugs into
 
 An xAPI package runs as an activity of its own: launched with the parameters xAPI packages read and a token of its
 session, it talks to the same xAPI endpoint, its statements checked — the learner of the session, the registration of
-the enrollment, no voiding — and its `completed`, `passed` and `failed` statements move the learner's progress, with a
-mastery score when it has one. Its package is imported through the reader of `tincan.xml` of phil/elearning-packages,
+the enrollment, no voiding — and its `completed`, `passed` and `failed` statements, or the completion and success the
+result of another verb reports, move the learner's progress, with a mastery score when it has one. Its package is imported through the reader of `tincan.xml` of phil/elearning-packages,
 which an application may replace.
 
 A course can be mandatory: assigned to a learner, to the members of a group or of a unit, by a due moment, each member
@@ -80,7 +80,7 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | cmi5 launches, the fetch URL, the xAPI endpoint with the rules of cmi5, the learning record store as a port | Implemented and tested |
 | The `satisfied` statements of the blocks, innermost first, and of the course, once for each enrollment, named by the course structure, with the `BlockSatisfied` event | Implemented and tested |
 | The remote xAPI learning record store through phil/safe-http, for the statements | Implemented and tested; its integration test runs against a store the environment names |
-| xAPI activities: the launch parameters of xAPI packages, the token of the session, the statements checked and kept, completion, success and score from `completed`, `passed` and `failed`, a mastery score, their records in the privacy module of cmi5 | Implemented and tested |
+| xAPI activities: the launch parameters of xAPI packages, the token of the session, the statements checked and kept, completion, success and score from `completed`, `passed` and `failed` and from the result of any other verb, a mastery score, state documents put whole or merged, their records in the privacy module of cmi5 | Implemented and tested |
 | The import of xAPI packages, through the `XapiPackageReader` port and its adapter on the reader of phil/elearning-packages | Implemented and tested |
 | Learning paths: ordered courses with prerequisites, the enrollment in the path, its completion with `PathCompleted` and through the `CourseCompletions` port of phil/certificates-bundle, its privacy module | Implemented, tested on SQLite, MySQL and PostgreSQL |
 | Groups of equivalent courses: one course per language, the course of the learner's language, the completion recognised across the group for the paths, the mandatory training and the credits | Implemented, tested on SQLite, MySQL and PostgreSQL |

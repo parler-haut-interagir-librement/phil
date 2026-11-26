@@ -68,11 +68,18 @@ A statement about the activity launched moves the learner's progress:
 | `http://adlnet.gov/expapi/verbs/passed` | when `result.completion` is true | passed |
 | `http://adlnet.gov/expapi/verbs/failed` | when `result.completion` is true | failed |
 
-With a `mastery_score`, a scaled score decides success for `completed` and `passed`: at or above it the learner
-passed, below it they failed; `failed` stays a failure. The best score is kept, as for every activity.
+| Any other verb — `mastered`, `experienced`, a verb of the authoring tool — | when `result.completion` is true | `result.success` when it is a boolean |
+
+A statement of another verb moves nothing without one of these two: its score alone, or `result.completion` false,
+reports no outcome. With a `mastery_score`, a scaled score decides success for every verb but `failed`: at or above it
+the learner passed, below it they failed; `failed` stays a failure. The best score is kept, as for every activity.
 
 The state documents of the package — a bookmark, its suspend data — are kept under the activity's `activity_id`, the
-registration and their identifier, in the store of the state documents of cmi5. The endpoint serves neither the
+registration and their identifier, in the store of the state documents of cmi5. A `PUT` replaces the document whole. A
+`POST` merges, as xAPI asks of JSON documents: the posted JSON object is kept as written when there is none yet, and
+otherwise its properties are added to the JSON object kept, or replace those of the same name, at the top level only. A
+`POST` of anything but a JSON object, or over a document that is not one, answers `400` and leaves the document kept
+as it was; the merged document is bounded to 64 KiB, as a document put is. The endpoint serves neither the
 statements back nor the learner preferences, as for cmi5.
 
 ## The learning record store
@@ -89,9 +96,9 @@ import reads it through the `XapiPackageReader` service named in `phil_courses.i
 within the limits of the import — its size, its XML nodes, its activities —, takes the IRI, the title and the
 description of the course activity in the language of `phil_courses.import.language`, keeps each launchable activity
 in the order of the package, and turns the issues it set aside — an activity declared twice, a missing name, an unknown
-interaction type — into the warnings of the import. A `tincan.xml` gives no mastery score. What the library refuses —
-no `<tincan>` root, no `<activities>`, no launchable activity, a launch that leaves the package — refuses the package
-with its message, as a `PackageRefused`.
+interaction type, a correct response that names a component its question does not declare — into the warnings of the
+import. A `tincan.xml` gives no mastery score. What the library refuses — no `<tincan>` root, no `<activities>`, no
+launchable activity, a launch that leaves the package — refuses the package with its message, as a `PackageRefused`.
 
 The reader returns an `XapiPackage` — the course's IRI, title and description, its launchable activities and the notes
 of the reading —, which the import turns into a course of origin `xapi` with one module named after the course. Each
