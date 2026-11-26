@@ -1,0 +1,9 @@
+# The CORS rules of phil/cors-bundle: see vendor/phil/cors-bundle/doc/configuration.md for every option.
+phil_cors:
+    paths:
+        # The API, for the origins that CORS_ALLOW_ORIGIN matches: a regular expression anchored by ^ and $.
+        '^/api/':
+            allow_origin_patterns: ['%env(CORS_ALLOW_ORIGIN)%']
+            allow_methods: [GET, POST, PUT, PATCH, DELETE]
+            allow_headers: [Content-Type, Authorization]
+            max_age: 3600
