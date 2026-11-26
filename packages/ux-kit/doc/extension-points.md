@@ -19,4 +19,8 @@
 | How much a person is celebrated | `data-celebrations="all"`, `discreet` or `none` on the root, or on any ancestor of a `Celebration`; with phil/settings-bundle, a choice of the `display` section whose `html_attribute` is `celebrations`: see the README of the recipe |
 | What a celebration says | `message`, or `messages` for words in turn: those of `celebration_messages()`, or the application's own, translated by its translator |
 | A celebration played by a bundle | `celebrate()` in a Turbo Stream response, on a Mercure topic or in the page, or `Phil\UxKit\Application\CelebrationStream` injected to render the same stream in PHP |
+| The holidays of the seasonal decor | `phil_ux_kit.seasonal.holidays`: each a rule of phil/almanac, its days or its `until`, its decor and whether it is sober; `phil_ux_kit.seasonal.enabled` turns it on: see the README of `SeasonalDecor` |
+| The colours of a seasonal decor | `data-seasonal-decor-colors-value`, custom properties separated by spaces, in place of the colours of the decor |
+| A game of the seasonal decor | `eggs`, and the elements of the page marked `data-egg-nest` where they hide; `code`, the keys of the secret code, empty to turn it off |
+| What follows a podium or a scratch card | The events `podium:risen` and `scratch-card:revealed`, and `effect`, which plays the `Celebration` of the page |
 | The browser suite of another kit | Extend `Phil\UxKit\Test\BrowserTestCase` and give it a `RecipesPage`: see [Testing](testing.md#for-another-kit) |

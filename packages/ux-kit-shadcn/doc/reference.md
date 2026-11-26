@@ -22,6 +22,12 @@
 | `copy-button/templates/components/` | The `CopyButton` component |
 | `celebration/templates/components/` | The `Celebration` component |
 | `celebration/assets/controllers/` | The Stimulus controller `celebration`, its effects and its painter, the same files as in the PHIL UX kit |
+| `seasonal-decor/manifest.json`, `seasonal-decor/README.md`, `seasonal-decor/templates/components/` | The `SeasonalDecor` recipe and component |
+| `seasonal-decor/assets/controllers/` | The Stimulus controller `seasonal-decor` and its decors, the same files as in the PHIL UX kit |
+| `podium/manifest.json`, `podium/README.md`, `podium/templates/components/` | The `Podium` recipe and component |
+| `podium/assets/controllers/` | The Stimulus controller `podium`, the same file as in the PHIL UX kit |
+| `scratch-card/manifest.json`, `scratch-card/README.md`, `scratch-card/templates/components/` | The `ScratchCard` recipe and component |
+| `scratch-card/assets/controllers/` | The Stimulus controller `scratch-card`, the same file as in the PHIL UX kit |
 | `animated-button/templates/components/` | The `AnimatedButton` component |
 | `stepper/templates/components/` | The `Stepper` component |
 | `activity-calendar/templates/components/` | The `ActivityCalendar` component |

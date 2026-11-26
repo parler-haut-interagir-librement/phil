@@ -14,8 +14,11 @@ import fileInput from './controllers/file_input_controller.js';
 import imagePreview from './controllers/image_preview_controller.js';
 import lightbox from './controllers/lightbox_controller.js';
 import numberInput from './controllers/number_input_controller.js';
+import podium from './controllers/podium_controller.js';
 import popover from './controllers/popover_controller.js';
 import relativeTime from './controllers/relative_time_controller.js';
+import scratchCard from './controllers/scratch_card_controller.js';
+import seasonalDecor from './controllers/seasonal_decor_controller.js';
 import select from './controllers/select_controller.js';
 import tabs from './controllers/tabs_controller.js';
 import tag from './controllers/tag_controller.js';
@@ -42,8 +45,11 @@ for (const [identifier, controller] of Object.entries({
     'image-preview': imagePreview,
     lightbox,
     'number-input': numberInput,
+    podium,
     popover,
     'relative-time': relativeTime,
+    'scratch-card': scratchCard,
+    'seasonal-decor': seasonalDecor,
     select,
     tabs,
     tag,

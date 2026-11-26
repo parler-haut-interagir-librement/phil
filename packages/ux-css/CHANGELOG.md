@@ -10,6 +10,17 @@ The next version is 0.6.1-alpha.
 
 ### Added
 
+- `css/layers/components.css`: the seasonal decor, `isSeasonalDecor`, which takes no room, its canvas laid over the page
+  without taking a click, `isSeasonalDecorCanvas`, its poppy fixed in a lower corner, `isSeasonalDecorPoppy`, the button
+  that closes it in the other, `isSeasonalDecorClose`, the eggs of a hunt, `isSeasonalEgg`, targets of 2.75rem, and its
+  count, `isSeasonalDecorCounter`, hidden while empty; the canvas, the button and the eggs left out on paper.
+- `css/layers/components.css`: the podium, `isPodium`, the second, the first and the third side by side in
+  `isPodiumPlaces`, each `isPodiumPlace` by its `data-place`, its name, its score and its step, `isPodiumStep`, whose
+  height tells the place; `data-state="waiting"` holds the steps and the names below and `rising` raises them, the third
+  first, over 1.2 seconds, only without `prefers-reduced-motion: reduce`; a border on the steps under forced colours.
+- `css/layers/components.css`: the scratch card, `isScratchCard`, its prize, `isScratchCardPrize`, under its cover,
+  `isScratchCardCover`, scratched by a finger without scrolling, its button, `isScratchCardButton`, and its message,
+  `isScratchCardMessage`, hidden while empty.
 - The documentation of the elements gives the shape of a table of data the styles assume: one row of column headers
   with `scope="col"`, row headers with `scope="row"`, no header cell over several columns or rows and no `headers`
   attribute, a group of columns as a table of its own with its `caption`, a row of totals headed in its first column.

@@ -54,12 +54,15 @@ final class ParityTest extends TestCase
         'login-form',
         'logo',
         'number-input',
+        'podium',
         'progress-ring',
         'qr-code',
         'rating',
         'reaction-button',
         'reaction-picker',
         'relative-time',
+        'scratch-card',
+        'seasonal-decor',
         'signup-form',
         'sparkline',
         'stepper',
@@ -225,7 +228,7 @@ final class ParityTest extends TestCase
      */
     private function stimulus(string $template): array
     {
-        preg_match_all("/data-(?:animated-headline|before-after|carousel|celebration|color-picker|copy-button|file-input|lightbox|number-input|relative-time|sticky-header|tag|theme-switcher|tree)-[a-z-]+|data-phil--forms-autosave--autosave-target=\"[A-Za-z]+\"|data-phil--reactions-bundle--picker-target=\"[A-Za-z]+\"|data-action=\"[^\"]+\"|'data-controller': '[a-z-]+'/", $template, $attributes);
+        preg_match_all("/data-(?:animated-headline|before-after|carousel|celebration|color-picker|copy-button|file-input|lightbox|number-input|podium|relative-time|scratch-card|seasonal-decor|sticky-header|tag|theme-switcher|tree)-[a-z-]+|data-phil--forms-autosave--autosave-target=\"[A-Za-z]+\"|data-phil--reactions-bundle--picker-target=\"[A-Za-z]+\"|data-action=\"[^\"]+\"|'data-controller': '[a-z-]+'/", $template, $attributes);
 
         return $attributes[0];
     }

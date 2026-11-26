@@ -1271,4 +1271,134 @@ final class InteractiveRecipesTest extends BrowserTestCase
         self::assertInstanceOf(RemoteWebDriver::class, $driver);
         $driver->executeCustomCommand('/session/:sessionId/goog/cdp/execute', 'POST', ['cmd' => 'Emulation.setEmulatedMedia', 'params' => ['media' => $media, 'features' => $features]]);
     }
+
+    /**
+     * The podium waits below its steps, rises by its button, pressed by the keyboard, then stands and says its winner; the first stands in the
+     * middle on the screen and first in the list.
+     */
+    #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
+    public function testAPodiumRisesByItsButtonThenSaysItsWinner(string $page): void
+    {
+        $this->open($page);
+
+        self::assertSame(['waiting', ''], $this->read('[document.querySelector("#podium").dataset.state, document.querySelector("#podium .isPodiumMessage").textContent]'));
+        self::assertSame(['Ada', 'Grace', 'Alan'], $this->read('[...document.querySelectorAll("#podium .isPodiumName")].map((name) => name.textContent)'));
+
+        // By the keyboard: the deferred images above it may still move the button while a pointer reaches for it.
+        $this->focus('#rise');
+        $this->press(WebDriverKeys::ENTER);
+        $this->waitUntil('document.querySelector("#podium").dataset.state === "risen"');
+
+        self::assertSame('Ada wins', $this->read('document.querySelector("#podium .isPodiumMessage").textContent'));
+        self::assertTrue($this->read('(() => { const [first, second, third] = [1, 2, 3].map((place) => document.querySelector(`#podium [data-place="${place}"]`).getBoundingClientRect()); return document.dir === "rtl" ? third.left < first.left && first.left < second.left : second.left < first.left && first.left < third.left; })()'));
+        self::assertTrue($this->read('(() => { const steps = [1, 2, 3].map((place) => document.querySelector(`#podium [data-place="${place}"] .isPodiumStep`).getBoundingClientRect().height); return steps[0] > steps[1] && steps[1] > steps[2]; })()'));
+    }
+
+    /**
+     * Where motion is reduced, the places stand from the start, and its button says the winner at once.
+     */
+    public function testAPodiumStandsAtOnceWhereMotionIsReduced(): void
+    {
+        $this->emulate([['name' => 'prefers-reduced-motion', 'value' => 'reduce']]);
+
+        try {
+            $this->open('index.html');
+
+            self::assertSame('risen', $this->read('document.querySelector("#podium").dataset.state'));
+            $this->focus('#rise');
+            $this->press(WebDriverKeys::ENTER);
+            self::assertSame('Ada wins', $this->read('document.querySelector("#podium .isPodiumMessage").textContent'));
+        } finally {
+            $this->emulate([]);
+        }
+    }
+
+    /**
+     * The scratch card covers its prize, hidden from screen readers and the keyboard; scratched by a pointer past its
+     * threshold, the prize is revealed, said, and the cover fades away.
+     */
+    #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
+    public function testAScratchCardIsScratchedAwayByAPointer(string $page): void
+    {
+        $this->open($page);
+        $this->waitUntil('document.querySelector("#scratch canvas")');
+
+        self::assertSame(['true', true, false, 'true'], $this->read('(() => { const prize = document.querySelector("#scratch .isScratchCardPrize"); return [prize.getAttribute("aria-hidden"), prize.inert, document.querySelector("#scratch .isScratchCardButton").hidden, document.querySelector("#scratch canvas").getAttribute("aria-hidden")]; })()'));
+
+        $this->perform('(() => { const canvas = document.querySelector("#scratch canvas"), box = canvas.getBoundingClientRect(), at = (type, x, y) => canvas.dispatchEvent(new PointerEvent(type, {bubbles: true, pointerId: 1, clientX: box.left + x * box.width, clientY: box.top + y * box.height})); at("pointerdown", 0.05, 0.2); for (let step = 0; step <= 40; step++) { at("pointermove", step / 40, 0.2 + 0.6 * ((step % 4) / 3)); } at("pointerup", 1, 0.5); })()');
+        $this->waitUntil('document.querySelector("#scratch .isScratchCardMessage").textContent === "A free coffee"');
+
+        self::assertSame([null, false, true], $this->read('(() => { const prize = document.querySelector("#scratch .isScratchCardPrize"); return [prize.getAttribute("aria-hidden"), prize.inert, document.querySelector("#scratch .isScratchCardButton").hidden]; })()'));
+        $this->waitUntil('!document.querySelector("#scratch canvas")');
+    }
+
+    /**
+     * Its button reveals the prize at once by the keyboard, and gives the prize the focus.
+     */
+    #[DataProvider('modes')]
+    public function testAScratchCardIsRevealedByTheKeyboard(string $page): void
+    {
+        $this->open($page);
+        $this->waitUntil('!document.querySelector("#scratch .isScratchCardButton").hidden');
+        $this->focus('#scratch .isScratchCardButton');
+        $this->press(WebDriverKeys::ENTER);
+
+        $this->waitForFocus('#scratch .isScratchCardPrize');
+        self::assertSame('A free coffee', $this->read('document.querySelector("#scratch .isScratchCardMessage").textContent'));
+    }
+
+    /**
+     * The seasonal decor draws over the page without taking a click, hides its eggs in the nests of the page, counts
+     * them as they are found by the keyboard, plays the celebration of the page on its secret code, and stays closed once closed.
+     */
+    #[DataProvider('modes')]
+    #[DataProvider('strictModes')]
+    public function testASeasonalDecorDrawsHidesItsEggsHearsItsCodeAndStaysClosed(string $page): void
+    {
+        $this->open($page);
+        $put = 'localStorage.removeItem("phil-seasonal-decor:closed:test-holiday"); localStorage.removeItem("phil-seasonal-decor:eggs:test-holiday"); document.querySelector("#festive").append(document.querySelector("#decor").content.cloneNode(true));';
+        $this->perform($put);
+        $this->waitUntil('document.querySelector("#festive .isSeasonalDecor canvas")');
+
+        self::assertSame(['true', 'none', 'fixed', false, 2], $this->read('(() => { const canvas = document.querySelector("#festive .isSeasonalDecor canvas"), style = getComputedStyle(canvas); return [canvas.getAttribute("aria-hidden"), style.pointerEvents, style.position, document.querySelector("#festive .isSeasonalDecorClose").hidden, document.querySelectorAll("#nest .isSeasonalEgg").length]; })()'));
+
+        $this->focus('#nest .isSeasonalEgg');
+        $this->press(WebDriverKeys::ENTER);
+        $this->waitUntil('document.querySelector("#festive .isSeasonalDecorCounter").textContent === "Eggs found: 1 of 2"');
+        self::assertSame('1', $this->read('localStorage.getItem("phil-seasonal-decor:eggs:test-holiday")'));
+
+        $this->perform('document.activeElement?.blur()');
+        $this->press('g', 'o');
+        $this->waitUntil('document.querySelector("#victory .isCelebrationMessage").textContent === "Secret found"');
+
+        $this->click('#festive .isSeasonalDecorClose');
+        self::assertSame([true, '1', 0], $this->read('[document.querySelector("#festive .isSeasonalDecor").hidden, localStorage.getItem("phil-seasonal-decor:closed:test-holiday"), document.querySelectorAll("#nest .isSeasonalEgg").length]'));
+
+        $this->perform('document.querySelector("#festive .isSeasonalDecor").remove(); document.querySelector("#festive").append(document.querySelector("#decor").content.cloneNode(true));');
+        $this->waitUntil('document.querySelector("#festive .isSeasonalDecor").hidden');
+        self::assertFalse($this->read('Boolean(document.querySelector("#festive .isSeasonalDecor canvas"))'));
+        $this->perform('localStorage.removeItem("phil-seasonal-decor:closed:test-holiday"); localStorage.removeItem("phil-seasonal-decor:eggs:test-holiday");');
+    }
+
+    /**
+     * Where motion is reduced, the decor is a still picture: its canvas stays, drawn once.
+     */
+    public function testASeasonalDecorIsAStillPictureWhereMotionIsReduced(): void
+    {
+        $this->emulate([['name' => 'prefers-reduced-motion', 'value' => 'reduce']]);
+
+        try {
+            $this->open('index.html');
+            $this->perform('localStorage.removeItem("phil-seasonal-decor:closed:test-holiday"); document.querySelector("#festive").append(document.querySelector("#decor").content.cloneNode(true));');
+            $this->waitUntil('document.querySelector("#festive .isSeasonalDecor canvas")');
+            $this->perform('window.decorStarted = performance.now()');
+            $this->waitUntil('performance.now() - window.decorStarted > 2500');
+
+            self::assertTrue($this->read('Boolean(document.querySelector("#festive .isSeasonalDecor canvas"))'), 'still there after its run');
+        } finally {
+            $this->emulate([]);
+        }
+    }
 }

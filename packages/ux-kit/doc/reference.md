@@ -19,6 +19,8 @@
 | `src/Application/CelebrationStream.php` | `Phil\UxKit\Application\CelebrationStream`: the `<turbo-stream action="celebrate">` that plays a celebration from the server, and the list of the effects, `EFFECTS` |
 | `src/Application/CelebrationMessages.php` | `Phil\UxKit\Application\CelebrationMessages`: the words of praise a celebration says in turn, in English and in French, by the language of a locale |
 | `src/Infrastructure/Twig/CelebrationExtension.php` | `celebrate()` and `celebration_messages()` |
+| `src/Application/Festivities.php`, `src/Application/Festivity.php` | `Phil\UxKit\Application\Festivities`: the holidays of the seasonal decor, each a rule of phil/almanac, their decors, `DECORS`, the default holidays, `DEFAULTS`, and the one a moment falls in, a sober one first, then the first of the list, as a `Festivity` |
+| `src/Infrastructure/Twig/SeasonalDecorExtension.php` | `seasonal_decor()`, the holiday of a day, null while the seasonal decor is off |
 | `src/Infrastructure/Twig/ImageExtension.php` | `image_origin()`, `image_sources()`, `image_filters()`, `picture_props()`, `image_json_ld()` and `image_check()`, which logs the problems of `ImageTextCheck` as warnings when `phil_ux_kit.image.check` is on |
 | `src/Test/BrowserTestCase.php` | `Phil\UxKit\Test\BrowserTestCase`: one headless Chrome on the page of the recipes of a kit, its modes plain and under the strict policy, which fails a test on anything the browser refused, and the helpers of a browser test |
 | `src/Test/Screenshots.php` | `Phil\UxKit\Test\Screenshots`: the screenshot of a part of a page compared with its reference, both at a scale of its CSS width, within a tolerance, on GD |
@@ -133,6 +135,16 @@
 | `celebration/assets/controllers/celebration_controller.js` | The Stimulus controller `celebration`: the message, the choice of the person, the fatigue of the session, the budget of the device, the Turbo Streams, the canvas and the worker |
 | `celebration/assets/controllers/celebration_effects.js` | The pieces of each effect, `EFFECTS`, and the rhythms of the lasers and the fireworks |
 | `celebration/assets/controllers/celebration_worker.js` | The painter, `Painter`: the motion and the drawing of the pieces frame by frame, in a worker on an `OffscreenCanvas` or on the page |
+| `seasonal-decor/manifest.json`, `seasonal-decor/README.md` | The `SeasonalDecor` recipe |
+| `seasonal-decor/templates/components/` | The `SeasonalDecor` component, and its poppy |
+| `seasonal-decor/assets/controllers/seasonal_decor_controller.js` | The Stimulus controller `seasonal-decor`: the canvas, the still picture, the closing remembered, the egg hunt, the secret code |
+| `seasonal-decor/assets/controllers/seasonal_decor_shapes.js` | The decors, `DECORS`: how their pieces move, their colours, and how each is drawn |
+| `podium/manifest.json`, `podium/README.md` | The `Podium` recipe |
+| `podium/templates/components/` | The `Podium` component |
+| `podium/assets/controllers/podium_controller.js` | The Stimulus controller `podium`: the states of the rise, its message, the celebration of the page |
+| `scratch-card/manifest.json`, `scratch-card/README.md` | The `ScratchCard` recipe |
+| `scratch-card/templates/components/` | The `ScratchCard` component |
+| `scratch-card/assets/controllers/scratch_card_controller.js` | The Stimulus controller `scratch-card`: the cover, the share scratched away on its grid, the reveal, its message and its focus |
 | `animated-button/manifest.json`, `animated-button/README.md` | The `AnimatedButton` recipe |
 | `animated-button/templates/components/` | The `AnimatedButton` component |
 | `stepper/manifest.json`, `stepper/README.md` | The `Stepper` recipe |

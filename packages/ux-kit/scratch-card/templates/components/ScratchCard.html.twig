@@ -1,0 +1,22 @@
+{#-
+ # A scratch card: a prize, a draw or a result decided by the server, under a cover the `scratch-card` controller paints
+ # on a canvas and that is scratched away with a mouse, a finger or a pen; the button below it reveals it at once, by a
+ # click or the keyboard. Once revealed, the prize is said in a polite live region and the `Celebration` of the page
+ # may play. Without the controller, the prize shows from the start. No style is written here: the canvas waits in a
+ # template, and the controller sets it over the prize through the CSSOM.
+ #}
+{%- props
+    ## string The words of the button that reveals the prize at once.
+    label = 'Reveal',
+    ## string What is said once the prize is revealed; the text of the prize when empty.
+    message = '',
+    ## int The share of the cover, in percent, that reveals the whole prize once scratched away, kept between 10 and 90.
+    threshold = 50,
+    ## ''|'confetti'|'fireworks'|'lasers'|'balloons'|'shooting-stars'|'streamers'|'coins'|'bubbles'|'aurora'|'spotlight'|'trophy' The effect the `Celebration` of the page plays once the prize is revealed; none when empty.
+    effect = ''
+-%}
+<div data-scratch-card-message-value="{{ message }}" data-scratch-card-threshold-value="{{ threshold }}" data-scratch-card-effect-value="{{ effect }}" data-scratch-card-color-value="--phil-color-neutral-fill-loud"{{ attributes.defaults({class: 'isScratchCard', 'data-controller': 'scratch-card'}) }}>
+<div class="isScratchCardPrize" data-scratch-card-target="prize">
+{##- The prize, decided by the server. -#}
+{%- block content %}{% endblock -%}
+</div><template data-scratch-card-target="stage"><canvas class="isScratchCardCover" aria-hidden="true" data-action="pointerdown->scratch-card#press pointermove->scratch-card#scratch pointerup->scratch-card#release pointercancel->scratch-card#release"></canvas></template><button type="button" class="isScratchCardButton" data-scratch-card-target="button" data-action="scratch-card#reveal" hidden>{{ label }}</button><p class="isScratchCardMessage" role="status" aria-live="polite" data-scratch-card-target="message"></p></div>

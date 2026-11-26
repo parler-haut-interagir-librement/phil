@@ -16,8 +16,9 @@ guide says, then make Tailwind read the installed components:
 ```
 
 The recipes with a Stimulus controller — `AnimatedHeadline`, `Carousel`, `Celebration`, `Lightbox`, `ColorPicker`,
-`CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader`
-and the blurred preview of `Image` — need the StimulusBundle, which loads the controllers `ux:install` copies into `assets/controllers/`.
+`CopyButton`, `Tree`, `NumberInput`, `FileInput`, `Tag`, `RelativeTime`, `BeforeAfter`, `ThemeSwitcher`, `StickyHeader`,
+`SeasonalDecor`, `Podium`, `ScratchCard` and the blurred preview of `Image` — need the StimulusBundle, which loads the
+controllers `ux:install` copies into `assets/controllers/`.
 
 ## With `ux:install`
 
@@ -60,6 +61,13 @@ Copy the files of the recipes the page needs, from this directory, keeping their
 | Celebration | `celebration/assets/controllers/celebration_controller.js` | `assets/controllers/celebration_controller.js` |
 | Celebration | `celebration/assets/controllers/celebration_effects.js` | `assets/controllers/celebration_effects.js` |
 | Celebration | `celebration/assets/controllers/celebration_worker.js` | `assets/controllers/celebration_worker.js` |
+| SeasonalDecor | `seasonal-decor/templates/components/SeasonalDecor.html.twig` | `templates/components/SeasonalDecor.html.twig` |
+| SeasonalDecor | `seasonal-decor/assets/controllers/seasonal_decor_controller.js` | `assets/controllers/seasonal_decor_controller.js` |
+| SeasonalDecor | `seasonal-decor/assets/controllers/seasonal_decor_shapes.js` | `assets/controllers/seasonal_decor_shapes.js` |
+| Podium | `podium/templates/components/Podium.html.twig` | `templates/components/Podium.html.twig` |
+| Podium | `podium/assets/controllers/podium_controller.js` | `assets/controllers/podium_controller.js` |
+| ScratchCard | `scratch-card/templates/components/ScratchCard.html.twig` | `templates/components/ScratchCard.html.twig` |
+| ScratchCard | `scratch-card/assets/controllers/scratch_card_controller.js` | `assets/controllers/scratch_card_controller.js` |
 | AnimatedButton | `animated-button/templates/components/AnimatedButton.html.twig` | `templates/components/AnimatedButton.html.twig` |
 | Stepper | `stepper/templates/components/Stepper.html.twig` | `templates/components/Stepper.html.twig` |
 | ActivityCalendar | `activity-calendar/templates/components/ActivityCalendar.html.twig` | `templates/components/ActivityCalendar.html.twig` |

@@ -98,6 +98,12 @@ Copy the files of the recipes the page needs, from this directory, keeping their
 | CopyButton | `copy-button/assets/controllers/` | `assets/controllers/` |
 | Celebration | `celebration/templates/components/` | `templates/components/` |
 | Celebration | `celebration/assets/controllers/` | `assets/controllers/` |
+| SeasonalDecor | `seasonal-decor/templates/components/` | `templates/components/` |
+| SeasonalDecor | `seasonal-decor/assets/controllers/` | `assets/controllers/` |
+| Podium | `podium/templates/components/` | `templates/components/` |
+| Podium | `podium/assets/controllers/` | `assets/controllers/` |
+| ScratchCard | `scratch-card/templates/components/` | `templates/components/` |
+| ScratchCard | `scratch-card/assets/controllers/` | `assets/controllers/` |
 | AnimatedButton | `animated-button/templates/components/` | `templates/components/` |
 | Stepper | `stepper/templates/components/` | `templates/components/` |
 | ActivityCalendar | `activity-calendar/templates/components/` | `templates/components/` |

@@ -7,7 +7,7 @@ everything else is the same for each of them. Another recipe the Shadcn kit alre
 
 | Same in both kits | |
 |---|---|
-| The recipes and their manifests | `logo`, `animated-headline`, `illustration`, `image`, `gallery`, `lightbox`, `hotspots`, `hero`, `video`, `figure`, `qr-code`, `autosave-status`, `reaction-button`, `reaction-picker`, `coming-soon`, `color-picker`, `copy-button`, `celebration`, `animated-button`, `stepper`, `activity-calendar`, `tree`, `rating`, `number-input`, `file-input`, `tag`, `relative-time`, `progress-ring`, `sparkline`, `before-after`, `carousel`, `login-form`, `signup-form`, `chart`, `chart-js` |
+| The recipes and their manifests | `logo`, `animated-headline`, `illustration`, `image`, `gallery`, `lightbox`, `hotspots`, `hero`, `video`, `figure`, `qr-code`, `autosave-status`, `reaction-button`, `reaction-picker`, `coming-soon`, `color-picker`, `copy-button`, `celebration`, `seasonal-decor`, `podium`, `scratch-card`, `animated-button`, `stepper`, `activity-calendar`, `tree`, `rating`, `number-input`, `file-input`, `tag`, `relative-time`, `progress-ring`, `sparkline`, `before-after`, `carousel`, `login-form`, `signup-form`, `chart`, `chart-js` |
 | The props, their types, their defaults | The `{% props %}` declarations are identical |
 | The blocks | `content` in `ComingSoon`, `LoginForm` and `SignupForm` |
 | The controller of `phil/forms-autosave` | The targets `status`, `notice`, `message`, `useServer`, `discard` and `dismiss`, and the actions of the three buttons, in `AutosaveStatus` |
@@ -15,6 +15,7 @@ everything else is the same for each of them. Another recipe the Shadcn kit alre
 | The lightbox's controller | `lightbox_controller.js` is the same file, target `dialog`, actions `open`, `close` and `closeOnClickOutside` |
 | The preview's controller | `image_preview_controller.js` is the same file, value `src` |
 | The celebration's controller | `celebration_controller.js` and the modules beside it, `celebration_effects.js` and `celebration_worker.js`, are the same files, values `message`, `messages`, `effect`, `autoplay`, `duration`, `colors` and `focus`, targets `message` and `stage`, action `play`, the DOM event `celebrate` and the Turbo Stream action `celebrate` |
+| The controllers of the seasonal decor, the podium and the scratch card | `seasonal_decor_controller.js` and `seasonal_decor_shapes.js`, `podium_controller.js` and `scratch_card_controller.js` are the same files, with the same values, targets, actions and events |
 | The Stimulus controller | `animated_headline_controller.js` is the same file, values `pause`, `duration`, `loop`, `pauseLabel` and `playLabel`, targets `reveal`, `word` and `toggle`, action `toggle` |
 | The accessibility | `alt` required, the headline read whole, nothing moving under reduced motion, the landmarks |
 
@@ -36,6 +37,9 @@ everything else is the same for each of them. Another recipe the Shadcn kit alre
 | The illustration's entrance | A slanted clip | `animate-in fade-in slide-in-from-end-8`, under `motion-safe` |
 | The colours of a celebration | `--phil-color-brand-fill-loud` and the loud fills of the success, warning, danger and info tones | `--primary`, then the `chart-1` to `chart-5` tokens of the Shadcn kit |
 | The canvas of a celebration | `isCelebrationCanvas`, hidden by phil-ux under reduced motion and on paper | `pointer-events-none fixed inset-0 z-50 size-full motion-reduce:hidden in-data-[motion=reduce]:hidden print:hidden` |
+| The seasonal decor | `isSeasonalDecor`, which takes no room, its canvas, poppy, eggs and button placed by phil-ux | `data-slot="seasonal-decor"`, `contents`; the canvas `pointer-events-none fixed inset-0 z-50 size-full print:hidden`, the poppy `fixed bottom-4 start-4`, the button `fixed bottom-4 end-4`, the eggs `size-11 text-amber-500` |
+| The rise of a podium | `isPodium` and its `data-state`, read by phil-ux under `prefers-reduced-motion: no-preference` | `data-slot="podium"`, `group/podium` and `group/place`; `motion-safe:group-data-[state=waiting]/podium:scale-y-0` on the steps, `translate-y-4` and `opacity-0` on the names, `delay-300` and `delay-600` by place |
+| The cover of a scratch card | `--phil-color-neutral-fill-loud` | `--muted-foreground` |
 | The frame of an image | `hasRounded`, `hasFramed`, `hasRaised`, from the tokens of phil-ux and `--phil-image-radius`, `--phil-image-frame-color`, `--phil-image-shadow` | `rounded-lg`, `border border-border`, `shadow-md` |
 | A token | `hasToken`, its ring `--phil-image-token-color` | `aspect-square object-cover rounded-full border-4 border-primary`, in place of the ratio, the fit, the corners and the line |
 | Pixel art | `hasPixelated` | `[image-rendering:pixelated]` |

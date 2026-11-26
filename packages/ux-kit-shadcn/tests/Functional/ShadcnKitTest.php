@@ -356,6 +356,10 @@ final class ShadcnKitTest extends KitTestCase
         yield 'line chart' => ['<twig:Chart type="line" label="L" :labels="[\'A\', \'B\']" :series="[{label: \'X\', values: [1, null]}, {label: \'Y\', values: [2, 1]}]" />', 'chart'];
         yield 'Chart.js chart' => ['<twig:ChartJs :chart="{data: {labels: [\'A\'], datasets: [{label: \'X\', data: [1]}]}}" label="L" tableLabel="T" />', 'chart'];
         yield 'login form' => ['<twig:LoginForm action="/l" title="T" usernameLabel="U" passwordLabel="P" submitLabel="S" error="E" rememberLabel="R" forgotHref="/f" forgotLabel="F" signupHref="/s" signupLabel="J" csrfToken="t" />', 'login-form'];
+        yield 'seasonal decor' => ['<twig:SeasonalDecor decor="eggs" :eggs="2" />', 'seasonal-decor'];
+        yield 'poppy' => ['<twig:SeasonalDecor decor="poppy" />', 'seasonal-decor'];
+        yield 'podium' => ['<twig:Podium :places="[{name: \'A\', score: 2}, {name: \'B\'}]" message="A wins" effect="confetti" />', 'podium'];
+        yield 'scratch card' => ['<twig:ScratchCard label="R" effect="coins">Prize</twig:ScratchCard>', 'scratch-card'];
         yield 'signup form' => ['<twig:SignupForm action="/s" title="T" nameLabel="N" emailLabel="E" passwordLabel="P" confirmLabel="C" passwordHint="H" submitLabel="S" :errors="{email: [\'Taken\']}" loginHref="/l" loginLabel="L" />', 'signup-form'];
     }
 
@@ -497,6 +501,37 @@ final class ShadcnKitTest extends KitTestCase
         self::assertStringContainsString('data-celebration-effect-value="lasers"', $this->render('<twig:Celebration effect="lasers" />'));
         self::assertStringContainsString('data-celebration-target="message">Bravo</p>', $this->render('<twig:Celebration :messages="[\'Bravo\']" :autoplay="true" />'));
         self::assertStringContainsString('data-celebration-target="message"></p>', $this->render('<twig:Celebration message="Later" />'));
+    }
+
+    public function testASeasonalDecorInTailwind(): void
+    {
+        $html = $this->render('<twig:SeasonalDecor decor="snow" holiday="winter" />');
+
+        self::assertStringStartsWith('<div data-seasonal-decor-decor-value="snow" data-seasonal-decor-holiday-value="winter" data-seasonal-decor-sober-value="false" data-seasonal-decor-eggs-value="0"', $html);
+        self::assertStringContainsString('data-slot="seasonal-decor" class="contents" data-controller="seasonal-decor">', $html);
+        self::assertStringContainsString('<canvas class="pointer-events-none fixed inset-0 z-50 size-full print:hidden" aria-hidden="true"></canvas>', $html);
+        self::assertStringContainsString('data-seasonal-decor-target="close" data-action="seasonal-decor#close" hidden>', $html);
+        self::assertStringContainsString('<svg class="pointer-events-none fixed bottom-4 start-4 z-50 size-12" viewBox="0 0 64 64" aria-hidden="true"', $this->render('<twig:SeasonalDecor decor="poppy" />'));
+        self::assertSame('', $this->render('<twig:SeasonalDecor decor="other" />'));
+    }
+
+    public function testAPodiumInTailwindItsStepsRisingOnlyWithoutReducedMotion(): void
+    {
+        $html = $this->render("<twig:Podium :places=\"[{name: 'A', score: 2}, {name: 'B'}, {name: 'C'}]\" message=\"A wins\" />");
+
+        self::assertStringStartsWith('<div data-podium-message-value="A wins" data-podium-effect-value="" data-podium-autoplay-value="true" data-slot="podium" class="group/podium flex flex-col items-center gap-4" data-controller="podium">', $html);
+        self::assertSame(3, substr_count($html, 'motion-safe:group-data-[state=waiting]/podium:scale-y-0'));
+        self::assertStringContainsString('data-[place=1]:order-2 data-[place=2]:order-1 data-[place=3]:order-3" data-place="1">', $html);
+        self::assertStringContainsString('<p class="m-0 text-lg font-semibold" role="status" aria-live="polite" data-podium-target="message"></p>', $html);
+    }
+
+    public function testAScratchCardInTailwindWithTheMutedToken(): void
+    {
+        $html = $this->render('<twig:ScratchCard>Prize</twig:ScratchCard>');
+
+        self::assertStringContainsString('data-scratch-card-color-value="--muted-foreground" data-slot="scratch-card" class="flex flex-col items-start gap-2" data-controller="scratch-card">', $html);
+        self::assertStringContainsString('<canvas class="absolute inset-0 size-full cursor-crosshair touch-none" aria-hidden="true"', $html);
+        self::assertStringContainsString('data-action="scratch-card#reveal" hidden>Reveal</button>', $html);
     }
 
     public function testTheFrameTheTokenPixelArtAndAViewTransitionAreUtilities(): void
