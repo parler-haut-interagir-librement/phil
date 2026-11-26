@@ -42,6 +42,15 @@ The bundle also registers two autoconfiguration rules:
 | `Phil\DddBundle\Application\Bus\CommandHandler` | `messenger.message_handler` | `bus: <command_bus>` |
 | `Phil\DddBundle\Application\Bus\QueryHandler` | `messenger.message_handler` | `bus: <query_bus>` |
 
+Two more services follow the components the application installs:
+
+| Service id | Tag | Registered when |
+|---|---|---|
+| `Phil\DddBundle\Infrastructure\HttpKernel\IdentifierValueResolver` | `controller.argument_value_resolver`, named after its class | `symfony/http-kernel` is installed |
+| `Phil\DddBundle\Infrastructure\Serializer\IdentifierNormalizer` | `serializer.normalizer` | `symfony/serializer` is installed |
+
+See [identifiers-in-controllers-and-serializer.md](identifiers-in-controllers-and-serializer.md).
+
 The bundle registers no Doctrine type, no event listener and no Messenger bus. Identifier column types are
 registered by the application ([doctrine-identifier-type.md](doctrine-identifier-type.md)).
 

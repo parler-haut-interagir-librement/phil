@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4f2b158c5759aea4b6aa18cd9ace462247e7ac3419270d7c2077d72757bb97f1 -->
+<!-- phil-dev source-sha256=20ed65d4301f984c0683fa4ac9fb09a2538ae78831f6d24c18690984611cf2c9 -->
 # Installation
 
 ## Prérequis
@@ -11,6 +11,8 @@
 | `symfony/messenger` | ^8.2 | Les deux adaptateurs de bus |
 | `symfony/uid` | ^8.2 | Les identifiants UUIDv7 |
 | `doctrine/dbal` | ^4.2, facultatif | Seulement pour le type de colonne des identifiants ; les versions antérieures à 4.2 sont déclarées en `conflict` |
+| `symfony/http-kernel` | ^8.2, facultatif | Seulement pour le résolveur d'arguments de contrôleur des identifiants, enregistré quand il est installé ; les versions antérieures à 8.2 sont déclarées en `conflict` |
+| `symfony/serializer` | ^8.2, facultatif | Seulement pour le normaliseur des identifiants, enregistré quand il est installé ; les versions antérieures à 8.2 sont déclarées en `conflict` |
 
 `Domain\` ne dépend que de `symfony/uid`. Une application qui restreint ce que sa propre couche `Domain` peut importer
 peut y permettre `Phil\DddBundle\Domain\` sans rien ouvrir d'autre : aucun conteneur, aucune configuration, aucune

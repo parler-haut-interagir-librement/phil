@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=43372544a6f1e1a625fa231044a5a119d068591186f093951bc722efc9d96945 -->
+<!-- phil-dev source-sha256=eb398e0f4fb012966582ced9d9c961d101fb28bec1e864727e3d87a7d79afc9d -->
 # Identifiants
 
 `Phil\DddBundle\Domain\Identifier\Identifier` est la base abstraite de tout identifiant d'agrégat. Elle enveloppe un
@@ -71,3 +71,9 @@ OrderId::fromString(Uuid::v4()->toRfc4122());         // InvalidValue: a UUID, b
 Dans une colonne de type chaîne, `toString()` et `fromString()` suffisent. Avec Doctrine DBAL, l'`IdentifierType` du
 bundle les stocke sur 16 octets, ou dans la colonne UUID native de la plateforme ; voir
 [doctrine-identifier-type.md](doctrine-identifier-type.md).
+
+## Dans les contrôleurs et le Serializer
+
+Un argument de contrôleur typé `OrderId` reçoit le paramètre de route du même nom sous la forme d'un `OrderId`, et une
+valeur qui n'en est pas un donne un 404. Le Serializer écrit un identifiant sous sa forme canonique de chaîne et le
+reconstruit. Voir [identifiers-in-controllers-and-serializer.md](identifiers-in-controllers-and-serializer.md).

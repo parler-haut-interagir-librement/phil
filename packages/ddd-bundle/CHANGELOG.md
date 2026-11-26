@@ -6,12 +6,22 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.1.2-alpha.
+The next version is 0.2.0-alpha.
 
-Development only.
+### Added
+
+- `IdentifierValueResolver`: a controller argument typed with an identifier class receives the request attribute of
+  the same name, a route placeholder, as that class; any other value is a 404. Registered when `symfony/http-kernel`
+  is installed, under its class name, so that `#[ValueResolver(IdentifierValueResolver::class, disabled: true)]`
+  opts an argument out, in debug mode too.
+- `IdentifierNormalizer`: the Serializer writes an identifier as its canonical string and builds it back to the
+  requested class; any other value is a `NotNormalizableValueException` whose message may be shown to the user.
+  Registered when `symfony/serializer` is installed.
+- `symfony/http-kernel` and `symfony/serializer` in `suggest`, with a `conflict` on the versions below 8.2.
 
 ### Changed
 
+- With `symfony/serializer` installed, an identifier is serialised as its string instead of `{"value": …}`.
 - The development requirements ask for the latest minor of each dependency (`doctrine/dbal` 4.6).
 
 ## 0.1.1-alpha - 2026-11-17

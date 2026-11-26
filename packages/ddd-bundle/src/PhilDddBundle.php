@@ -9,13 +9,17 @@ use Phil\DddBundle\Application\Bus\CommandBus;
 use Phil\DddBundle\Application\Bus\CommandHandler;
 use Phil\DddBundle\Application\Bus\QueryBus;
 use Phil\DddBundle\Application\Bus\QueryHandler;
+use Phil\DddBundle\Infrastructure\HttpKernel\IdentifierValueResolver;
 use Phil\DddBundle\Infrastructure\Messenger\MessengerCommandBus;
 use Phil\DddBundle\Infrastructure\Messenger\MessengerQueryBus;
+use Phil\DddBundle\Infrastructure\Serializer\IdentifierNormalizer;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\HttpKernel\Controller\ValueResolverInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
@@ -25,6 +29,9 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  * **The bundle does not declare the Messenger buses themselves.** Their middleware — `doctrine_transaction`
  * on commands, no transaction on queries — is a decision of the application, and it reads in the
  * application's `messenger.yaml`. The bundle only plugs into it through the configured service ids.
+ *
+ * Two integrations follow the components the application installs: the controller argument resolver of identifiers
+ * with `symfony/http-kernel`, the identifier normaliser with `symfony/serializer`.
  */
 final class PhilDddBundle extends AbstractBundle
 {
@@ -74,6 +81,17 @@ final class PhilDddBundle extends AbstractBundle
             ->addTag('messenger.message_handler', ['bus' => $commandBus]);
         $builder->registerForAutoconfiguration(QueryHandler::class)
             ->addTag('messenger.message_handler', ['bus' => $queryBus]);
+
+        if (interface_exists(ValueResolverInterface::class)) {
+            // Named after its class: `#[ValueResolver(IdentifierValueResolver::class, disabled: true)]` opts out.
+            $services->set(IdentifierValueResolver::class)
+                ->tag('controller.argument_value_resolver', ['name' => IdentifierValueResolver::class]);
+        }
+
+        if (interface_exists(NormalizerInterface::class)) {
+            $services->set(IdentifierNormalizer::class)
+                ->tag('serializer.normalizer');
+        }
     }
 
     /**

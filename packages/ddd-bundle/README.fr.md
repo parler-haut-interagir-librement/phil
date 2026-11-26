@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=418630e7cc39a96fd5a707514d6e5606c39b7796bc1d6328a3280a8786843ea5 -->
+<!-- phil-dev source-sha256=0afedebaab866d18bcbc4127bc5bfc7c51f20c519f42216a7a9f421c94f2ca63 -->
 # phil/ddd-bundle
 
 **Les quelques types que partagent tous les contextes délimités : identifiants, événements du domaine, erreurs, bus de
@@ -8,9 +8,11 @@ phil/ddd-bundle est le noyau DDD/CQRS d'une application Symfony découpée en co
 identifiants d'agrégat UUIDv7 que l'appelant génère, une interface d'événement du domaine, des erreurs du domaine, et
 des ports de bus de commandes et de requêtes avec leurs adaptateurs Messenger. Les *handlers* sont autoconfigurés sur
 le bon bus. Un type de colonne Doctrine DBAL facultatif stocke les identifiants dans une colonne `uuid` native, ou en
-`BINARY(16)` quand la plateforme n'en a pas. Le bundle ne déclare pas vos bus Messenger. Il ne fournit ni classe de
-base d'agrégat, ni interface d'horloge, ni *event sourcing*, ni objets-valeurs métier, ni présentation publique des
-identifiants.
+`BINARY(16)` quand la plateforme n'en a pas. Quand l'application les a, un argument de contrôleur typé avec une classe
+d'identifiant reçoit le paramètre de route sous cette classe, un 404 pour toute autre valeur, et le Serializer écrit
+les identifiants sous leur forme canonique de chaîne et les reconstruit. Le bundle ne déclare pas vos bus Messenger. Il
+ne fournit ni classe de base d'agrégat, ni interface d'horloge, ni *event sourcing*, ni objets-valeurs métier, ni
+présentation publique des identifiants.
 
 Il s'adresse aux développeurs qui écrivent une application Symfony en plusieurs contextes et qui veulent leur faire
 partager un vocabulaire petit et stable. Le noyau reste volontairement minuscule : chaque ajout est une dépendance que
@@ -31,6 +33,7 @@ Messenger se trouvent derrière eux, dans la couche d'infrastructure.
 | `Command`, `Query`, `CommandBus`, `QueryBus`, `CommandHandler`, `QueryHandler` | Implémenté et testé |
 | `MessengerCommandBus`, `MessengerQueryBus`, `PhilDddBundle` (configuration `phil_ddd`) | Implémenté et testé |
 | `IdentifierType` (DBAL, facultatif) | Implémenté ; tests unitaires sur cinq plateformes, tests d'intégration sur MySQL 8 et PostgreSQL |
+| `IdentifierValueResolver` (arguments de contrôleur, facultatif), `IdentifierNormalizer` (Serializer, facultatif) | Implémenté et testé |
 | Répartition des événements du domaine après le *flush* de Doctrine, dans la transaction | Non commencé |
 | Configuration documentée d'une boîte de réception Messenger | Non commencé |
 
@@ -50,6 +53,9 @@ Messenger se trouvent derrière eux, dans la couche d'infrastructure.
   marqueurs décident du bus, comment sortent les échecs, et les messages sur un transport.
 - [Type d'identifiant Doctrine](doc/fr/doctrine-identifier-type.md) : `IdentifierType`, la colonne de chaque
   plateforme, les conversions et leurs erreurs.
+- [Identifiants dans les contrôleurs et le Serializer](doc/fr/identifiers-in-controllers-and-serializer.md) : le
+  résolveur d'arguments de contrôleur, son 404 et la façon dont un argument s'en exclut ; le normaliseur, sa forme de
+  chaîne et ses erreurs.
 - [Hors du périmètre](doc/fr/out-of-scope.md) : ce que le bundle laisse de côté volontairement, et ce qui n'est pas
   encore commencé.
 - [Points d'extension](doc/fr/extension-points.md) : chaque classe et interface que l'application étend ou implémente,
@@ -99,7 +105,8 @@ $commandBus->dispatch(new PlaceOrder($orderId->toString()));
 ## Prérequis
 
 PHP 8.5 ou plus récent ; `symfony/config`, `symfony/dependency-injection`, `symfony/messenger` et `symfony/uid` 8.2 ou
-plus récents ; `doctrine/dbal` 4.2 ou plus récent seulement pour le type de colonne des identifiants.
+plus récents ; `doctrine/dbal` 4.2 ou plus récent seulement pour le type de colonne des identifiants ; `symfony/http-kernel` et `symfony/serializer` 8.2 ou
+plus récents seulement pour le résolveur d'arguments de contrôleur et le normaliseur des identifiants.
 
 ## Contribuer
 

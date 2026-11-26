@@ -10,7 +10,7 @@ deliberately tiny, and the following are left out on purpose.
 | **A `Clock` interface** | One that merely extended PSR-20 would add nothing but a name | Depend on `Psr\Clock\ClockInterface` directly; `symfony/clock` implements it |
 | **Event sourcing** | Events notify, they do not reconstitute: no event store, no replay | Store state as state; see [domain-events.md](domain-events.md) |
 | **Messenger bus declarations** | The middleware of each bus (a transaction on commands, none on queries) is the application's decision | Declare the buses in `messenger.yaml`; see [installation.md](installation.md) |
-| **A public presentation of identifiers** | `Identifier` is the internal representation; what leaves the system has a form the application decides | Map identifiers to tokens, slugs or opaque references in the application |
+| **A public presentation of identifiers** | `Identifier` is the internal representation; what leaves the system has a form the application decides | Map identifiers to tokens, slugs or opaque references in the application; the controller resolver and the normaliser use the canonical string only ([identifiers-in-controllers-and-serializer.md](identifiers-in-controllers-and-serializer.md)) |
 | **Business value objects** (an e-mail address, a locale…) | Their normalisation and accepted values are policies of each application | Write them in the application, on `InvalidValue` |
 | **A validator in the domain** | A violation list is for forms; a value object either exists or does not | Validate in the value object, throw `InvalidValue` |
 
