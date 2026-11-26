@@ -122,6 +122,43 @@ final class CatalogueIntegrationsTest extends TestCase
         self::assertSame([], $purchases($event));
     }
 
+    public function testALineThatCannotBeGrantedDoesNotStopTheOnesAfterIt(): void
+    {
+        $store = new Store();
+        $catalogue = $store->catalogues->create('All');
+        [$welding, $free] = [$store->courses->create('Welding'), $store->courses->create('Free')];
+        $store->catalogues->offer($catalogue->id, $welding->id, price: CoursePrice::of(4_250, 'CAD'));
+        $store->catalogues->offer($catalogue->id, $free->id);
+
+        $orders = new class implements OrderRepository {
+            public ?Order $order = null;
+
+            #[Override]
+            public function find(string $number): ?Order
+            {
+                return $this->order;
+            }
+
+            #[Override]
+            public function add(Order $order): void
+            {
+                $this->order = $order;
+            }
+        };
+        $cad = Currency::of('CAD');
+        $order = Order::open('B-1', $cad);
+        $order->assignCustomer('ada');
+
+        foreach (['course:broken', 'course:'.$catalogue->id->value.'/'.$free->id->value, 'course:'.$catalogue->id->value.'/'.$welding->id->value] as $value) {
+            $order->add(Sellable::of(SellableReference::fromValue($value), 'Line', Money::of(100, $cad), 'education'), 1, Money::of(100, $cad));
+        }
+
+        $orders->add($order);
+        $enrolled = new CoursePurchases($orders, $store->catalogues)(new OrderPurchased('B-1', null, null, Money::of(300, $cad), new DateTimeImmutable()));
+
+        self::assertSame(['Welding'], array_map(static fn (Enrollment $enrollment): string => $store->courses->get($enrollment->course)->title, $enrolled));
+    }
+
     public function testTheUnitsOfAMemberAndThoseAboveReachTheirCatalogues(): void
     {
         $organizationStore = new InMemoryOrganizationStore();
