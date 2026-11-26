@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d399d57fee2ab624a19c851403abf74bd714c67e1972c4a619c392f5e8263e22 -->
+<!-- phil-dev source-sha256=f33ba2012e66502be25389743b1315ab875bde9f31da43782f3e3a3f3c84417f -->
 # phil/courses-bundle
 
 **Cours en ligne pour Symfony : du contenu SCORM, cmi5 et xAPI exécuté dans la plateforme, la formation obligatoire, les relevés.**
@@ -39,9 +39,10 @@ branche sur le même port.
 
 Un paquet xAPI s'exécute comme une activité à part : lancé avec les paramètres que lisent les paquets xAPI et un jeton de
 sa session, il parle au même point de terminaison xAPI, ses énoncés étant vérifiés — l'apprenant de la session,
-l'enregistrement de l'inscription, aucune annulation —, et ses énoncés `completed`, `passed` et `failed` font avancer la
-progression de l'apprenant, avec une note de maîtrise quand il en a une. Son paquet est importé par le lecteur de
-`tincan.xml` de phil/elearning-packages, que l'application peut remplacer.
+l'enregistrement de l'inscription, aucune annulation —, et ses énoncés `completed`, `passed` et `failed`, ou l'achèvement et la
+réussite que rapporte le résultat d'un autre verbe, font avancer la progression de l'apprenant, avec une note de
+maîtrise quand il en a une. Son paquet est importé par le lecteur de `tincan.xml` de phil/elearning-packages, que
+l'application peut remplacer.
 
 Un cours peut être obligatoire : assigné à un apprenant, aux membres d'un groupe ou d'une unité, pour une échéance,
 chaque membre étant inscrit et relancé par phil/notifications-bundle avant l'échéance, le jour même et après, la personne
@@ -85,7 +86,7 @@ utilisent DBAL, et sont testés sur SQLite, MySQL 8.4 et PostgreSQL 17.
 | Lancements cmi5, URL de récupération, point de terminaison xAPI avec les règles de cmi5, entrepôt de traces d'apprentissage en port | Implémenté et testé |
 | Les énoncés `satisfied` des blocs, les plus profonds d'abord, et du cours, une seule fois pour chaque inscription, nommé par la structure de cours, avec l'événement `BlockSatisfied` | Implémenté et testé |
 | L'entrepôt de traces d'apprentissage xAPI distant par phil/safe-http, pour les énoncés | Implémenté et testé ; son test d'intégration s'exécute contre un entrepôt que nomme l'environnement |
-| Activités xAPI : les paramètres de lancement des paquets xAPI, le jeton de la session, les énoncés vérifiés et conservés, l'achèvement, la réussite et la note tirés de `completed`, `passed` et `failed`, une note de maîtrise, leurs enregistrements dans le module de vie privée de cmi5 | Implémenté et testé |
+| Activités xAPI : les paramètres de lancement des paquets xAPI, le jeton de la session, les énoncés vérifiés et conservés, l'achèvement, la réussite et la note tirés de `completed`, `passed` et `failed` et du résultat de tout autre verbe, une note de maîtrise, des documents d'état remplacés en entier ou fusionnés, leurs enregistrements dans le module de vie privée de cmi5 | Implémenté et testé |
 | L'import de paquets xAPI, par le port `XapiPackageReader` et son adaptateur sur le lecteur de phil/elearning-packages | Implémenté et testé |
 | Parcours d'apprentissage : des cours ordonnés avec prérequis, l'inscription au parcours, son achèvement avec `PathCompleted` et par le port `CourseCompletions` de phil/certificates-bundle, son module de vie privée | Implémenté, testé sur SQLite, MySQL et PostgreSQL |
 | Groupes de cours équivalents : un cours par langue, le cours de la langue de l'apprenant, l'achèvement reconnu dans tout le groupe pour les parcours, la formation obligatoire et les crédits | Implémenté, testé sur SQLite, MySQL et PostgreSQL |

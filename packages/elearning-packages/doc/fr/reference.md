@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fca2a3092c3d41f2703c85f21e04b6d2ea9fb65018e7e1e15f779a861d040b72 -->
+<!-- phil-dev source-sha256=8e342186ddb92e871bf8c4078aece7943e0ec838b63cebfcbb624fe2aacb778e -->
 # Référence
 
 Chaque classe de la bibliothèque, par espace de noms sous `Phil\ElearningPackages`.
@@ -64,10 +64,12 @@ Chaque classe de la bibliothèque, par espace de noms sous `Phil\ElearningPackag
 
 | Classe | Rôle |
 |---|---|
-| `Xapi\XapiCourseReader` | Lit `tincan.xml` dans la langue demandée ; `FILE` le nomme, `MAX_LANGUAGES` borne les textes d'une activité |
+| `Xapi\XapiCourseReader` | Lit `tincan.xml` dans la langue demandée ; `FILE` le nomme, `MAX_LANGUAGES` borne les textes d'une activité, `MAX_RESPONSES` les bonnes réponses d'une question et `MAX_COMPONENTS` chacune de ses listes |
 | `Xapi\XapiCourse` | L'activité du cours, son titre, chaque activité et les avertissements ; `id()`, `activity()`, `launchable()`, `interactions()` |
-| `Xapi\XapiActivity` | Une activité : IRI, type, noms et descriptions par langue, lancement, type d'interaction ; `name()`, `description()`, `isLaunchable()` ; `COURSE` et `INTERACTION` nomment les deux types qu'elle connaît |
+| `Xapi\XapiActivity` | Une activité : IRI, type, noms et descriptions par langue, lancement, type d'interaction, bonnes réponses, listes de composants ; `name()`, `description()`, `isLaunchable()`, `components()`, `definition()` ; `COURSE` et `INTERACTION` nomment les deux types qu'elle connaît |
 | `Xapi\InteractionType` | Les types d'interaction de xAPI |
+| `Xapi\ComponentList` | Les listes de composants d'une question — `Choices`, `Scale`, `Source`, `Target`, `Steps` — ; `of()` donne celles qu'un type d'interaction utilise |
+| `Xapi\InteractionComponent` | Un composant d'une question : son identifiant et ses descriptions par langue ; `description()` |
 | `Xapi\XapiWarning`, `XapiWarningKind` | Un problème laissé de côté : son genre, son activité et sa phrase |
 
 ## Séquencement
