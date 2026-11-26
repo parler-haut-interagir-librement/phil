@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0f9f0f482344090b95f39b459774fad6f0045e39b135fe68ac95ab108f76e09f -->
+<!-- phil-dev source-sha256=215ae99b0270b29b9295c52fc9d501d72dd472793d908203b5638a444298858f -->
 # Installation
 
 ## Tailwind et le kit Shadcn
@@ -61,6 +61,7 @@ Copiez les fichiers des recettes dont la page a besoin, depuis ce répertoire, e
 | Celebration | `celebration/templates/components/Celebration.html.twig` | `templates/components/Celebration.html.twig` |
 | Celebration | `celebration/assets/controllers/celebration_controller.js` | `assets/controllers/celebration_controller.js` |
 | Celebration | `celebration/assets/controllers/celebration_effects.js` | `assets/controllers/celebration_effects.js` |
+| Celebration | `celebration/assets/controllers/celebration_sounds.js` | `assets/controllers/celebration_sounds.js` |
 | Celebration | `celebration/assets/controllers/celebration_worker.js` | `assets/controllers/celebration_worker.js` |
 | SeasonalDecor | `seasonal-decor/templates/components/SeasonalDecor.html.twig` | `templates/components/SeasonalDecor.html.twig` |
 | SeasonalDecor | `seasonal-decor/assets/controllers/seasonal_decor_controller.js` | `assets/controllers/seasonal_decor_controller.js` |

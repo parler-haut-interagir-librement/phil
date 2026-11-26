@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7c1444c0791241045a3eed087fe526f785ccb748b3bdd6b58ceee7e8aee24089 -->
+<!-- phil-dev source-sha256=597e8d608c20397c9d320c16c181af5f472670d7243bfd8d956ebec2969d6e54 -->
 # Référence
 
 | Fichier | Ce que c'est |
@@ -133,8 +133,9 @@
 | `copy-button/assets/controllers/` | Le contrôleur Stimulus de la recette |
 | `celebration/manifest.json`, `celebration/README.md` | La recette `Celebration` |
 | `celebration/templates/components/` | Le composant `Celebration` |
-| `celebration/assets/controllers/celebration_controller.js` | Le contrôleur Stimulus `celebration` : le message, le choix de la personne, la lassitude de la session, le budget de l'appareil, les Turbo Streams, le canvas et le worker |
-| `celebration/assets/controllers/celebration_effects.js` | Les pièces de chaque effet, `EFFECTS`, et les rythmes des lasers et des feux d'artifice |
+| `celebration/assets/controllers/celebration_controller.js` | Le contrôleur Stimulus `celebration` : le message, le choix de la personne, la lassitude de la session, le budget de l'appareil, les Turbo Streams, le canvas et le worker, la vague, les images du site, le bouton des sons et la vibration |
+| `celebration/assets/controllers/celebration_effects.js` | Les pièces de chaque effet, `EFFECTS`, les effets qui déplacent la page au lieu de dessiner, `DOM_EFFECTS`, et les rythmes des lasers, des feux d'artifice, des applaudissements et du roulement de tambour |
+| `celebration/assets/controllers/celebration_sounds.js` | Les sons des effets, produits par l'API Web Audio sur l'appareil, et si la personne les a activés, dans le stockage local |
 | `celebration/assets/controllers/celebration_worker.js` | Le peintre, `Painter` : le mouvement et le dessin des pièces image par image, dans un worker sur un `OffscreenCanvas` ou sur la page |
 | `seasonal-decor/manifest.json`, `seasonal-decor/README.md` | La recette `SeasonalDecor` |
 | `seasonal-decor/templates/components/` | Le composant `SeasonalDecor`, et son coquelicot |
