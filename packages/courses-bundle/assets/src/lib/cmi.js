@@ -235,7 +235,14 @@ export class CmiData {
             return this.#error('GetOutOfRange', 'The collection holds no element at this index.');
         }
 
-        const value = this.#evaluated(parsed.pattern) ?? this.#values.get(element) ?? definition.default ?? null;
+        // A target of a navigation request given no value of its own reads the value of its request:
+        // `adl.nav.request_valid.choice` answers for every target the platform did not name.
+        const value =
+            this.#evaluated(parsed.pattern) ??
+            this.#values.get(element) ??
+            this.#values.get(parsed.pattern) ??
+            definition.default ??
+            null;
 
         if (null === value) {
             return '1.2' === this.version

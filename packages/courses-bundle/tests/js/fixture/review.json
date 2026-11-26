@@ -62,7 +62,9 @@
             "cmi.session_time": "PT5M"
         },
         "values": {
+            "adl.nav.request_valid.choice": "false",
             "adl.nav.request_valid.continue": "false",
+            "adl.nav.request_valid.jump": "false",
             "adl.nav.request_valid.previous": "false",
             "cmi.completion_status": "completed",
             "cmi.credit": "no-credit",
@@ -83,6 +85,7 @@
             ["getValue", "cmi.mode"],
             ["getValue", "cmi.credit"],
             ["getValue", "cmi.entry"],
+            ["getValue", "adl.nav.request_valid.choice.{target=intro}"],
             ["getValue", "cmi.completion_status"],
             ["getValue", "cmi.interactions.0.learner_response"],
             ["getValue", "cmi.total_time"],
@@ -97,6 +100,7 @@
             ["review", "0"],
             ["no-credit", "0"],
             ["", "0"],
+            ["false", "0"],
             ["completed", "0"],
             ["true", "0"],
             ["PT0H5M0S", "0"],

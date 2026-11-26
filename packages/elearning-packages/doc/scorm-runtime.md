@@ -45,8 +45,23 @@ before it is set. The bounds are the smallest permitted maximums of each specifi
 | Scores | raw, minimum and maximum from 0 to 100, or blank | scaled from -1 to 1; raw, minimum and maximum any real |
 
 The responses of the interactions of SCORM 2004 are checked by the type of their interaction:
-`DataModel::responsePattern()` gives the pattern of `true-false`, `choice`, `sequencing`, `likert`, `matching` and
-`numeric`; the responses of `fill-in`, `long-fill-in`, `performance` and `other` are bounded in length.
+`DataModel::responsePattern()` gives the pattern of each type but `other`, whose responses are bounded in length only.
+
+| Type | A correct response (`pattern`) | A learner's response |
+|---|---|---|
+| `true-false` | `true` or `false` | The same |
+| `choice` | Identifiers separated by `[,]`, or none | The same |
+| `sequencing` | One identifier or more, separated by `[,]` | The same |
+| `likert` | One identifier | The same |
+| `matching` | Pairs `source[.]target`, separated by `[,]` | The same |
+| `numeric` | A range `min[:]max`, either end left open | A number |
+| `fill-in` | Ten strings at most, separated by `[,]`, each of 250 characters at most and beginning with `{lang=…}` or not; the pattern may begin with `{case_matters=true}` or `false`, and `{order_matters=…}`, in either order, each once | Ten strings at most, the same |
+| `long-fill-in` | One string, beginning with `{lang=…}` or not; the pattern may begin with `{case_matters=…}` | One string, the same |
+| `performance` | 125 steps at most, separated by `[,]`, each `step_name[.]step_answer` with one of the two at least: a short identifier, and 250 characters at most or a range `min[:]max`; the pattern may begin with `{order_matters=…}` | 250 steps at most, each answer 250 characters at most |
+| `other` | 4 000 characters at most | The same |
+
+A string that begins with `{lang=` names a language, `{lang=fr-CA}`: `{lang=}` and `{lang=fr_CA}` are refused. Every
+response is bounded at 4 000 characters.
 
 The patterns are written so that PHP, with the `u` modifier, and JavaScript, with the `u` flag, read them alike.
 `DataModel::describe()` gives the data model as the browser reads it — the elements, the collections and their bounds,
@@ -64,7 +79,8 @@ error codes —, so that a run time in the browser answers a call as the server 
 - In SCORM 2004, an element of an objective or an interaction needs its identifier first, and a response the type of
   its interaction (`408`); the identifier of an objective is unique and never changes, and so is that of an objective
   of an interaction among the others of the interaction (`351`).
-- A value is checked against the pattern, the length and the range of its element; a number is written as its text.
+- A value is checked against the pattern, the length and the range of its element, the whole value — a line feed at
+  its end included —; a number is written as its text.
 - An element never set reads as the empty string in SCORM 1.2, and answers `403` in SCORM 2004 unless it has a default:
   `cmi.completion_status` and `cmi.success_status` read `unknown`, `cmi.total_time` `PT0H0M0S`.
 - In SCORM 2004, `cmi.completion_status` is evaluated against `cmi.completion_threshold` and `cmi.progress_measure`, and
@@ -130,6 +146,7 @@ out of a hundred in SCORM 1.2 when they are not set.
 ## What the data model leaves to the platform
 
 - The sequencing and navigation of SCORM 2004: `adl.nav.request` is kept and given back by `SessionEnd`; the validity
-  of the requests, `adl.nav.request_valid.*`, is the platform's to set with `put()`.
+  of the requests, `adl.nav.request_valid.*`, is the platform's to set with `put()` or among the values it builds
+  `CmiData` with. A target given no value of its own, `adl.nav.request_valid.choice.{target=intro}`, reads the value of
+  its request, `adl.nav.request_valid.choice`, and `unknown` when the platform set neither.
 - Where the values are kept, the attempts and their numbers, the progress of the learner in a course.
-- The formats of the responses of `fill-in`, `long-fill-in`, `performance` and `other` interactions, bounded only.

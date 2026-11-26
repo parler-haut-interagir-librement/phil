@@ -39,6 +39,22 @@ final class DataModel
 
     private const string STATUS_12 = 'passed|completed|failed|incomplete|browsed';
 
+    /** The language a localized string may begin with, `{lang=fr-CA}`; a string that begins `{lang=` names one. */
+    private const string LANGUAGE_PREFIX = '(?:(?!\{lang=)|\{lang='.self::LANGUAGE.'\})';
+
+    /** A string of a fill-in response: 250 characters at most, none of them the delimiter `[,]`. */
+    private const string FILL_IN_TEXT = '(?:(?!\[,\])[\s\S]){0,250}';
+
+    /** The answer of a step of a performance: 250 characters at most, none of them a delimiter. */
+    private const string STEP_TEXT = '(?:(?!\[[,.:]\])[\s\S]){0,250}';
+
+    /** Refuses a step of a performance that names neither its step nor its answer. */
+    private const string EMPTY_STEP = '(?!\[\.\](?:\[,\]|$))';
+
+    private const string CASE_MATTERS = '\{case_matters=(?:true|false)\}';
+
+    private const string ORDER_MATTERS = '\{order_matters=(?:true|false)\}';
+
     /** The collections, with the most elements each keeps. */
     private const array COLLECTIONS = [
         'Scorm12' => [
@@ -149,7 +165,7 @@ final class DataModel
 
     /**
      * The pattern of a correct response (`pattern`) or of a learner's response (`response`) of an interaction of
-     * SCORM 2004, by its type; null for a type whose responses are only bounded in length.
+     * SCORM 2004, by its type; null for `other`, whose responses are only bounded in length.
      */
     public static function responsePattern(string $type, bool $correct): ?string
     {
@@ -163,8 +179,69 @@ final class DataModel
             'likert' => '^'.$id.'$',
             'matching' => '^'.$id.'\[\.\]'.$id.'(?:\[,\]'.$id.'\[\.\]'.$id.')*$',
             'numeric' => $correct ? '^(?:'.$decimal.')?\[:\](?:'.$decimal.')?$' : '^'.$decimal.'$',
+            'fill-in' => self::fillIn($correct),
+            'long-fill-in' => self::longFillIn($correct),
+            'performance' => self::performance($correct),
             default => null,
         };
+    }
+
+    /**
+     * Ten localized strings at most, separated by `[,]`; a pattern may begin with `{case_matters=…}` and
+     * `{order_matters=…}`, in either order, each once.
+     */
+    private static function fillIn(bool $correct): string
+    {
+        $text = self::LANGUAGE_PREFIX.self::FILL_IN_TEXT;
+        $strings = self::atMost(10).$text.'(?:\[,\]'.$text.')*$';
+
+        if (!$correct) {
+            return '^'.$strings;
+        }
+
+        $case = self::CASE_MATTERS;
+        $order = self::ORDER_MATTERS;
+
+        return '^(?:'.$case.'(?:'.$order.')?|'.$order.'(?:'.$case.')?)?(?!\{(?:case|order)_matters=)'.$strings;
+    }
+
+    /**
+     * One localized string; a pattern may begin with `{case_matters=…}`.
+     */
+    private static function longFillIn(bool $correct): string
+    {
+        $text = self::LANGUAGE_PREFIX.'[\s\S]*$';
+
+        return $correct ? '^(?:'.self::CASE_MATTERS.')?(?!\{case_matters=)'.$text : '^'.$text;
+    }
+
+    /**
+     * Steps separated by `[,]`, each `step_name[.]step_answer`, one of the two at least: 125 steps at most in a
+     * pattern, whose answer may be a range of numbers `min[:]max` and which may begin with `{order_matters=…}`; 250
+     * in a response.
+     */
+    private static function performance(bool $correct): string
+    {
+        $name = '(?:'.self::SHORT_ID.')?\[\.\]';
+
+        if (!$correct) {
+            $step = self::EMPTY_STEP.$name.self::STEP_TEXT;
+
+            return '^'.self::atMost(250).$step.'(?:\[,\]'.$step.')*$';
+        }
+
+        $range = '(?:'.self::DECIMAL.')?\[:\](?:'.self::DECIMAL.')?';
+        $step = self::EMPTY_STEP.$name.'(?:'.$range.'|'.self::STEP_TEXT.')';
+
+        return '^(?:'.self::ORDER_MATTERS.')?(?!\{order_matters=)'.self::atMost(125).$step.'(?:\[,\]'.$step.')*$';
+    }
+
+    /**
+     * Refuses more than this many parts separated by `[,]`: a lookahead that walks from one delimiter to the next.
+     */
+    private static function atMost(int $parts): string
+    {
+        return '(?!(?:(?:(?!\[,\])[\s\S])*\[,\]){'.$parts.'})';
     }
 
     /**

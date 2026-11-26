@@ -42,7 +42,8 @@ final class DataModelTest extends TestCase
         self::assertSame(1, DataModel::correctResponses(ScormVersion::Scorm2004, 'true-false'));
         self::assertSame(10, DataModel::correctResponses(ScormVersion::Scorm2004, 'choice'));
         self::assertSame(1, DataModel::correctResponses(ScormVersion::Scorm2004, ''));
-        self::assertNull(DataModel::responsePattern('fill-in', true));
+        self::assertNull(DataModel::responsePattern('other', true));
+        self::assertNull(DataModel::responsePattern('', false));
     }
 
     public function testEveryPatternReadsInPhpAsInJavaScript(): void
