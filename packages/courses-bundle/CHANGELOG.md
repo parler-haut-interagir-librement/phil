@@ -16,6 +16,16 @@ The next version is 0.4.0-alpha.
   `ScormRuntime::MAX_TARGETS`, with the session; they are never kept with the attempt.
 - The responses of `fill-in`, `long-fill-in` and `performance` interactions are checked by their format, in the browser
   and on the server, by the data model of phil/elearning-packages.
+- A statement of another verb than `completed`, `passed` and `failed` about the xAPI activity launched — `mastered`,
+  `experienced`, a verb of the authoring tool — moves the learner's progress through its result: `result.completion`
+  true completes the activity, a boolean `result.success` passes or fails it, and a `mastery_score` decides success
+  from its scaled score; without either, it moves nothing.
+- A state document posted to the xAPI endpoint is merged as xAPI asks of JSON documents: the posted object is kept as
+  written when there is none yet, else its properties are added to the JSON object kept, or replace those of the same
+  name, at the top level; a `POST` of anything but a JSON object, or over a document that is not one, answers `400`, and
+  the merged document is bounded to 64 KiB. A `PUT` still replaces the document whole.
+- The import of an xAPI package notes the correct responses of its questions that name a component the question does
+  not declare, from the reader of phil/elearning-packages.
 
 ## 0.3.1-alpha - 2026-11-25
 

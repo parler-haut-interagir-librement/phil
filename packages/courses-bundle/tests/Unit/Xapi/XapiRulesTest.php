@@ -137,6 +137,25 @@ final class XapiRulesTest extends TestCase
         self::assertEquals([false, true, null], $this->outcome(self::statement(XapiVerb::Passed->value), $context));
     }
 
+    public function testAnotherVerbReportsThroughItsResultOnly(): void
+    {
+        $context = $this->context();
+        $mastered = 'http://adlnet.gov/expapi/verbs/mastered';
+
+        self::assertEquals([true, null, null], $this->outcome(['result' => ['completion' => true]] + self::statement('http://adlnet.gov/expapi/verbs/experienced'), $context));
+        self::assertEquals([false, true, 0.9], $this->outcome(['result' => ['success' => true, 'score' => ['scaled' => 0.9]]] + self::statement($mastered), $context));
+        self::assertEquals([false, false, null], $this->outcome(['result' => ['success' => false]] + self::statement('https://example.org/verbs/finished'), $context));
+        self::assertEquals([true, true, null], $this->outcome(['result' => ['completion' => true, 'success' => true]] + self::statement($mastered), $context));
+        self::assertNull(XapiOutcomes::of(['result' => ['completion' => false, 'score' => ['scaled' => 1]]] + self::statement($mastered), $context));
+        self::assertNull(XapiOutcomes::of(['result' => ['completion' => 'true', 'success' => 'yes']] + self::statement($mastered), $context));
+        self::assertNull(XapiOutcomes::of(['result' => ['completion' => true]] + self::statement($mastered, self::ACTIVITY.'/page-2'), $context));
+
+        $withMastery = new XapiContext('https://learn.example.org/', 'ada', self::ACTIVITY, self::REGISTRATION, 'session', 0.8);
+        self::assertEquals([true, false, 0.5], $this->outcome(['result' => ['completion' => true, 'score' => ['scaled' => 0.5]]] + self::statement($mastered), $withMastery));
+        self::assertEquals([false, true, 0.85], $this->outcome(['result' => ['success' => false, 'score' => ['scaled' => 0.85]]] + self::statement($mastered), $withMastery));
+        self::assertNull(XapiOutcomes::of(['result' => ['score' => ['scaled' => 0.9]]] + self::statement($mastered), $withMastery));
+    }
+
     public function testABodyIsBoundedAndHoldsObjects(): void
     {
         self::assertSame([['a' => 1]], StatementBatch::decode('{"a":1}'));

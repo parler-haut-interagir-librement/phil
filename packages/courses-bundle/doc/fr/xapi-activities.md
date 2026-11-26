@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b16ddb06e0583057431936860138a4d7a6179f2c61ee3869c58d1e77e28787bd -->
+<!-- phil-dev source-sha256=1029a0ce6efd4b0185ddc843ffd7092644a27793f6ba9502b95185fa227ed2aa -->
 # Activités xAPI
 
 Un paquet xAPI — du contenu qui rapporte à un entrepôt de traces d'apprentissage au moyen d'énoncés, sans les règles de
@@ -70,14 +70,20 @@ Un énoncé sur l'activité lancée fait avancer la progression de l'apprenant :
 | `http://adlnet.gov/expapi/verbs/completed` | oui | `result.success` quand c'est un booléen |
 | `http://adlnet.gov/expapi/verbs/passed` | quand `result.completion` est vrai | réussie |
 | `http://adlnet.gov/expapi/verbs/failed` | quand `result.completion` est vrai | échouée |
+| Tout autre verbe — `mastered`, `experienced`, un verbe de l'outil de création | quand `result.completion` est vrai | `result.success` quand c'est un booléen |
 
-Avec un `mastery_score`, une note ramenée à l'échelle décide de la réussite pour `completed` et `passed` : à égalité ou
-au-dessus, l'apprenant a réussi ; en dessous, il a échoué ; `failed` reste un échec. La meilleure note est conservée,
-comme pour toutes les activités.
+Un énoncé d'un autre verbe ne fait rien avancer sans l'un de ces deux éléments : sa note seule, ou un
+`result.completion` faux, ne rapporte aucun résultat. Avec un `mastery_score`, une note ramenée à l'échelle décide de la
+réussite pour tous les verbes sauf `failed` : à égalité ou au-dessus, l'apprenant a réussi ; en dessous, il a échoué ;
+`failed` reste un échec. La meilleure note est conservée, comme pour toutes les activités.
 
 Les documents d'état du paquet — un signet, ses données de suspension — sont conservés sous le `activity_id` de
-l'activité, l'enregistrement et leur identifiant, dans l'entrepôt des documents d'état de cmi5. Le point de terminaison ne
-sert ni les énoncés en retour ni les préférences de l'apprenant, comme pour cmi5.
+l'activité, l'enregistrement et leur identifiant, dans l'entrepôt des documents d'état de cmi5. Un `PUT` remplace le document en entier. Un
+`POST` fusionne, comme xAPI le demande pour les documents JSON : l'objet JSON envoyé est conservé tel qu'il est écrit
+quand il n'y en a pas encore, et sinon ses propriétés s'ajoutent à l'objet JSON conservé, ou remplacent celles du même
+nom, au premier niveau seulement. Un `POST` de tout autre contenu qu'un objet JSON, ou sur un document qui n'en est
+pas un, répond `400` et laisse le document conservé tel qu'il était ; le document fusionné est borné à 64 Kio, comme un
+document envoyé par `PUT`. Le point de terminaison ne sert ni les énoncés en retour ni les préférences de l'apprenant, comme pour cmi5.
 
 ## L'entrepôt de traces d'apprentissage
 
@@ -93,9 +99,10 @@ L'importation le lit par le service `XapiPackageReader` nommé dans `phil_course
 limites de l'importation — sa taille, ses nœuds XML, ses activités —, prend l'IRI, le titre et la description de
 l'activité du cours dans la langue de `phil_courses.import.language`, garde chaque activité lançable dans l'ordre du
 paquet, et transforme les problèmes qu'il a mis de côté — une activité déclarée deux fois, un nom manquant, un type
-d'interaction inconnu — en avertissements de l'importation. Un `tincan.xml` ne donne aucune note de maîtrise. Ce que la
-bibliothèque refuse — aucune racine `<tincan>`, aucun `<activities>`, aucune activité lançable, un lancement qui sort du
-paquet — fait refuser le paquet avec son message, sous forme de `PackageRefused`.
+d'interaction inconnu, une bonne réponse qui nomme un composant que sa question ne déclare pas — en avertissements de
+l'importation. Un `tincan.xml` ne donne aucune note de maîtrise. Ce que la bibliothèque refuse — aucune racine
+`<tincan>`, aucun `<activities>`, aucune activité lançable, un lancement qui sort du paquet — fait refuser le paquet
+avec son message, sous forme de `PackageRefused`.
 
 Le lecteur retourne un `XapiPackage` — l'IRI du cours, son titre et sa description, ses activités lançables et les notes
 de la lecture —, que l'importation transforme en cours d'origine `xapi` avec un module nommé d'après le cours. Chaque

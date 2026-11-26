@@ -69,6 +69,8 @@ return [
                 '.*\\(string\\) XmlDocument::attribute\\(\\$element, \'identifier\'\\).*',
                 '.*\\$objectives\\[\\(string\\) \\$identifier\\] = .*',
                 '.*\\$current = \\(string\\) \\$this->data->current;.*',
+                // The pattern has no `u` flag and nothing that can fail on a response: `preg_replace()` gives text.
+                '.*\\$body = \\(string\\) preg_replace\\(.*',
             ]],
             // `masteryScore()` has checked the value with `is_numeric()`: PHP compares and divides a numeric string
             // as the float it casts to, and the return type makes the float of an integer quotient. The values of the

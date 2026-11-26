@@ -85,7 +85,8 @@ return [
                 '.*\\(int\\) \\$length > self::MAX_BYTES.*',
             ]],
             // `finish` is a boolean whichever default stands in for its absence: both are checked as booleans.
-            'FalseValue' => ['ignoreSourceCodeByRegex' => ['.*is_bool\\(\\$body\\[.finish.\\] \\?\\? false\\).*']],
+            // Nothing sets a `Vary` on a response before it is answered: adding to the header or replacing it gives the same one.
+            'FalseValue' => ['ignoreSourceCodeByRegex' => ['.*is_bool\\(\\$body\\[.finish.\\] \\?\\? false\\).*', '.*\\$response->setVary\\(.Origin., false\\);.*']],
             // No enrollment asks for no row, and the query of an empty list reads none either.
             'ReturnRemoval' => ['ignore' => [
                 DbalScormAttemptRepository::class.'::ofEnrollments::94',

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f787958c61569a0cc6bc378c0d3de331b849ee1d7f17c00888e3d578ce01f587 -->
+<!-- phil-dev source-sha256=6d0c7de4853202a89c50c40cf98e3543882c975220a1a46168f0cd68895db052 -->
 # phil/elearning-packages
 
 **Paquets SCORM 1.2, SCORM 2004, cmi5 et xAPI lus en toute sécurité, avec le modèle de données d'exécution et le séquencement SCORM.**
@@ -43,7 +43,7 @@ de `phil/url`, qui lit une adresse de lancement absolue.
 | Le manifeste lu sans type de document ni entité, borné en taille, en nœuds XML, en profondeur et en éléments | Implémenté, testé et soumis au fuzzing |
 | Les manifestes SCORM 1.2 et SCORM 2004 : version, organisations, éléments, ressources, séquencement conservé en XML | Implémenté, testé et soumis au fuzzing |
 | Les structures de cours cmi5 : cours, blocs, unités assignables, dans la langue demandée | Implémenté, testé et soumis au fuzzing |
-| Les paquets xAPI (`tincan.xml`) : activités, noms et descriptions par langue, lancement, types d'interaction, avertissements typés | Implémenté, testé et soumis au fuzzing |
+| Les paquets xAPI (`tincan.xml`) : activités, noms et descriptions par langue, lancement, questions avec leurs bonnes réponses et leurs composants vérifiés les uns contre les autres, définitions d'activité, avertissements typés | Implémenté, testé et soumis au fuzzing |
 | Le format reconnu, les fichiers de lancement et les fichiers déclarés vérifiés | Implémenté et testé |
 | Ce qu'un environnement d'exécution remet à un SCO, lu dans le manifeste : données de lancement, note de maîtrise, note de passage normalisée, seuil d'achèvement, temps alloué et son action | Implémenté et testé |
 | Le modèle de données d'exécution SCORM : les éléments de SCORM 1.2 et 2004, leurs règles de lecture et d'écriture et leurs codes d'erreur, les validations, statuts, notes, temps, l'API et ses états | Implémenté, testé et soumis au fuzzing |

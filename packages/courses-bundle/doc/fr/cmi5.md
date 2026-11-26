@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8cd017c4177959dd9263716d83dee4d42508560575e169b226357abf5252ea5d -->
+<!-- phil-dev source-sha256=b0e81a93cd23427d0762c155e30cb22d87046807b795e5a57670df229c378a3f -->
 # cmi5
 
 Le bundle importe des cours cmi5, lance leurs unités assignables comme l'exige cmi5, et reçoit leurs énoncés par un point
@@ -69,7 +69,7 @@ HTTP Basic avec chaque requête xAPI.
 |---|---|---|
 | `statements` | `POST`, `PUT` avec `statementId` | Vérifie chaque énoncé, le conserve par l'entrepôt de traces d'apprentissage, l'applique ; `GET` est refusé |
 | `activities/state` avec `stateId=LMS.LaunchData` | `GET` | Les données de lancement : le gabarit de contexte, le mode de lancement, le `moveOn`, le score de maîtrise, les paramètres de lancement, la clé d'autorisation ; l'écriture en est refusée |
-| `activities/state` avec un autre `stateId` | `GET`, `PUT`, `POST`, `DELETE` | Les propres documents d'état de l'unité, 64 Kio chacun, par l'entrepôt de traces d'apprentissage |
+| `activities/state` avec un autre `stateId` | `GET`, `PUT`, `POST`, `DELETE` | Les propres documents d'état de l'unité, 64 Kio chacun, par l'entrepôt de traces d'apprentissage ; un `POST` fusionne un objet JSON dans celui qui est conservé, au premier niveau seulement, et répond `400` pour tout autre document |
 | `agents/profile` | `GET` | Introuvable : la plateforme ne garde aucune préférence d'apprenant ; l'écriture en est refusée |
 | `about` | `GET` | `{"version": ["1.0.3"]}` |
 

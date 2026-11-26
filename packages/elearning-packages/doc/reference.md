@@ -63,10 +63,12 @@ Every class of the library, by namespace under `Phil\ElearningPackages`.
 
 | Class | Role |
 |---|---|
-| `Xapi\XapiCourseReader` | Reads `tincan.xml` in the language asked for; `FILE` names it, `MAX_LANGUAGES` bounds the texts of an activity |
+| `Xapi\XapiCourseReader` | Reads `tincan.xml` in the language asked for; `FILE` names it, `MAX_LANGUAGES` bounds the texts of an activity, `MAX_RESPONSES` the correct responses of a question and `MAX_COMPONENTS` each of its lists |
 | `Xapi\XapiCourse` | The course activity, its title, every activity and the warnings; `id()`, `activity()`, `launchable()`, `interactions()` |
-| `Xapi\XapiActivity` | An activity: IRI, type, names and descriptions by language, launch, interaction type; `name()`, `description()`, `isLaunchable()`; `COURSE` and `INTERACTION` name the two types it knows |
+| `Xapi\XapiActivity` | An activity: IRI, type, names and descriptions by language, launch, interaction type, correct responses, lists of components; `name()`, `description()`, `isLaunchable()`, `components()`, `definition()`; `COURSE` and `INTERACTION` name the two types it knows |
 | `Xapi\InteractionType` | The interaction types of xAPI |
+| `Xapi\ComponentList` | The lists of components of a question — `Choices`, `Scale`, `Source`, `Target`, `Steps` —; `of()` gives those an interaction type uses |
+| `Xapi\InteractionComponent` | A component of a question: its identifier and its descriptions by language; `description()` |
 | `Xapi\XapiWarning`, `XapiWarningKind` | An issue set aside: its kind, its activity and its sentence |
 
 ## Sequencing

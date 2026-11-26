@@ -147,6 +147,12 @@ final class XapiImportTest extends TestCase
                         <name lang="en">Question</name>
                         <interactionType>sorcery</interactionType>
                     </activity>
+                    <activity id="https://example.org/xapi/q2" type="http://adlnet.gov/expapi/activities/cmi.interaction">
+                        <name lang="en">Knot</name>
+                        <interactionType>choice</interactionType>
+                        <correctResponsePatterns><correctResponsePattern>bowline</correctResponsePattern></correctResponsePatterns>
+                        <choices><component><id>reef</id></component></choices>
+                    </activity>
                     <activity id="https://example.org/xapi/knots" type="http://adlnet.gov/expapi/activities/lesson">
                         <launch lang="en">again.html</launch>
                     </activity>
@@ -162,8 +168,9 @@ final class XapiImportTest extends TestCase
             ['Nœuds', 'https://example.org/xapi/knots', 'knots/index.html', '?step=1'],
             ['Voile', 'https://example.org/xapi/sailing', 'index.html', null],
         ], array_map(static fn (Activity $activity): array => [$activity->title, $activity->stringSetting('activity_id'), $activity->stringSetting('path'), $activity->setting('query')], $store->courseStore->activities($course->id)));
-        self::assertCount(3, $report->warnings, implode("\n", $report->warnings));
+        self::assertCount(4, $report->warnings, implode("\n", $report->warnings));
         self::assertStringContainsString('declared twice', implode(' ', $report->warnings));
+        self::assertContains('A correct response of the activity "https://example.org/xapi/q2" names "bowline", which its choices do not declare: the response is kept.', $report->warnings);
 
         $english = new ElearningXapiPackageReader()->read(new ZipPackageOpener()->open(Packages::zip(['tincan.xml' => $tincan]), new PackageLimits()));
         self::assertSame(['Sailing', 'Knots and sails.', 'Knots', 'knots/index.html?step=1', null], [$english->title, $english->description, $english->activities[0]->title, $english->activities[0]->launch, $english->activities[0]->masteryScore]);

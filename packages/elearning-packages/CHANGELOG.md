@@ -19,6 +19,13 @@ The next version is 0.2.1-alpha.
 - A target of a navigation request given no value of its own, `adl.nav.request_valid.choice.{target=intro}`, reads the
   value of its request, `adl.nav.request_valid.choice`, so that a platform says `false` for every target it does not
   name.
+- The questions of `tincan.xml`: `XapiActivity::$correctResponses`, the correct response patterns as written, and
+  `XapiActivity::$components`, the lists `choices`, `scale`, `source`, `target` and `steps` of `Xapi\InteractionComponent`
+  values — identifier and descriptions by language —, read through `components()` by a `Xapi\ComponentList`, whose
+  `of()` gives the lists an interaction type uses. A list the interaction type does not use, a component without an
+  identifier of 1 to 255 bytes without white space, an identifier used twice, more than 100 components in a list or 32
+  correct responses are set aside, each with its new `XapiWarningKind`; a correct response that names a component its
+  question does not declare is noted and kept. `XapiActivity::definition()` gives the activity definition of xAPI.
 
 ### Fixed
 
