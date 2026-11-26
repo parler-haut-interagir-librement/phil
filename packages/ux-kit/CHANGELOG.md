@@ -28,12 +28,24 @@ The next version is 0.7.1-alpha.
 - The recipe `ScratchCard`: a prize decided by the server under a cover painted on a canvas and scratched away by a
   mouse, a finger or a pen, or revealed at once by its button, by the keyboard; hidden from screen readers and the
   keyboard while covered, then said in a polite live region and given the focus, and, with `effect`, celebrated.
-- In the README of `Celebration`, the examples a demo renders: a gallery, one button for each of the eleven effects,
+- In the README of `Celebration`, the examples a demo renders: a gallery, one button for each of the effects,
   nothing playing until one is pressed; the button and the words in turn as live examples too.
+- Eight effects of `Celebration`: `wave`, the children of `focus`, or of `main`, lifted one after the other by the Web
+  Animations API, nothing drawn; `rocket`, taking off from under `focus` with a trail of sparks; `rainbow`, drawn from
+  one edge to the other; `drum-roll`, its sticks striking before sparks on `focus`, its message said when the roll ends;
+  `applause`, hands clapping; `reactions`, the reaction of the prop `reaction`, of a param or of an event raining;
+  `shapes`, confetti in the images of the prop `shapes`; and `mascot`, the image of the prop `mascot`, or a little
+  figure, hopping across the screen. The images load once, into bitmaps the worker paints, and `autoplay` waits for them.
+- Sounds for `Celebration`, made by the Web Audio API without a file: with `sounds`, a button turns them on and off,
+  `aria-pressed`, kept in the local storage; silent until then, never before a gesture on the page, and none where the
+  person chose `data-celebrations="none"`. A chime, or pops, a roll and a cymbal, claps or a whoosh by effect.
+- `vibrate` on `Celebration`: a short vibration, 600 milliseconds at most, where `navigator.vibrate()` exists and
+  something is drawn.
+- `celebrate()` and `CelebrationStream::render()` take a `reaction`, written as an attribute of the stream.
 
 ### Changed
 
-- The `effect` of `Celebration` names its eleven values in its type, `'confetti'|'fireworks'|…|'trophy'`, so that a
+- The `effect` of `Celebration` names its nineteen values in its type, `'confetti'|'fireworks'|…|'mascot'`, so that a
   demo or a playground offers each of them.
 
 ## 0.7.0-alpha - 2026-11-25

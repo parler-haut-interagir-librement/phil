@@ -1,8 +1,26 @@
 import { Controller } from '@hotwired/stimulus';
-import { EFFECTS, pieces as piecesOf } from './celebration_effects.js';
+import { DOM_EFFECTS, EFFECTS, pieces as piecesOf, rollOf } from './celebration_effects.js';
+import { keepSound, sound, soundOn } from './celebration_sounds.js';
 import { Painter, SOURCE } from './celebration_worker.js';
 
-export { BEAM_GAP, BEAM_RISE, BEAM_SWING, BURST_GAP, BURST_LIFE, confetti, EFFECTS, fireworks, pieces } from './celebration_effects.js';
+export {
+    BEAM_GAP,
+    BEAM_RISE,
+    BEAM_SWING,
+    BURST_GAP,
+    BURST_LIFE,
+    CLAP_RATE,
+    confetti,
+    DOM_EFFECTS,
+    EFFECTS,
+    fireworks,
+    pieces,
+    REACTION,
+    reaction,
+    rollOf,
+    STRIKE_RATE,
+} from './celebration_effects.js';
+export { keepSound, SOUND_KEY, SOUND_ON, sound, soundOf, soundOn, SOUNDS, VOLUME } from './celebration_sounds.js';
 export { advance, BEAM_ALPHA, draw, opacity } from './celebration_worker.js';
 
 /** The DOM event that plays the celebrations of the page, dispatched on any of its elements or on the window. */
@@ -50,6 +68,37 @@ export const LOWEST_SCALE = 0.2;
 /** The effects in which a click bursts what floats. */
 export const POPPING = ['balloons', 'bubbles'];
 
+/** The most elements the wave lifts, one after the other. */
+export const WAVE_LIMIT = 24;
+
+/** How high the wave lifts each element, in pixels. */
+export const WAVE_RISE = 12;
+
+/** How long the wave takes to lift and set down each element, in milliseconds. */
+export const WAVE_STEP = 600;
+
+/** The longest gap between two elements the wave lifts, in milliseconds. */
+export const WAVE_GAP = 120;
+
+/** The most images of the site the shapes fall in. */
+export const SHAPES_LIMIT = 8;
+
+/** How wide an image of the site is drawn into a bitmap, in pixels, whatever its own size: sharp on a dense screen. */
+export const SPRITE_SIZE = 128;
+
+/**
+ * The patterns of the vibration of each effect that has one of its own, in milliseconds of vibration and of pause in
+ * turn; the others vibrate once. Never longer than 600 milliseconds in all.
+ */
+export const VIBRATIONS = {
+    applause: [30, 50, 30, 50, 30, 50, 30],
+    fireworks: [40, 460, 40],
+    rocket: [200],
+};
+
+/** The vibration of an effect without a pattern of its own. */
+export const VIBRATION = [60];
+
 /** The attributes of the root whose change may change the colours of the theme. */
 export const THEME_ATTRIBUTES = ['class', 'data-theme', 'style'];
 
@@ -90,9 +139,9 @@ export function tokens(list) {
 }
 
 /**
- * The message, the effect and the focus an event asks for: the params of a Stimulus action first, then the `detail`
- * of a DOM event; an empty or missing text is left undefined, for the values of the controller to stand in. The focus
- * is a selector, or an element of the `detail`.
+ * The message, the effect, the focus and the reaction an event asks for: the params of a Stimulus action first, then
+ * the `detail` of a DOM event; an empty or missing text is left undefined, for the values of the controller to stand
+ * in. The focus is a selector, or an element of the `detail`.
  */
 export function optionsOf(event) {
     const detail = null !== event?.detail && 'object' === typeof event?.detail ? event.detail : {};
@@ -104,6 +153,7 @@ export function optionsOf(event) {
         message: text(params.message) ?? text(detail.message),
         effect: text(params.effect) ?? text(detail.effect),
         focus: text(params.focus) ?? element(detail.focus) ?? text(detail.focus),
+        reaction: text(params.reaction) ?? text(detail.reaction),
     };
 }
 
@@ -188,6 +238,94 @@ export function focusOf(target, root = globalThis.document) {
     return { x: box.left + width / 2, y: box.top + height / 2, radius: Math.max(width, height) / 2 + 16 };
 }
 
+/**
+ * The elements the wave lifts: the children of what `focus` names, an element or a selector, or of the `main` element
+ * of the page without one; `WAVE_LIMIT` at most, those that can be animated.
+ */
+export function waveTargets(focus, root = globalThis.document) {
+    let element = focus;
+
+    try {
+        if ('string' === typeof focus) {
+            element = root?.querySelector?.(focus) ?? null;
+        } else if (undefined === focus || null === focus) {
+            element = root?.querySelector?.('main') ?? null;
+        }
+    } catch {
+        return [];
+    }
+
+    return Array.from(element?.children ?? [])
+        .filter((child) => 'function' === typeof child?.animate)
+        .slice(0, WAVE_LIMIT);
+}
+
+/** How far apart the wave lifts `count` elements, in milliseconds, for all to be set down within `duration`. */
+export function waveGap(count, duration) {
+    return count > 1 ? Math.min(WAVE_GAP, Math.max(0, (duration - WAVE_STEP) / (count - 1))) : 0;
+}
+
+/** The pattern of the vibration of an effect, for a run of `duration` milliseconds; a drum roll beats until it ends. */
+export function vibration(name, duration = DURATION) {
+    if ('drum-roll' === name) {
+        const beats = Math.max(1, Math.min(6, Math.floor(rollOf(duration) / 400)));
+
+        return [...Array.from({ length: beats }, () => [20, 60]).flat(), 120];
+    }
+
+    return VIBRATIONS[name] ?? VIBRATION;
+}
+
+/** The addresses of images in a list, texts that are not empty, `limit` at most. */
+export function addresses(list, limit = SHAPES_LIMIT) {
+    return (Array.isArray(list) ? list : [])
+        .filter((address) => 'string' === typeof address && '' !== address.trim())
+        .slice(0, limit);
+}
+
+/**
+ * The images of the site at `addresses`, each decoded, then drawn into a bitmap `SPRITE_SIZE` wide where the browser
+ * can, that a worker paints; those that do not load are left out. `bitmaps` tells whether they all are bitmaps.
+ */
+export async function images(list, scope = globalThis) {
+    if ('function' !== typeof scope.Image) {
+        return { images: [], bitmaps: true };
+    }
+
+    const loaded = await Promise.all(
+        list.map(async (address) => {
+            try {
+                const image = new scope.Image();
+                image.decoding = 'async';
+                image.src = address;
+                await image.decode();
+
+                if ('function' !== typeof scope.createImageBitmap) {
+                    return image;
+                }
+
+                const ratio = image.naturalWidth > 0 && image.naturalHeight > 0 ? image.naturalHeight / image.naturalWidth : 1;
+
+                return await scope.createImageBitmap(image, { resizeWidth: SPRITE_SIZE, resizeHeight: Math.max(1, Math.round(SPRITE_SIZE * ratio)) });
+            } catch {
+                return null;
+            }
+        }),
+    );
+    const found = loaded.filter((image) => null !== image);
+
+    return { images: found, bitmaps: 'function' === typeof scope.createImageBitmap };
+}
+
+/** The local storage of a window, or null where it cannot be read. */
+export function localOf(scope) {
+    try {
+        return scope?.localStorage ?? null;
+    } catch {
+        return null;
+    }
+}
+
 /** The session storage of a window, or null where it cannot be read: a private window, blocked site data. */
 export function storageOf(scope) {
     try {
@@ -220,7 +358,10 @@ export function remember(storage) {
     }
 }
 
-/** What a `<turbo-stream action="celebrate">` asks: its message, its effect and its focus, from its attributes. */
+/**
+ * What a `<turbo-stream action="celebrate">` asks: its message, its effect, its focus and its reaction, from its
+ * attributes.
+ */
 export function streamOptions(stream) {
     const text = (name) => {
         const value = stream?.getAttribute?.(name);
@@ -228,7 +369,7 @@ export function streamOptions(stream) {
         return 'string' === typeof value && '' !== value ? value : undefined;
     };
 
-    return { message: text('message'), effect: text('effect'), focus: text('focus') };
+    return { message: text('message'), effect: text('effect'), focus: text('focus'), reaction: text('reaction') };
 }
 
 /** Plays a stream once: the DOM event `celebrate` on the window, with what the stream asks. */
@@ -265,7 +406,12 @@ export function onStream(event) {
  * `OffscreenCanvas` and painted off the main thread; otherwise it is painted on the page with the same code. The canvas
  * is cloned from the `stage` template, set over the page and kept out of the way of the pointer through the CSSOM, which
  * a strict Content Security Policy allows, and removed with its bitmap at the end, or at once when the element leaves the
- * page.
+ * page. The wave draws nothing: it lifts the elements of the page one after the other by the Web Animations API, added
+ * to their own transforms, and sets them down. A drum roll says its message when its roll ends.
+ *
+ * Its sounds, made on the device, stay silent until the person turns them on by its `sound` button, a gesture the
+ * browser asks for before a sound, kept in the local storage; none where the person chose `data-celebrations="none"`.
+ * With `vibrate`, a device that can vibrates briefly when something is drawn.
  *
  * @value message The words said when it plays.
  * @value messages Words said in turn when no message is given, one at random each time, another than the last.
@@ -273,12 +419,18 @@ export function onStream(event) {
  * @value autoplay Whether it plays as soon as it connects.
  * @value duration The run of the animation in milliseconds, kept between `SHORTEST` and `LONGEST`.
  * @value colors The custom properties whose colours it draws in, separated by spaces.
- * @value focus The selector of what the spotlight lights and where the trophy lands.
+ * @value focus The selector of what the spotlight lights, where the trophy lands, the rocket takes off and the drum
+ * rolls, and whose children the wave lifts.
+ * @value reaction What rains with the effect `reactions`, an emoji or a short word.
+ * @value shapes The addresses of the images of the site the effect `shapes` falls in.
+ * @value mascot The address of the image of the mascot of the effect `mascot`.
+ * @value vibrate Whether a device that can vibrates when something is drawn.
  * @target message The live region that says the message.
  * @target stage The template of the canvas.
+ * @target sound The button that turns the sounds on and off, which says whether they are on.
  */
 export default class extends Controller {
-    static targets = ['message', 'stage'];
+    static targets = ['message', 'stage', 'sound'];
 
     static values = {
         message: String,
@@ -288,6 +440,10 @@ export default class extends Controller {
         duration: { type: Number, default: DURATION },
         colors: String,
         focus: String,
+        reaction: String,
+        shapes: Array,
+        mascot: String,
+        vibrate: Boolean,
     };
 
     connect() {
@@ -298,8 +454,12 @@ export default class extends Controller {
         this.worker = null;
         this.observer = null;
         this.colours = [];
+        this.animations = null;
+        this.audio = null;
         this.said = undefined;
         this.playing = 0;
+        this.active = true;
+        this.sprites = { shapes: [], mascot: [], bitmaps: true };
         this.motion = window.matchMedia('(prefers-reduced-motion: reduce)');
         this.scheme = window.matchMedia('(prefers-color-scheme: dark)');
         this.onEvent = (event) => this.play(event);
@@ -317,14 +477,23 @@ export default class extends Controller {
 
         connected.add(this);
         this.streams();
+        this.sounds(soundOn(localOf(window)));
+        const loading = this.load();
 
         if (this.autoplayValue) {
-            this.play();
+            if (null === loading) {
+                this.play();
+            } else {
+                loading.then(() => this.active && this.play());
+            }
         }
     }
 
     disconnect() {
+        this.active = false;
         this.stop();
+        this.audio?.close?.().catch?.(() => {});
+        this.audio = null;
         clearTimeout(this.announcing);
         this.announcing = null;
         window.removeEventListener(EVENT, this.onEvent);
@@ -337,28 +506,136 @@ export default class extends Controller {
         }
     }
 
-    /** The action, and the listener of `celebrate`: says the message, then draws, unless motion is reduced or refused. */
+    /**
+     * The action, and the listener of `celebrate`: says the message, then draws, unless motion is reduced or refused;
+     * plays its sound when the person turned the sounds on, and vibrates with `vibrate`.
+     */
     play(event) {
         const options = optionsOf(event);
-        this.announce(options.message ?? this.words());
+        const words = options.message ?? this.words();
+        const name = effect(options.effect ?? this.effectValue);
+        const choice = this.preference();
+        const storage = storageOf(window);
+        const level = this.reduced() || null !== current ? null : intensity(choice, seen(storage));
+        const duration = bounded(this.durationValue * (level?.duration ?? 1));
 
-        if (this.reduced() || null !== current) {
-            return;
+        if ('none' !== choice && null === current) {
+            this.sound(name, duration);
         }
 
-        const storage = storageOf(window);
-        const level = intensity(this.preference(), seen(storage));
-
         if (null === level) {
+            this.announce(words);
+
             return;
         }
 
         remember(storage);
-        this.start(effect(options.effect ?? this.effectValue), level, options.focus ?? (this.focusValue || undefined));
+        const started = this.start(name, { ...level, duration }, options.focus ?? (this.focusValue || undefined), options.reaction ?? (this.reactionValue || undefined));
+        this.announce(words, started && 'drum-roll' === name ? rollOf(duration) : 0);
+
+        if (started) {
+            this.vibrate(name, duration);
+        }
     }
 
-    /** Ends the animation now: the canvas and its bitmap go, and another celebration may play. */
+    /** The action of the `sound` button: turns the sounds on or off, kept in the local storage; on, by this gesture. */
+    toggleSound() {
+        const on = !this.soundOn;
+        keepSound(localOf(window), on);
+        this.sounds(on);
+
+        if (on) {
+            this.context()?.resume?.()?.catch?.(() => {});
+        }
+    }
+
+    /** Whether the sounds are on, said by each `sound` button. */
+    sounds(on) {
+        this.soundOn = on;
+
+        for (const button of this.soundTargets ?? []) {
+            button.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+    }
+
+    /** The audio context of the page, made once, or null where the browser has none. */
+    context() {
+        if (null === this.audio && 'function' === typeof globalThis.AudioContext) {
+            try {
+                this.audio = new globalThis.AudioContext();
+            } catch {
+                return null;
+            }
+        }
+
+        return this.audio;
+    }
+
+    /**
+     * Plays the sound of an effect when the person turned the sounds on: at once when the audio runs, or when the
+     * person has just acted on the page, which lets it run; never by itself on a page that has seen no gesture.
+     */
+    sound(name, duration) {
+        if (!this.soundOn) {
+            return;
+        }
+
+        const audio = this.context();
+
+        if (null === audio) {
+            return;
+        }
+
+        if ('running' !== audio.state) {
+            if (false === globalThis.navigator?.userActivation?.isActive) {
+                return;
+            }
+
+            audio.resume?.()?.catch?.(() => {});
+        }
+
+        sound(audio, name, { duration, roll: rollOf(duration) });
+    }
+
+    /** A short vibration for an effect, with `vibrate`, on a device that can; nothing elsewhere. */
+    vibrate(name, duration) {
+        if (!this.vibrateValue || 'function' !== typeof globalThis.navigator?.vibrate) {
+            return;
+        }
+
+        try {
+            globalThis.navigator.vibrate(vibration(name, duration));
+        } catch {
+            // A vibration refused is no matter.
+        }
+    }
+
+    /**
+     * Loads the images of the site, those of the shapes and that of the mascot, once; a promise of their end, or null
+     * when there is none to load.
+     */
+    load() {
+        const shapes = addresses(this.shapesValue);
+        const mascot = addresses('' === (this.mascotValue ?? '') ? [] : [this.mascotValue], 1);
+
+        if (0 === shapes.length && 0 === mascot.length) {
+            return null;
+        }
+
+        return Promise.all([images(shapes), images(mascot)]).then(([falling, standing]) => {
+            this.sprites = { shapes: falling.images, mascot: standing.images, bitmaps: falling.bitmaps && standing.bitmaps };
+        });
+    }
+
+    /** Ends the animation now: the canvas and its bitmap go, the elements of a wave are set down, and another may play. */
     stop() {
+        const animated = null !== this.animations;
+
+        for (const animation of this.animations ?? []) {
+            animation.cancel();
+        }
+
+        this.animations = null;
         this.painter?.stop(false);
         this.painter = null;
         this.pieces = null;
@@ -380,6 +657,8 @@ export default class extends Controller {
         if (null !== this.stage) {
             this.stage.remove();
             this.stage = null;
+            this.dispatch('end');
+        } else if (animated) {
             this.dispatch('end');
         }
 
@@ -409,7 +688,8 @@ export default class extends Controller {
         return this.said ?? '';
     }
 
-    announce(message) {
+    /** Says the message in the live region, emptied first, after `ANNOUNCE_DELAY` and `later` milliseconds. */
+    announce(message, later = 0) {
         if (!this.hasMessageTarget || '' === message || undefined === message) {
             return;
         }
@@ -419,7 +699,7 @@ export default class extends Controller {
         this.announcing = setTimeout(() => {
             this.announcing = null;
             this.messageTarget.textContent = message;
-        }, ANNOUNCE_DELAY);
+        }, ANNOUNCE_DELAY + later);
     }
 
     /** Plays the `<turbo-stream action="celebrate">` already in the page when Turbo is not there to, and removes them. */
@@ -434,18 +714,27 @@ export default class extends Controller {
         }
     }
 
-    start(name, level, focus) {
+    /** Starts an effect at a level, its share of pieces and its run; false when nothing could be drawn. */
+    start(name, level, focus, reaction) {
+        const duration = bounded(level.duration);
+
+        if (DOM_EFFECTS.includes(name)) {
+            return this.wave(focus, duration);
+        }
+
         const stage = this.canvas();
         const width = document.documentElement.clientWidth;
         const height = document.documentElement.clientHeight;
         const ratio = Math.min(2, window.devicePixelRatio || 1);
-        const duration = bounded(this.durationValue * level.duration);
         const colors = this.colors(stage);
         const scale = Math.max(LOWEST_SCALE, level.scale * budget(globalThis.navigator));
-        const pieces = piecesOf(name, { width, height, colors, duration, scale, focus: focusOf(focus) });
-        const order = { id: ++this.playing, pieces, width, height, ratio, duration, effect: name, hidden: document.hidden };
+        const sprites = 'shapes' === name ? this.sprites.shapes : 'mascot' === name ? this.sprites.mascot : [];
+        const direction = getComputedStyle(this.element).direction;
+        const pieces = piecesOf(name, { width, height, colors, duration, scale, focus: focusOf(focus), reaction, images: sprites.length, direction });
+        const order = { id: ++this.playing, pieces, width, height, ratio, duration, effect: name, images: sprites, hidden: document.hidden };
 
-        if (!this.offscreen(stage, order)) {
+        // A worker paints bitmaps alone: images that are not are painted on the page.
+        if (!((0 === sprites.length || this.sprites.bitmaps) && this.offscreen(stage, order))) {
             const painter = new Painter((message) => this.ended(message), {
                 frame: (callback) => requestAnimationFrame(callback),
                 cancel: (id) => cancelAnimationFrame(id),
@@ -455,7 +744,7 @@ export default class extends Controller {
             if (!painter.start({ ...order, canvas: stage })) {
                 stage.remove();
 
-                return;
+                return false;
             }
 
             this.painter = painter;
@@ -467,6 +756,36 @@ export default class extends Controller {
         this.colours = colors;
         this.watch(name);
         this.dispatch('start', { detail: { effect: name } });
+
+        return true;
+    }
+
+    /**
+     * The wave: the elements of `waveTargets()` lifted and set down one after the other, by animations added to their
+     * own transforms; false when there is none to lift.
+     */
+    wave(focus, duration) {
+        const targets = waveTargets(focus);
+
+        if (0 === targets.length) {
+            return false;
+        }
+
+        const gap = waveGap(targets.length, duration);
+        const step = Math.min(WAVE_STEP, duration);
+        const frames = [{ transform: 'translateY(0)' }, { transform: `translateY(-${WAVE_RISE}px)`, offset: 0.5 }, { transform: 'translateY(0)' }];
+        const id = ++this.playing;
+        this.animations = targets.map((target, index) =>
+            target.animate(frames, { duration: step, delay: index * gap, easing: 'ease-in-out', composite: 'add' }),
+        );
+        current = this;
+        Promise.all(this.animations.map((animation) => animation.finished)).then(
+            () => this.ended({ type: 'end', id }),
+            () => {},
+        );
+        this.dispatch('start', { detail: { effect: 'wave' } });
+
+        return true;
     }
 
     /**
@@ -595,6 +914,14 @@ export default class extends Controller {
     visibility() {
         if (null !== this.stage) {
             this.tell({ type: document.hidden ? 'hold' : 'resume' });
+        }
+
+        for (const animation of this.animations ?? []) {
+            if (document.hidden) {
+                animation.pause();
+            } else {
+                animation.play();
+            }
         }
     }
 }

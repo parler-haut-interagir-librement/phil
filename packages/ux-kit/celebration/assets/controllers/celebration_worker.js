@@ -25,7 +25,21 @@ export const PHYSICS = {
     aurora: { gravity: 0, drag: 0 },
     spotlight: { gravity: 0, drag: 0 },
     trophy: { gravity: 0.00008, drag: 0.0018 },
+    wave: { gravity: 0, drag: 0 },
+    rocket: { gravity: 0.00004, drag: 0.002 },
+    rainbow: { gravity: 0, drag: 0 },
+    'drum-roll': { gravity: 0.00008, drag: 0.0018 },
+    applause: { gravity: 0, drag: 0.0004 },
+    reactions: { gravity: 0.00005, drag: 0.0008 },
+    shapes: { gravity: 0.0001, drag: 0.0006 },
+    mascot: { gravity: 0, drag: 0 },
 };
+
+/** The highest opacity of a band of the rainbow: drawn over the page, never hiding it. */
+export const RAINBOW_ALPHA = 0.5;
+
+/** The fonts a reaction is written in, those of the emoji of each system after the text of the page. */
+export const GLYPH_FONTS = 'system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
 
 /** The highest opacity of a laser beam: a thin line of light, never a flash of the whole screen. */
 export const BEAM_ALPHA = 0.6;
@@ -70,9 +84,17 @@ export function advance(pieces, time, step, { gravity, drag }) {
             continue;
         }
 
+        if (undefined !== piece.cross) {
+            const cross = piece.cross;
+            const done = clamp((time - piece.delay) / piece.travel);
+            piece.x = cross.from + (cross.to - cross.from) * done;
+            piece.y = cross.floor - Math.abs(Math.sin(done * Math.PI * cross.hops)) * cross.hop;
+            continue;
+        }
+
         if (undefined !== piece.travel) {
             const done = clamp((time - piece.delay) / piece.travel);
-            piece.y = piece.from + (piece.to - piece.from) * (1 - (1 - done) ** 3);
+            piece.y = piece.from + (piece.to - piece.from) * ('in' === piece.ease ? done ** 3 : 1 - (1 - done) ** 3);
             continue;
         }
 
@@ -265,11 +287,180 @@ function trophy(context, item, at) {
     context.restore();
 }
 
-/** How each shape is drawn, with its colour as the fill and its opacity set. */
-const SHAPES = { piece, spark, beam, balloon, star, streamer, coin, bubble, veil, spot, trophy };
+/** A rocket pointing up, its fins, its window and a flame below that flickers in size, never in light. */
+function rocket(context, item, at, alpha, time) {
+    const size = item.size;
+    context.save();
+    context.translate(at.x, at.y);
+    context.beginPath();
+    context.moveTo(0, -size);
+    context.quadraticCurveTo(size * 0.35, -size * 0.5, size * 0.25, size * 0.5);
+    context.lineTo(-size * 0.25, size * 0.5);
+    context.quadraticCurveTo(-size * 0.35, -size * 0.5, 0, -size);
+    context.fill();
+    context.beginPath();
+    context.moveTo(size * 0.25, size * 0.2);
+    context.lineTo(size * 0.45, size * 0.6);
+    context.lineTo(size * 0.2, size * 0.5);
+    context.moveTo(-size * 0.25, size * 0.2);
+    context.lineTo(-size * 0.45, size * 0.6);
+    context.lineTo(-size * 0.2, size * 0.5);
+    context.fill();
+    context.globalAlpha = alpha * 0.6;
+    const flame = size * (0.45 + 0.1 * Math.sin(time / 40));
+    context.beginPath();
+    context.moveTo(-size * 0.15, size * 0.55);
+    context.quadraticCurveTo(0, size * 0.55 + flame * 2, size * 0.15, size * 0.55);
+    context.fill();
+    context.globalAlpha = alpha;
+    context.fillStyle = 'rgb(255 255 255 / 0.7)';
+    context.beginPath();
+    context.arc(0, -size * 0.35, size * 0.12, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+}
 
-/** Draws the pieces at `time` on a 2D context, cleared first; a shape it does not know is skipped. */
-export function draw(context, pieces, time, duration, width, height) {
+/** A band of the rainbow around its centre, drawn from the left edge towards the right as its `draw` goes by. */
+function arc(context, item, at, alpha, time) {
+    const done = clamp((time - item.delay) / item.draw);
+
+    if (0 === done) {
+        return;
+    }
+
+    context.globalAlpha = alpha * RAINBOW_ALPHA;
+    context.strokeStyle = item.color;
+    context.lineWidth = item.size;
+    context.lineCap = 'butt';
+    context.beginPath();
+    context.arc(at.x, at.y, item.radius, Math.PI, Math.PI * (1 + done));
+    context.stroke();
+}
+
+/** A drum and its two sticks, striking in turn `strike` times a second: the sticks move, nothing flashes. */
+function drum(context, item, at, alpha, time) {
+    const size = item.size;
+    context.save();
+    context.translate(at.x, at.y);
+    context.globalAlpha = alpha * 0.85;
+    context.fillRect(-size / 2, -size * 0.2, size, size * 0.5);
+    context.beginPath();
+    context.ellipse(0, -size * 0.2, size / 2, size * 0.15, 0, 0, Math.PI * 2);
+    context.fill();
+    context.globalAlpha = alpha;
+    context.strokeStyle = item.color;
+    context.lineWidth = Math.max(2, size / 16);
+    context.lineCap = 'round';
+    const beat = Math.sin(((time - item.delay) / 1000) * Math.PI * item.strike);
+
+    for (const side of [-1, 1]) {
+        const lift = Math.max(0, side * beat) * size * 0.25;
+        context.beginPath();
+        context.moveTo(side * size * 0.15, -size * 0.25 - lift);
+        context.lineTo(side * size * 0.6, -size * 0.6 - lift);
+        context.stroke();
+    }
+
+    context.restore();
+}
+
+/** A pair of hands clapping: two palms that meet and part `clap` times a second, a motion and never a flash. */
+function hands(context, item, at, alpha, time) {
+    const size = item.size;
+    const open = (1 + Math.sin(item.phase + ((time - item.delay) / 1000) * Math.PI * 2 * item.clap)) / 2;
+    context.save();
+    context.translate(at.x, at.y);
+    context.rotate(item.angle);
+
+    for (const side of [-1, 1]) {
+        context.save();
+        context.translate(side * (size * 0.12 + open * size * 0.3), 0);
+        context.rotate(side * (0.15 + open * 0.35));
+        context.beginPath();
+        context.ellipse(0, 0, size * 0.22, size * 0.42, 0, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+    }
+
+    context.restore();
+}
+
+/** A reaction, written in the fonts of the emoji, turned. */
+function glyph(context, item, at) {
+    context.save();
+    context.translate(at.x, at.y);
+    context.rotate(item.angle);
+    context.font = `${Math.round(item.size)}px ${GLYPH_FONTS}`;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(item.text, 0, 0);
+    context.restore();
+}
+
+/** An image of the site, turned, `size` across, its proportions kept; a strip of confetti when it is missing. */
+function image(context, item, at, alpha, time, width, height, images) {
+    const bitmap = images[item.image];
+
+    if (undefined === bitmap) {
+        piece(context, item, at);
+
+        return;
+    }
+
+    const ratio = bitmap.height > 0 && bitmap.width > 0 ? bitmap.height / bitmap.width : 1;
+    context.save();
+    context.translate(at.x, at.y);
+    context.rotate(item.angle);
+    context.drawImage(bitmap, -item.size / 2, (-item.size * ratio) / 2, item.size, item.size * ratio);
+    context.restore();
+}
+
+/**
+ * The mascot: the image of the site, turned towards where it goes, `size` across, its proportions kept; or, without
+ * one, a little figure in a pointed hat.
+ */
+function sprite(context, item, at, alpha, time, width, height, images) {
+    const bitmap = undefined === item.image ? undefined : images[item.image];
+    const size = item.size;
+    context.save();
+    context.translate(at.x, at.y);
+
+    if (item.cross.to < item.cross.from) {
+        context.scale(-1, 1);
+    }
+
+    if (undefined !== bitmap) {
+        const ratio = bitmap.height > 0 && bitmap.width > 0 ? bitmap.height / bitmap.width : 1;
+        context.drawImage(bitmap, -size / 2, -size * ratio, size, size * ratio);
+        context.restore();
+
+        return;
+    }
+
+    context.beginPath();
+    context.ellipse(0, -size * 0.25, size * 0.28, size * 0.25, 0, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.moveTo(-size * 0.22, -size * 0.55);
+    context.lineTo(size * 0.05, -size);
+    context.lineTo(size * 0.22, -size * 0.55);
+    context.closePath();
+    context.fill();
+    context.fillStyle = 'rgb(255 255 255 / 0.85)';
+    context.beginPath();
+    context.arc(size * 0.1, -size * 0.45, size * 0.05, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+}
+
+/** How each shape is drawn, with its colour as the fill and its opacity set. */
+const SHAPES = { piece, spark, beam, balloon, star, streamer, coin, bubble, veil, spot, trophy, rocket, arc, drum, hands, glyph, image, sprite };
+
+/**
+ * Draws the pieces at `time` on a 2D context, cleared first, `images` those of the site a piece of the shapes or the
+ * mascot names; a shape it does not know is skipped.
+ */
+export function draw(context, pieces, time, duration, width, height, images = []) {
     context.clearRect(0, 0, width, height);
 
     for (const item of pieces) {
@@ -282,7 +473,7 @@ export function draw(context, pieces, time, duration, width, height) {
 
         context.globalAlpha = alpha;
         context.fillStyle = item.color;
-        shape(context, item, place(item, time), alpha, time, width, height);
+        shape(context, item, place(item, time), alpha, time, width, height, images);
     }
 
     context.globalAlpha = 1;
@@ -348,10 +539,10 @@ function frames(scope) {
 
 /**
  * Paints one celebration at a time on a canvas, told what to do by messages: `start` with the canvas, its pieces, its
- * size, its pixel ratio, its duration, its effect, whether the page is hidden and an `id`; `hold` and `resume` while the
- * page is hidden; `pop` at a point; `recolor` from a list of colours to another; `stop`. It posts `{type: 'end', id}`
- * when the animation is over or stopped, after freeing the bitmap of its canvas. `halt` is asked at each frame whether
- * to stop there.
+ * size, its pixel ratio, its duration, its effect, the images of the site, whether the page is hidden and an `id`;
+ * `hold` and `resume` while the page is hidden; `pop` at a point; `recolor` from a list of colours to another; `stop`.
+ * It posts `{type: 'end', id}` when the animation is over or stopped, after freeing the bitmap of its canvas. `halt` is
+ * asked at each frame whether to stop there.
  */
 export class Painter {
     constructor(post, { frame, cancel, halt = () => false } = {}) {
@@ -363,6 +554,7 @@ export class Painter {
         this.canvas = null;
         this.request = null;
         this.id = null;
+        this.images = [];
     }
 
     receive(message) {
@@ -385,7 +577,7 @@ export class Painter {
     }
 
     /** Takes a canvas and its pieces and paints them from the next frame; false when the canvas has no 2D context. */
-    start({ id = null, canvas, pieces, width, height, ratio = 1, duration, effect, hidden = false }) {
+    start({ id = null, canvas, pieces, width, height, ratio = 1, duration, effect, images = [], hidden = false }) {
         this.stop(false);
         const context = canvas.getContext('2d');
 
@@ -400,6 +592,7 @@ export class Painter {
         this.canvas = canvas;
         this.context = context;
         this.pieces = pieces;
+        this.images = Array.isArray(images) ? images : [];
         this.width = width;
         this.height = height;
         this.duration = duration;
@@ -454,6 +647,7 @@ export class Painter {
         this.canvas = null;
         this.context = null;
         this.pieces = null;
+        this.images = [];
 
         if (notify) {
             this.post({ type: 'end', id: this.id });
@@ -477,7 +671,7 @@ export class Painter {
         }
 
         advance(this.pieces, this.elapsed, step, this.physics);
-        draw(this.context, this.pieces, this.elapsed, this.duration, this.width, this.height);
+        draw(this.context, this.pieces, this.elapsed, this.duration, this.width, this.height, this.images);
         this.schedule();
     }
 }

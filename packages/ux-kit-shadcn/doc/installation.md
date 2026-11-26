@@ -60,6 +60,7 @@ Copy the files of the recipes the page needs, from this directory, keeping their
 | Celebration | `celebration/templates/components/Celebration.html.twig` | `templates/components/Celebration.html.twig` |
 | Celebration | `celebration/assets/controllers/celebration_controller.js` | `assets/controllers/celebration_controller.js` |
 | Celebration | `celebration/assets/controllers/celebration_effects.js` | `assets/controllers/celebration_effects.js` |
+| Celebration | `celebration/assets/controllers/celebration_sounds.js` | `assets/controllers/celebration_sounds.js` |
 | Celebration | `celebration/assets/controllers/celebration_worker.js` | `assets/controllers/celebration_worker.js` |
 | SeasonalDecor | `seasonal-decor/templates/components/SeasonalDecor.html.twig` | `templates/components/SeasonalDecor.html.twig` |
 | SeasonalDecor | `seasonal-decor/assets/controllers/seasonal_decor_controller.js` | `assets/controllers/seasonal_decor_controller.js` |

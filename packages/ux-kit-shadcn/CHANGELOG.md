@@ -16,7 +16,11 @@ The next version is 0.3.1-alpha.
   controllers, `seasonal_decor_controller.js` and `seasonal_decor_shapes.js`, `podium_controller.js` and
   `scratch_card_controller.js`, are those of the PHIL UX kit.
 - In the README of `Celebration`, as in the PHIL UX kit, the examples a demo renders: a gallery, one button for each of
-  the eleven effects, nothing playing until one is pressed; the button and the words in turn as live examples too.
+  the effects, nothing playing until one is pressed; the button and the words in turn as live examples too.
+- As in the PHIL UX kit, eight effects of `Celebration`, `wave`, `rocket`, `rainbow`, `drum-roll`, `applause`,
+  `reactions`, `shapes` and `mascot`, its props `reaction`, `shapes`, `mascot` and `vibrate`, and its sounds, silent until
+  the person turns them on by the button of `sounds`, drawn in Tailwind, `aria-pressed` while they are on. Its
+  controller and the modules beside it, `celebration_sounds.js` among them, are those of the PHIL UX kit.
 
 ### Changed
 

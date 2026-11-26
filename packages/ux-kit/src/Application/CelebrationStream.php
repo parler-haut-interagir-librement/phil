@@ -13,17 +13,18 @@ namespace Phil\UxKit\Application;
 final readonly class CelebrationStream
 {
     /** The effects the `celebration` controller draws, the first by default; the list of its `EFFECTS`. */
-    public const array EFFECTS = ['confetti', 'fireworks', 'lasers', 'balloons', 'shooting-stars', 'streamers', 'coins', 'bubbles', 'aurora', 'spotlight', 'trophy'];
+    public const array EFFECTS = ['confetti', 'fireworks', 'lasers', 'balloons', 'shooting-stars', 'streamers', 'coins', 'bubbles', 'aurora', 'spotlight', 'trophy', 'wave', 'rocket', 'rainbow', 'drum-roll', 'applause', 'reactions', 'shapes', 'mascot'];
 
     /** The action of the stream, which the `celebration` controller renders. */
     public const string ACTION = 'celebrate';
 
     /**
      * The stream: `message` said in the live region of the celebration, or its own words when null or empty; `effect`
-     * one of `EFFECTS`, the first for any other name; `focus` the selector of what the spotlight lights and where the
-     * trophy lands. Every value is escaped as an attribute.
+     * one of `EFFECTS`, the first for any other name; `focus` the selector of what the spotlight lights, where the
+     * trophy lands, the rocket takes off and the drum rolls, and whose children the wave lifts; `reaction` what rains
+     * with `reactions`, an emoji or a short word. Every value is escaped as an attribute.
      */
-    public function render(?string $message = null, string $effect = self::EFFECTS[0], ?string $focus = null): string
+    public function render(?string $message = null, string $effect = self::EFFECTS[0], ?string $focus = null, ?string $reaction = null): string
     {
         $attributes = ['action' => self::ACTION, 'effect' => self::effect($effect)];
 
@@ -33,6 +34,10 @@ final readonly class CelebrationStream
 
         if (null !== $focus && '' !== $focus) {
             $attributes['focus'] = $focus;
+        }
+
+        if (null !== $reaction && '' !== $reaction) {
+            $attributes['reaction'] = $reaction;
         }
 
         $html = '<turbo-stream';

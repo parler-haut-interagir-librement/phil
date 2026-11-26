@@ -4,23 +4,38 @@
  # `data-celebrations="none"`. It plays as soon as the page shows it with `autoplay`, on the DOM event `celebrate`, on a
  # `<turbo-stream action="celebrate">`, or by the action `celebration#play`. No style is written here: the canvas waits
  # in a template, and the controller sets it over the page through the CSSOM.
+ # The wave moves the elements of the page instead of drawing; a drum roll says its message when its roll ends. Its
+ # sounds stay silent until the person turns them on by its button, and a device vibrates only with `vibrate`.
  #}
 {%- props
     ## string The words of the victory, said when it plays, and shown where motion is reduced.
     message = '',
     ## list<string> Words said in turn when no message is given, one at random each time, another than the last.
     messages = [],
-    ## 'confetti'|'fireworks'|'lasers'|'balloons'|'shooting-stars'|'streamers'|'coins'|'bubbles'|'aurora'|'spotlight'|'trophy' What is drawn; `confetti` for any other name.
+    ## 'confetti'|'fireworks'|'lasers'|'balloons'|'shooting-stars'|'streamers'|'coins'|'bubbles'|'aurora'|'spotlight'|'trophy'|'wave'|'rocket'|'rainbow'|'drum-roll'|'applause'|'reactions'|'shapes'|'mascot' What is drawn; `confetti` for any other name.
     effect = 'confetti',
     ## bool Whether it plays as soon as the page shows it, for a page that arrives on a victory.
     autoplay = false,
     ## int How long the animation runs, in milliseconds, kept by the controller between 600 and 4000.
     duration = 2500,
-    ## string The selector of what the spotlight lights and where the trophy lands; the middle of the screen without one.
-    focus = ''
+    ## string The selector of what the spotlight lights, where the trophy lands, the rocket takes off and the drum rolls, and whose children the wave lifts; the middle of the screen, or the `main` element for the wave, without one.
+    focus = '',
+    ## string What rains with `reactions`, an emoji or a short word, eight characters at most; 🎉 without one.
+    reaction = '',
+    ## list<string> The addresses of the images of the site that `shapes` falls in, a logo or a mascot, eight at most.
+    shapes = [],
+    ## string The address of the image of the mascot that crosses the screen with `mascot`; a little figure without one.
+    mascot = '',
+    ## bool Whether a device that can vibrates briefly when something is drawn.
+    vibrate = false,
+    ## bool Whether a button turns its sounds on and off; silent until the person turns them on.
+    sounds = false,
+    ## string The label of the button of the sounds.
+    soundLabel = 'Sounds'
 -%}
-{%- set effects = ['confetti', 'fireworks', 'lasers', 'balloons', 'shooting-stars', 'streamers', 'coins', 'bubbles', 'aurora', 'spotlight', 'trophy'] -%}
-<div data-celebration-message-value="{{ message }}" data-celebration-messages-value="{{ []|merge(messages|filter(text => text is not empty))|json_encode }}" data-celebration-effect-value="{{ effect in effects ? effect : 'confetti' }}" data-celebration-autoplay-value="{{ autoplay ? 'true' : 'false' }}" data-celebration-duration-value="{{ duration }}" data-celebration-focus-value="{{ focus }}" data-celebration-colors-value="--phil-color-brand-fill-loud --phil-color-success-fill-loud --phil-color-warning-fill-loud --phil-color-danger-fill-loud --phil-color-info-fill-loud"{{ attributes.defaults({class: 'isCelebration', 'data-controller': 'celebration'}) }}>
+{%- set effects = ['confetti', 'fireworks', 'lasers', 'balloons', 'shooting-stars', 'streamers', 'coins', 'bubbles', 'aurora', 'spotlight', 'trophy', 'wave', 'rocket', 'rainbow', 'drum-roll', 'applause', 'reactions', 'shapes', 'mascot'] -%}
+<div data-celebration-message-value="{{ message }}" data-celebration-messages-value="{{ []|merge(messages|filter(text => text is not empty))|json_encode }}" data-celebration-effect-value="{{ effect in effects ? effect : 'confetti' }}" data-celebration-autoplay-value="{{ autoplay ? 'true' : 'false' }}" data-celebration-duration-value="{{ duration }}" data-celebration-focus-value="{{ focus }}" data-celebration-reaction-value="{{ reaction }}" data-celebration-shapes-value="{{ []|merge(shapes|filter(address => address is not empty))|slice(0, 8)|json_encode }}" data-celebration-mascot-value="{{ mascot }}" data-celebration-vibrate-value="{{ vibrate ? 'true' : 'false' }}" data-celebration-colors-value="--phil-color-brand-fill-loud --phil-color-success-fill-loud --phil-color-warning-fill-loud --phil-color-danger-fill-loud --phil-color-info-fill-loud"{{ attributes.defaults({class: 'isCelebration', 'data-controller': 'celebration'}) }}>
 {##- What plays it, a button with `data-action="celebration#play"`, or anything else shown with the message. -#}
 {%- block content %}{% endblock -%}
+{%- if sounds %}<button type="button" class="isCelebrationSound" aria-pressed="false" data-celebration-target="sound" data-action="celebration#toggleSound">{{ soundLabel }}</button>{% endif -%}
 <p class="isCelebrationMessage" role="status" aria-live="polite" data-celebration-target="message">{{ autoplay ? (message is not empty ? message : messages|first|default('')) }}</p><template data-celebration-target="stage"><canvas class="isCelebrationCanvas" aria-hidden="true"></canvas></template></div>

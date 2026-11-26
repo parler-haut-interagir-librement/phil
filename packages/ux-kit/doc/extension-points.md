@@ -18,6 +18,8 @@
 | The graph of the page | A `NodeCollector` of `phil/structured-data`, which the `ImageObject` of a structured image joins instead of a script of its own |
 | How much a person is celebrated | `data-celebrations="all"`, `discreet` or `none` on the root, or on any ancestor of a `Celebration`; with phil/settings-bundle, a choice of the `display` section whose `html_attribute` is `celebrations`: see the README of the recipe |
 | What a celebration says | `message`, or `messages` for words in turn: those of `celebration_messages()`, or the application's own, translated by its translator |
+| The look of the site in a celebration | `shapes`, the images confetti fall in, and `mascot`, the image that hops across the screen, served by the site |
+| Sounds and vibration | `sounds`, the button with which the person turns the sounds on, labelled by `soundLabel`; `vibrate` |
 | A celebration played by a bundle | `celebrate()` in a Turbo Stream response, on a Mercure topic or in the page, or `Phil\UxKit\Application\CelebrationStream` injected to render the same stream in PHP |
 | The holidays of the seasonal decor | `phil_ux_kit.seasonal.holidays`: each a rule of phil/almanac, its days or its `until`, its decor and whether it is sober; `phil_ux_kit.seasonal.enabled` turns it on: see the README of `SeasonalDecor` |
 | The colours of a seasonal decor | `data-seasonal-decor-colors-value`, custom properties separated by spaces, in place of the colours of the decor |

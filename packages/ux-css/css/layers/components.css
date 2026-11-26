@@ -963,6 +963,7 @@ summary.isReaction {
 
     .isLightboxClose,
     .isCelebrationCanvas,
+    .isCelebrationSound,
     .isSeasonalDecorCanvas,
     .isSeasonalDecorClose,
     .isSeasonalEgg {
@@ -2482,14 +2483,19 @@ hr.isSeparator {
 }
 
 /*
- * A celebration: what plays it, its message once said, and the canvas its controller draws on over the whole page,
- * which never takes a click and is never drawn under reduced motion.
+ * A celebration: what plays it, the button that turns its sounds on, pressed while they are, its message once said, and
+ * the canvas its controller draws on over the whole page, which never takes a click and is never drawn under reduced
+ * motion.
  */
 .isCelebration {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: var(--phil-space-sm);
+}
+
+.isCelebrationSound {
+    font-size: var(--phil-text-sm);
 }
 
 .isCelebrationMessage {
