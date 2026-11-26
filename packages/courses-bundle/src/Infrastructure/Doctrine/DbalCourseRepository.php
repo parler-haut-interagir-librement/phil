@@ -167,6 +167,7 @@ final readonly class DbalCourseRepository implements CourseRepository
             $connection->executeStatement('DELETE FROM '.CourseTables::ENROLLMENT.' WHERE course_id = ?', [$id->value]);
             $connection->executeStatement('DELETE FROM '.CourseTables::PATH_STEP.' WHERE course_id = ?', [$id->value]);
             $connection->executeStatement('DELETE FROM '.CourseTables::EQUIVALENT.' WHERE course_id = ?', [$id->value]);
+            $connection->executeStatement('DELETE FROM '.CourseTables::CATALOGUE_ENTRY.' WHERE course_id = ?', [$id->value]);
             $connection->executeStatement('DELETE FROM '.CourseTables::ACTIVITY.' WHERE course_id = ?', [$id->value]);
             $connection->executeStatement('DELETE FROM '.CourseTables::BLOCK.' WHERE course_id = ?', [$id->value]);
             $connection->executeStatement('DELETE FROM '.CourseTables::MODULE.' WHERE course_id = ?', [$id->value]);

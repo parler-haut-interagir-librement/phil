@@ -62,7 +62,7 @@ phil_courses_admin:
 
 | File | Routes | Firewall |
 |---|---|---|
-| `config/routes.php` | The pages of a course: the outline, the course of the learner's language, the enrollment, the launch, the completion, the second chance, the commit endpoint of the SCORM sessions, the learner's training and transcript | Behind the application's firewall: the pages need a learner, and a commit names its attempt by its token |
+| `config/routes.php` | The pages of a course: the outline, the course of the learner's language, the enrollment, the launch, the completion, the second chance, the commit endpoint of the SCORM sessions, the learner's training and transcript; the catalogues and the enrollment from a catalogue | Behind the application's firewall: the pages need a learner, and a commit names its attempt by its token. The pages of the catalogues also answer a visitor signed out, with the public catalogues: an application that shows them to everyone lets `/catalogues` through its access control |
 | `config/cmi5_routes.php` | The fetch URL and the xAPI endpoint the cmi5 units and the xAPI activities talk to | Outside it: each request carries the token of its session, not the learner's cookies |
 | `config/content_routes.php` | The files of the imported packages, and the frame of the SCORM run time under `_phil/scorm/` | Outside it, and answered on the content origin only |
 | `config/admin_routes.php` | The administration pages: the second chances, the training overdue or due soon, the transcripts of the learners | Behind the application's firewall: the pages ask for the roles `phil_courses.admin.role` and `phil_courses.training.manager_role` |
@@ -123,6 +123,13 @@ language in a group. They come with the other tables, and `CourseTables::upgrade
 and SQLite alike for an application that runs an earlier version; with the ORM, `doctrine:migrations:diff` writes the
 same migration.
 
+## The tables of the catalogues
+
+`phil_course_catalogue` and `phil_course_catalogue_entry` keep the catalogues and the courses each offers — the tags
+of an entry as a JSON list, its price as minor units and a currency. They come with the other tables, and
+`CourseTables::upgrade()` creates them for an application that runs an earlier version; with the ORM,
+`doctrine:migrations:diff` writes the same migration.
+
 ## The schedule of the mandatory training
 
 With symfony/scheduler and symfony/messenger installed, the schedule `phil_courses_training` runs the reminders and
@@ -139,12 +146,15 @@ reminders go through phil/notifications-bundle when it is registered.
 ## The pages
 
 The pages extend `@PhilCourses/layout.html.twig`, or the layout `phil_courses.layout` names, which fills the blocks
-`title` and `main`. They draw the recipes `Button`, `Badge`, `Progress` and `Textarea` of the kit, which the Symfony UX
-Toolkit installs in the application:
+`title` and `main`. They draw the recipes `Button`, `Badge`, `Input`, `NativeSelect`, `Progress` and `Textarea` of the
+kit, which the Symfony UX Toolkit installs in the application:
 
 ```sh
-php bin/console ux:install button badge progress textarea --kit=github.com/parler-haut-interagir-librement/ux-kit
+php bin/console ux:install button badge input native-select progress textarea --kit=github.com/parler-haut-interagir-librement/ux-kit
 ```
+
+The prices of the catalogues are written as the locale of the request writes them with `ext-intl`, with the decimals
+`symfony/intl` gives each currency.
 
 The administration pages need Symfony Security: its authorization checker grants the role of `phil_courses.admin.role`
 for the second chances and of `phil_courses.training.manager_role` for the training of the learners, and without one

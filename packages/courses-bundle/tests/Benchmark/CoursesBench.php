@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Phil\CoursesBundle\Tests\Benchmark;
 
+use Phil\CoursesBundle\Application\Catalogue\CatalogueQuery;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Context;
 use Phil\CoursesBundle\Application\Cmi5\StatementRules;
 use Phil\CoursesBundle\Application\Xapi\XapiContext;
 use Phil\CoursesBundle\Application\Xapi\XapiOutcomes;
 use Phil\CoursesBundle\Application\Xapi\XapiRules;
+use Phil\CoursesBundle\Domain\Catalogue\CatalogueSort;
 use Phil\CoursesBundle\Domain\Cmi5\Cmi5Verb;
 use Phil\CoursesBundle\Domain\Cmi5\SessionState;
+use Phil\CoursesBundle\Domain\Model\CatalogueEntry;
 use Phil\CoursesBundle\Domain\Model\Enrollment;
 use Phil\CoursesBundle\Domain\Progress\CompletionRequirement;
+use Phil\CoursesBundle\Domain\ValueObject\CatalogueId;
+use Phil\CoursesBundle\Domain\ValueObject\CoursePrice;
 use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
 use Phil\CoursesBundle\Domain\ValueObject\Outcome;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Statements;
@@ -23,7 +28,8 @@ use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
  * checking a statement of an xAPI activity and reading its outcome,
  * placing every activity of a course of ten modules of ten activities for a learner half-way through it, and the
  * commit of a SCORM session — the token checked, the attempt read, the values checked and kept — whose attempt holds
- * fifty interactions already.
+ * fifty interactions already, and a page of a catalogue of five hundred courses, filtered by words and sorted by title,
+ * with where the learner stands in each course of the page.
  */
 final readonly class CoursesBench
 {
@@ -45,6 +51,8 @@ final readonly class CoursesBench
 
     /** @var array<string, string> */
     private array $commit;
+
+    private CatalogueId $catalogue;
 
     public function __construct()
     {
@@ -85,6 +93,20 @@ final readonly class CoursesBench
 
         $this->token = (string) $this->store->scorm->commit($launch->token, $interactions, false)->token;
         $this->commit = ['cmi.location' => 'page-12', 'cmi.suspend_data' => str_repeat('s', 4_000), 'cmi.progress_measure' => '0.4', 'cmi.score.scaled' => '0.5', 'cmi.session_time' => 'PT10M'];
+        $this->catalogue = $this->store->catalogues->create('Bench')->id;
+        $entries = [];
+
+        for ($number = 0; $number < 500; ++$number) {
+            $offered = $this->store->courses->create(\sprintf('Course %03d', 500 - $number), 0 === $number % 2 ? 'Welding and safety.' : 'Painting.');
+            $entries[] = new CatalogueEntry($this->catalogue, $offered->id, $number, true, 0 === $number % 3 ? CoursePrice::of(1_000, 'CAD') : null, ['tag '.($number % 7)]);
+        }
+
+        $this->store->catalogueStore->saveEntries($this->catalogue, $entries);
+    }
+
+    public function benchBrowseACatalogue(): void
+    {
+        $this->store->catalogues->browse($this->catalogue, LearnerId::of('ada'), CatalogueQuery::of(text: 'welding', sort: CatalogueSort::Title, language: 'en'));
     }
 
     public function benchCommitAScormSession(): void

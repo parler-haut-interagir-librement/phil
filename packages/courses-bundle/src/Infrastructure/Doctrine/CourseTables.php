@@ -15,6 +15,7 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\UniqueConstraint;
 use Doctrine\DBAL\Types\Types;
 use Phil\CoursesBundle\Domain\Equivalence\LanguageTag;
+use Phil\CoursesBundle\Domain\Model\Catalogue;
 use Phil\CoursesBundle\Domain\Model\Course;
 use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
 
@@ -30,7 +31,8 @@ use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
  * transcripts and the credits each course grants; `phil_course_path`, `phil_course_path_step` and
  * `phil_course_path_enrollment`, the learning paths, their steps and the learners enrolled in them;
  * `phil_course_equivalence` and `phil_course_equivalent`, the groups of equivalent courses and the course of each
- * language in them. Moments are kept in UTC.
+ * language in them; `phil_course_catalogue` and `phil_course_catalogue_entry`, the catalogues and the courses each
+ * offers. Moments are kept in UTC.
  *
  * The keys of the SCORM tables compare byte by byte: on MySQL and MariaDB they are stored in `utf8mb4` with the
  * `utf8mb4_bin` collation, where a server's default would read two identifiers differing by case as one; PostgreSQL
@@ -82,11 +84,15 @@ final class CourseTables
 
     public const string EQUIVALENT = 'phil_course_equivalent';
 
+    public const string CATALOGUE = 'phil_course_catalogue';
+
+    public const string CATALOGUE_ENTRY = 'phil_course_catalogue_entry';
+
     /** The size of the tracking data of an attempt, as JSON: MEDIUMTEXT on MySQL. */
     public const int SCORM_DATA_BYTES = 16_777_215;
 
     /** Every table, the ones that point to others first. */
-    public const array ALL = [self::EQUIVALENT, self::EQUIVALENCE, self::PATH_ENROLLMENT, self::PATH_STEP, self::PATH, self::CREDITS, self::TRANSCRIPT, self::OBLIGATION, self::ASSIGNMENT, self::SCORM_DATA, self::SCORM_ATTEMPT, self::STATE, self::STATEMENT, self::SESSION, self::RETRY, self::SATISFACTION, self::PROGRESS, self::ENROLLMENT, self::ACTIVITY, self::BLOCK, self::MODULE, self::COURSE];
+    public const array ALL = [self::CATALOGUE_ENTRY, self::CATALOGUE, self::EQUIVALENT, self::EQUIVALENCE, self::PATH_ENROLLMENT, self::PATH_STEP, self::PATH, self::CREDITS, self::TRANSCRIPT, self::OBLIGATION, self::ASSIGNMENT, self::SCORM_DATA, self::SCORM_ATTEMPT, self::STATE, self::STATEMENT, self::SESSION, self::RETRY, self::SATISFACTION, self::PROGRESS, self::ENROLLMENT, self::ACTIVITY, self::BLOCK, self::MODULE, self::COURSE];
 
     private function __construct()
     {
@@ -398,6 +404,28 @@ final class CourseTables
                 ->addColumn(self::column('language', Types::STRING, true, LanguageTag::MAX_LENGTH))
                 ->addPrimaryKeyConstraint(self::primary('course_id'))
                 ->addUniqueConstraint(self::unique('uniq_phil_course_equivalent_language', 'group_id', 'language'))
+                ->create(),
+            self::CATALOGUE => Table::editor()->setUnquotedName(self::CATALOGUE)
+                ->addColumn(self::id('id'))
+                ->addColumn(self::column('title', Types::STRING, true, 255))
+                ->addColumn(self::column('description', Types::TEXT, true))
+                ->addColumn(self::column('audience', Types::STRING, true, 16))
+                ->addColumn(self::column('unit', Types::STRING, false, Catalogue::UNIT_LENGTH))
+                ->addColumn(self::column('created_at', Types::DATETIME_UTC_IMMUTABLE, true))
+                ->addPrimaryKeyConstraint(self::primary('id'))
+                ->addIndex(self::index('idx_phil_course_catalogue_audience', 'audience', 'unit'))
+                ->addIndex(self::index('idx_phil_course_catalogue_title', 'title'))
+                ->create(),
+            self::CATALOGUE_ENTRY => Table::editor()->setUnquotedName(self::CATALOGUE_ENTRY)
+                ->addColumn(self::id('catalogue_id'))
+                ->addColumn(self::id('course_id'))
+                ->addColumn(self::column('position', Types::INTEGER, true))
+                ->addColumn(self::column('self_enrollment', Types::BOOLEAN, true))
+                ->addColumn(self::column('price_minor', Types::BIGINT, false))
+                ->addColumn(self::column('price_currency', Types::STRING, false, 3))
+                ->addColumn(self::column('tags', Types::TEXT, true))
+                ->addPrimaryKeyConstraint(self::primary('catalogue_id', 'course_id'))
+                ->addIndex(self::index('idx_phil_course_catalogue_entry_course', 'course_id'))
                 ->create(),
         ];
     }

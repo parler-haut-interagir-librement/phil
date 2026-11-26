@@ -6,6 +6,8 @@ namespace Phil\CoursesBundle\Tests\Unit;
 
 use Override;
 use Phil\CertificatesBundle\Domain\Contract\CourseCompletions;
+use Phil\CommerceBundle\Domain\Event\OrderPurchased;
+use Phil\CommerceBundle\Domain\Repository\OrderRepository;
 use Phil\CoursesBundle\Application\ActivityType\Cmi5Activity;
 use Phil\CoursesBundle\Application\ActivityType\LinkActivity;
 use Phil\CoursesBundle\Application\ActivityType\PageActivity;
@@ -13,6 +15,7 @@ use Phil\CoursesBundle\Application\ActivityType\ScormActivity;
 use Phil\CoursesBundle\Application\ActivityType\XapiActivity;
 use Phil\CoursesBundle\Application\ActivityTypes;
 use Phil\CoursesBundle\Application\Availabilities;
+use Phil\CoursesBundle\Application\Catalogue\Catalogues;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Launcher;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Settings;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Statements;
@@ -24,7 +27,9 @@ use Phil\CoursesBundle\Application\Contract\ActivityType;
 use Phil\CoursesBundle\Application\Contract\AssigneeMembers;
 use Phil\CoursesBundle\Application\Contract\Cmi5Endpoints;
 use Phil\CoursesBundle\Application\Contract\ContentStorage;
+use Phil\CoursesBundle\Application\Contract\CourseCheckout;
 use Phil\CoursesBundle\Application\Contract\CurrentLearner;
+use Phil\CoursesBundle\Application\Contract\LearnerUnits;
 use Phil\CoursesBundle\Application\Contract\LearningRecordStore;
 use Phil\CoursesBundle\Application\Contract\TrainingNotifier;
 use Phil\CoursesBundle\Application\Courses;
@@ -48,6 +53,7 @@ use Phil\CoursesBundle\Application\Training\Transcripts;
 use Phil\CoursesBundle\Application\Xapi\XapiLauncher;
 use Phil\CoursesBundle\Application\Xapi\XapiStatements;
 use Phil\CoursesBundle\Domain\Contract\AssignmentRepository;
+use Phil\CoursesBundle\Domain\Contract\CatalogueRepository;
 use Phil\CoursesBundle\Domain\Contract\CourseRepository;
 use Phil\CoursesBundle\Domain\Contract\EnrollmentRepository;
 use Phil\CoursesBundle\Domain\Contract\EquivalenceRepository;
@@ -63,6 +69,8 @@ use Phil\CoursesBundle\Domain\Event\RetryRequested;
 use Phil\CoursesBundle\Domain\Event\RetryWaived;
 use Phil\CoursesBundle\Infrastructure\Audit\AuditSecondChances;
 use Phil\CoursesBundle\Infrastructure\Certificates\CertificatesCourseCompletions;
+use Phil\CoursesBundle\Infrastructure\Commerce\CoursePurchases;
+use Phil\CoursesBundle\Infrastructure\Commerce\CourseSellables;
 use Phil\CoursesBundle\Infrastructure\Console\AssignCommand;
 use Phil\CoursesBundle\Infrastructure\Console\CreditsCommand;
 use Phil\CoursesBundle\Infrastructure\Console\ImportCommand;
@@ -72,6 +80,7 @@ use Phil\CoursesBundle\Infrastructure\Console\TrainingCommand;
 use Phil\CoursesBundle\Infrastructure\DependencyInjection\CoursesServices;
 use Phil\CoursesBundle\Infrastructure\DependencyInjection\KitSubdirectoryPass;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalAssignmentRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCatalogueRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEquivalenceRepository;
@@ -82,6 +91,7 @@ use Phil\CoursesBundle\Infrastructure\Doctrine\DbalRetryRequestRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalScormAttemptRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalTranscriptRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\SchemaListener;
+use Phil\CoursesBundle\Infrastructure\Http\CatalogueController;
 use Phil\CoursesBundle\Infrastructure\Http\Cmi5Controller;
 use Phil\CoursesBundle\Infrastructure\Http\ContentController;
 use Phil\CoursesBundle\Infrastructure\Http\CourseController;
@@ -92,6 +102,7 @@ use Phil\CoursesBundle\Infrastructure\Http\SecondChancesController;
 use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
 use Phil\CoursesBundle\Infrastructure\Import\ElearningXapiPackageReader;
 use Phil\CoursesBundle\Infrastructure\Notifications\NotificationsTrainingNotifier;
+use Phil\CoursesBundle\Infrastructure\Organizations\OrganizationsLearnerUnits;
 use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\PathsPrivacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
@@ -110,6 +121,8 @@ use Phil\ElearningPackages\Contract\PackageOpener;
 use Phil\ElearningPackages\PackageLimits;
 use Phil\ElearningPackages\PackageReader;
 use Phil\NotificationsBundle\Application\Notifications;
+use Phil\OrganizationsBundle\Application\Organizations;
+use Phil\OrganizationsBundle\Application\UnitTree;
 use Phil\PrivacyBundle\PhilPrivacyBundle;
 use Phil\SafeHttp\Limits;
 use Phil\SafeHttp\SafeHttpClient;
@@ -328,7 +341,7 @@ final class PhilCoursesBundleTest extends TestCase
             Learning::class, ResultImporter::class, SecondChances::class, SecondChancesController::class,
             ScormRuntime::class, ScormTokens::class, ScormController::class, ScormFrameController::class,
             XapiLauncher::class, XapiStatements::class, Assignments::class, Transcripts::class, TrainingRun::class, TrainingController::class,
-            Equivalences::class, LearningPaths::class,
+            Equivalences::class, LearningPaths::class, Catalogues::class, CatalogueController::class,
         ];
         $private = [
             AuditSecondChances::class, CertificatesCourseCompletions::class, Cmi5Activity::class, Cmi5Settings::class, ContentUrls::class, CourseRequest::class, CoursesExtension::class,
@@ -340,14 +353,14 @@ final class PhilCoursesBundleTest extends TestCase
             XapiActivity::class, RunTrainingHandler::class, TrainingCompletions::class, TrainingSettings::class, AssignCommand::class, CreditsCommand::class,
             TrainingCommand::class, DbalAssignmentRepository::class, DbalTranscriptRepository::class, TrainingPrivacy::class, TrainingSchedule::class,
             DbalLearningPathRepository::class, DbalEquivalenceRepository::class, PathCompletions::class, PathsPrivacy::class,
-            ElearningXapiPackageReader::class,
+            ElearningXapiPackageReader::class, DbalCatalogueRepository::class,
         ];
         $expected = [...array_fill_keys($public, true), ...array_fill_keys($private, false)];
 
         ksort($expected);
         self::assertSame($expected, $definitions);
 
-        foreach ([CourseRepository::class, EnrollmentRepository::class, RetryRequestRepository::class, LaunchSessionRepository::class, LearningRecordStore::class, CurrentLearner::class, ContentStorage::class, AssignmentRepository::class, TranscriptRepository::class, LearningPathRepository::class, EquivalenceRepository::class] as $port) {
+        foreach ([CourseRepository::class, EnrollmentRepository::class, RetryRequestRepository::class, LaunchSessionRepository::class, LearningRecordStore::class, CurrentLearner::class, ContentStorage::class, AssignmentRepository::class, TranscriptRepository::class, LearningPathRepository::class, EquivalenceRepository::class, CatalogueRepository::class] as $port) {
             self::assertTrue($container->getAlias($port)->isPublic(), $port);
         }
 
@@ -365,6 +378,44 @@ final class PhilCoursesBundleTest extends TestCase
             ['event' => RetryRefused::class, 'method' => 'refused'],
             ['event' => RetryWaived::class, 'method' => 'waived'],
         ], $container->getDefinition(AuditSecondChances::class)->getTag('kernel.event_listener'));
+    }
+
+    public function testTheCataloguesTakeTheUnitsOfOrganizationsAndSellThroughCommerceWhenTheyAreRegistered(): void
+    {
+        $alone = $this->load([['training' => ['enabled' => false]]]);
+        self::assertFalse($alone->hasAlias(LearnerUnits::class));
+        self::assertFalse($alone->hasAlias(CourseCheckout::class));
+        self::assertFalse($alone->hasDefinition(OrganizationsLearnerUnits::class));
+        self::assertFalse($alone->hasDefinition(CourseSellables::class));
+        self::assertFalse($alone->hasDefinition(CoursePurchases::class));
+        self::assertEquals([
+            new Reference(CatalogueRepository::class),
+            new Reference(CourseRepository::class),
+            new Reference(Enrollments::class),
+            new Reference(Completions::class),
+            new Reference('clock'),
+            new Reference(LearnerUnits::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            null,
+        ], $alone->getDefinition(Catalogues::class)->getArguments());
+        self::assertEquals(new Reference(CourseCheckout::class, ContainerInterface::NULL_ON_INVALID_REFERENCE), $alone->getDefinition(CatalogueController::class)->getArgument(6));
+
+        $plugged = $this->load([['catalogues' => ['tax_category' => 'education']]], ['PhilOrganizationsBundle', 'PhilCommerceBundle']);
+        self::assertSame(OrganizationsLearnerUnits::class, (string) $plugged->getAlias(LearnerUnits::class));
+        self::assertEquals([new Reference(Organizations::class), new Reference(UnitTree::class)], $plugged->getDefinition(OrganizationsLearnerUnits::class)->getArguments());
+        self::assertEquals(new Reference(AssignmentRepository::class), $plugged->getDefinition(Catalogues::class)->getArgument(6));
+        self::assertEquals([new Reference(Catalogues::class), new Reference(CourseRepository::class), 'education'], $plugged->getDefinition(CourseSellables::class)->getArguments());
+        self::assertTrue($plugged->getDefinition(CourseSellables::class)->hasTag('phil_commerce.sellable_resolver'));
+        self::assertEquals([new Reference(OrderRepository::class), new Reference(Catalogues::class)], $plugged->getDefinition(CoursePurchases::class)->getArguments());
+        self::assertSame([['event' => OrderPurchased::class, 'method' => '__invoke']], $plugged->getDefinition(CoursePurchases::class)->getTag('kernel.event_listener'));
+        self::assertSame('standard', $this->load([], ['PhilCommerceBundle'])->getDefinition(CourseSellables::class)->getArgument(2));
+
+        $own = $this->load([['catalogues' => ['learner_units' => 'app.units', 'checkout' => 'app.checkout']]], ['PhilOrganizationsBundle']);
+        self::assertSame('app.units', (string) $own->getAlias(LearnerUnits::class));
+        self::assertSame('app.checkout', (string) $own->getAlias(CourseCheckout::class));
+        self::assertFalse($own->hasDefinition(OrganizationsLearnerUnits::class));
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->load([['catalogues' => ['tax_category' => '']]]);
     }
 
     public function testTheCourseCompletionsOfCertificatesAreAnsweredWhenThatPortIsInstalled(): void

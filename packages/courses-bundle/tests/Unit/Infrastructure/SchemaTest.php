@@ -66,6 +66,8 @@ final class SchemaTest extends TestCase
             'phil_course_path_enrollment' => ['id:string:1:36:0', 'path_id:string:1:36:0', 'learner:string:1:190:0', 'enrolled_at:datetime_utc_immutable:1::0', 'completed_at:datetime_utc_immutable:0::0'],
             'phil_course_equivalence' => ['id:string:1:36:0', 'title:string:1:255:0', 'created_at:datetime_utc_immutable:1::0'],
             'phil_course_equivalent' => ['course_id:string:1:36:0', 'group_id:string:1:36:0', 'language:string:1:35:0'],
+            'phil_course_catalogue' => ['id:string:1:36:0', 'title:string:1:255:0', 'description:text:1::0', 'audience:string:1:16:0', 'unit:string:0:128:0', 'created_at:datetime_utc_immutable:1::0'],
+            'phil_course_catalogue_entry' => ['catalogue_id:string:1:36:0', 'course_id:string:1:36:0', 'position:integer:1::0', 'self_enrollment:boolean:1::0', 'price_minor:bigint:0::0', 'price_currency:string:0:3:0', 'tags:text:1::0'],
         ], $tables);
         self::assertSame(array_reverse(array_keys($tables)), CourseTables::ALL);
     }
@@ -99,6 +101,9 @@ final class SchemaTest extends TestCase
         self::assertSame([], $indexes($schema->getTable(CourseTables::EQUIVALENT)));
         self::assertSame(['course_id'], array_map(static fn (UnqualifiedName $column): string => $column->toString(), $schema->getTable(CourseTables::EQUIVALENT)->getPrimaryKeyConstraint()?->getColumnNames() ?? []));
         self::assertSame(['group_id', 'language'], array_map(static fn (UnqualifiedName $column): string => $column->toString(), array_first($schema->getTable(CourseTables::EQUIVALENT)->getUniqueConstraints())?->getColumnNames() ?? []));
+        self::assertSame(['idx_phil_course_catalogue_audience(audience,unit)', 'idx_phil_course_catalogue_title(title)'], $indexes($schema->getTable(CourseTables::CATALOGUE)));
+        self::assertSame(['idx_phil_course_catalogue_entry_course(course_id)'], $indexes($schema->getTable(CourseTables::CATALOGUE_ENTRY)));
+        self::assertSame(['catalogue_id', 'course_id'], array_map(static fn (UnqualifiedName $column): string => $column->toString(), $schema->getTable(CourseTables::CATALOGUE_ENTRY)->getPrimaryKeyConstraint()?->getColumnNames() ?? []));
     }
 
     public function testTheKeysOfTheScormTablesCompareBytesOnMySql(): void
@@ -120,7 +125,7 @@ final class SchemaTest extends TestCase
         $schema = Schema::editor()->addTable(Table::editor()->setUnquotedName(CourseTables::COURSE)->addColumn(Column::editor()->setUnquotedName('own')->setTypeName('integer')->create())->create())->create();
 
         self::assertSame(['own'], array_map(static fn (Column $column): string => $column->getObjectName()->toString(), CourseTables::configure($schema)->getTable(CourseTables::COURSE)->getColumns()));
-        self::assertCount(22, CourseTables::configure($schema)->getTables());
+        self::assertCount(24, CourseTables::configure($schema)->getTables());
     }
 
     public function testTheListenerAddsTheTablesToItsConnectionOnly(): void
@@ -129,7 +134,7 @@ final class SchemaTest extends TestCase
         $other = Store::sqlite();
         $listener = new SchemaListener($connection);
 
-        foreach ([[$connection, 22], [$other, 0]] as [$used, $count]) {
+        foreach ([[$connection, 24], [$other, 0]] as [$used, $count]) {
             $manager = self::createStub(EntityManagerInterface::class);
             $manager->method('getConnection')->willReturn($used);
             $event = new GenerateSchemaEventArgs($manager, Schema::editor()->create());

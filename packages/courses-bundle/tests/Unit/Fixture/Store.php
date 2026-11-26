@@ -15,6 +15,7 @@ use Phil\CoursesBundle\Application\ActivityType\ScormActivity;
 use Phil\CoursesBundle\Application\ActivityType\XapiActivity;
 use Phil\CoursesBundle\Application\ActivityTypes;
 use Phil\CoursesBundle\Application\Availabilities;
+use Phil\CoursesBundle\Application\Catalogue\Catalogues;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Launcher;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Settings;
 use Phil\CoursesBundle\Application\Cmi5\Cmi5Statements;
@@ -41,6 +42,7 @@ use Phil\CoursesBundle\Application\Xapi\XapiLauncher;
 use Phil\CoursesBundle\Application\Xapi\XapiStatements;
 use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalAssignmentRepository;
+use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCatalogueRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalCourseRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEnrollmentRepository;
 use Phil\CoursesBundle\Infrastructure\Doctrine\DbalEquivalenceRepository;
@@ -57,7 +59,8 @@ use Symfony\Component\Clock\MockClock;
 /**
  * The bundle over SQLite in memory, or over the connection given, its tables created: the DBAL stores, a mock clock
  * at 2026-11-13 10:00 UTC, a recording dispatcher, a content storage in memory, a site in the Toronto time zone at
- * https://learn.example.org whose content origin is https://content.example.org, and every entry point.
+ * https://learn.example.org whose content origin is https://content.example.org, every entry point, and the catalogues
+ * with the units of each learner a test sets.
  */
 final readonly class Store
 {
@@ -151,6 +154,12 @@ final readonly class Store
 
     public PathCompletions $pathCompletions;
 
+    public DbalCatalogueRepository $catalogueStore;
+
+    public Units $units;
+
+    public Catalogues $catalogues;
+
     public function __construct(?Connection $connection = null, PackageLimits $limits = new PackageLimits())
     {
         $this->connection = $connection ?? self::sqlite();
@@ -195,6 +204,9 @@ final readonly class Store
         $this->transcripts = new Transcripts($this->transcriptStore, $this->courseStore, $this->events, $this->equivalences);
         $this->run = new TrainingRun($this->assignmentStore, $this->assignments, $this->enrollmentStore, $this->enrollments, $this->training, $this->clock, $this->notices, $this->events);
         $this->completions = new TrainingCompletions($this->enrollmentStore, $this->assignments, $this->transcripts);
+        $this->catalogueStore = new DbalCatalogueRepository($this->connection);
+        $this->units = new Units();
+        $this->catalogues = new Catalogues($this->catalogueStore, $this->courseStore, $this->enrollments, $this->courseCompletions, $this->clock, $this->units, $this->assignmentStore);
     }
 
     public static function sqlite(): Connection

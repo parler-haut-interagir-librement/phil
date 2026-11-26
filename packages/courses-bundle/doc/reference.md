@@ -41,6 +41,9 @@
 | `Domain\Model\EquivalenceGroup`, `EquivalentCourse` | A group of equivalent courses, and a course of it with its language |
 | `Domain\Equivalence\LanguageTag` | The shape of a language tag, normalized in lowercase with `-` |
 | `Domain\ValueObject\LearningPathId`, `PathEnrollmentId`, `EquivalenceGroupId` | The identifiers of a path, of an enrollment in a path and of a group of equivalent courses |
+| `Domain\Model\Catalogue`, `CatalogueEntry` | A catalogue: title, description, shown to everyone or to one unit; a course at its place in it, open to self-enrollment or not, its price and its tags, and the reference that sells it |
+| `Domain\Catalogue\CatalogueAudience`, `CatalogueSort`, `PriceFilter`, `OfferedCourse` | `public` or `unit`; `placed`, `title`, `newest`, `price`; `any`, `free`, `paid`; a course as a catalogue offers it, with its group of equivalent courses and its language there |
+| `Domain\ValueObject\CatalogueId`, `CoursePrice` | The identifier of a catalogue; a price in minor units of an ISO 4217 currency |
 | `Domain\Xapi\XapiVerb` | The verbs of ADL an xAPI activity reports with, and `voided` |
 | `Domain\ValueObject\CourseId`, `ModuleId`, `BlockId`, `ActivityId`, `EnrollmentId`, `RetryRequestId`, `LaunchSessionId` | Identifiers, UUID version 7 when the bundle draws them |
 | `Domain\ValueObject\LearnerId` | A learner's stable identifier, never an e-mail address |
@@ -53,11 +56,12 @@
 | `Domain\Progress\RetryDecision` | `pending`, `granted`, `refused`, `waived` |
 | `Domain\Course\CourseOrigin` | `native`, `scorm12`, `scorm2004`, `cmi5`, `xapi`; `of()` the format of a package |
 | `Domain\Cmi5\Cmi5Verb`, `Cmi5Iri`, `SessionState` | The verbs, IRIs and session states of cmi5; the launch methods are phil/elearning-packages' `LaunchMethod` |
-| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository`, `LearningPathRepository`, `EquivalenceRepository` | The stores |
+| `Domain\Contract\CourseRepository`, `EnrollmentRepository`, `RetryRequestRepository`, `LaunchSessionRepository`, `ScormAttemptRepository`, `AssignmentRepository`, `TranscriptRepository`, `LearningPathRepository`, `EquivalenceRepository`, `CatalogueRepository` | The stores |
 | `Domain\Event\ScormSessionEnded` | A session of a SCORM activity ended, and whether its attempt did |
 | `Domain\Exception\AttemptRefused` | A commit refused: its token, its learner or its session is not the attempt's |
 | `Domain\Event\*` | `LearnerEnrolled`, `ActivityProgressed`, `ActivitySatisfied`, `CourseCompleted`, `RetryRequested`, `RetryGranted`, `RetryRefused`, `RetryWaived`, `BlockSatisfied`, `CourseImported`, `StatementRecorded`, `TrainingAssigned`, `ObligationOverdue`, `ObligationRenewed`, `EnrollmentRenewed`, `CreditsGranted`, `LearnerEnrolledInPath`, `PathCompleted` |
 | `Domain\Exception\CoursesException` | What every failure of the bundle is |
+| `Domain\Exception\EnrollmentRefused` | An enrollment from a catalogue refused, and whether the course is bought instead |
 | `Domain\Exception\InvalidCourse`, `UnknownRecord`, `ActivityUnavailable`, `PackageRefused`, `StatementRefused`, `RecordStoreUnavailable` | A value refused, a record missing, an activity not open, a package refused, a statement refused, a statement the learning record store did not keep |
 | `Domain\Identifiers` | The shape of identifiers and titles |
 
@@ -71,6 +75,7 @@
 | `Application\Equivalences` | The groups of equivalent courses, the course of a language, the equivalents of a course |
 | `Application\Path\LearningPaths`, `PathProgress`, `StepStatus` | The learning paths, their steps, the enrollment in them, the progress of a learner and their completion |
 | `Application\Path\PathCompletions` | Advances the learner's paths at each `CourseCompleted` |
+| `Application\Catalogue\Catalogues`, `CatalogueQuery`, `CataloguePage`, `CatalogueItem` | The catalogues, the courses they place, the catalogues shown to a learner, a page of one as a query lists it with where the learner stands, self-enrollment and the courses bought |
 | `Application\Availabilities` | Where each activity stands for a learner |
 | `Application\Learning` | Launches an activity and marks it done for the learner |
 | `Application\SecondChances`, `RetryReview` | Second chances asked for, granted, refused or waived, and their review |
@@ -79,7 +84,7 @@
 | `Application\Launch`, `LaunchWindow`, `LaunchUrl` | Where the learner goes to take an activity, and the parameters added to its URL |
 | `Application\ContentUrls` | The addresses of the files on the content origin |
 | `Application\CourseOutline`, `ModuleOutline`, `ActivityStatus` | A course read as an outline, and where an activity stands |
-| `Application\Contract\ActivityType`, `CurrentLearner`, `ContentStorage`, `LearningRecordStore`, `Cmi5Endpoints`, `XapiPackageReader`, `AssigneeMembers`, `TrainingNotifier` | The ports; the packages are opened through the `PackageOpener` of phil/elearning-packages |
+| `Application\Contract\ActivityType`, `CurrentLearner`, `ContentStorage`, `LearningRecordStore`, `Cmi5Endpoints`, `XapiPackageReader`, `AssigneeMembers`, `TrainingNotifier`, `LearnerUnits`, `CourseCheckout` | The ports; the packages are opened through the `PackageOpener` of phil/elearning-packages |
 | `Application\Import\CourseImporter` | Imports a package or a course structure, read by phil/elearning-packages |
 | `Application\Import\ScormPlanner`, `Cmi5Planner`, `XapiPlanner`, `ImportPlan`, `PlannedModule`, `PlannedBlock`, `PlannedActivity` | Turn a manifest into a course to create |
 | `Application\Import\XapiPackage`, `XapiLaunchable` | What a reader of xAPI packages found |
@@ -114,6 +119,10 @@
 | `Infrastructure\Doctrine\DbalCourseRepository`, `DbalEnrollmentRepository`, `DbalRetryRequestRepository`, `DbalLaunchSessionRepository`, `DbalLearningRecordStore`, `Rows` | The DBAL stores |
 | `Infrastructure\Certificates\CertificatesCourseCompletions` | The adapter of the `CourseCompletions` port of phil/certificates-bundle, for the courses and, after `path:`, the learning paths |
 | `Infrastructure\Doctrine\DbalLearningPathRepository`, `DbalEquivalenceRepository` | The learning paths and the groups of equivalent courses through DBAL |
+| `Infrastructure\Doctrine\DbalCatalogueRepository` | The catalogues and their entries through DBAL, the courses offered read in one query |
+| `Infrastructure\Http\CatalogueController` | The pages of the catalogues and the enrollment from a catalogue |
+| `Infrastructure\Organizations\OrganizationsLearnerUnits` | The units whose catalogues reach a learner, from the tree of units of phil/organizations-bundle |
+| `Infrastructure\Commerce\CourseSellables`, `CoursePurchases` | The courses sold through phil/commerce-bundle: the sellables of type `course`, and the buyer enrolled at each `OrderPurchased` |
 | `Infrastructure\Import\ElearningXapiPackageReader` | The reader of xAPI packages on the `XapiCourseReader` of phil/elearning-packages |
 | `Infrastructure\Privacy\PathsPrivacy` | The enrollments in learning paths in the access and erasure requests of phil/privacy-bundle |
 | `Infrastructure\Xapi\HttpLearningRecordStore` | The remote xAPI learning record store, through phil/safe-http, for the statements; the state documents stay in `DbalLearningRecordStore` |
@@ -136,7 +145,7 @@
 | `Infrastructure\Console\ImportCommand`, `ImportResultsCommand`, `RetriesCommand`, `AssignCommand`, `CreditsCommand`, `TrainingCommand` | The commands |
 | `Infrastructure\Audit\AuditSecondChances` | The trail of the second chances |
 | `Infrastructure\Security\SecurityCurrentLearner` | The learner from Symfony Security |
-| `Infrastructure\Twig\CoursesExtension`, `KitComponents` | `phil_courses_kit()` and the names of the recipes |
+| `Infrastructure\Twig\CoursesExtension`, `KitComponents` | `phil_courses_kit()` and the names of the recipes, `phil_courses_price()` |
 | `Infrastructure\DependencyInjection\CoursesServices`, `KitSubdirectoryPass` | The services |
 
 ## Commands

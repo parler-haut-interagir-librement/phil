@@ -1,0 +1,30 @@
+{#
+ # The catalogues shown to the visitor, by title: the public ones, and those of the units of the learner signed in,
+ # marked with the recipe `Badge` of the kit.
+ #
+ # catalogues: list of Catalogue.
+ #}
+{% extends layout %}
+
+{% block title %}{{ 'catalogue.title'|trans({}, 'phil_courses') }}{% endblock %}
+
+{% block main %}
+<h1>{{ 'catalogue.title'|trans({}, 'phil_courses') }}</h1>
+{%- if catalogues is empty %}
+<p class="phil-courses__none">{{ 'catalogue.none'|trans({}, 'phil_courses') }}</p>
+{%- else %}
+<ul class="phil-courses__catalogues">
+    {%- for catalogue in catalogues %}
+    <li>
+        <a href="{{ path('phil_courses_catalogue', {catalogue: catalogue.id.value}) }}">{{ catalogue.title }}</a>
+        {%- if not catalogue.public %}
+        {% component (phil_courses_kit('Badge')) with {variant: 'secondary'} %}{% block content %}{{ 'catalogue.private'|trans({}, 'phil_courses') }}{% endblock %}{% endcomponent %}
+        {%- endif %}
+        {%- if catalogue.description is not empty %}
+        <p class="phil-courses__description">{{ catalogue.description }}</p>
+        {%- endif %}
+    </li>
+    {%- endfor %}
+</ul>
+{%- endif %}
+{% endblock %}

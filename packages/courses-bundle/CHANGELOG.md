@@ -26,6 +26,31 @@ The next version is 0.4.0-alpha.
   the merged document is bounded to 64 KiB. A `PUT` still replaces the document whole.
 - The import of an xAPI package notes the correct responses of its questions that name a component the question does
   not declare, from the reader of phil/elearning-packages.
+- Catalogues of courses: `Catalogues`, a public catalogue shown to everyone, visitors signed out included, and the
+  catalogues of the units of an organization, each shown to the learners the `LearnerUnits` port names for that unit;
+  courses offered at the end or before another — 1 000 a catalogue at most —, moved and withdrawn, each open to
+  self-enrollment or not, free or at a `CoursePrice`, with 10 tags at most; `browse()`, a page of 20 courses filtered
+  by words, tag and price, sorted as placed, by title, the newest first or by price, a group of equivalent courses
+  listed once in the learner's language, with where the learner stands in each — enrolled, completed or an equivalent
+  course completed, mandatory for them —; `enroll()`, self-enrollment in a free course, `EnrollmentRefused` otherwise;
+  `grantPurchase()`, the enrollment in a course paid for. `Catalogue`, `CatalogueEntry`, `CatalogueId`,
+  `CatalogueAudience`, `CatalogueSort`, `PriceFilter`, `OfferedCourse`, `CatalogueQuery`, `CataloguePage`,
+  `CatalogueItem`, the port `CatalogueRepository` and `DbalCatalogueRepository`, with the tables `phil_course_catalogue`
+  and `phil_course_catalogue_entry`; removing a course removes its entries in the catalogues.
+- `OrganizationsLearnerUnits`: with phil/organizations-bundle registered, the units of a learner and the units above
+  them from its tree of units, in each organization the learner is a member of; the option
+  `phil_courses.catalogues.learner_units` names another `LearnerUnits`.
+- The courses sold through phil/commerce-bundle, when it is registered: `CourseSellables`, the `SellableResolver` of the
+  references of type `course`, `<catalogue>/<course>`, at the price of the course in that catalogue under the tax
+  category `phil_courses.catalogues.tax_category`; `CoursePurchases`, which enrolls the customer of an order in its
+  courses at each `OrderPurchased`; the port `CourseCheckout`, named in `phil_courses.catalogues.checkout`, which sends
+  the learner to the application's cart, at an address of the site itself.
+- The pages of the catalogues, `phil_courses_catalogues`, `phil_courses_catalogue` and `phil_courses_catalogue_enroll`,
+  with the recipes `Button`, `Badge`, `Input` and `NativeSelect` of the kit, their texts `catalogue.*` in English and
+  French, and the Twig function `phil_courses_price()`.
+- The fuzz target `catalogue-query`, on the query string of a catalogue page, and the benchmark of a page of a catalogue
+  of 500 courses.
+- The documentation page catalogues.
 
 ## 0.3.1-alpha - 2026-11-25
 
