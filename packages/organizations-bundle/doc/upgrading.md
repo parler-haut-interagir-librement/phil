@@ -1,5 +1,20 @@
 # Upgrading
 
+## From 0.2 to 0.3
+
+0.3 publishes the units in the access model of `phil/access-bundle`, as the organizations and teams are. Nothing
+changes without that bundle. With it:
+
+- **A kind.** `unit` joins `organization` and `team` in the model. An application whose model already holds a kind
+  named `unit` names the units otherwise with `access.unit_kind`, or leaves them out with `access.unit_kind: null`;
+  otherwise the container stops. A unit role named `organization` or `parent` stops it too.
+- **The tuples of the units already there.** The tuples are written as units and unit memberships change; the units
+  created before the upgrade have none. A one-off script reads `UnitTree::units()` and `UnitTree::members()` of each
+  organization and writes `unit:<id>#organization`, `unit:<id>#parent` and each unit role through the `RelationWriter`
+  of `phil/access-bundle`, as [Integrations](integrations.md#philaccess-bundle) lists them.
+- **A constructor.** `OrganizationRelations` takes the unit roles and the kind of the units after the kind of the
+  teams; without unit roles, the units stay out of the model.
+
 ## From 0.1 to 0.2
 
 0.2 adds the units of an organization. Nothing an application calls changes its meaning, but a few things change:

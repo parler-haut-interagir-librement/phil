@@ -36,6 +36,7 @@ phil_organizations:
         enabled: ~                 # null: whenever phil/access-bundle is installed
         organization_kind: organization
         team_kind: team
+        unit_kind: unit            # null: the units stay out of the access model
 ```
 
 | Option | Default | What it does |
@@ -63,6 +64,7 @@ phil_organizations:
 | `access.enabled` | `null` | Whether memberships and roles are published as relations and tuples of `phil/access-bundle`: `null` publishes them whenever that bundle is registered. |
 | `access.organization_kind` | `organization` | The kind of the organizations in the access model. |
 | `access.team_kind` | `team` | The kind of the teams in the access model. |
+| `access.unit_kind` | `unit` | The kind of the units in the access model; `null` leaves the units out of it, as does a store that keeps no units. |
 
 A role is 1 to 64 lowercase letters, digits or `_`, starting with a letter; a permission is 1 to 128 lowercase letters,
 digits, `_`, `.` or `-`, starting with a letter. The configuration is refused when one is out of shape.

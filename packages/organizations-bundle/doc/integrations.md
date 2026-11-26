@@ -62,6 +62,7 @@ committed:
 ```text
 organization: owner, admin, member, billing, … = [member]
 team:         organization = [organization]; maintainer, member, reviewer, … = [member]
+unit:         organization = [organization]; parent = [unit]; manager, member, instructor, … = [member] or <role> from parent
 ```
 
 | Change | Tuples |
@@ -72,6 +73,9 @@ team:         organization = [organization]; maintainer, member, reviewer, … =
 | A team is created | `team:<id>#organization@organization:<id>` |
 | A member joins a team, changes roles, leaves it | `team:<id>#<role>@member:<id>`, the same way |
 | A team is deleted | every tuple on the team |
+| A unit is created | `unit:<id>#organization@organization:<id>`, and `unit:<id>#parent@unit:<id>` under a parent |
+| A unit moves | its `parent` tuple rewritten: the previous one deleted, the new one written, none for a root |
+| A member joins a unit, changes unit roles, leaves it | `unit:<id>#<role>@member:<id>`, the same way |
 
 The tuples go through the store of `phil/access-bundle`, in the partition of its scope: with `partition: tenant`,
 they are written to the active tenant, and a change made outside any tenant fails rather than write them nowhere in
@@ -84,8 +88,33 @@ $types['page'] = $types['page']->with([
 ]);
 ```
 
-The kinds are named `organization` and `team` unless `access.organization_kind` and `access.team_kind` say otherwise;
-a kind already in the model stops the container. Member identifiers follow the rule of `phil/access-bundle`'s
+### Units in the access model
+
+A unit role holds in its unit and in every unit below it, as [Role inheritance](role-inheritance.md) explains, and the
+access model says the same: each unit role is a relation given to members directly **or** held through `parent`, so a
+manager of Sales is a `manager` of East and of every unit below it, and a move of East under Support takes it out of
+their reach in the same write. The relations of a unit follow the roles of `unit_roles`; a unit role named
+`organization` or `parent` stops the container. A relation of an application's own builds on them:
+
+```php
+$types['course'] = $types['course']->with([
+    'unit' => Rewrite::direct('unit'),
+    'assign' => Rewrite::fromRelated('unit', 'instructor'),    // instructors of the unit and of the units above it
+]);
+```
+
+A tree is sixteen levels deep at most, within the 32 relations followed one inside the other of the default `Budget`
+of `phil/resource-permissions`. The organization roles that grant `units.manage` are not rewritten into the unit
+relations: a relation of the application that should reach them names `fromRelated('organization', 'admin')` beside
+the unit's. An archived unit keeps its tuples, as an archived organization does; `UnitAccess` and the voter refuse
+it, and a check through the access model reads whether the unit is archived itself.
+
+The units stay out of the access model with `access.unit_kind: null`, or when the store keeps no units.
+
+### Names of the kinds
+
+The kinds are named `organization`, `team` and `unit` unless `access.organization_kind`, `access.team_kind` and
+`access.unit_kind` say otherwise; a kind already in the model stops the container. Member identifiers follow the rule of `phil/access-bundle`'s
 `MemberId`.
 
 ## `phil/audit-bundle`
