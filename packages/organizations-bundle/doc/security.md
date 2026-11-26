@@ -24,7 +24,8 @@
   deep and ten thousand units wide at most, so that every question of the tree stays one bounded query.
 - **Unit roles escaping their unit.** A unit role holds in its unit and below, never above, beside, or in the
   organization; a unit manager grants only unit roles whose permissions they hold there, and runs the units below their
-  own, not their own.
+  own, not their own. The relations of the units in the access model of `phil/access-bundle` follow the same tree: a
+  move rewrites the unit's parent, so that the roles held above its old place stop reaching it in the same write.
 - **Forged forms.** The forms of the pages of the units carry Symfony's stateless CSRF token and are refused when the
   browser says they come from another site.
 - **Phantom events.** Events are dispatched once the transaction is committed, never for a change rolled back.
@@ -41,3 +42,6 @@
 - Check the permissions of its own screens with the voter, and escape names on output like any text a member typed.
 - Name a new owner when `OrganizationLeftWithoutOwner` is dispatched, after checking the request out of band.
 - Rate-limit the endpoint that accepts invitations, so that guessing tokens costs more than 256 bits already do.
+- With `phil/access-bundle`, read whether an organization or a unit is archived before trusting a check of the access
+  model: their tuples stay while they are archived, so that a restore brings them back, and only `OrganizationAccess`,
+  `UnitAccess` and the voter refuse an archived one.

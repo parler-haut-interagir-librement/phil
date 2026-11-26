@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9bf0bbb233aa2f579d73801baff695ced187b4b9610fb350b52615b0b26fded2 -->
+<!-- phil-dev source-sha256=6a518c9e1b58063d1e7450ee95654b6dfeddbd5c4d77e4d83dd919771b892204 -->
 # Intégrations
 
 ## Le voter
@@ -66,6 +66,7 @@ changement validé :
 ```text
 organization: owner, admin, member, billing, … = [member]
 team:         organization = [organization]; maintainer, member, reviewer, … = [member]
+unit:         organization = [organization]; parent = [unit]; manager, member, instructor, … = [member] or <role> from parent
 ```
 
 | Changement | Tuples |
@@ -76,6 +77,9 @@ team:         organization = [organization]; maintainer, member, reviewer, … =
 | Une équipe est créée | `team:<id>#organization@organization:<id>` |
 | Un membre rejoint une équipe, change de rôles, la quitte | `team:<id>#<role>@member:<id>`, de la même façon |
 | Une équipe est supprimée | chaque tuple de l'équipe |
+| Une unité est créée | `unit:<id>#organization@organization:<id>`, et `unit:<id>#parent@unit:<id>` sous un parent |
+| Une unité se déplace | son tuple `parent` réécrit : l'ancien supprimé, le nouveau écrit, aucun pour une racine |
+| Un membre rejoint une unité, change de rôles d'unité, la quitte | `unit:<id>#<role>@member:<id>`, de la même façon |
 
 Les tuples passent par le magasin de `phil/access-bundle`, dans la partition de sa portée : avec `partition: tenant`, ils
 sont écrits dans le locataire actif, et un changement fait hors de tout locataire échoue plutôt que de les écrire nulle
@@ -88,9 +92,35 @@ $types['page'] = $types['page']->with([
 ]);
 ```
 
-Les genres s'appellent `organization` et `team`, à moins que `access.organization_kind` et `access.team_kind` n'en
-disent autrement ; un genre déjà présent dans le modèle arrête le conteneur. Les identifiants de membre suivent la règle
-du `MemberId` de `phil/access-bundle`.
+### Les unités dans le modèle d'accès
+
+Un rôle d'unité vaut dans son unité et dans chaque unité en dessous, comme l'explique [Héritage des
+rôles](role-inheritance.md), et le modèle d'accès dit la même chose : chaque rôle d'unité est une relation donnée aux
+membres directement **ou** détenue par `parent`, de sorte qu'un gestionnaire de Sales est `manager` de East et de chaque
+unité en dessous, et qu'un déplacement de East sous Support la sort de leur portée dans la même écriture. Les relations
+d'une unité suivent les rôles de `unit_roles` ; un rôle d'unité nommé `organization` ou `parent` arrête le conteneur.
+Une relation propre à l'application s'appuie sur elles :
+
+```php
+$types['course'] = $types['course']->with([
+    'unit' => Rewrite::direct('unit'),
+    'assign' => Rewrite::fromRelated('unit', 'instructor'),    // instructors of the unit and of the units above it
+]);
+```
+
+Un arbre compte seize niveaux de profondeur au plus, dans les 32 relations suivies l'une dans l'autre du `Budget` par
+défaut de `phil/resource-permissions`. Les rôles d'organisation qui accordent `units.manage` ne sont pas réécrits dans
+les relations d'unité : une relation de l'application qui doit les atteindre nomme `fromRelated('organization',
+'admin')` à côté de celle de l'unité. Une unité archivée garde ses tuples, comme le fait une organisation archivée ;
+`UnitAccess` et le *voter* la refusent, et une vérification par le modèle d'accès lit elle-même si l'unité est archivée.
+
+Les unités restent hors du modèle d'accès avec `access.unit_kind: null`, ou quand le magasin ne garde aucune unité.
+
+### Les noms des genres
+
+Les genres s'appellent `organization`, `team` et `unit`, à moins que `access.organization_kind`, `access.team_kind` et
+`access.unit_kind` n'en disent autrement ; un genre déjà présent dans le modèle arrête le conteneur. Les identifiants de
+membre suivent la règle du `MemberId` de `phil/access-bundle`.
 
 ## `phil/audit-bundle`
 

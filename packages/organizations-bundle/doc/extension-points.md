@@ -64,7 +64,7 @@ refreshes a cache. See [Events](events.md).
 
 ## The access model
 
-With `phil/access-bundle`, the kinds `organization` and `team` and their relations are in the access model, and an
+With `phil/access-bundle`, the kinds `organization`, `team` and `unit` and their relations are in the access model, and an
 application's own `ModelContributor` builds on them. See [Integrations](integrations.md#philaccess-bundle).
 
 ## The services

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6429cec1e5c45e318a8b4821897e08da37c3c9fb1db8535911263c4da01ed63e -->
+<!-- phil-dev source-sha256=2d102aee9ff5b0da13d87c9c74cedee12be216aae8713425e81fdade27fbe890 -->
 # phil/organizations-bundle
 
 **Des organisations pour Symfony, destinées à quiconque construit son propre service d'identité et d'accès : membres,
@@ -32,8 +32,9 @@ Chaque changement s'exécute dans une seule transaction et ses **événements so
 avec des identifiants seulement. `OrganizationVoter` répond à `is_granted('organization:<permission>', $organization)`,
 à `is_granted('organization_role:<role>', $organization)`, ainsi qu'à `unit:<permission>` et `unit_role:<role>` sur une
 unité. Avec `phil/privacy-bundle`, un exportateur et un effaceur répondent aux demandes d'accès et d'effacement d'un
-membre ; avec `phil/access-bundle`, les adhésions et les rôles sont publiés comme relations et tuples de
-`phil/resource-permissions`, dans la partition du locataire actif.
+membre ; avec `phil/access-bundle`, les adhésions, les rôles et les unités sont publiés comme relations et tuples de
+`phil/resource-permissions`, dans la partition du locataire actif, un rôle d'unité valant dans les unités en dessous
+comme dans `UnitAccess`.
 
 C'est un bundle Symfony fondé sur Doctrine DBAL, `phil/slug`, `phil/access-links`, PSR-14 et PSR-20 ; la console, la
 sécurité de Symfony, Doctrine ORM, Twig, `phil/privacy-bundle` et `phil/access-bundle` sont facultatifs. Les
@@ -61,7 +62,7 @@ recettes du kit PHIL UX.
 | `OrganizationVoter` pour les permissions et les rôles | Implémenté et testé |
 | Magasin Doctrine DBAL sur SQLite, MySQL et PostgreSQL, collation binaire sur les colonnes de clé, écouteur de schéma ; magasin en mémoire | Implémenté et testé |
 | Commandes pour lister, afficher, vérifier les propriétaires et purger les invitations | Implémenté et testé |
-| Exportateur et effaceur pour `phil/privacy-bundle` ; relations et tuples pour `phil/access-bundle`, partitionnés par locataire | Implémenté et testé |
+| Exportateur et effaceur pour `phil/privacy-bundle` ; relations et tuples pour `phil/access-bundle`, partitionnés par locataire, unités et rôles hérités compris | Implémenté et testé |
 
 ## Documentation
 

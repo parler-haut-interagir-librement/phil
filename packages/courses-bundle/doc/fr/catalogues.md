@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=17d0db09e1440fd08c7d47b06e5d0150cae3ac0eca3d2a8076fe2b80dedbc7af -->
+<!-- phil-dev source-sha256=80862ea9fbce8d2d14a76507771021aaa668bfef5ac228ae0f282cabb62caa3a -->
 # Catalogues
 
 Un catalogue liste les cours qu'un apprenant peut suivre. Un site a un catalogue public, montré à tous — visiteurs
@@ -67,11 +67,25 @@ $catalogues->shown($catalogueId, $learner);     // Catalogue, or UnknownRecord
 
 Les unités viennent du port `LearnerUnits` : les unités dont l'apprenant est membre et les unités au-dessus d'elles, de
 sorte qu'un membre de la succursale de l'est voit le catalogue du service des ventes qui la chapeaute. Avec
-phil/organizations-bundle enregistré, `OrganizationsLearnerUnits` y répond : pour chaque organisation dont l'apprenant est
-membre — l'identifiant de l'apprenant nommant le membre —, `UnitTree::unitIdsOf()` avec les unités au-dessus. Un
-catalogue d'unité nomme l'identifiant de l'unité dans ce bundle. Une application qui ne l'a pas nomme son propre service
-`LearnerUnits` dans `phil_courses.catalogues.learner_units` ; sans aucun, les apprenants ne voient que les catalogues
-publics. Les unités d'un apprenant sont lues une fois par requête, 500 au plus.
+phil/organizations-bundle enregistré, `OrganizationsLearnerUnits` y répond : pour chaque organisation dont l'apprenant
+est membre — l'identifiant de l'apprenant nommant le membre —, `UnitTree::unitIdsOf()` avec les unités au-dessus. Un
+catalogue d'unité nomme l'identifiant de l'unité dans ce bundle et suit son arbre : une unité déplacée sous un autre
+service atteint aussitôt le catalogue de ce service, une unité archivée n'en atteint aucun.
+
+Que le catalogue d'une unité atteigne les unités en dessous d'elle relève de la configuration : avec
+`phil_courses.catalogues.units_below: false`, `OrganizationsLearnerUnits` nomme seulement les unités dont l'apprenant
+est membre, et le catalogue du service des ventes est montré aux membres de ce service, non à ceux de sa succursale de
+l'est.
+
+```yaml
+phil_courses:
+    catalogues:
+        units_below: false      # the catalogue of a unit for its own members only
+```
+
+Une application qui ne l'a pas nomme son propre service `LearnerUnits` dans `phil_courses.catalogues.learner_units` ;
+sans aucun, les apprenants ne voient que les catalogues publics. Les unités d'un apprenant sont lues une fois par
+requête, 500 au plus.
 
 ## Lister un catalogue
 

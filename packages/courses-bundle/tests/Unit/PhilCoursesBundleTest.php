@@ -401,7 +401,8 @@ final class PhilCoursesBundleTest extends TestCase
 
         $plugged = $this->load([['catalogues' => ['tax_category' => 'education']]], ['PhilOrganizationsBundle', 'PhilCommerceBundle']);
         self::assertSame(OrganizationsLearnerUnits::class, (string) $plugged->getAlias(LearnerUnits::class));
-        self::assertEquals([new Reference(Organizations::class), new Reference(UnitTree::class)], $plugged->getDefinition(OrganizationsLearnerUnits::class)->getArguments());
+        self::assertEquals([new Reference(Organizations::class), new Reference(UnitTree::class), true], $plugged->getDefinition(OrganizationsLearnerUnits::class)->getArguments());
+        self::assertFalse($this->load([['catalogues' => ['units_below' => false]]], ['PhilOrganizationsBundle'])->getDefinition(OrganizationsLearnerUnits::class)->getArgument(2));
         self::assertEquals(new Reference(AssignmentRepository::class), $plugged->getDefinition(Catalogues::class)->getArgument(6));
         self::assertEquals([new Reference(Catalogues::class), new Reference(CourseRepository::class), 'education'], $plugged->getDefinition(CourseSellables::class)->getArguments());
         self::assertTrue($plugged->getDefinition(CourseSellables::class)->hasTag('phil_commerce.sellable_resolver'));

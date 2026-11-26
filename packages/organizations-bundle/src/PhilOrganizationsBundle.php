@@ -92,7 +92,7 @@ final class PhilOrganizationsBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @phpstan-var array{store: string, connection: string, clock: string, slugger: string|null, member_of_user: string|null, recommended_owners: positive-int, roles: array<string, array{permissions: list<string>}>, team_roles: array<string, array{permissions: list<string>}>, unit_roles: array<string, array{permissions: list<string>}>, units: array{single_membership: bool, layout: string, kit_subdirectory: string|null}, invitations: array{hash_key: non-empty-list<string>, default_lifetime: positive-int, max_lifetime: positive-int, default_uses: positive-int, max_uses: positive-int, purge_retention: non-negative-int}, domain_join: array{enabled: bool, roles: list<string>}, access: array{enabled: bool|null, organization_kind: string, team_kind: string}} $config */
+        /** @phpstan-var array{store: string, connection: string, clock: string, slugger: string|null, member_of_user: string|null, recommended_owners: positive-int, roles: array<string, array{permissions: list<string>}>, team_roles: array<string, array{permissions: list<string>}>, unit_roles: array<string, array{permissions: list<string>}>, units: array{single_membership: bool, layout: string, kit_subdirectory: string|null}, invitations: array{hash_key: non-empty-list<string>, default_lifetime: positive-int, max_lifetime: positive-int, default_uses: positive-int, max_uses: positive-int, purge_retention: non-negative-int}, domain_join: array{enabled: bool, roles: list<string>}, access: array{enabled: bool|null, organization_kind: string, team_kind: string, unit_kind: string|null}} $config */
         OrganizationsServices::register($builder, $config);
     }
 
@@ -215,6 +215,14 @@ final class PhilOrganizationsBundle extends AbstractBundle
                     ->booleanNode('enabled')->info('true, false, or null to publish them whenever phil/access-bundle is installed.')->defaultNull()->end()
                     ->scalarNode('organization_kind')->info('The kind of the organizations in the access model.')->defaultValue('organization')->cannotBeEmpty()->end()
                     ->scalarNode('team_kind')->info('The kind of the teams in the access model.')->defaultValue('team')->cannotBeEmpty()->end()
+                    ->scalarNode('unit_kind')
+                        ->info('The kind of the units in the access model, or null to leave the units out of it.')
+                        ->defaultValue('unit')
+                        ->validate()
+                            ->ifTrue(static fn (mixed $kind): bool => '' === $kind)
+                            ->thenInvalid('The kind of the units is a name, or null to leave the units out of the access model.')
+                        ->end()
+                    ->end()
                 ->end()
             ->end();
     }

@@ -66,7 +66,20 @@ The units come from the `LearnerUnits` port: the units the learner belongs to an
 member of the eastern branch sees the catalogue of the sales department above it. With phil/organizations-bundle
 registered, `OrganizationsLearnerUnits` answers it: for each organization the learner is a member of — the learner's
 identifier naming the member —, `UnitTree::unitIdsOf()` with the units above. A unit catalogue names the unit's
-identifier in that bundle. An application without it names its own `LearnerUnits` service in
+identifier in that bundle, and follows its tree: a unit moved under another department reaches that department's
+catalogue at once, an archived unit reaches none.
+
+The catalogue of a unit reaching the units below it is configuration: with
+`phil_courses.catalogues.units_below: false`, `OrganizationsLearnerUnits` names the units the learner belongs to only,
+and a catalogue of the sales department is shown to the members of that department, not to those of its eastern
+branch.
+
+```yaml
+phil_courses:
+    catalogues:
+        units_below: false      # the catalogue of a unit for its own members only
+```
+ An application without it names its own `LearnerUnits` service in
 `phil_courses.catalogues.learner_units`; without any, the learners see the public catalogues only. The units of a
 learner are read once per request, 500 at most.
 

@@ -9,6 +9,9 @@ use Phil\AccessBundle\Domain\ValueObject\SharingLevels;
 use Phil\OrganizationsBundle\Application\RoleCatalog;
 use Phil\OrganizationsBundle\Domain\Event\MemberRolesChanged;
 use Phil\OrganizationsBundle\Domain\Event\TeamMemberRolesChanged;
+use Phil\OrganizationsBundle\Domain\Event\UnitCreated;
+use Phil\OrganizationsBundle\Domain\Event\UnitMemberRolesChanged;
+use Phil\OrganizationsBundle\Domain\Event\UnitMoved;
 use Phil\OrganizationsBundle\Infrastructure\Access\MembershipTuples;
 use Phil\OrganizationsBundle\Infrastructure\Access\OrganizationRelations;
 use Phil\Resource\ResourceReference;
@@ -46,6 +49,31 @@ final class TupleChangesTest extends TestCase
         self::assertSame(range(0, \count($update[1]) - 1), array_keys($update[1]));
     }
 
+    public function testAChangeOfUnitRolesDeletesWhatWasTakenAndWritesWhatWasGiven(): void
+    {
+        $update = $this->update(static fn (MembershipTuples $tuples) => $tuples->onUnitMemberRolesChanged(new UnitMemberRolesChanged('o1', 'u1', 'cam', ['member', 'manager', 'instructor'], ['member', 'coach'], 'dan')));
+
+        self::assertEquals([$this->tuple('unit', 'u1', 'manager', 'cam'), $this->tuple('unit', 'u1', 'instructor', 'cam')], $update[0]);
+        self::assertEquals([$this->tuple('unit', 'u1', 'coach', 'cam')], $update[1]);
+        self::assertSame(range(0, \count($update[0]) - 1), array_keys($update[0]));
+        self::assertSame(range(0, \count($update[1]) - 1), array_keys($update[1]));
+    }
+
+    public function testAUnitIsWrittenWithItsOrganizationAndParentInOneUpdate(): void
+    {
+        $created = $this->update(static fn (MembershipTuples $tuples) => $tuples->onUnitCreated(new UnitCreated('o1', 'u2', 'u1', 'ann')));
+        self::assertEquals([[], [
+            new RelationTuple(ResourceReference::of('unit', 'u2'), 'organization', Subject::of(ResourceReference::of('organization', 'o1'))),
+            new RelationTuple(ResourceReference::of('unit', 'u2'), 'parent', Subject::of(ResourceReference::of('unit', 'u1'))),
+        ]], $created);
+
+        $moved = $this->update(static fn (MembershipTuples $tuples) => $tuples->onUnitMoved(new UnitMoved('o1', 'u2', 'u1', 'u3', 'ann')));
+        self::assertEquals([
+            [new RelationTuple(ResourceReference::of('unit', 'u2'), 'parent', Subject::of(ResourceReference::of('unit', 'u1')))],
+            [new RelationTuple(ResourceReference::of('unit', 'u2'), 'parent', Subject::of(ResourceReference::of('unit', 'u3')))],
+        ], $moved);
+    }
+
     public function testRolesKeptAreNeitherDeletedNorWrittenAgain(): void
     {
         $update = $this->update(static fn (MembershipTuples $tuples) => $tuples->onMemberRolesChanged(new MemberRolesChanged('o1', 'bob', ['member'], ['member'], 'ann')));
@@ -62,7 +90,7 @@ final class TupleChangesTest extends TestCase
     {
         $organization = RoleCatalog::organization(['billing' => ['billing.read']]);
         $team = RoleCatalog::team(['reviewer' => []]);
-        $relations = new OrganizationRelations($organization, $team);
+        $relations = new OrganizationRelations($organization, $team, unitRoles: RoleCatalog::unit(['instructor' => [], 'coach' => []]));
         $model = AccessModel::create(['page'], SharingLevels::of(['edit', 'view']), [$relations]);
         $calls = [];
         $store = self::createStub(TupleStore::class);

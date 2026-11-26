@@ -39,7 +39,8 @@ The next version is 0.4.0-alpha.
   and `phil_course_catalogue_entry`; removing a course removes its entries in the catalogues.
 - `OrganizationsLearnerUnits`: with phil/organizations-bundle registered, the units of a learner and the units above
   them from its tree of units, in each organization the learner is a member of; the option
-  `phil_courses.catalogues.learner_units` names another `LearnerUnits`.
+  `phil_courses.catalogues.units_below`, true by default, false to keep the catalogue of a unit to its own members; the
+  option `phil_courses.catalogues.learner_units` names another `LearnerUnits`.
 - The courses sold through phil/commerce-bundle, when it is registered: `CourseSellables`, the `SellableResolver` of the
   references of type `course`, `<catalogue>/<course>`, at the price of the course in that catalogue under the tax
   category `phil_courses.catalogues.tax_category`; `CoursePurchases`, which enrolls the customer of an order in its

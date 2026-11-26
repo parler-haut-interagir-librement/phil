@@ -163,7 +163,7 @@ use Twig\Environment;
  *     cmi5: array{actor_home_page: ?string, session_ttl: int, secret: string, allowed_origins: list<string>, lrs: ?string, remote_lrs: array{enabled: bool, endpoint: ?string, username: ?string, password: ?string, version: string, timeout: float, max_duration: float}},
  *     scorm: array{enabled: bool, token_ttl: int, secret: string},
  *     training: array{enabled: bool, reminder_days: int, renewal_grace_days: int, max_members: int, run_at: string, schedule: bool, manager_role: string, notifier: ?string, keep_transcripts: bool},
- *     catalogues: array{learner_units: ?string, checkout: ?string, tax_category: string},
+ *     catalogues: array{learner_units: ?string, units_below: bool, checkout: ?string, tax_category: string},
  *     admin: array{role: string},
  *     audit: array{enabled: bool, segment: string}
  * }
@@ -509,7 +509,7 @@ final class CoursesServices
         $units = $config['catalogues']['learner_units'];
 
         if (null === $units && class_exists(UnitTree::class) && \in_array('PhilOrganizationsBundle', $bundles, true)) {
-            $container->register(OrganizationsLearnerUnits::class, OrganizationsLearnerUnits::class)->setArguments([new Reference(Organizations::class), new Reference(UnitTree::class)]);
+            $container->register(OrganizationsLearnerUnits::class, OrganizationsLearnerUnits::class)->setArguments([new Reference(Organizations::class), new Reference(UnitTree::class), $config['catalogues']['units_below']]);
             $units = OrganizationsLearnerUnits::class;
         }
 

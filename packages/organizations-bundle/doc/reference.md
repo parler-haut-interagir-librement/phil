@@ -72,8 +72,8 @@ Every public type of the package, with its role.
 | `Infrastructure\Security\UserIdentifierMember` | The user identifier as the member, when it is a stable identifier. |
 | `Infrastructure\Console\ListOrganizationsCommand`, `ShowOrganizationCommand`, `CheckOwnersCommand`, `PurgeInvitationsCommand` | The commands of [Console](console.md). |
 | `Infrastructure\Privacy\OrganizationsPrivacy` | The exporter and eraser of `phil/privacy-bundle`. |
-| `Infrastructure\Access\OrganizationRelations` | The kinds and relations added to the access model of `phil/access-bundle`. |
-| `Infrastructure\Access\MembershipTuples` | Memberships and roles published as tuples. |
+| `Infrastructure\Access\OrganizationRelations` | The kinds and relations added to the access model of `phil/access-bundle`: organizations, teams and, with unit roles, units whose roles hold below them. |
+| `Infrastructure\Access\MembershipTuples` | Memberships, roles, units and their parents published as tuples. |
 | `Infrastructure\DependencyInjection\OrganizationsServices` | The services, from the configuration. |
 | `PhilOrganizationsBundle` | The bundle: its configuration `phil_organizations` and its services. |
 

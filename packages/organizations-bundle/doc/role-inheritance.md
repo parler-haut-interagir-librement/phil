@@ -83,4 +83,9 @@ role. [Units](units.md#who-may-change-what) lists who may change what.
 - A unit role grants nothing in the organization: a manager of Sales does not invite members to Acme. Organization
   permissions come from organization roles only.
 - Roles flow down, never up or sideways: a manager of East holds nothing in Sales or West.
-- The unit memberships are not published as relations of `phil/access-bundle`; the voter and `UnitAccess` read them.
+- A unit role is not an organization role in the access model either: with `phil/access-bundle`, the relations of a
+  unit hold in the units below it, never in the organization — see
+  [Integrations](integrations.md#units-in-the-access-model).
+- An archived unit grants nothing through `UnitAccess` and the voter; its tuples stay, as an archived organization's
+  do, so that a restore brings them back: a check through `phil/access-bundle` reads whether the unit is archived
+  itself.

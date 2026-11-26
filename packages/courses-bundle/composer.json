@@ -55,7 +55,7 @@
         "phil/commerce-bundle": "^0.5@dev",
         "phil/money": "^0.1@dev",
         "phil/notifications-bundle": "^0.4@dev",
-        "phil/organizations-bundle": "^0.2@dev",
+        "phil/organizations-bundle": "^0.3@dev",
         "phil/privacy-bundle": "^0.3@dev",
         "phil/safe-http": "^0.2@dev",
         "phil/slug": "^0.1@dev",

@@ -1,5 +1,21 @@
-<!-- phil-dev source-sha256=ee0ea0157b3e60c0cb9caf3afa15f25888ca585fe876864c5ed529e5a8722531 -->
+<!-- phil-dev source-sha256=c20718fcec0bf680947961ec013874cd869dc3595b7f58aa547be24cd3d99da4 -->
 # Mise à niveau
+
+## De la 0.2 à la 0.3
+
+La 0.3 publie les unités dans le modèle d'accès de `phil/access-bundle`, comme le sont les organisations et les
+équipes. Rien ne change sans ce bundle. Avec lui :
+
+- **Un genre.** `unit` rejoint `organization` et `team` dans le modèle. Une application dont le modèle contient déjà un
+  genre nommé `unit` nomme autrement les unités avec `access.unit_kind`, ou les exclut avec `access.unit_kind: null` ;
+  sinon, le conteneur s'arrête. Un rôle d'unité nommé `organization` ou `parent` l'arrête aussi.
+- **Les tuples des unités déjà là.** Les tuples s'écrivent comme les unités et les adhésions aux unités changent ; les
+  unités créées avant la mise à niveau n'en ont aucun. Un script ponctuel lit `UnitTree::units()` et
+  `UnitTree::members()` de chaque organisation et écrit `unit:<id>#organization`, `unit:<id>#parent` et chaque rôle
+  d'unité par le `RelationWriter` de `phil/access-bundle`, comme les liste
+  [Intégrations](integrations.md#philaccess-bundle).
+- **Un constructeur.** `OrganizationRelations` prend les rôles d'unité et le genre des unités après le genre des
+  équipes ; sans rôles d'unité, les unités restent hors du modèle.
 
 ## De la 0.1 à la 0.2
 

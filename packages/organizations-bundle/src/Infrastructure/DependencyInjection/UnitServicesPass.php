@@ -9,6 +9,7 @@ use Phil\OrganizationsBundle\Application\Contract\UnitStore;
 use Phil\OrganizationsBundle\Application\UnitAccess;
 use Phil\OrganizationsBundle\Application\Units;
 use Phil\OrganizationsBundle\Application\UnitTree;
+use Phil\OrganizationsBundle\Infrastructure\Access\OrganizationRelations;
 use Phil\OrganizationsBundle\Infrastructure\Http\UnitAdminController;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -18,7 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  *
  * - the units, when its store keeps none — a store of its own that implements `OrganizationStore` and not
  *   `UnitStore` —; the services that read the units only when there are some — the members, the erasure, the privacy
- *   and the voter — then go without;
+ *   and the voter — then go without, and the units stay out of the access model of `phil/access-bundle`;
  * - the administration pages of the units, without Twig, the router or the CSRF token manager.
  */
 final readonly class UnitServicesPass implements CompilerPassInterface
@@ -35,6 +36,10 @@ final readonly class UnitServicesPass implements CompilerPassInterface
 
             foreach (self::UNIT_SERVICES as $id) {
                 $container->removeDefinition($id);
+            }
+
+            if ($container->hasDefinition(OrganizationRelations::class)) {
+                $container->getDefinition(OrganizationRelations::class)->replaceArgument(4, null);
             }
         }
 

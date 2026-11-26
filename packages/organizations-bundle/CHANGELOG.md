@@ -6,9 +6,24 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.2.1-alpha.
+The next version is 0.3.0-alpha.
+
+The units in the access model of `phil/access-bundle`, their roles holding below them as they do in `UnitAccess`. A
+minor version and not a patch: with that bundle, a kind `unit` joins the model, and a model that already holds one
+names the units otherwise. See [Upgrading](doc/upgrading.md#from-02-to-03).
+
+### Added
+
+- The kind `unit` in the access model of `OrganizationRelations` — `organization` and `parent` relations, one relation
+  per unit role given to members or held through the parent —, and the tuples `MembershipTuples` writes when a unit is
+  created or moves and when its members join, change roles or leave it.
+- The configuration `access.unit_kind`, `unit` by default, `null` to leave the units out of the access model, as a
+  store that keeps no units does.
 
 ### Changed
+
+- `OrganizationRelations` takes the unit roles and the kind of the units after the kind of the teams; a unit role
+  named `organization` or `parent` stops the container when the units are in the access model.
 
 - The development requirements accept `phil/privacy-bundle` 0.3, the minor version of its main branch and no earlier
   one, so that the package installs on its own beside that bundle.

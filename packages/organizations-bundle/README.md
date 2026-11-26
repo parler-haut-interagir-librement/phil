@@ -29,8 +29,9 @@ Every change runs in one transaction and its **events are dispatched once it is 
 `OrganizationVoter` answers `is_granted('organization:<permission>', $organization)`,
 `is_granted('organization_role:<role>', $organization)`, and `unit:<permission>` and `unit_role:<role>` on a unit. With
 `phil/privacy-bundle`, an exporter and an eraser answer a member's access and erasure requests; with
-`phil/access-bundle`, memberships and roles are published as relations and tuples of `phil/resource-permissions`, in the
-partition of the active tenant.
+`phil/access-bundle`, memberships, roles and units are published as relations and tuples of
+`phil/resource-permissions`, in the partition of the active tenant, a unit role holding in the units below as it does
+in `UnitAccess`.
 
 It is a Symfony bundle on Doctrine DBAL, `phil/slug`, `phil/access-links`, PSR-14 and PSR-20; the console, Symfony
 Security, Doctrine ORM, Twig, `phil/privacy-bundle` and `phil/access-bundle` are optional. The organizations live in
@@ -57,7 +58,7 @@ application draws its screens with the recipes of the PHIL UX kit.
 | `OrganizationVoter` for permissions and roles | Implemented and tested |
 | Doctrine DBAL store on SQLite, MySQL and PostgreSQL, binary collation on key columns, schema listener; store in memory | Implemented and tested |
 | Commands to list, show, check the owners and purge invitations | Implemented and tested |
-| Exporter and eraser for `phil/privacy-bundle`; relations and tuples for `phil/access-bundle`, partitioned by tenant | Implemented and tested |
+| Exporter and eraser for `phil/privacy-bundle`; relations and tuples for `phil/access-bundle`, partitioned by tenant, units and their inherited roles included | Implemented and tested |
 
 ## Documentation
 

@@ -218,6 +218,7 @@ final class PhilCoursesBundle extends AbstractBundle
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('learner_units')->info('A LearnerUnits service naming the units whose catalogues reach a learner; the tree of units of phil/organizations-bundle when null and it is registered, none otherwise.')->defaultNull()->end()
+                    ->booleanNode('units_below')->info("Whether the catalogue of a unit reaches the members of the units below it too, through the tree of units of phil/organizations-bundle; false keeps it to the unit's own members.")->defaultTrue()->end()
                     ->scalarNode('checkout')->info("A CourseCheckout service that adds a course sold to the learner's cart and answers where they pay; the courses with a price are shown without a form when null.")->defaultNull()->end()
                     ->scalarNode('tax_category')->info('The tax category of the courses sold through phil/commerce-bundle.')->cannotBeEmpty()->defaultValue('standard')->end()
                 ->end()

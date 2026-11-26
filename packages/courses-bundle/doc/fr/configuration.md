@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e7687e75aae1e5d6d54fec09a419ccef8fccdadf190ebf21f16c0ea6319a9c1f -->
+<!-- phil-dev source-sha256=a5e2090ee6936c83b446a544e9e8effeee75893e01df38a2e981558d950f5496 -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_courses`. Chaque option a une valeur par défaut ; une application nomme
@@ -65,6 +65,7 @@ phil_courses:
         keep_transcripts: false
     catalogues:
         learner_units: null
+        units_below: true
         checkout: null
         tax_category: standard
     admin:
@@ -125,6 +126,7 @@ phil_courses:
 | `training.notifier` | `null` | Un service `TrainingNotifier` ; les notifications de phil/notifications-bundle quand il vaut null et que ce bundle est enregistré, aucune sinon. |
 | `training.keep_transcripts` | `false` | Si les relevés survivent à une demande d'effacement, en vertu d'une obligation légale de les garder. |
 | `catalogues.learner_units` | `null` | Un service `LearnerUnits` qui nomme les unités dont les catalogues atteignent un apprenant ; `OrganizationsLearnerUnits`, sur l'arbre d'unités de phil/organizations-bundle, quand la valeur est `null` et que ce bundle est enregistré ; aucun sinon, et les apprenants ne voient que les catalogues publics. Voir [Catalogues](catalogues.md#catalogues-publics-et-catalogues-dunité). |
+| `catalogues.units_below` | `true` | Si le catalogue d'une unité atteint aussi les membres des unités en dessous d'elle : un catalogue de Sales montré aux membres de sa succursale de l'est. `false` le garde aux membres de l'unité elle-même. `OrganizationsLearnerUnits` la lit ; un `LearnerUnits` propre à l'application répond de lui-même. Voir [Catalogues](catalogues.md#catalogues-publics-et-catalogues-dunité). |
 | `catalogues.checkout` | `null` | Un service `CourseCheckout` qui ajoute un cours vendu au panier de l'apprenant et répond où il paie ; les cours avec un prix sont montrés sans formulaire quand la valeur est `null`. Voir [Catalogues](catalogues.md#cours-vendus-par-philcommerce-bundle). |
 | `catalogues.tax_category` | `standard` | La catégorie de taxe des cours vendus par phil/commerce-bundle, que lit son `TaxRateResolver`. |
 | `admin.role` | `ROLE_COURSES_TEACHER` | Le rôle qu'un enseignant détient pour voir et trancher les secondes chances sur la page d'administration. |

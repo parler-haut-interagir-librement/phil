@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1cfa94621b947108a4ccd54d733dea1cf5d71817b03a440004ee8c515b15ace4 -->
+<!-- phil-dev source-sha256=bfd76bfbb0c728fe29cf776effe8977743a981f4e7df5f3a56b787672a41643a -->
 # Héritage des rôles
 
 Les rôles d'une unité suivent le modèle des rôles de l'organisation : un **catalogue** associe chaque rôle à des
@@ -86,5 +86,9 @@ quoi.
 - Un rôle d'unité n'accorde rien dans l'organisation : un gestionnaire de Sales n'invite pas de membres dans Acme. Les
   permissions de l'organisation viennent des rôles d'organisation seulement.
 - Les rôles descendent, jamais vers le haut ni sur le côté : un gestionnaire de East ne détient rien dans Sales ou West.
-- Les adhésions aux unités ne sont pas publiées comme relations de `phil/access-bundle` ; le *voter* et `UnitAccess` les
-  lisent.
+- Un rôle d'unité n'est pas non plus un rôle d'organisation dans le modèle d'accès : avec `phil/access-bundle`, les
+  relations d'une unité valent dans les unités en dessous d'elle, jamais dans l'organisation — voir
+  [Intégrations](integrations.md#les-unités-dans-le-modèle-daccès).
+- Une unité archivée n'accorde rien par `UnitAccess` ni par le *voter* ; ses tuples restent, comme ceux d'une
+  organisation archivée, pour qu'une restauration les ramène : une vérification par `phil/access-bundle` lit elle-même
+  si l'unité est archivée.
