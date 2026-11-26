@@ -31,12 +31,14 @@ Depends on `symfony/uid` only.
 | `Messenger\MessengerCommandBus` | `final readonly class`, `CommandBus` | Dispatches on the configured Messenger bus; unwraps the first `DomainError` | Implemented |
 | `Messenger\MessengerQueryBus` | `final class`, `QueryBus` | Dispatches on the configured Messenger bus; returns the one handler's result; unwraps any handler failure | Implemented |
 | `Doctrine\IdentifierType` | `abstract class`, DBAL `Type`, `@template T of Identifier` | Column type of one identifier class: native UUID or 16-byte binary | Implemented; optional, needs `doctrine/dbal` 4.2 or later |
+| `HttpKernel\IdentifierValueResolver` | `final readonly class`, `ValueResolverInterface` | Turns the request attribute named like a controller argument into the identifier class it declares; 404 for any other value | Implemented; registered when `symfony/http-kernel` is installed |
+| `Serializer\IdentifierNormalizer` | `final readonly class`, `NormalizerInterface`, `DenormalizerInterface` | An identifier as its canonical string, built back to the requested class; `NotNormalizableValueException` for any other value | Implemented; registered when `symfony/serializer` is installed |
 
 ## The bundle
 
 | Type | Kind | Role | State |
 |---|---|---|---|
-| `PhilDddBundle` | `final class`, `AbstractBundle` | Configuration alias `phil_ddd`; wires the two adapters, their aliases and the marker autoconfiguration | Implemented |
+| `PhilDddBundle` | `final class`, `AbstractBundle` | Configuration alias `phil_ddd`; wires the two adapters, their aliases, the marker autoconfiguration, and the resolver and normaliser of identifiers when their components are installed | Implemented |
 
 ## Not in the code yet
 

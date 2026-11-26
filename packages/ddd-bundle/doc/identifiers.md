@@ -69,3 +69,9 @@ OrderId::fromString(Uuid::v4()->toRfc4122());         // InvalidValue: a UUID, b
 As a string column, `toString()` and `fromString()` are enough. With Doctrine DBAL, the bundle's
 `IdentifierType` stores them in 16 bytes, or in the platform's native UUID column; see
 [doctrine-identifier-type.md](doctrine-identifier-type.md).
+
+## In controllers and the Serializer
+
+A controller argument typed `OrderId` receives the route placeholder of the same name as an `OrderId`, and a value
+that is not one is a 404. The Serializer writes an identifier as its canonical string and builds it back. See
+[identifiers-in-controllers-and-serializer.md](identifiers-in-controllers-and-serializer.md).

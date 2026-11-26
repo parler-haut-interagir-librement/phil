@@ -26,13 +26,20 @@
         "symfony/console": "^8.2",
         "symfony/event-dispatcher": "^8.2",
         "symfony/framework-bundle": "^8.2",
-        "symfony/http-kernel": "^8.2"
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/serializer": "^8.2"
     },
     "conflict": {
-        "doctrine/dbal": "<4.2"
+        "doctrine/dbal": "<4.2",
+        "symfony/http-kernel": "<8.2",
+        "symfony/serializer": "<8.2"
     },
     "suggest": {
-        "doctrine/dbal": "To store identifiers in a native uuid column, or BINARY(16) where the platform has none, through Infrastructure\\Doctrine\\IdentifierType"
+        "doctrine/dbal": "To store identifiers in a native uuid column, or BINARY(16) where the platform has none, through Infrastructure\\Doctrine\\IdentifierType",
+        "symfony/http-kernel": "To turn a route placeholder into the identifier class a controller argument declares, through Infrastructure\\HttpKernel\\IdentifierValueResolver",
+        "symfony/serializer": "To serialise identifiers as their canonical string and build them back, through Infrastructure\\Serializer\\IdentifierNormalizer"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

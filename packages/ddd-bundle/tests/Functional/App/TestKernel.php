@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phil\DddBundle\Tests\Functional\App;
 
 use Override;
+use Phil\DddBundle\Tests\Functional\App\Http\MemberController;
 use Phil\DddBundle\Tests\Functional\App\Membership\CountMembersHandler;
 use Phil\DddBundle\Tests\Functional\App\Membership\FindMemberEmailHandler;
 use Phil\DddBundle\Tests\Functional\App\Membership\MemberRegistry;
@@ -14,12 +15,14 @@ use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /**
  * An application as small as the bundle needs: FrameworkBundle with Messenger and two buses of its own,
  * `write.bus` and `read.bus` — named otherwise than the bundle's defaults, so that the configuration is what joins
  * them —, the bundle (`config/bundles.php`), and the handlers of a small membership context, registered with
- * autoconfiguration and no tag, and a service that receives both ports by autowiring.
+ * autoconfiguration and no tag, and a service that receives both ports by autowiring. The router and the Serializer
+ * are enabled for the two integrations of identifiers: two routes reach `Http\MemberController`.
  *
  * The buses carry no transaction middleware: the application gives the command bus `doctrine_transaction` when it
  * has Doctrine, and this one has none.
@@ -77,6 +80,9 @@ final class TestKernel extends Kernel
             'http_method_override' => false,
             'handle_all_throwables' => true,
             'php_errors' => ['log' => true],
+            'router' => ['utf8' => true],
+            'serializer' => ['enabled' => true],
+            'property_info' => ['enabled' => true],
             'messenger' => [
                 'default_bus' => self::COMMAND_BUS,
                 'buses' => [self::COMMAND_BUS => null, self::QUERY_BUS => null],
@@ -94,7 +100,14 @@ final class TestKernel extends Kernel
         $services->set(RegisterMemberHandler::class);
         $services->set(CountMembersHandler::class);
         $services->set(FindMemberEmailHandler::class);
+        $services->set(MemberController::class)->public()->tag('controller.service_arguments');
 
         $container->extension('phil_ddd', $this->configuration);
+    }
+
+    private function configureRoutes(RoutingConfigurator $routes): void
+    {
+        $routes->add('member_show', '/members/{member}')->controller([MemberController::class, 'show']);
+        $routes->add('member_opt_out', '/opt-out/{member}')->controller([MemberController::class, 'optOut']);
     }
 }

@@ -8,7 +8,7 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
 /**
  * The bundle's declared dependencies, checked against the bundle installed on its own.
  *
- * Two exceptions.
+ * Three exceptions.
  *
  * - The `service()` function lives in the same file as `ContainerConfigurator`, from
  *   `symfony/dependency-injection`, which is required: it is loaded with the class, not by Composer's
@@ -18,6 +18,9 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  *   imports it, and nothing loads that directory unless the application registers a type from it, which
  *   means the application already requires DBAL. The exception is scoped to that directory, so an import of
  *   DBAL anywhere else in the bundle still fails.
+ * - `symfony/http-kernel` (with `symfony/http-foundation`, which it requires) and `symfony/serializer` are optional
+ *   the same way: each is imported by one directory, `Infrastructure/HttpKernel` and `Infrastructure/Serializer`,
+ *   whose service the bundle registers only when the component is installed — the bundle class names them to check.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
@@ -26,5 +29,20 @@ return new Configuration()
     ->ignoreErrorsOnPackageAndPath(
         'doctrine/dbal',
         __DIR__.'/src/Infrastructure/Doctrine',
+        [ErrorType::DEV_DEPENDENCY_IN_PROD],
+    )
+    ->ignoreErrorsOnPackageAndPaths(
+        'symfony/http-kernel',
+        [__DIR__.'/src/Infrastructure/HttpKernel', __DIR__.'/src/PhilDddBundle.php'],
+        [ErrorType::DEV_DEPENDENCY_IN_PROD],
+    )
+    ->ignoreErrorsOnPackageAndPath(
+        'symfony/http-foundation',
+        __DIR__.'/src/Infrastructure/HttpKernel',
+        [ErrorType::DEV_DEPENDENCY_IN_PROD],
+    )
+    ->ignoreErrorsOnPackageAndPaths(
+        'symfony/serializer',
+        [__DIR__.'/src/Infrastructure/Serializer', __DIR__.'/src/PhilDddBundle.php'],
         [ErrorType::DEV_DEPENDENCY_IN_PROD],
     );
