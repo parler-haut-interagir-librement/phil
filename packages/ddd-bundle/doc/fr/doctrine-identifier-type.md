@@ -55,6 +55,10 @@ private OrderId $id;
 private ?OrderId $parentId = null;
 ```
 
+Associez les entités et les objets intégrés par les attributs de Doctrine, dans la couche Infrastructure de leur
+contexte, jamais par des fichiers de correspondance XML ou YAML : les classes du domaine restent libres de Doctrine, et
+la correspondance se trouve à côté de l'entité qu'elle décrit.
+
 ## La colonne, plateforme par plateforme
 
 | Plateforme | Colonne | Valeur envoyée et lue |

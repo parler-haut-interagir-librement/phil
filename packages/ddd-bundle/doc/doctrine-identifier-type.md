@@ -54,6 +54,9 @@ private OrderId $id;
 private ?OrderId $parentId = null;
 ```
 
+Map entities and embeddables with Doctrine attributes, in the Infrastructure layer of their context, never with XML or
+YAML mapping files: the domain classes stay free of Doctrine, and the mapping sits next to the entity that it describes.
+
 ## The column, platform by platform
 
 | Platform | Column | Value sent and read |
