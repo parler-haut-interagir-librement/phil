@@ -21,6 +21,8 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  * - `symfony/http-kernel` (with `symfony/http-foundation`, which it requires) and `symfony/serializer` are optional
  *   the same way: each is imported by one directory, `Infrastructure/HttpKernel` and `Infrastructure/Serializer`,
  *   whose service the bundle registers only when the component is installed — the bundle class names them to check.
+ * - `symfony/maker-bundle` is optional the same way: only `Infrastructure/Maker` imports it, with `symfony/console`,
+ *   which MakerBundle requires, and the bundle registers the `make:ddd:*` commands only when MakerBundle is installed.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
@@ -44,5 +46,15 @@ return new Configuration()
     ->ignoreErrorsOnPackageAndPaths(
         'symfony/serializer',
         [__DIR__.'/src/Infrastructure/Serializer', __DIR__.'/src/PhilDddBundle.php'],
+        [ErrorType::DEV_DEPENDENCY_IN_PROD],
+    )
+    ->ignoreErrorsOnPackageAndPath(
+        'symfony/console',
+        __DIR__.'/src/Infrastructure/Maker',
+        [ErrorType::DEV_DEPENDENCY_IN_PROD],
+    )
+    ->ignoreErrorsOnPackageAndPaths(
+        'symfony/maker-bundle',
+        [__DIR__.'/src/Infrastructure/Maker', __DIR__.'/src/PhilDddBundle.php'],
         [ErrorType::DEV_DEPENDENCY_IN_PROD],
     );

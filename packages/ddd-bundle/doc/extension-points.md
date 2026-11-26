@@ -102,3 +102,11 @@ final readonly class LoggingCommandBus implements CommandBus
 ```
 
 - In a unit test, an in-memory implementation of either port is a few lines; see [testing.md](testing.md).
+
+## The `make:ddd:*` templates
+
+- Contract: `DddSkeleton` takes the root namespace, the source directory and the folder of its templates. The commands
+  build it with MakerBundle's root namespace, `src` and the bundle's `templates/maker/`; a project that wants other
+  templates builds its own `DddSkeleton` on a copy of that folder, with the same file names and placeholders.
+- Invariants: a template is text with `{{…}}` placeholders, never executed; the rendered PHP must parse.
+- See [maker.md](maker.md).

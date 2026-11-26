@@ -18,6 +18,11 @@ The next version is 0.2.0-alpha.
   requested class; any other value is a `NotNormalizableValueException` whose message may be shown to the user.
   Registered when `symfony/serializer` is installed.
 - `symfony/http-kernel` and `symfony/serializer` in `suggest`, with a `conflict` on the versions below 8.2.
+- `make:ddd:context`, `make:ddd:identifier`, `make:ddd:command`, `make:ddd:query` and `make:ddd:event`: with
+  `symfony/maker-bundle`, they write a bounded context (`src/<Context>/{Domain,Application,Infrastructure}` and a
+  README), an identifier and its Doctrine type, a command or a query with its handler, and a domain event, never over
+  an existing file. `DddSkeleton` renders the files from the templates of `templates/maker/`. Registered when
+  MakerBundle is installed; `symfony/maker-bundle` in `suggest`, with a `conflict` on the versions below 1.68.
 
 ### Changed
 
