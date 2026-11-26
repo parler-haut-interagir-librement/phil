@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3c8ad6bcd73e51be8484b56c7ab5af2f61699436aa1c4a32e3be204027fc6485 -->
+<!-- phil-dev source-sha256=b4e281aefd788d6e168efffa1cd9d1e99ce31a7418ba22a182ea5cf54df1a9b6 -->
 # Tests
 
 ```sh
@@ -21,7 +21,8 @@ vidé entre deux. Un test qui réagit, puis relit la page, emploie le stockage D
 ## Dans un navigateur
 
 La suite du navigateur s'exécute à part des autres, avec le chromedriver du système et une version de Stimulus nommée par
-`PHIL_STIMULUS_JS` ; elle est sautée sans lui :
+`PHIL_STIMULUS_JS`, absolue ou relative au répertoire de travail ; elle est sautée sans lui. Dans le monodépôt,
+`composer test:browser` nomme la version qu'installe la suite navigateur du kit. À la main :
 
 ```sh
 PHIL_STIMULUS_JS=node_modules/@hotwired/stimulus/dist/stimulus.js \

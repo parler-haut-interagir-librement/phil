@@ -1113,7 +1113,8 @@ final class InteractiveRecipesTest extends BrowserTestCase
         $this->perform(\sprintf($arrive, 'next'));
         $this->waitUntil('document.querySelector("#next canvas")');
 
-        self::assertSame(1, $this->read('document.querySelectorAll("canvas").length'));
+        // Every canvas of the page but those of the other recipes, such as the cover of the scratch card.
+        self::assertSame(1, $this->read('[...document.querySelectorAll("canvas")].filter((canvas) => !canvas.closest(".isScratchCard, .isSeasonalDecor")).length'));
     }
 
     /**

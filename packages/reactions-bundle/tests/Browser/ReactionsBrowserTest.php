@@ -46,6 +46,9 @@ final class ReactionsBrowserTest extends TestCase
             self::markTestSkipped('PHIL_STIMULUS_JS names no build of Stimulus.');
         }
 
+        // The server runs in public/: a path relative to the repository is made absolute for it.
+        $stimulus = (string) realpath($stimulus);
+
         // The server's kernel is this one: its SQLite file starts empty.
         $kernel = new TestKernel('test', false, 'ux-kit', 'ui');
         $kernel->boot();
