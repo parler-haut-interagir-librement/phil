@@ -23,7 +23,8 @@ exported file wait in stores readable by their owner — the claim check.
 Two reports come with the bundle for a learning system: the training hours and costs of each period and organisational
 unit, and the template of Quebec's 1 % of payroll for workforce skills development — hours, eligible costs, payroll,
 required investment, ratio and shortfall. The learning system, the tree of units and the payroll each connect
-through a port.
+through a port: phil/courses-bundle connects its completions and phil/organizations-bundle its tree of units when they
+are installed, and the payroll is always the application's to give.
 
 It relies on the library `phil/svg-chart` to draw the images; Symfony UX, Messenger, Scheduler, Mailer,
 Notifier, Console and EasyAdmin are each used when they are installed.

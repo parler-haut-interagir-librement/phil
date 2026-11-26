@@ -122,6 +122,7 @@ on SQLite, MySQL 8.4 and PostgreSQL 17.
 | [xAPI activities](doc/xapi-activities.md) | xAPI packages as activities: the launch, the statements, the outcome they record, their import, privacy. |
 | [Mandatory training](doc/mandatory-training.md) | Courses assigned by a due moment, groups and units, the states, the reminders, the run and its schedule, recertification. |
 | [Credits and transcripts](doc/credits-and-transcripts.md) | The credits of the courses, the transcript as a page, JSON and CSV, and its privacy. |
+| [Training reports](doc/training-reports.md) | The completions as the training source of phil/reporting-bundle: hours and costs by organisational unit and period, the 1 % of payroll template, the costs and units the application gives. |
 | [Learning paths](doc/learning-paths.md) | Ordered courses with prerequisites, the enrollment in a path, its progress and its completion, certificates and badges, privacy. |
 | [Equivalent courses](doc/equivalent-courses.md) | One training in several languages: the groups, the course of the learner's language, the completion recognised across the group. |
 | [Catalogues](doc/catalogues.md) | The public catalogue and those of the units, the order of the courses, filters, sorts and pages, self-enrollment, the courses sold through phil/commerce-bundle, the pages. |

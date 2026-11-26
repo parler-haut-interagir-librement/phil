@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\CoursesBundle\Infrastructure\Doctrine;
 
+use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Types;
 use Override;
@@ -51,6 +52,20 @@ final readonly class DbalTranscriptRepository implements TranscriptRepository
             'SELECT * FROM '.CourseTables::TRANSCRIPT.' WHERE learner = ? ORDER BY completed_at DESC, id DESC',
             [$learner->value],
         ));
+    }
+
+    #[Override]
+    public function completedBetween(DateTimeImmutable $from, DateTimeImmutable $until): iterable
+    {
+        $rows = $this->connection->iterateAssociative(
+            'SELECT * FROM '.CourseTables::TRANSCRIPT.' WHERE completed_at >= ? AND completed_at < ? ORDER BY completed_at, id',
+            [$from, $until],
+            [Types::DATETIME_UTC_IMMUTABLE, Types::DATETIME_UTC_IMMUTABLE],
+        );
+
+        foreach ($rows as $row) {
+            yield $this->entry($row);
+        }
     }
 
     #[Override]

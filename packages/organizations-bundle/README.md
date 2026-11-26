@@ -74,7 +74,7 @@ application draws its screens with the recipes of the PHIL UX kit.
 | [Invitations](doc/invitations.md) | Creating, accepting, revoking and purging invitations; joining by a verified domain. |
 | [Acting on behalf](doc/on-behalf.md) | Acting as the organization while the real author is recorded. |
 | [Events](doc/events.md) | Every event, when it is dispatched and what it carries. |
-| [Integrations](doc/integrations.md) | The voter, `phil/privacy-bundle`, `phil/access-bundle`, `phil/audit-bundle`. |
+| [Integrations](doc/integrations.md) | The voter, `phil/privacy-bundle`, `phil/access-bundle`, `phil/reporting-bundle`, `phil/audit-bundle`. |
 | [Console](doc/console.md) | The four commands. |
 | [Security notes](doc/security.md) | What the bundle defends against, and what it leaves to the application. |
 | [Extension points](doc/extension-points.md) | The services to replace, the contracts to implement, and when they are stable. |

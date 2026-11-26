@@ -103,10 +103,12 @@ use Phil\CoursesBundle\Infrastructure\Http\TrainingController;
 use Phil\CoursesBundle\Infrastructure\Import\ElearningXapiPackageReader;
 use Phil\CoursesBundle\Infrastructure\Notifications\NotificationsTrainingNotifier;
 use Phil\CoursesBundle\Infrastructure\Organizations\OrganizationsLearnerUnits;
+use Phil\CoursesBundle\Infrastructure\Organizations\OrganizationsTrainingUnits;
 use Phil\CoursesBundle\Infrastructure\Privacy\Cmi5Privacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\PathsPrivacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\ScormPrivacy;
 use Phil\CoursesBundle\Infrastructure\Privacy\TrainingPrivacy;
+use Phil\CoursesBundle\Infrastructure\Reporting\CoursesTrainingSource;
 use Phil\CoursesBundle\Infrastructure\Routing\RoutedCmi5Endpoints;
 use Phil\CoursesBundle\Infrastructure\Scheduler\TrainingSchedule;
 use Phil\CoursesBundle\Infrastructure\Security\SecurityCurrentLearner;
@@ -124,6 +126,7 @@ use Phil\NotificationsBundle\Application\Notifications;
 use Phil\OrganizationsBundle\Application\Organizations;
 use Phil\OrganizationsBundle\Application\UnitTree;
 use Phil\PrivacyBundle\PhilPrivacyBundle;
+use Phil\ReportingBundle\Application\Contract\TrainingSource;
 use Phil\SafeHttp\Limits;
 use Phil\SafeHttp\SafeHttpClient;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -426,6 +429,44 @@ final class PhilCoursesBundleTest extends TestCase
         self::assertSame(CertificatesCourseCompletions::class, (string) $container->getAlias(CourseCompletions::class));
         self::assertFalse($container->getAlias(CourseCompletions::class)->isPublic());
         self::assertEquals([new Reference(Completions::class), new Reference(LearningPaths::class)], $container->getDefinition(CertificatesCourseCompletions::class)->getArguments());
+    }
+
+    public function testTheTranscriptsAreTheTrainingSourceOfReportingWhenItIsRegistered(): void
+    {
+        foreach ([$this->load([]), $this->load([['training' => ['enabled' => false]]], ['PhilReportingBundle']), $this->load([['reporting' => ['enabled' => false]]], ['PhilReportingBundle', 'PhilOrganizationsBundle'])] as $container) {
+            self::assertFalse($container->hasDefinition(CoursesTrainingSource::class));
+            self::assertFalse($container->hasAlias(TrainingSource::class));
+            self::assertFalse($container->hasDefinition(OrganizationsTrainingUnits::class));
+        }
+
+        $alone = $this->load([], ['PhilReportingBundle']);
+        self::assertSame(CoursesTrainingSource::class, (string) $alone->getAlias(TrainingSource::class));
+        self::assertFalse($alone->getAlias(TrainingSource::class)->isPublic());
+        self::assertEquals([new Reference(TranscriptRepository::class), 'CAD', 10, null, null], $alone->getDefinition(CoursesTrainingSource::class)->getArguments());
+        self::assertFalse($alone->hasDefinition(OrganizationsTrainingUnits::class));
+
+        $plugged = $this->load([], ['PhilReportingBundle', 'PhilOrganizationsBundle']);
+        self::assertEquals(new Reference(OrganizationsTrainingUnits::class), $plugged->getDefinition(CoursesTrainingSource::class)->getArgument(4));
+        self::assertEquals([new Reference(Organizations::class), new Reference(UnitTree::class)], $plugged->getDefinition(OrganizationsTrainingUnits::class)->getArguments());
+
+        $own = $this->load([['reporting' => ['currency' => 'EUR', 'ceu_hours' => 1000, 'costs' => 'app.costs', 'units' => 'app.units']]], ['PhilReportingBundle', 'PhilOrganizationsBundle']);
+        self::assertEquals([new Reference(TranscriptRepository::class), 'EUR', 1000, new Reference('app.costs'), new Reference('app.units')], $own->getDefinition(CoursesTrainingSource::class)->getArguments());
+        self::assertFalse($own->hasDefinition(OrganizationsTrainingUnits::class));
+        self::assertSame(1, $this->load([['reporting' => ['ceu_hours' => 1]]], ['PhilReportingBundle'])->getDefinition(CoursesTrainingSource::class)->getArgument(2));
+
+        $wrongs = [['currency' => 'cad'], ['currency' => 'CADX'], ['currency' => "CAD\n"], ['currency' => 12], ['ceu_hours' => 0], ['ceu_hours' => 1001]];
+        $refused = [];
+
+        foreach ($wrongs as $wrong) {
+            try {
+                $this->load([['reporting' => $wrong]]);
+            } catch (InvalidConfigurationException $exception) {
+                $refused[] = $exception->getMessage();
+            }
+        }
+
+        self::assertCount(\count($wrongs), $refused);
+        self::assertStringContainsString('is not an ISO 4217 code of three capital letters', $refused[0]);
     }
 
     public function testTheRemoteStoreIsSentToThroughItsOwnGuardedClient(): void

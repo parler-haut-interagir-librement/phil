@@ -3,15 +3,21 @@
 The report `training_hours` totals the training of an organisation by period and by organisational unit: the number
 of activities, their hours, their costs and the part of those costs the law counts. The figures come from the
 learning system through a port; the tree of the units, from the application's directory of units through another.
-The bundle depends on neither: an application connects them with two small adapters.
+The bundle depends on neither: phil/courses-bundle and phil/organizations-bundle connect themselves when they are
+installed, and an application connects any other system with two small adapters.
 
 | Port | Implemented by | Required |
 |---|---|---|
-| `TrainingSource` | The learning system: courses completed, sessions attended | Yes: without one, the training reports are not registered |
-| `UnitDirectory` | The directory of the organisational units, a tree | No: without one, each unit is reported alone, named by its identifier |
+| `TrainingSource` | The learning system: courses completed, sessions attended; phil/courses-bundle | Yes: without one, the training reports are not registered |
+| `UnitDirectory` | The directory of the organisational units, a tree; phil/organizations-bundle | No: without one, each unit is reported alone, named by its identifier |
 | `PayrollSource` | The payroll system | No: read by the [1 % of payroll template](quebec-one-percent.md) alone |
 
 ## The activities: `TrainingSource`
+
+With phil/courses-bundle registered and its mandatory training enabled, the completions of its transcripts are the
+source: each completion is an activity, its hours those of the credits it granted, its cost and the learner's unit
+what the application's ports of that bundle answer. Its documentation of the training reports describes them. Another
+learning system implements the port:
 
 ```php
 use Phil\ReportingBundle\Application\Contract\TrainingSource;
@@ -79,31 +85,22 @@ interface UnitDirectory
 }
 ```
 
-With phil/organizations-bundle 0.2, whose `UnitTree` answers the questions of other modules about its tree of units,
-the adapter is:
+With phil/organizations-bundle installed, its `ReportingUnitDirectory` is the directory: the path of a unit from its
+root, through its tree of units, archived units included. Another directory implements the port:
 
 ```php
-use Phil\OrganizationsBundle\Application\UnitTree;
-use Phil\OrganizationsBundle\Domain\Model\Unit;
-use Phil\OrganizationsBundle\Domain\ValueObject\UnitId;
 use Phil\ReportingBundle\Application\Contract\UnitDirectory;
 use Phil\ReportingBundle\Domain\Training\UnitNode;
 
-final readonly class OrganizationUnits implements UnitDirectory
+final readonly class Departments implements UnitDirectory
 {
-    public function __construct(private UnitTree $tree) {}
+    public function __construct(private DepartmentRepository $departments) {}
 
     public function path(string $unit): array
     {
-        $found = $this->tree->unit(UnitId::fromString($unit));
-
-        if (!$found instanceof Unit) {
-            return [];
-        }
-
         return array_map(
-            static fn (Unit $node): UnitNode => new UnitNode($node->id->value, $node->name->value),
-            [...$this->tree->ancestors($found->id), $found],
+            static fn (Department $department): UnitNode => new UnitNode($department->id, $department->name),
+            $this->departments->pathFromRoot($unit),
         );
     }
 }
@@ -111,7 +108,7 @@ final readonly class OrganizationUnits implements UnitDirectory
 
 ```yaml
 services:
-    Phil\ReportingBundle\Application\Contract\UnitDirectory: '@App\Reporting\OrganizationUnits'
+    Phil\ReportingBundle\Application\Contract\UnitDirectory: '@App\Reporting\Departments'
 ```
 
 The report asks for the path of each unit once per export. A unit the directory does not know — a unit removed since

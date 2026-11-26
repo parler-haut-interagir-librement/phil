@@ -47,6 +47,7 @@ use Phil\OrganizationsBundle\Infrastructure\Doctrine\OrganizationSchemaListener;
 use Phil\OrganizationsBundle\Infrastructure\Http\UnitAdminController;
 use Phil\OrganizationsBundle\Infrastructure\Memory\InMemoryOrganizationStore;
 use Phil\OrganizationsBundle\Infrastructure\Privacy\OrganizationsPrivacy;
+use Phil\OrganizationsBundle\Infrastructure\Reporting\ReportingUnitDirectory;
 use Phil\OrganizationsBundle\Infrastructure\Security\OrganizationVoter;
 use Phil\OrganizationsBundle\Infrastructure\Security\UserIdentifierMember;
 use Phil\OrganizationsBundle\Infrastructure\Twig\KitComponents;
@@ -54,6 +55,7 @@ use Phil\OrganizationsBundle\Infrastructure\Twig\OrganizationsExtension;
 use Phil\OrganizationsBundle\PhilOrganizationsBundle;
 use Phil\OrganizationsBundle\Tests\Fixtures\RacingStore;
 use Phil\OrganizationsBundle\Tests\Fixtures\RecordingDispatcher;
+use Phil\ReportingBundle\Application\Contract\UnitDirectory;
 use Phil\ResourcePermissions\RelationWriter;
 use Phil\Slug\TransliteratingSlugger;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -182,6 +184,9 @@ final class PhilOrganizationsBundleTest extends TestCase
         new UnitServicesPass()->process($container);
         self::assertTrue($container->hasAlias(UnitStore::class));
         self::assertTrue($container->hasDefinition(Units::class));
+        self::assertSame(ReportingUnitDirectory::class, (string) $container->getAlias(UnitDirectory::class));
+        self::assertFalse($container->getAlias(UnitDirectory::class)->isPublic());
+        self::assertEquals([new Reference(UnitTree::class)], $container->getDefinition(ReportingUnitDirectory::class)->getArguments());
 
         $other = $this->load([['store' => 'app.store']]);
         $other->register('app.store', RacingStore::class);
@@ -193,6 +198,13 @@ final class PhilOrganizationsBundleTest extends TestCase
         }
 
         self::assertTrue($other->hasDefinition(Members::class));
+        self::assertFalse($other->hasAlias(UnitDirectory::class), 'Without units, the training reports name each unit alone.');
+
+        $own = $this->load([['store' => 'app.store']]);
+        $own->register('app.store', RacingStore::class);
+        $own->setAlias(UnitDirectory::class, 'app.directory');
+        new UnitServicesPass()->process($own);
+        self::assertSame('app.directory', (string) $own->getAlias(UnitDirectory::class), "The application's own directory is kept.");
 
         $missing = $this->load([['store' => 'app.store']]);
         new UnitServicesPass()->process($missing);

@@ -49,11 +49,13 @@ use Phil\OrganizationsBundle\Infrastructure\Doctrine\OrganizationSchemaListener;
 use Phil\OrganizationsBundle\Infrastructure\Http\UnitAdminController;
 use Phil\OrganizationsBundle\Infrastructure\Memory\InMemoryOrganizationStore;
 use Phil\OrganizationsBundle\Infrastructure\Privacy\OrganizationsPrivacy;
+use Phil\OrganizationsBundle\Infrastructure\Reporting\ReportingUnitDirectory;
 use Phil\OrganizationsBundle\Infrastructure\Security\OrganizationVoter;
 use Phil\OrganizationsBundle\Infrastructure\Security\UserIdentifierMember;
 use Phil\OrganizationsBundle\Infrastructure\Twig\KitComponents;
 use Phil\OrganizationsBundle\Infrastructure\Twig\OrganizationsExtension;
 use Phil\PrivacyBundle\Application\Contract\PersonalDataEraser;
+use Phil\ReportingBundle\Application\Contract\UnitDirectory;
 use Phil\ResourcePermissions\RelationWriter;
 use Phil\Slug\Slugger;
 use Phil\Slug\TransliteratingSlugger;
@@ -152,6 +154,19 @@ final readonly class OrganizationsServices
         self::console($container, $config);
         self::privacy($container);
         self::access($container, $config);
+        self::reporting($container);
+    }
+
+    /**
+     * The tree of units as the unit directory of phil/reporting-bundle, when it is installed: its training reports name
+     * each unit and place it under its parent. An application that names its own directory keeps it.
+     */
+    private static function reporting(ContainerBuilder $container): void
+    {
+        if (interface_exists(UnitDirectory::class)) {
+            $container->register(ReportingUnitDirectory::class, ReportingUnitDirectory::class)->setArguments([new Reference(UnitTree::class)]);
+            $container->setAlias(UnitDirectory::class, ReportingUnitDirectory::class);
+        }
     }
 
     /**

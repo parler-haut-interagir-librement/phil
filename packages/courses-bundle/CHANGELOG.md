@@ -52,6 +52,15 @@ The next version is 0.4.0-alpha.
 - The fuzz target `catalogue-query`, on the query string of a catalogue page, and the benchmark of a page of a catalogue
   of 500 courses.
 - The documentation page catalogues.
+- The completions of the transcripts as the training source of phil/reporting-bundle, when it is registered and the
+  mandatory training enabled: `CoursesTrainingSource`, an activity for each completion of the period, its hours from
+  the credits it granted — continuing education units at `phil_courses.reporting.ceu_hours` hours each, 10 by
+  default —, its cost from the port `TrainingCosts` and `TrainingCost`, its unit from the port `TrainingUnits`; the
+  options `phil_courses.reporting.enabled`, `currency`, `ceu_hours`, `costs` and `units`; `OrganizationsTrainingUnits`,
+  the learner's unit from the tree of units of phil/organizations-bundle when it is registered;
+  `TranscriptRepository::completedBetween()`, the completions of a span of time read row by row, and the index
+  `idx_phil_course_transcript_completed` that `CourseTables::upgrade()` adds; the constant `Credits::CEU_HOURS`; the
+  documentation page training reports.
 
 ## 0.3.1-alpha - 2026-11-25
 

@@ -117,6 +117,18 @@ The kinds are named `organization`, `team` and `unit` unless `access.organizatio
 `access.unit_kind` say otherwise; a kind already in the model stops the container. Member identifiers follow the rule of `phil/access-bundle`'s
 `MemberId`.
 
+## `phil/reporting-bundle`
+
+When `phil/reporting-bundle` is installed, `ReportingUnitDirectory` is the `UnitDirectory` its training reports read:
+the path of a unit from its root, through `UnitTree::unit()` and `UnitTree::ancestors()`, each unit named by its
+identifier and its name. The report of the training hours and costs then places each unit under its parent, sums the
+units below it, and keeps an archived unit at its place. A text that is no unit identifier, or a unit the tree does
+not know, has no path: the report shows it alone, named by its identifier.
+
+An application that aliases `Phil\ReportingBundle\Application\Contract\UnitDirectory` to a service of its own keeps
+it. With a store that keeps no units, the adapter is left out and the reports name each unit alone. Which learner
+belongs to which unit is the learning system's to say: phil/courses-bundle answers it from the same tree.
+
 ## `phil/audit-bundle`
 
 `ActedOnBehalf` and every other event carry the identifiers an audit trail records: a listener appends them to the

@@ -15,6 +15,9 @@ final readonly class Credits
 {
     public const int MAX_HUNDREDTHS = 999_999;
 
+    /** The hours of a continuing education unit, as accrediting bodies count it: ten contact hours. */
+    public const int CEU_HOURS = 10;
+
     private function __construct(
         public int $hundredths,
         public CreditUnit $unit,

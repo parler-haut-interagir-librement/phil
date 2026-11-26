@@ -84,7 +84,7 @@
 | `Application\Launch`, `LaunchWindow`, `LaunchUrl` | Where the learner goes to take an activity, and the parameters added to its URL |
 | `Application\ContentUrls` | The addresses of the files on the content origin |
 | `Application\CourseOutline`, `ModuleOutline`, `ActivityStatus` | A course read as an outline, and where an activity stands |
-| `Application\Contract\ActivityType`, `CurrentLearner`, `ContentStorage`, `LearningRecordStore`, `Cmi5Endpoints`, `XapiPackageReader`, `AssigneeMembers`, `TrainingNotifier`, `LearnerUnits`, `CourseCheckout` | The ports; the packages are opened through the `PackageOpener` of phil/elearning-packages |
+| `Application\Contract\ActivityType`, `CurrentLearner`, `ContentStorage`, `LearningRecordStore`, `Cmi5Endpoints`, `XapiPackageReader`, `AssigneeMembers`, `TrainingNotifier`, `LearnerUnits`, `CourseCheckout`, `TrainingCosts`, `TrainingUnits` | The ports; the packages are opened through the `PackageOpener` of phil/elearning-packages |
 | `Application\Import\CourseImporter` | Imports a package or a course structure, read by phil/elearning-packages |
 | `Application\Import\ScormPlanner`, `Cmi5Planner`, `XapiPlanner`, `ImportPlan`, `PlannedModule`, `PlannedBlock`, `PlannedActivity` | Turn a manifest into a course to create |
 | `Application\Import\XapiPackage`, `XapiLaunchable` | What a reader of xAPI packages found |
@@ -107,6 +107,7 @@
 | `Application\Training\TrainingRun`, `TrainingReport`, `TrainingSettings` | A run of reminders, renewals and new members, and its settings |
 | `Application\Training\Recertification` | When a completion is renewed, through phil/recurrence |
 | `Application\Training\Transcripts`, `Transcript` | The credits of the courses and the transcripts, as an array and CSV |
+| `Application\Training\TrainingCost` | What a completion cost and its eligible part, in minor units, bounded |
 | `Application\Training\TrainingCompletions` | Listens to `CourseCompleted`: the obligations, then the transcript |
 | `Application\Message\RunTraining`, `Application\Handler\RunTrainingHandler` | The message of the schedule and its handler |
 | `Application\Cmi5\Cmi5Satisfaction` | Issues the `satisfied` statements of the blocks and of the course, once for each enrollment; internal, reached through `Cmi5Statements::satisfy()` |
@@ -122,6 +123,8 @@
 | `Infrastructure\Doctrine\DbalCatalogueRepository` | The catalogues and their entries through DBAL, the courses offered read in one query |
 | `Infrastructure\Http\CatalogueController` | The pages of the catalogues and the enrollment from a catalogue |
 | `Infrastructure\Organizations\OrganizationsLearnerUnits` | The units whose catalogues reach a learner, from the tree of units of phil/organizations-bundle |
+| `Infrastructure\Organizations\OrganizationsTrainingUnits` | The unit the training of a learner counts in, from the tree of units of phil/organizations-bundle |
+| `Infrastructure\Reporting\CoursesTrainingSource` | The completions of the transcripts as the `TrainingSource` of phil/reporting-bundle: their hours from their credits, their costs and units from the ports |
 | `Infrastructure\Commerce\CourseSellables`, `CoursePurchases` | The courses sold through phil/commerce-bundle: the sellables of type `course`, and the buyer enrolled at each `OrderPurchased` |
 | `Infrastructure\Import\ElearningXapiPackageReader` | The reader of xAPI packages on the `XapiCourseReader` of phil/elearning-packages |
 | `Infrastructure\Privacy\PathsPrivacy` | The enrollments in learning paths in the access and erasure requests of phil/privacy-bundle |
