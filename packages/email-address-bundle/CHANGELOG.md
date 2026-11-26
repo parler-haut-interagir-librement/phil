@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.1.1-alpha. The address fingerprints change at the update: a fingerprint stored before it no
+The next version is 0.1.1-alpha: the address fingerprints change at the update; a fingerprint stored before it no
 longer matches its address, so compute again those an application keeps.
 
 ### Security
