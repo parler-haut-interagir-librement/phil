@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f38f262b5773ec2b00d736c5f244369ac05edb096c9a1503f24e730776c10553 -->
+<!-- phil-dev source-sha256=7102edf11c6e878604046c011abc555258af39545829899a372bff37e07c3255 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension ne sont stables qu'à partir de sa version 1.0. D'ici là, une version
@@ -67,8 +67,9 @@ d'audit, rafraîchit un cache. Voir [Événements](events.md).
 
 ## Le modèle d'accès
 
-Avec `phil/access-bundle`, les genres `organization` et `team` et leurs relations font partie du modèle d'accès, et le
-`ModelContributor` propre à une application s'appuie sur eux. Voir [Intégrations](integrations.md#philaccess-bundle).
+Avec `phil/access-bundle`, les genres `organization`, `team` et `unit` et leurs relations font partie du modèle d'accès,
+et le `ModelContributor` propre à une application s'appuie sur eux. Voir
+[Intégrations](integrations.md#philaccess-bundle).
 
 ## Les services
 

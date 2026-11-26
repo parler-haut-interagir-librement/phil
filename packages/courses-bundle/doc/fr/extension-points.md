@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e20224594ff4144bce414f61efa6f08bb1e5a85c2c0cb56b680171b343df16c2 -->
+<!-- phil-dev source-sha256=fba11ce86e98a2537f4be766b333b7323ab1a51c83442483bb782fc2d342db22 -->
 # Points d'extension
 
 Le bundle est en versions `0.x` : les ports, les événements et les services ci-dessous peuvent changer dans une version
@@ -93,8 +93,9 @@ Les unités d'une organisation dont les catalogues atteignent un apprenant — l
 au-dessus d'elles —, dans `Phil\CoursesBundle\Application\Contract` : `units(LearnerId $learner)`, une liste
 d'identifiants d'unité opaques, ceux que nomme un catalogue d'unité. Avec phil/organizations-bundle enregistré,
 `OrganizationsLearnerUnits` y répond à partir de `UnitTree::unitIdsOf()` dans chaque organisation dont l'apprenant est
-membre ; une application nomme son propre service dans `phil_courses.catalogues.learner_units`. Sans service, les
-apprenants ne voient que les catalogues publics. Voir [Catalogues](catalogues.md#catalogues-publics-et-catalogues-dunité).
+membre, les unités au-dessus comprises sauf si `phil_courses.catalogues.units_below` vaut false ; une application nomme
+son propre service dans `phil_courses.catalogues.learner_units`. Sans service, les apprenants ne voient que les
+catalogues publics. Voir [Catalogues](catalogues.md#catalogues-publics-et-catalogues-dunité).
 
 ## `CourseCheckout`
 

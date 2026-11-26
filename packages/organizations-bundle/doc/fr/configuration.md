@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=42a854b8a3e29d417f5e568bdb11da95b684164bda98bc02e057be679635a163 -->
+<!-- phil-dev source-sha256=6d57afd86998f7e23e74e1af8b17f98a3d0388b43764840f931a35edaf577bbc -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_organizations`. Seule `invitations.hash_key` est obligatoire.
@@ -37,6 +37,7 @@ phil_organizations:
         enabled: ~                 # null: whenever phil/access-bundle is installed
         organization_kind: organization
         team_kind: team
+        unit_kind: unit            # null: the units stay out of the access model
 ```
 
 | Option | Valeur par défaut | Effet |
@@ -64,6 +65,7 @@ phil_organizations:
 | `access.enabled` | `null` | Si les adhésions et les rôles sont publiés comme relations et tuples de `phil/access-bundle` : `null` les publie dès que ce bundle est enregistré. |
 | `access.organization_kind` | `organization` | Le genre des organisations dans le modèle d'accès. |
 | `access.team_kind` | `team` | Le genre des équipes dans le modèle d'accès. |
+| `access.unit_kind` | `unit` | Le genre des unités dans le modèle d'accès ; `null` les en exclut, comme le fait un magasin qui ne garde aucune unité. |
 
 Un rôle compte de 1 à 64 lettres minuscules, chiffres ou `_`, et commence par une lettre ; une permission compte de 1 à
 128 lettres minuscules, chiffres, `_`, `.` ou `-`, et commence par une lettre. La configuration est refusée quand l'un

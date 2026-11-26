@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ddd334b6771832b32b8a89eef59764c1d3e0cc8f8c4cbdd5be6fc085ade14168 -->
+<!-- phil-dev source-sha256=54aa89c3c6ffd543f8a628fa023b7a92c696f66d1555c01a0881febc30650554 -->
 # Notes de sécurité
 
 ## Ce dont le bundle se défend
@@ -31,7 +31,9 @@
   mille unités de largeur au plus, de sorte que chaque question de l'arbre reste une requête bornée.
 - **Les rôles d'unité qui sortent de leur unité.** Un rôle d'unité vaut dans son unité et en dessous, jamais au-dessus,
   à côté, ni dans l'organisation ; un gestionnaire d'unité n'accorde que des rôles d'unité dont il détient les
-  permissions à cet endroit, et gère les unités en dessous de la sienne, pas la sienne.
+  permissions à cet endroit, et gère les unités en dessous de la sienne, pas la sienne. Les relations des unités dans le
+  modèle d'accès de `phil/access-bundle` suivent le même arbre : un déplacement réécrit le parent de l'unité, de sorte
+  que les rôles détenus au-dessus de son ancien emplacement cessent de l'atteindre dans la même écriture.
 - **Les formulaires falsifiés.** Les formulaires des pages des unités portent le jeton CSRF sans état de Symfony et sont
   refusés quand le navigateur dit qu'ils viennent d'un autre site.
 - **Les événements fantômes.** Les événements sont émis une fois la transaction validée, jamais pour un changement
@@ -54,3 +56,6 @@
   autre canal.
 - Limiter le débit du point de terminaison qui accepte les invitations, de sorte que deviner des jetons coûte plus cher
   que ne le font déjà 256 bits.
+- Avec `phil/access-bundle`, lire si une organisation ou une unité est archivée avant de se fier à une vérification du
+  modèle d'accès : leurs tuples restent pendant qu'elles sont archivées, pour qu'une restauration les ramène, et seuls
+  `OrganizationAccess`, `UnitAccess` et le *voter* refusent une unité ou une organisation archivée.
