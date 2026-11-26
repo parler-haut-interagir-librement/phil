@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=451f19bf678081c344d2b699e0b969050527940002098f39f77c46d56d63f8a7 -->
+<!-- phil-dev source-sha256=8a5cf325d5a0207e6a422557f24482bacb392777eeda0d6bd93914d5375566d3 -->
 # Le type d'identifiant Doctrine
 
 `Phil\DddBundle\Infrastructure\Doctrine\IdentifierType` est le type DBAL abstrait d'un identifiant : une classe
