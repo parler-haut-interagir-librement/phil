@@ -134,6 +134,7 @@ final class FestivitiesTest extends TestCase
         } catch (InvalidArgumentException $invalidArgumentException) {
             self::assertStringStartsWith('The holiday "party": ', $invalidArgumentException->getMessage());
             self::assertInstanceOf(InvalidRule::class, $invalidArgumentException->getPrevious());
+            self::assertSame(0, $invalidArgumentException->getCode());
         }
     }
 
