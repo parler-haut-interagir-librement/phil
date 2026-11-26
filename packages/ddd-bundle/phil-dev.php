@@ -7,6 +7,16 @@ declare(strict_types=1);
  */
 return [
     'paths' => ['src', 'tests'],
+    'infection' => [
+        'mutators' => [
+            // preg_split() only fails on a pattern error, and the pattern is a constant: the fallback is never taken.
+            'ArrayItemRemoval' => [
+                'ignoreSourceCodeByRegex' => [
+                    '.*return false === \\$words \\? \\[\\$name\\] : \\$words;.*',
+                ],
+            ],
+        ],
+    ],
     'phpstan' => [
         // La dette de phil/dev-tools v2 : ce que ses règles relèvent et qui reste à corriger.
         'ignoreErrors' => [

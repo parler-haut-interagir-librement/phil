@@ -340,6 +340,14 @@ final class DddSkeletonTest extends TestCase
         self::assertSame('src/Readonly/Domain/.gitignore', $skeleton->context('Readonly')[1]->path);
     }
 
+    public function testAnIdentifierCannotSpellAReservedWord(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('"VoId" is a word PHP reserves: it cannot name a class.');
+
+        new DddSkeleton()->identifier('Catalog', 'Vo');
+    }
+
     public function testAMissingTemplateIsRefused(): void
     {
         $this->expectException(InvalidArgumentException::class);

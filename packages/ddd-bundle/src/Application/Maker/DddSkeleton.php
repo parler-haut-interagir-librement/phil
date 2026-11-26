@@ -197,8 +197,6 @@ final readonly class DddSkeleton
         $base = $this->base($name, $kind);
         $message = $base.$kind;
         $handler = $base.'Handler';
-        $this->className($message);
-        $this->className($handler);
         $namespace = $this->namespace($context, 'Application');
 
         return [
