@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=20ed65d4301f984c0683fa4ac9fb09a2538ae78831f6d24c18690984611cf2c9 -->
+<!-- phil-dev source-sha256=af7f8f440f0b800349a0579872c67f5a32d866481e5ccfd75b701127e49d85b1 -->
 # Installation
 
 ## Prérequis
@@ -13,6 +13,7 @@
 | `doctrine/dbal` | ^4.2, facultatif | Seulement pour le type de colonne des identifiants ; les versions antérieures à 4.2 sont déclarées en `conflict` |
 | `symfony/http-kernel` | ^8.2, facultatif | Seulement pour le résolveur d'arguments de contrôleur des identifiants, enregistré quand il est installé ; les versions antérieures à 8.2 sont déclarées en `conflict` |
 | `symfony/serializer` | ^8.2, facultatif | Seulement pour le normaliseur des identifiants, enregistré quand il est installé ; les versions antérieures à 8.2 sont déclarées en `conflict` |
+| `symfony/maker-bundle` | ^1.68, facultatif, dans `require-dev` | Seulement pour les commandes `make:ddd:*`, enregistrées quand il est installé ; les versions antérieures à 1.68 sont déclarées en `conflict` |
 
 `Domain\` ne dépend que de `symfony/uid`. Une application qui restreint ce que sa propre couche `Domain` peut importer
 peut y permettre `Phil\DddBundle\Domain\` sans rien ouvrir d'autre : aucun conteneur, aucune configuration, aucune

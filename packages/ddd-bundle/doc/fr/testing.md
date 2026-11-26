@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=721b2e32bb06acb21b3db4bc76c4c6960b00eff1264a1e9447d0d670187c9398 -->
+<!-- phil-dev source-sha256=56b66e08d8832fcb46d417eb12cc858b9c8f364e29de924fe8cdf4218760d55e -->
 # Tests
 
 ## Comment le bundle est testé
 
 | Suite | Répertoire | Exige | Ce qu'elle couvre |
 |---|---|---|---|
-| Unitaire | `tests/Unit` | rien | `Identifier`, `InvalidValue`, les deux adaptateurs Messenger sur un vrai `MessageBus` avec des *handlers* en mémoire, `IdentifierType` contre des objets de plateforme DBAL (PostgreSQL, SQL Server, MySQL 8, MariaDB, SQLite), `IdentifierValueResolver` sur des métadonnées d'argument construites à la main, `IdentifierNormalizer` seul, et le câblage du bundle lu dans un `ContainerBuilder` non compilé |
+| Unitaire | `tests/Unit` | rien | `Identifier`, `InvalidValue`, les deux adaptateurs Messenger sur un vrai `MessageBus` avec des *handlers* en mémoire, `IdentifierType` contre des objets de plateforme DBAL (PostgreSQL, SQL Server, MySQL 8, MariaDB, SQLite), `IdentifierValueResolver` sur des métadonnées d'argument construites à la main, `IdentifierNormalizer` seul, `DddSkeleton` sur les fichiers exacts qu'il produit, qui doivent être analysables, les commandes `make:ddd:*` sur le générateur de MakerBundle qui écrit dans un répertoire temporaire, et le câblage du bundle lu dans un `ContainerBuilder` non compilé |
 | Fonctionnelle | `tests/Functional` | rien | Un vrai noyau avec Messenger et deux bus propres à l'application : une commande traitée et une requête répondue par les ports injectés par leur interface, chaque *handler* sur son bus par son seul marqueur (aussi tel que le liste `debug:messenger`), une erreur du domaine désenveloppée par le bus de commandes, l'exception d'un *handler* de requête désenveloppée par le bus de requêtes, les erreurs de configuration à la construction, des paramètres de route qui parviennent à un contrôleur sous forme d'identifiants (404 autrement, exclusion en mode débogage et hors de celui-ci), et des identifiants à travers le Serializer |
 | Intégration | `tests/Integration` | un serveur MySQL 8 ou PostgreSQL, sinon sautée | L'aller-retour d'un identifiant dans de vraies colonnes : insertion, recherche par identifiant, relecture, `NULL`, ordre de tri, une valeur étrangère refusée, et une colonne relue par introspection qui déclare le même SQL que le type |
 
