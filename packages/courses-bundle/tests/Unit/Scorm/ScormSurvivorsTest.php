@@ -21,7 +21,9 @@ use Phil\CoursesBundle\Domain\ValueObject\LearnerId;
 use Phil\CoursesBundle\Domain\ValueObject\ScormAttemptId;
 use Phil\CoursesBundle\Infrastructure\Doctrine\CourseTables;
 use Phil\CoursesBundle\Tests\Unit\Fixture\Store;
+use Phil\ElearningPackages\Runtime\CmiData;
 use Phil\ElearningPackages\Runtime\Duration;
+use Phil\ElearningPackages\Runtime\ScormSession;
 use Phil\ElearningPackages\Runtime\ScormVersion;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -69,6 +71,70 @@ final class ScormSurvivorsTest extends TestCase
 
         self::assertSame([['false', 'true'], ['true', 'true'], ['true', 'true'], ['true', 'false'], ['true', 'false'], ['false', 'true'], ['false', 'true'], ['false', 'true']], $flags);
         self::assertSame([[$second->id->value, false], [$first->id->value, false], [$third->id->value, false], [null, true], [$second->id->value, false], [$third->id->value, false], [null, true], [null, true]], $answers);
+    }
+
+    public function testTheContentReadsWhichTargetsAChoiceOrAJumpReaches(): void
+    {
+        $course = $this->store->courses->create('Choices');
+        $module = $this->store->courses->addModule($course->id, 'M');
+        $first = $this->store->courses->addActivity($module->id, 'One', 'scorm', ['path' => 'a.html', 'scorm_version' => 'scorm2004'], source: 'intro.page');
+        $this->store->courses->addActivity($module->id, 'Two', 'scorm', ['path' => 'b.html', 'scorm_version' => 'scorm2004'], source: 'quiz');
+        $this->store->courses->addActivity($module->id, 'Spaced', 'scorm', ['path' => 'c.html', 'scorm_version' => 'scorm2004'], source: 'a b');
+        $this->store->courses->addActivity($module->id, 'Braced', 'scorm', ['path' => 'd.html', 'scorm_version' => 'scorm2004'], source: 'a{b}');
+        $this->store->courses->addActivity($module->id, 'Long', 'scorm', ['path' => 'e.html', 'scorm_version' => 'scorm2004'], source: str_repeat('x', 201));
+        $this->store->courses->addActivity($module->id, 'Longest', 'scorm', ['path' => 'f.html', 'scorm_version' => 'scorm2004'], source: str_repeat('y', 200));
+        $this->store->courses->addActivity($module->id, 'Unnamed', 'page');
+        $this->store->courses->addActivity($module->id, 'Lined', 'scorm', ['path' => 'h.html', 'scorm_version' => 'scorm2004'], source: "line\n");
+
+        $twelve = $this->store->courses->addActivity($module->id, 'Twelve', 'scorm', ['path' => 'g.html', 'scorm_version' => 'scorm12'], source: 'old');
+        $enrollment = $this->store->enrollments->enroll($course->id, LearnerId::of('ada'));
+
+        $launch = $this->store->scorm->launch($first, $enrollment);
+        $targets = array_filter($launch->values, static fn (string $element): bool => str_starts_with($element, 'adl.nav.request_valid.choice') || str_starts_with($element, 'adl.nav.request_valid.jump'), \ARRAY_FILTER_USE_KEY);
+
+        self::assertSame([
+            'adl.nav.request_valid.choice' => 'false',
+            'adl.nav.request_valid.jump' => 'false',
+            'adl.nav.request_valid.choice.{target=intro.page}' => 'true',
+            'adl.nav.request_valid.jump.{target=intro.page}' => 'true',
+            'adl.nav.request_valid.choice.{target=quiz}' => 'true',
+            'adl.nav.request_valid.jump.{target=quiz}' => 'true',
+            'adl.nav.request_valid.choice.{target='.str_repeat('y', 200).'}' => 'true',
+            'adl.nav.request_valid.jump.{target='.str_repeat('y', 200).'}' => 'true',
+            'adl.nav.request_valid.choice.{target=old}' => 'true',
+            'adl.nav.request_valid.jump.{target=old}' => 'true',
+        ], $targets);
+
+        $attempt = $this->store->attemptStore->find($launch->attempt);
+        self::assertNotNull($attempt);
+        self::assertArrayNotHasKey('adl.nav.request_valid.choice', $attempt->data);
+        self::assertArrayNotHasKey('adl.nav.request_valid.choice.{target=quiz}', $attempt->data);
+
+        $session = new ScormSession(new CmiData(ScormVersion::Scorm2004, $launch->values));
+        $session->initialize('');
+        self::assertSame(['true', 'false', 'true'], [$session->getValue('adl.nav.request_valid.choice.{target=quiz}'), $session->getValue('adl.nav.request_valid.choice.{target=nowhere}'), $session->getValue('adl.nav.request_valid.jump.{target=intro.page}')]);
+
+        $older = $this->store->scorm->launch($twelve, $enrollment);
+        self::assertSame([], array_filter($older->values, static fn (string $element): bool => str_starts_with($element, 'adl.'), \ARRAY_FILTER_USE_KEY));
+    }
+
+    public function testASessionNamesTheTargetsOfFiveHundredActivitiesAtMost(): void
+    {
+        $course = $this->store->courses->create('Many');
+        $modules = [$this->store->courses->addModule($course->id, 'M'), $this->store->courses->addModule($course->id, 'N')];
+
+        $first = $this->store->courses->addActivity($modules[0]->id, 'A0', 'scorm', ['path' => 'a.html', 'scorm_version' => 'scorm2004'], source: 'i0');
+
+        for ($index = 1; $index <= ScormRuntime::MAX_TARGETS; ++$index) {
+            $this->store->courses->addActivity($modules[intdiv($index, 300)]->id, 'A'.$index, 'scorm', ['path' => 'a.html', 'scorm_version' => 'scorm2004'], source: 'i'.$index);
+        }
+
+        $values = $this->store->scorm->launch($first, $this->store->enrollments->enroll($course->id, LearnerId::of('ada')))->values;
+
+        self::assertSame(500, ScormRuntime::MAX_TARGETS);
+        self::assertArrayHasKey('adl.nav.request_valid.choice.{target=i499}', $values);
+        self::assertArrayNotHasKey('adl.nav.request_valid.choice.{target=i500}', $values);
+        self::assertArrayNotHasKey('adl.nav.request_valid.jump.{target=i500}', $values);
     }
 
     public function testARequestKeptWithSomethingAfterItsTargetLeavesForTheOutline(): void

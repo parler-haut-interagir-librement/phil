@@ -147,7 +147,51 @@ final class CmiData2004Test extends TestCase
         yield 'an open range' => ['numeric', 'correct_responses.0.pattern', '[:]5', 0];
         yield 'a number as a range' => ['numeric', 'correct_responses.0.pattern', '5', 406];
         yield 'a fill-in' => ['fill-in', 'learner_response', 'any words at all', 0];
+        yield 'an empty fill-in' => ['fill-in', 'learner_response', '', 0];
+        yield 'fill-ins in their languages' => ['fill-in', 'learner_response', '{lang=fr}chat[,]{lang=en-CA}cat', 0];
+        yield 'a fill-in of no language' => ['fill-in', 'learner_response', '{lang=}cat', 406];
+        yield 'a fill-in of a malformed language' => ['fill-in', 'learner_response', '{lang=12}cat', 406];
+        yield 'ten fill-ins' => ['fill-in', 'learner_response', 'a[,]b[,]c[,]d[,]e[,]f[,]g[,]h[,]i[,]j', 0];
+        yield 'eleven fill-ins' => ['fill-in', 'learner_response', 'a[,]b[,]c[,]d[,]e[,]f[,]g[,]h[,]i[,]j[,]k', 406];
+        yield 'a fill-in of 250 characters' => ['fill-in', 'learner_response', str_repeat('é', 250), 0];
+        yield 'a fill-in of 251 characters' => ['fill-in', 'learner_response', str_repeat('é', 251), 406];
+        yield 'a second fill-in of 251 characters' => ['fill-in', 'learner_response', 'a[,]'.str_repeat('b', 251), 406];
+        yield 'a case and an order' => ['fill-in', 'correct_responses.0.pattern', '{case_matters=true}{order_matters=false}a[,]b', 0];
+        yield 'an order and a case' => ['fill-in', 'correct_responses.0.pattern', '{order_matters=true}{case_matters=false}a', 0];
+        yield 'an order alone' => ['fill-in', 'correct_responses.0.pattern', '{order_matters=true}a', 0];
+        yield 'a case alone' => ['fill-in', 'correct_responses.0.pattern', '{case_matters=false}{lang=fr}a', 0];
+        yield 'a case twice' => ['fill-in', 'correct_responses.0.pattern', '{case_matters=true}{case_matters=true}a', 406];
+        yield 'an order twice' => ['fill-in', 'correct_responses.0.pattern', '{order_matters=true}{case_matters=true}{order_matters=true}a', 406];
+        yield 'a case of no boolean' => ['fill-in', 'correct_responses.0.pattern', '{case_matters=yes}a', 406];
+        yield 'eleven fill-in patterns' => ['fill-in', 'correct_responses.0.pattern', 'a[,]b[,]c[,]d[,]e[,]f[,]g[,]h[,]i[,]j[,]k', 406];
+        yield 'a case in a response is text' => ['fill-in', 'learner_response', '{case_matters=true}a', 0];
+        yield 'a long fill-in' => ['long-fill-in', 'learner_response', str_repeat('word[,] ', 500), 0];
+        yield 'a long fill-in in its language' => ['long-fill-in', 'learner_response', '{lang=en}text', 0];
+        yield 'a long fill-in of a malformed language' => ['long-fill-in', 'learner_response', '{lang=en_CA}text', 406];
+        yield 'a long fill-in whose case matters' => ['long-fill-in', 'correct_responses.0.pattern', '{case_matters=true}{lang=en}text', 0];
+        yield 'a long fill-in whose case matters twice' => ['long-fill-in', 'correct_responses.0.pattern', '{case_matters=true}{case_matters=true}text', 406];
+        yield 'a long fill-in of no boolean' => ['long-fill-in', 'correct_responses.0.pattern', '{case_matters=no}text', 406];
         yield 'a performance' => ['performance', 'correct_responses.0.pattern', 'step[.]1', 0];
+        yield 'a performance of a range' => ['performance', 'correct_responses.0.pattern', 'step[.]1[:]5[,]other[.][:]2', 0];
+        yield 'a performance of a malformed range' => ['performance', 'correct_responses.0.pattern', 'step[.]a[:]b', 406];
+        yield 'a performance of an answer alone' => ['performance', 'correct_responses.0.pattern', '[.]answer', 0];
+        yield 'a performance of a step alone' => ['performance', 'correct_responses.0.pattern', 'step[.]', 0];
+        yield 'a performance of neither' => ['performance', 'correct_responses.0.pattern', '[.]', 406];
+        yield 'a second performance of neither' => ['performance', 'correct_responses.0.pattern', 'a[.]1[,][.]', 406];
+        yield 'a performance without its delimiter' => ['performance', 'correct_responses.0.pattern', 'step', 406];
+        yield 'a performance of a spaced step' => ['performance', 'correct_responses.0.pattern', 'a step[.]1', 406];
+        yield 'a performance whose order matters' => ['performance', 'correct_responses.0.pattern', '{order_matters=false}a[.]1[,]b[.]2', 0];
+        yield 'a performance whose order matters twice' => ['performance', 'correct_responses.0.pattern', '{order_matters=false}{order_matters=false}a[.]1', 406];
+        yield 'a performance of 125 steps' => ['performance', 'correct_responses.0.pattern', implode('[,]', array_fill(0, 125, 's[.]1')), 0];
+        yield 'a performance of 126 steps' => ['performance', 'correct_responses.0.pattern', implode('[,]', array_fill(0, 126, 's[.]1')), 406];
+        yield 'a performance of an answer of 251 characters' => ['performance', 'correct_responses.0.pattern', 's[.]'.str_repeat('x', 251), 406];
+        yield 'a performance response' => ['performance', 'learner_response', 'step[.]1[,][.]free text', 0];
+        yield 'a performance response of a range' => ['performance', 'learner_response', 'step[.]1[:]5', 406];
+        yield 'an empty performance response' => ['performance', 'learner_response', '', 406];
+        yield 'a performance response of 250 steps' => ['performance', 'learner_response', implode('[,]', array_fill(0, 250, 's[.]1')), 0];
+        yield 'a performance response of 251 steps' => ['performance', 'learner_response', implode('[,]', array_fill(0, 251, 's[.]1')), 406];
+        yield 'any other response' => ['other', 'learner_response', '{lang=}[,][.]', 0];
+        yield 'a line after a true' => ['true-false', 'learner_response', "true\n", 406];
         yield 'a second true-false pattern' => ['true-false', 'correct_responses.1.pattern', 'true', 351];
         yield 'a second choice pattern' => ['choice', 'correct_responses.1.pattern', 'b', 0];
     }
@@ -164,6 +208,16 @@ final class CmiData2004Test extends TestCase
         }
 
         self::assertSame($error, $data->set('cmi.interactions.0.'.$element, $value)->error);
+    }
+
+    public function testATargetGivenNoValueReadsTheValueOfItsRequest(): void
+    {
+        $data = new CmiData(ScormVersion::Scorm2004, ['adl.nav.request_valid.choice' => 'false', 'adl.nav.request_valid.choice.{target=intro}' => 'true']);
+
+        self::assertSame('true', $data->get('adl.nav.request_valid.choice.{target=intro}')->value);
+        self::assertSame('false', $data->get('adl.nav.request_valid.choice.{target=outro}')->value);
+        self::assertSame('unknown', $data->get('adl.nav.request_valid.jump.{target=intro}')->value);
+        self::assertSame('unknown', new CmiData(ScormVersion::Scorm2004)->get('adl.nav.request_valid.choice.{target=intro}')->value);
     }
 
     public function testAResponseNeedsTheTypeOfItsInteraction(): void

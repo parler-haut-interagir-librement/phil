@@ -4,6 +4,26 @@ All notable changes to `phil/elearning-packages` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+### Added
+
+- The responses of `fill-in`, `long-fill-in` and `performance` interactions of SCORM 2004 checked by their format:
+  `DataModel::responsePattern()` gives their patterns — the languages `{lang=…}` of their strings, `{case_matters=…}`
+  and `{order_matters=…}` at the beginning of a correct response, the steps `step_name[.]step_answer` of a performance
+  and their ranges `min[:]max` —, each within its smallest permitted maximum: ten strings of 250 characters of a
+  fill-in, 125 steps of a performance's correct response, 250 of a learner's, each answer 250 characters. A value of
+  another format answers `406`; `other` stays bounded in length only.
+- A target of a navigation request given no value of its own, `adl.nav.request_valid.choice.{target=intro}`, reads the
+  value of its request, `adl.nav.request_valid.choice`, so that a platform says `false` for every target it does not
+  name.
+
+### Fixed
+
+- A value matches the pattern of its element whole: `true` followed by a line feed is refused, as JavaScript refuses it.
+
 ## 0.2.0-alpha - 2026-11-20
 
 XAPI packages read from `tincan.xml`, the SCORM 2004 sequencing and the SCORM 1.2

@@ -150,7 +150,9 @@ final class CmiData
         }
 
         $evaluated = CmiRules::evaluated($this, $name->pattern);
-        $value = $evaluated ?? $this->values[$element] ?? $definition->default;
+        // A target of a navigation request given no value of its own reads the value of its request:
+        // `adl.nav.request_valid.choice` answers for every target the platform did not name.
+        $value = $evaluated ?? $this->values[$element] ?? $this->values[$name->pattern] ?? $definition->default;
 
         if (null === $value) {
             return ScormVersion::Scorm12 === $this->version ? new RuntimeResult() : $this->error(Mistake::NotInitialized, 'The element holds no value yet.');
@@ -344,7 +346,7 @@ final class CmiData
             ValueCheck::InteractionResponse => DataModel::responsePattern($this->values[$name->sibling(0, 'type')] ?? '', false),
         };
 
-        if (null !== $pattern && 1 !== preg_match('/'.str_replace('/', '\/', $pattern).'/u', $text)) {
+        if (null !== $pattern && 1 !== preg_match('/'.str_replace('/', '\/', $pattern).'/Du', $text)) {
             return [Mistake::TypeMismatch, 'The value is not of the type of the element.'];
         }
 

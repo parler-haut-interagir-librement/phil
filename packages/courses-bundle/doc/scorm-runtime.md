@@ -170,7 +170,11 @@ is the learner's choice of what to take next. A SCO of SCORM 2004 may also ask w
 | `exit`, `exitAll`, `suspendAll`, `abandon`, `abandonAll` | The outline |
 
 `adl.nav.request_valid.continue` and `adl.nav.request_valid.previous` say whether there is a SCORM activity after or
-before this one; `adl.nav.request_valid.choice` and `adl.nav.request_valid.jump` answer `unknown`.
+before this one. `adl.nav.request_valid.choice.{target=<item>}` and `adl.nav.request_valid.jump.{target=<item>}` answer
+`true` when an activity of the course was imported from that item, and `false` for any other target: the page hands
+the content the targets of the first 500 such activities of the course, `ScormRuntime::MAX_TARGETS`, with the session,
+and never keeps them with the attempt. The activity the request goes to still applies its own availability: an
+activity released later or waiting for another one shows why on its page.
 
 ## What is supported
 
@@ -179,14 +183,14 @@ before this one; `adl.nav.request_valid.choice` and `adl.nav.request_valid.jump`
 | The API of SCORM 1.2 (`API`) and of SCORM 2004 4th edition (`API_1484_11`), with their states and error codes | Supported |
 | Every element of the data model of SCORM 1.2 and of SCORM 2004, their types, vocabularies, ranges, read and write rules, `_children`, `_count` and `_version` | Supported, checked in the browser and on the server |
 | Objectives, interactions, their objectives and correct responses, comments of SCORM 2004, each collection within its smallest permitted maximum | Supported |
-| The responses of the interactions of SCORM 2004 checked by the type of their interaction | `true-false`, `choice`, `sequencing`, `likert`, `matching` and `numeric`; `fill-in`, `long-fill-in`, `performance` and `other` bounded in length |
+| The responses of the interactions of SCORM 2004 checked by the type of their interaction | Every type: `fill-in` and `long-fill-in` with their languages and `{case_matters}` and `{order_matters}`, `performance` with its steps and ranges, each within its smallest permitted maximum; `other` bounded in length |
 | `suspend_data`: 4 096 characters in SCORM 1.2, 64 000 in SCORM 2004 | Supported; the data of an attempt is bounded at 1 MiB in all |
 | Session time added to total time; status and score rules of each version | Supported |
 | Attempts: resume after a suspension, a new attempt after an ended one, tries of the activity | Supported |
 | Mastery score, scaled passing score, completion threshold, launch data, time allowed and its action, from the manifest | Handed to the content |
 | Review mode of an ended attempt | Supported: read only, nothing kept, commits refused on the server |
 | The time allowed, from the manifest or the activity | Enforced by the platform, by its own clock |
-| Navigation requests `continue`, `previous`, `choice`, `jump` and the exits | Supported, as above |
+| Navigation requests `continue`, `previous`, `choice`, `jump` and the exits, and whether each is valid | Supported, as above |
 | The tracking data in the access and erasure requests of phil/privacy-bundle | Supported when that bundle is installed |
 
 ## What the bundle does not do yet
@@ -198,8 +202,6 @@ comes, each SCO is an activity of the course.
 |---|---|
 | The sequencing and navigation of SCORM 2004 — sequencing rules, rollup, limit conditions, objectives shared between SCOs, the activity tree as one attempt | Kept with the activity for information; each SCO is an activity of the course, and the course's own order and requirements apply |
 | The prerequisites of SCORM 1.2 | Kept for information; impose the order of the course instead |
-| `adl.nav.request_valid.choice` and `.jump` for a target | Answer `unknown` |
-| The formats of `fill-in`, `long-fill-in`, `performance` and `other` responses | Bounded in length, not parsed |
 | Two commits of one session sent at once by two tabs | The last one kept wins |
 
 ## Privacy

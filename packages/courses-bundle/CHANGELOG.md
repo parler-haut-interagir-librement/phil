@@ -8,6 +8,15 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.3.1-alpha.
 
+### Added
+
+- The SCORM run time answers whether a choice or a jump to a target is valid: `adl.nav.request_valid.choice.{target=…}`
+  and `adl.nav.request_valid.jump.{target=…}` read `true` for an item an activity of the course was imported from, and
+  `false` for any other target. The page hands the content the targets of the first 500 such activities,
+  `ScormRuntime::MAX_TARGETS`, with the session; they are never kept with the attempt.
+- The responses of `fill-in`, `long-fill-in` and `performance` interactions are checked by their format, in the browser
+  and on the server, by the data model of phil/elearning-packages.
+
 ### Changed
 
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on

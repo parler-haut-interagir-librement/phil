@@ -63,6 +63,9 @@ final readonly class ScormRuntime
     /** The seconds after the deadline a commit is still kept, for the time it takes to reach the server. */
     public const int GRACE = 30;
 
+    /** The most activities of a course a session names as targets of a navigation request. */
+    public const int MAX_TARGETS = 500;
+
     public function __construct(
         private ScormAttemptRepository $attempts,
         private CourseRepository $courses,
@@ -106,7 +109,7 @@ final readonly class ScormRuntime
         $session = $attempt->open($data->values(), $now);
         $this->attempts->save($attempt);
 
-        return new ScormLaunch($attempt->id, $attempt->number, $this->tokens->issue($attempt->id, $session), $attempt->version, $data->values(), DataModel::describe($attempt->version), Entry::Resume === $entry, remaining: $limit?->remaining($attempt, $now));
+        return new ScormLaunch($attempt->id, $attempt->number, $this->tokens->issue($attempt->id, $session), $attempt->version, $data->values() + $this->targets($activity, $attempt->version), DataModel::describe($attempt->version), Entry::Resume === $entry, remaining: $limit?->remaining($attempt, $now));
     }
 
     /**
@@ -131,7 +134,7 @@ final readonly class ScormRuntime
 
         $data = $this->begin($activity, $enrollment, $ended, TimeLimit::of($activity, $ended->version), Entry::Other, 'review');
 
-        return new ScormLaunch($ended->id, $ended->number, '', $ended->version, $data->values(), DataModel::describe($ended->version), review: true);
+        return new ScormLaunch($ended->id, $ended->number, '', $ended->version, $data->values() + $this->targets($activity, $ended->version), DataModel::describe($ended->version), review: true);
     }
 
     /**
@@ -290,6 +293,39 @@ final readonly class ScormRuntime
     }
 
     /**
+     * Whether a choice or a jump to a target is valid, as the content reads it: `true` for each item an activity
+     * of the course was imported from, `false` for any other. Handed to the browser with the session, never kept with
+     * the attempt.
+     *
+     * @return array<string, string>
+     */
+    private function targets(Activity $activity, ScormVersion $version): array
+    {
+        if (ScormVersion::Scorm2004 !== $version) {
+            return [];
+        }
+
+        $targets = ['adl.nav.request_valid.choice' => 'false', 'adl.nav.request_valid.jump' => 'false'];
+        $named = 0;
+
+        foreach ($this->courses->activities($activity->course) as $candidate) {
+            if ($named >= self::MAX_TARGETS) {
+                break;
+            }
+
+            if (null === $candidate->source || 1 !== preg_match('/^[^\s{}]{1,200}$/D', $candidate->source)) {
+                continue;
+            }
+
+            $targets['adl.nav.request_valid.choice.{target='.$candidate->source.'}'] = 'true';
+            $targets['adl.nav.request_valid.jump.{target='.$candidate->source.'}'] = 'true';
+            ++$named;
+        }
+
+        return $targets;
+    }
+
+    /**
      * @return array{0: ?ActivityId, 1: bool}
      */
     private function navigation(Activity $activity, ?string $request): array
@@ -312,8 +348,6 @@ final readonly class ScormRuntime
                     return [$candidate->id, false];
                 }
             }
-
-            return [null, true];
         }
 
         return [null, true];
