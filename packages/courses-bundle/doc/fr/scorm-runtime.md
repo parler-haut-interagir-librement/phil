@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e372df694fdf88015582155b8e5be55fcaa7028fde316959df97c9b719e18c28 -->
+<!-- phil-dev source-sha256=476c7384291d091fdf0a34064406d3b786428e5bbdf1510377012357876ba596 -->
 # Environnement d'exécution SCORM
 
 Une activité SCORM s'exécute dans la plateforme : son contenu trouve l'API d'exécution de sa version, signale où en est
@@ -178,7 +178,11 @@ choix de l'apprenant pour la suite. Un SCO de SCORM 2004 peut aussi demander où
 | `exit`, `exitAll`, `suspendAll`, `abandon`, `abandonAll` | Le plan |
 
 `adl.nav.request_valid.continue` et `adl.nav.request_valid.previous` disent s'il y a une activité SCORM après celle-ci ou
-avant elle ; `adl.nav.request_valid.choice` et `adl.nav.request_valid.jump` répondent `unknown`.
+avant elle. `adl.nav.request_valid.choice.{target=<item>}` et `adl.nav.request_valid.jump.{target=<item>}` répondent
+`true` quand une activité du cours a été importée de cet élément, et `false` pour toute autre cible : la page remet au
+contenu, avec la session, les cibles des 500 premières activités de ce genre du cours, `ScormRuntime::MAX_TARGETS`, et
+ne les conserve jamais avec la tentative. L'activité où mène la demande applique toujours sa propre disponibilité : une
+activité offerte plus tard ou en attente d'une autre montre pourquoi sur sa page.
 
 ## Ce qui est pris en charge
 
@@ -187,14 +191,14 @@ avant elle ; `adl.nav.request_valid.choice` et `adl.nav.request_valid.jump` rép
 | L'API de SCORM 1.2 (`API`) et de SCORM 2004 4e édition (`API_1484_11`), avec leurs états et leurs codes d'erreur | Pris en charge |
 | Chaque élément du modèle de données de SCORM 1.2 et de SCORM 2004, leurs types, vocabulaires, intervalles, règles de lecture et d'écriture, `_children`, `_count` et `_version` | Pris en charge, vérifié dans le navigateur et sur le serveur |
 | Objectifs, interactions, leurs objectifs et bonnes réponses, commentaires de SCORM 2004, chaque collection dans son plus petit maximum permis | Pris en charge |
-| Les réponses des interactions de SCORM 2004 vérifiées selon le type de leur interaction | `true-false`, `choice`, `sequencing`, `likert`, `matching` et `numeric` ; `fill-in`, `long-fill-in`, `performance` et `other` bornées en longueur |
+| Les réponses des interactions de SCORM 2004 vérifiées selon le type de leur interaction | Tous les types : `fill-in` et `long-fill-in` avec leurs langues et `{case_matters}` et `{order_matters}`, `performance` avec ses étapes et ses intervalles, chacun dans son plus petit maximum permis ; `other` bornée en longueur |
 | `suspend_data` : 4 096 caractères en SCORM 1.2, 64 000 en SCORM 2004 | Pris en charge ; les données d'une tentative sont bornées à 1 Mio en tout |
 | Temps de session ajouté au temps total ; règles de statut et de note de chaque version | Pris en charge |
 | Tentatives : reprise après une suspension, nouvelle tentative après une tentative terminée, essais de l'activité | Pris en charge |
 | Note de maîtrise, note de passage normalisée, seuil d'achèvement, données de lancement, temps alloué et son action, tirés du manifeste | Remis au contenu |
 | Le mode révision d'une tentative terminée | Pris en charge : lecture seule, rien de conservé, validations refusées sur le serveur |
 | Le temps alloué, tiré du manifeste ou de l'activité | Appliqué par la plateforme, par sa propre horloge |
-| Demandes de navigation `continue`, `previous`, `choice`, `jump` et les sorties | Pris en charge, comme ci-dessus |
+| Demandes de navigation `continue`, `previous`, `choice`, `jump` et les sorties, et la validité de chacune | Pris en charge, comme ci-dessus |
 | Les données de suivi dans les demandes d'accès et d'effacement de phil/privacy-bundle | Pris en charge quand ce bundle est installé |
 
 ## Ce que le bundle ne fait pas encore
@@ -206,8 +210,6 @@ d'exécution : d'ici là, chaque SCO est une activité du cours.
 |---|---|
 | Le séquencement et la navigation de SCORM 2004 — règles de séquencement, cumul, conditions limites, objectifs partagés entre des SCO, l'arbre des activités comme une seule tentative | Conservés avec l'activité à titre d'information ; chaque SCO est une activité du cours, et l'ordre et les exigences propres au cours s'appliquent |
 | Les préalables de SCORM 1.2 | Conservés à titre d'information ; imposez plutôt l'ordre du cours |
-| `adl.nav.request_valid.choice` et `.jump` pour une cible | Répondent `unknown` |
-| Les formats des réponses `fill-in`, `long-fill-in`, `performance` et `other` | Bornés en longueur, non analysés |
 | Deux validations d'une même session envoyées en même temps par deux onglets | La dernière conservée l'emporte |
 
 ## Vie privée

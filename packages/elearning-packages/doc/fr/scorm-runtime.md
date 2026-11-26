@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=eb5933496c56ca3e9fb19838685fde2b232c443f16712fc6b08856fa6c1d3c2a -->
+<!-- phil-dev source-sha256=ba61635da14326b3140395b98b24600c56af9d8cc79de14c42a0942ce01b3fde -->
 # Le modèle de données d'exécution SCORM
 
 `Phil\ElearningPackages\Runtime` contient le modèle de données auquel un environnement d'exécution SCORM compare les
@@ -47,8 +47,23 @@ nombre, et ce qu'il lit avant d'être fixé. Les bornes sont les plus petits max
 | Notes | brute, minimum et maximum de 0 à 100, ou vide | normalisée de -1 à 1 ; brute, minimum et maximum, tout réel |
 
 Les réponses des interactions de SCORM 2004 sont vérifiées selon le type de leur interaction : `DataModel::responsePattern()`
-donne le motif de `true-false`, `choice`, `sequencing`, `likert`, `matching` et `numeric` ; les réponses de `fill-in`,
-`long-fill-in`, `performance` et `other` sont bornées en longueur.
+donne le motif de chaque type sauf `other`, dont les réponses sont bornées en longueur seulement.
+
+| Type | Une bonne réponse (`pattern`) | Une réponse de l'apprenant |
+|---|---|---|
+| `true-false` | `true` ou `false` | La même |
+| `choice` | Des identifiants séparés par `[,]`, ou aucun | La même |
+| `sequencing` | Un identifiant ou plus, séparés par `[,]` | La même |
+| `likert` | Un identifiant | La même |
+| `matching` | Des paires `source[.]cible`, séparées par `[,]` | La même |
+| `numeric` | Un intervalle `min[:]max`, dont une borne peut rester ouverte | Un nombre |
+| `fill-in` | Dix chaînes au plus, séparées par `[,]`, chacune de 250 caractères au plus et commençant ou non par `{lang=…}` ; le motif peut commencer par `{case_matters=true}` ou `false`, et `{order_matters=…}`, dans un ordre ou l'autre, chacun une fois | Dix chaînes au plus, de même |
+| `long-fill-in` | Une chaîne, commençant ou non par `{lang=…}` ; le motif peut commencer par `{case_matters=…}` | Une chaîne, de même |
+| `performance` | 125 étapes au plus, séparées par `[,]`, chacune `nom_étape[.]réponse_étape` avec l'un des deux au moins : un identifiant court, et 250 caractères au plus ou un intervalle `min[:]max` ; le motif peut commencer par `{order_matters=…}` | 250 étapes au plus, chaque réponse de 250 caractères au plus |
+| `other` | 4 000 caractères au plus | Les mêmes |
+
+Une chaîne qui commence par `{lang=` nomme une langue, `{lang=fr-CA}` : `{lang=}` et `{lang=fr_CA}` sont refusés. Toute
+réponse est bornée à 4 000 caractères.
 
 Les motifs sont écrits de sorte que PHP, avec le modificateur `u`, et JavaScript, avec le drapeau `u`, les lisent de la
 même façon. `DataModel::describe()` donne le modèle de données tel que le navigateur le lit — les éléments, les
@@ -69,8 +84,8 @@ court diagnostic.
 - En SCORM 2004, un élément d'un objectif ou d'une interaction exige d'abord son identifiant, et une réponse le type de
   son interaction (`408`) ; l'identifiant d'un objectif est unique et ne change jamais, tout comme celui d'un objectif
   d'une interaction parmi les autres de l'interaction (`351`).
-- Une valeur est vérifiée selon le motif, la longueur et l'intervalle de son élément ; un nombre s'écrit sous forme de
-  texte.
+- Une valeur est vérifiée selon le motif, la longueur et l'intervalle de son élément, la valeur entière — un saut de
+  ligne à sa fin compris — ; un nombre s'écrit sous forme de texte.
 - Un élément jamais fixé se lit comme la chaîne vide en SCORM 1.2, et répond `403` en SCORM 2004 à moins d'avoir une
   valeur par défaut : `cmi.completion_status` et `cmi.success_status` se lisent `unknown`, `cmi.total_time` `PT0H0M0S`.
 - En SCORM 2004, `cmi.completion_status` est évalué selon `cmi.completion_threshold` et `cmi.progress_measure`, et
@@ -137,6 +152,7 @@ entre son minimum et son maximum, sur cent en SCORM 1.2 quand ils ne sont pas fi
 ## Ce que le modèle de données laisse à la plateforme
 
 - Le séquencement et la navigation de SCORM 2004 : `adl.nav.request` est conservé et rendu par `SessionEnd` ; la validité
-  des demandes, `adl.nav.request_valid.*`, revient à la plateforme, qui la fixe avec `put()`.
+  des demandes, `adl.nav.request_valid.*`, revient à la plateforme, qui la fixe avec `put()` ou parmi les valeurs dont elle construit `CmiData`. Une cible sans
+  valeur propre, `adl.nav.request_valid.choice.{target=intro}`, lit la valeur de sa demande,
+  `adl.nav.request_valid.choice`, et `unknown` quand la plateforme n'a fixé ni l'une ni l'autre.
 - L'endroit où les valeurs sont conservées, les tentatives et leurs numéros, la progression de l'apprenant dans un cours.
-- Les formats des réponses des interactions `fill-in`, `long-fill-in`, `performance` et `other`, bornées seulement.
