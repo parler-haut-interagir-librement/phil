@@ -157,6 +157,78 @@ final class XapiInteractionsTest extends TestCase
         self::assertSame('c99', $question->components(ComponentList::Choices)[99]->id);
     }
 
+    public function testTheLimitsAreInclusive(): void
+    {
+        $patterns = '';
+
+        for ($index = 0; $index <= XapiCourseReader::MAX_RESPONSES; ++$index) {
+            $patterns .= \sprintf('<correctResponsePattern>p%d</correctResponsePattern>', $index);
+        }
+
+        $over = $this->read($this->question('q', 'fill-in', '<correctResponsePatterns>'.$patterns.'</correctResponsePatterns>'));
+        $expected = array_map(static fn (int $index): string => 'p'.$index, range(0, XapiCourseReader::MAX_RESPONSES - 1));
+
+        self::assertSame($expected, $over->activity('urn:x:q')?->correctResponses);
+        self::assertSame([XapiWarningKind::TooManyResponses], $this->kinds($over));
+
+        $exact = $this->read($this->question('q', 'fill-in', '<correctResponsePatterns>'.preg_replace('#<correctResponsePattern>p'.XapiCourseReader::MAX_RESPONSES.'</correctResponsePattern>#', '', $patterns).'</correctResponsePatterns>'));
+
+        self::assertSame($expected, $exact->activity('urn:x:q')?->correctResponses);
+        self::assertSame([], $exact->warnings);
+
+        $components = '';
+
+        for ($index = 0; $index < XapiCourseReader::MAX_COMPONENTS; ++$index) {
+            $components .= \sprintf('<component><id>c%d</id></component>', $index);
+        }
+
+        $full = $this->read($this->question('q', 'choice', '<choices>'.$components.'</choices>'));
+
+        self::assertCount(XapiCourseReader::MAX_COMPONENTS, $full->activity('urn:x:q')?->components(ComponentList::Choices) ?? []);
+        self::assertSame([], $full->warnings);
+    }
+
+    public function testTheTextOfTheIdentifierWinsOverItsAttributeAndOtherWhiteSpaceIsRefused(): void
+    {
+        $course = $this->read($this->question('q', 'choice', '<choices><component id="attr"><id>text</id></component><component><id>a'."\u{00A0}".'b</id></component><component><id>a'."\u{2003}".'b</id></component></choices>'));
+
+        self::assertSame(['text'], array_map(static fn (InteractionComponent $component): string => $component->id, $course->activity('urn:x:q')?->components(ComponentList::Choices) ?? []));
+        self::assertSame([XapiWarningKind::InvalidComponent, XapiWarningKind::InvalidComponent], $this->kinds($course));
+    }
+
+    public function testADuplicateDoesNotStopTheComponentsAfterIt(): void
+    {
+        $course = $this->read($this->question('q', 'choice', '<choices><component><id>a</id></component><component><id>a</id></component><component><id>b</id></component></choices>'));
+
+        self::assertSame(['a', 'b'], array_map(static fn (InteractionComponent $component): string => $component->id, $course->activity('urn:x:q')?->components(ComponentList::Choices) ?? []));
+        self::assertSame([XapiWarningKind::DuplicateComponent], $this->kinds($course));
+    }
+
+    public function testTheLanguagesOfADescriptionAreBoundedWithOneWarning(): void
+    {
+        $descriptions = '';
+
+        for ($index = 0; $index < XapiCourseReader::MAX_LANGUAGES + 2; ++$index) {
+            $descriptions .= \sprintf('<description lang="%s">t%d</description>', \chr(97 + intdiv($index, 26)).\chr(97 + $index % 26), $index);
+        }
+
+        $course = $this->read($this->question('q', 'choice', '<choices><component><id>a</id>'.$descriptions.'</component></choices>'));
+
+        self::assertSame([XapiWarningKind::TooManyLanguages], $this->kinds($course));
+        self::assertCount(XapiCourseReader::MAX_LANGUAGES, $course->activity('urn:x:q')?->components(ComponentList::Choices)[0]->descriptions ?? []);
+    }
+
+    public function testAMatchingPairIsCutAtItsFirstSeparatorAndNamesAreCutByCharacters(): void
+    {
+        $lists = '<source><component><id>a</id></component></source><target><component><id>b</id></component></target>';
+        $course = $this->read($this->question('m', 'matching', $lists.'<correctResponsePatterns><correctResponsePattern>a[.]b[.]c</correctResponsePattern></correctResponsePatterns>')
+        .$this->question('c', 'choice', '<choices><component><id>a</id></component></choices><correctResponsePatterns><correctResponsePattern>'.str_repeat('é', 50).'</correctResponsePattern></correctResponsePatterns>'));
+
+        self::assertSame([XapiWarningKind::UnknownResponseComponent, XapiWarningKind::UnknownResponseComponent], $this->kinds($course));
+        self::assertStringContainsString('names "b[.]c", which its target do not', $course->warnings[0]->message);
+        self::assertStringContainsString('names "'.str_repeat('é', 40).'", which', $course->warnings[1]->message);
+    }
+
     /**
      * @return iterable<string, array{string, string, string}>
      */
