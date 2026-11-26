@@ -4,9 +4,9 @@ All notable changes to `phil/search-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-25
 
-The next version is 0.3.0-alpha: a behaviour change in alpha, a minor bump — with Meilisearch or Loupe, the entities are
+A behaviour change in alpha, a minor bump — with Meilisearch or Loupe, the entities are
 indexed through `phil/outbox-bundle` by default, which an application installs or replaces with `index_entities:
 direct`.
 

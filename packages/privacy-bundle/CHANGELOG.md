@@ -4,9 +4,7 @@ All notable changes to `phil/privacy-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.4.0-alpha.
+## 0.4.0-alpha - 2026-11-25
 
 Every key the bundle derives from the application secret is its HKDF-SHA-256 under a label of its own: the requests
 without an account, the export archives and the consent cookies of 0.3 no longer open. See

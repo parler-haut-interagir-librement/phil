@@ -5,9 +5,7 @@ All notable changes to `phil/qr-code-bundle` will be documented in this file.
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles, and versions follow
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
-
-The next version is 0.1.1-alpha.
+## 0.1.1-alpha - 2026-11-25
 
 ### Changed
 

@@ -4,9 +4,7 @@ All notable changes to `phil/open-badges-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.1.5-alpha.
+## 0.1.5-alpha - 2026-11-25
 
 ### Security
 

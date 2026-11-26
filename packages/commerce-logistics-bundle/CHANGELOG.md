@@ -4,9 +4,9 @@ All notable changes to `phil/commerce-logistics-bundle` will be documented in th
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
+## 0.3.0-alpha - 2026-11-25
 
-The next version is 0.3.0-alpha: a behaviour change in alpha, a minor bump — an order ships once its payments cover what
+A behaviour change in alpha, a minor bump — an order ships once its payments cover what
 it is due, or once an authorization of the application says so, and the table of shipments gains two columns,
 `forced_by` and `force_reason`, null for the shipments already there.
 

@@ -6,7 +6,7 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## Unreleased
 
-The next version is 0.3.1-alpha.
+The next version is 0.4.0-alpha.
 
 ### Added
 
@@ -16,6 +16,8 @@ The next version is 0.3.1-alpha.
   `ScormRuntime::MAX_TARGETS`, with the session; they are never kept with the attempt.
 - The responses of `fill-in`, `long-fill-in` and `performance` interactions are checked by their format, in the browser
   and on the server, by the data model of phil/elearning-packages.
+
+## 0.3.1-alpha - 2026-11-25
 
 ### Changed
 
