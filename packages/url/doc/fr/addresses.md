@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5ccb792eb0017d9dd1f456cf6c1b1e30622a9bdbfae51327f42143e196e26e31 -->
+<!-- phil-dev source-sha256=57519d3571bfa35acad523895c24c10a72e5b2fdf67f7d2983559a85c396bcf0 -->
 # Adresses
 
 `Url::fromString()` lit une adresse Web absolue comme un navigateur la lit : l'extension URI de PHP l'analyse selon le
@@ -91,6 +91,6 @@ Vérifiez le préfixe sur `Url`, jamais sur le texte d'où il a été lu.
 |---|---|
 | `scheme`, `host`, `port`, `path`, `query`, `fragment` | Les parties ; `port` vaut `null` pour le port par défaut |
 | `toString()` | L'adresse normalisée |
-| `display()` | Telle que les gens la lisent : `example.com/shop` pour `https://www.example.com/shop/`, `bücher.example` pour `https://xn--bcher-kva.example/` ; un hôte dont les lettres mélangent des écritures ou se font passer pour celles d'un autre reste en ASCII ; les lettres encodées du chemin et de la chaîne de requête sont montrées en lettres, `example.com/thé`, alors qu'un encodage d'ASCII, un caractère invisible, une espace ou un caractère de contrôle reste encodé |
+| `display()` | Telle que les gens la lisent : `example.com/shop` pour `https://www.example.com/shop/`, `bücher.example` pour `https://xn--bcher-kva.example/` ; un hôte dont les lettres mélangent des écritures ou se font passer pour celles d'un autre reste en ASCII, tout comme chaque hôte international sans `ext-intl`, dont le vérificateur d'usurpation garantit les lettres ; les lettres encodées du chemin et de la chaîne de requête sont montrées en lettres, `example.com/thé`, alors qu'un encodage d'ASCII, un caractère invisible, une espace ou un caractère de contrôle reste encodé |
 | `isOn(...$domains)` | Si l'hôte est l'un de ces domaines ou en fait partie : `m.facebook.com` est sur `facebook.com` |
 | `segments()` | Les segments du chemin, les segments vides retirés |

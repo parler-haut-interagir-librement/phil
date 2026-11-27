@@ -17,7 +17,7 @@ listing. The kinds of a region, such as a business registry or a government port
 own enum, accepted next to `KnownUrlType`. Detection takes the first case that accepts, set by set, so specific cases
 go first and catch-all ones last.
 
-`phil/url` is a plain PHP library on `ext-intl`, `ext-mbstring` and `phil/enums`, whose `EnumSet` carries the
+`phil/url` is a plain PHP library on `ext-mbstring`, `symfony/polyfill-intl-idn` and `phil/enums`, whose `EnumSet` carries the
 accepted kinds. In a Symfony application, reach for `phil/url-bundle`: a form field that detects the kind, the
 constraint `UrlOfType`, a Doctrine column type and Twig filters. The design rests on value types and enums: a
 `TypedUrl` is an address with its kind, and a kind is any case of any enum that says whether it accepts an address.
@@ -65,7 +65,9 @@ $typed->url->display();    // "instagram.com/shop"
 
 ## Requirements
 
-PHP 8.5 or later with `ext-intl` and `ext-mbstring`; `phil/enums` 0.3.
+PHP 8.5 or later with `ext-mbstring`; `phil/enums` 0.3 and `symfony/polyfill-intl-idn`. `ext-intl` is suggested:
+it converts international hosts faster than the polyfill, and its spoof checker lets `display()` show them in their
+own letters; without it, they are shown in ASCII. See [installation](doc/installation.md).
 
 ## Contributing
 

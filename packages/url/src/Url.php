@@ -6,7 +6,6 @@ namespace Phil\Url;
 
 use Override;
 use Phil\Url\Exception\InvalidUrl;
-use Spoofchecker;
 use Stringable;
 
 /**
@@ -98,13 +97,12 @@ final readonly class Url implements Stringable
     /**
      * The address as people read it: no scheme, no `www.`, no trailing slash, an international host in its own
      * letters — `example.com/shop`, `bücher.example`. A host that ICU's spoof checker finds suspicious, its letters
-     * mixing scripts or passing for another host's, is shown in ASCII, so that it cannot pass for that host.
+     * mixing scripts or passing for another host's, is shown in ASCII, so that it cannot pass for that host; without
+     * `ext-intl`, which holds that checker, every international host is shown in ASCII.
      */
     public function display(): string
     {
-        $unicode = idn_to_utf8($this->host, \IDNA_NONTRANSITIONAL_TO_UNICODE, \INTL_IDNA_VARIANT_UTS46);
-        // A host whose letters mix scripts or imitate another's, `аpple.com` in Cyrillic, stays in ASCII.
-        $host = false === $unicode || $this->checker()->isSuspicious($unicode) ? $this->host : $unicode;
+        $host = HostDisplay::shared()->show($this->host);
         $host = str_starts_with($host, 'www.') ? substr($host, 4) : $host;
 
         $path = '/' === $this->path ? '' : rtrim($this->path, '/');
@@ -127,20 +125,6 @@ final readonly class Url implements Stringable
     }
 
     /**
-     * One spoof checker for every address shown, built for the first one.
-     */
-    private function checker(): Spoofchecker
-    {
-        static $checker = null;
-
-        if (!$checker instanceof Spoofchecker) {
-            $checker = new Spoofchecker();
-        }
-
-        return $checker;
-    }
-
-    /**
      * The path's segments, empty ones dropped: `['@ada', 'posts']` for `/@ada/posts/`.
      *
      * @return list<string>
@@ -159,8 +143,15 @@ final readonly class Url implements Stringable
     private static function checkedHost(string $host, bool $allowLocalhost): string
     {
         $name = str_ends_with($host, '.') ? substr($host, 0, -1) : $host;
-        // ICU refuses an empty name with a ValueError, not with false: `https://.` must end in InvalidUrl too.
-        $ascii = '' === $name ? false : idn_to_ascii($name, \IDNA_NONTRANSITIONAL_TO_ASCII, \INTL_IDNA_VARIANT_UTS46);
+        $ascii = match (true) {
+            // ICU refuses an empty name with a ValueError, not with false: `https://.` must end in InvalidUrl too.
+            '' === $name => false,
+            // Lowercase letters, digits, dots and hyphens, no label with hyphens in third and fourth place — no `xn--`
+            // label among them: the name is its own ASCII form, IDNA would only check what the pattern below checks.
+            // Most hosts skip the conversion, which the polyfill makes slow without ext-intl.
+            1 === preg_match('/^[a-z0-9.-]+$/', $name) && 1 !== preg_match('/(?:^|\.)[a-z0-9-]{2}--/', $name) => $name,
+            default => idn_to_ascii($name, \IDNA_NONTRANSITIONAL_TO_ASCII, \INTL_IDNA_VARIANT_UTS46),
+        };
 
         if ($allowLocalhost && 'localhost' === $ascii) {
             return $ascii;

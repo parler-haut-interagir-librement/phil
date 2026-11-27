@@ -38,6 +38,26 @@ return [
             'CastString' => [
                 'ignoreSourceCodeByRegex' => ['\\$host = \\(string\\) \\$parsed->getAsciiHost\\(\\);'],
             ],
+            // The fast path of a plain ASCII host only skips idn_to_ascii(): the pattern of a host name checks the name
+            // after it either way, so a name the fast path lets through or leaves to IDNA comes out the same; only the
+            // rule of hyphens in third and fourth place, which the tests hold, tells the two apart.
+            'MatchArmRemoval' => [
+                'ignoreSourceCodeByRegex' => ['1 === preg_match\\(.\\/\\^\\[a-z0-9\\.-\\]\\+\\$\\/.*=> \\$name,'],
+            ],
+            'PregMatchRemoveCaret' => [
+                'ignoreSourceCodeByRegex' => ['1 === preg_match\\(.\\/\\^\\[a-z0-9\\.-\\]\\+\\$\\/.*=> \\$name,'],
+            ],
+            'PregMatchRemoveDollar' => [
+                'ignoreSourceCodeByRegex' => ['1 === preg_match\\(.\\/\\^\\[a-z0-9\\.-\\]\\+\\$\\/.*=> \\$name,'],
+            ],
+            // The host read by AddressReader is ASCII and lowercase already, so IDNA only changes a name that the pattern
+            // of a host name refuses afterwards: whichever way the fast path goes, the name comes out the same or is refused.
+            'Identical' => [
+                'ignoreSourceCodeByRegex' => ['1 === preg_match\\(.\\/\\^\\[a-z0-9\\.-\\]\\+\\$\\/.*=> \\$name,'],
+            ],
+            'LogicalAndAllSubExprNegation' => [
+                'ignoreSourceCodeByRegex' => ['1 === preg_match\\(.\\/\\^\\[a-z0-9\\.-\\]\\+\\$\\/.*=> \\$name,'],
+            ],
             // A Url refuses every whitespace in its text, so the path of a Vimeo address never ends with a new line: the
             // pattern of its path matches the same with or without the D modifier.
             'PregMatchRemoveFlags' => [

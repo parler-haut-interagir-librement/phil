@@ -1,9 +1,10 @@
-<!-- phil-dev source-sha256=50bb5b1e4ffb2d336945445246c4dfd06a4b601a9ecc9a80fdccdf3865bbff4d -->
+<!-- phil-dev source-sha256=b1cd8540bebb72a47a244d4545154442005a5430a9e2b26596f897d09c09f3f7 -->
 # Tests
 
 | Domaine | Ce qui est couvert |
 |---|---|
-| `Url` | Chaque forme acceptée et refusée, la normalisation, les limites de longueur, `isOn()`, `display()`, `segments()`, les mêmes résultats sous une locale UTF-8 |
+| `Url` | Chaque forme acceptée et refusée, la normalisation, les limites de longueur, les traits d'union en troisième et quatrième place d'une étiquette, `isOn()`, `display()`, `segments()`, les mêmes résultats sous une locale UTF-8 |
+| `HostDisplay` | Un hôte dans ses propres lettres ou en ASCII, avec le vérificateur d'usurpation d'ICU et sans lui ; un hôte ASCII simple jamais vérifié |
 | `ServiceUrl`, `ServiceHosts` | Hôtes déclarés et non déclarés, noms, adresses IPv4 et IPv6, les règles gardées de `Url`, références résolues sur le même service ou refusées |
 | `KnownUrlType` | Chaque domaine de chaque genre, les profils Mastodon et leurs imitations, les libellés |
 | `UrlTypes`, `TypedUrl` | La détection parmi des ensembles dans l'ordre, les genres de l'application avant ou après les genres internationaux, les refus |
@@ -13,6 +14,11 @@ Infection tient la bibliothèque à 100 % de mutants tués.
 ```sh
 vendor/bin/phpunit packages/url/tests
 ```
+
+La suite passe aussi sur un PHP sans `ext-intl`, où `symfony/polyfill-intl-idn` convertit les hôtes : l'affichage attendu d'un
+hôte international est alors sa forme ASCII, et les tests qui exigent le vérificateur d'usurpation d'ICU sont sautés.
+Installez le paquet seul, hors du monodépôt dont la racine tient lieu de polyfills Symfony, et lancez PHPUnit avec un PHP
+qui laisse `ext-intl` de côté.
 
 ## Fuzzing
 

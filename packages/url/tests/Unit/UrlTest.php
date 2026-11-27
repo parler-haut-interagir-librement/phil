@@ -7,6 +7,7 @@ namespace Phil\Url\Tests\Unit;
 use Phil\Url\AddressReader;
 use Phil\Url\Exception\InvalidUrl;
 use Phil\Url\Exception\UrlException;
+use Phil\Url\HostDisplay;
 use Phil\Url\Url;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -15,6 +16,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Url::class)]
 #[CoversClass(InvalidUrl::class)]
 #[CoversClass(AddressReader::class)]
+#[CoversClass(HostDisplay::class)]
 final class UrlTest extends TestCase
 {
     public function testAnAddressIsReadInParts(): void
@@ -100,6 +102,9 @@ final class UrlTest extends TestCase
         yield 'a port too high' => ['https://example.com:65536/', '"https://example.com:65536/" is not an http or https address.'];
         yield 'an underscore' => ['https://my_shop.example/', '"my_shop.example" is not a host name.'];
         yield 'a dash first' => ['https://-shop.example/', '"-shop.example" is not a host name.'];
+        yield 'hyphens in third and fourth place' => ['https://ab--shop.example/', '"ab--shop.example" is not a host name.'];
+        yield 'hyphens in third and fourth place, a later label' => ['https://shop.ab--c.example/', '"shop.ab--c.example" is not a host name.'];
+        yield 'three hyphens from the second place' => ['https://a---b.example/', '"a---b.example" is not a host name.'];
         yield 'a long label' => ['https://'.str_repeat('a', 64).'.example/', \sprintf('"%s.example" is not a host name.', str_repeat('a', 64))];
         yield 'a long label in the middle' => ['https://www.'.str_repeat('b', 64).'.example/', \sprintf('"www.%s.example" is not a host name.', str_repeat('b', 64))];
         yield 'a dot for host' => ['https://.', '"." is not a host name.'];
@@ -235,7 +240,28 @@ final class UrlTest extends TestCase
         self::assertSame('xn--bcher-kva.example', $url->host);
         self::assertSame('https://xn--bcher-kva.example/th%C3%A9', $url->toString());
         self::assertTrue($url->equals(Url::fromString($url->toString())));
-        self::assertSame('bücher.example/thé', $url->display());
+        self::assertSame(\extension_loaded('intl') ? 'bücher.example/thé' : 'xn--bcher-kva.example/thé', $url->display());
+    }
+
+    /**
+     * A name of lowercase letters, digits and hyphens is its own ASCII form, unless a label holds hyphens in third and
+     * fourth place; hyphens elsewhere are letters like the others.
+     *
+     * @return iterable<string, array{string}>
+     */
+    public static function hyphenatedHosts(): iterable
+    {
+        yield 'two hyphens from the second place' => ['a--b.example'];
+        yield 'two hyphens from the fifth place' => ['abcd--e.example'];
+        yield 'one hyphen in third place' => ['ab-c.example'];
+        yield 'hyphens in fifth and sixth place, a later label' => ['shop.abab--c.example'];
+        yield 'a label in ASCII form' => ['xn--bcher-kva.example'];
+    }
+
+    #[DataProvider('hyphenatedHosts')]
+    public function testHyphensOutsideThirdAndFourthPlaceAreKept(string $host): void
+    {
+        self::assertSame($host, Url::fromString('https://'.$host.'/')->host);
     }
 
     public function testALongHostIsRefused(): void
@@ -279,16 +305,19 @@ final class UrlTest extends TestCase
      */
     public static function displays(): iterable
     {
+        // Without ext-intl, no spoof checker can vouch for an international host: it is displayed in ASCII.
+        $intl = \extension_loaded('intl');
+
         yield 'a home page' => ['https://www.example.com/', 'example.com'];
         yield 'a page' => ['https://example.com/shop/', 'example.com/shop'];
         yield 'a query' => ['http://www.example.com/shop?tea=1#top', 'example.com/shop?tea=1'];
         yield 'a port' => ['https://example.com:8443/', 'example.com:8443'];
         yield 'www inside' => ['https://shop.www.example/', 'shop.www.example'];
-        yield 'an international host' => ['https://www.bücher.example/bücher', 'bücher.example/bücher'];
-        yield 'an international host in ASCII' => ['https://xn--bcher-kva.example/', 'bücher.example'];
+        yield 'an international host' => ['https://www.bücher.example/bücher', $intl ? 'bücher.example/bücher' : 'xn--bcher-kva.example/bücher'];
+        yield 'an international host in ASCII' => ['https://xn--bcher-kva.example/', $intl ? 'bücher.example' : 'xn--bcher-kva.example'];
         yield 'digits in a label' => ['https://1password.com/', '1password.com'];
         yield 'a host passing for another' => ['https://xn--pple-43d.com/', 'xn--pple-43d.com'];
-        yield 'a host in one script' => ['https://xn--80adxhks.xn--p1ai/', 'москва.рф'];
+        yield 'a host in one script' => ['https://xn--80adxhks.xn--p1ai/', $intl ? 'москва.рф' : 'xn--80adxhks.xn--p1ai'];
         yield 'letters in the path and query' => ['https://example.com/thé?q=café', 'example.com/thé?q=café'];
         yield 'letters whose bytes pass for controls' => ['https://example.com/voilà/5€', 'example.com/voilà/5€'];
         yield 'escapes of ASCII kept' => ['https://example.com/a%20b%3C?q=%2F', 'example.com/a%20b%3C?q=%2F'];
