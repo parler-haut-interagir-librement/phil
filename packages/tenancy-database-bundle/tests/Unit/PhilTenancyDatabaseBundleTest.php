@@ -335,10 +335,11 @@ final class PhilTenancyDatabaseBundleTest extends TestCase
         $extension = $this->extension();
         self::assertInstanceOf(PrependExtensionInterface::class, $extension);
         $container->registerExtension($extension);
+        $container->loadFromExtension('phil_tenancy_database', ['availability' => 'cache']);
 
         $extension->prepend($container);
 
-        self::assertSame([], $container->getExtensionConfig('phil_tenancy'));
+        self::assertSame([], $container->getExtensionConfig('phil_tenancy'), 'The pool has no framework to reach: it is not shared either.');
     }
 
     public function testNothingIsPrependedForTheTableOfTheSuspensions(): void

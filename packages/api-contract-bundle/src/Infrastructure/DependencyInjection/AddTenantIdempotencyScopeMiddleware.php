@@ -43,11 +43,7 @@ final readonly class AddTenantIdempotencyScopeMiddleware implements CompilerPass
         }
 
         $named = $container->hasParameter(self::BUSES) ? $container->getParameter(self::BUSES) : [];
-        $named = \is_array($named) ? array_values(array_filter($named, \is_string(...))) : [];
-
-        if ([] === $named) {
-            return;
-        }
+        $named = \is_array($named) ? array_filter($named, \is_string(...)) : [];
 
         $middleware = $this->middleware($container);
 
@@ -77,15 +73,9 @@ final readonly class AddTenantIdempotencyScopeMiddleware implements CompilerPass
      */
     private function order(): array
     {
-        $order = ['before' => [], 'after' => []];
+        $attribute = new ReflectionClass(TenantIdempotencyScopeMiddleware::class)->getAttributes(AsMessageMiddleware::class)[0]->newInstance();
 
-        foreach (new ReflectionClass(TenantIdempotencyScopeMiddleware::class)->getAttributes(AsMessageMiddleware::class) as $attribute) {
-            $instance = $attribute->newInstance();
-            $order['before'] = [...$order['before'], ...(array) $instance->before];
-            $order['after'] = [...$order['after'], ...(array) $instance->after];
-        }
-
-        return $order;
+        return ['before' => (array) $attribute->before, 'after' => (array) $attribute->after];
     }
 
     /**
