@@ -6,7 +6,8 @@ phil/identity-client-bundle configures the `oidc_login` authenticator of Symfony
 writes the firewall, pins the signature algorithm and adds what a relying party needs beyond the sign-in flow: a
 validated `return_to`, a back-channel logout that accepts each token once, with a floor for a replay store that was
 emptied, a session cap, a required assurance level and step-up by `acr_values` and `max_age`, and token refresh that
-never presents a rotated refresh token twice.
+never presents a rotated refresh token twice. With `phil/saml-sp-bundle`, the sign-ins of SAML identity providers land
+in the same accounts.
 
 It is for Symfony applications that delegate authentication to an OpenID Connect provider. The flow itself, the state
 and nonce, discovery, the signature checks and client authentication all stay Symfony's own.
@@ -23,6 +24,7 @@ and nonce, discovery, the signature checks and client authentication all stay Sy
 | Required assurance level, checked on the returned `acr` | Implemented and tested |
 | Step-up: voter, `acr_values`, `max_age`, RFC 9470 challenge | Implemented and tested |
 | Serialized token refresh | Implemented and tested |
+| SAML sign-ins provisioned into the same accounts, created at the first sign-in | Implemented and tested |
 
 An independent security review is expected before a first release.
 
@@ -37,6 +39,7 @@ An independent security review is expected before a first release.
 | [Logout](doc/logout.md) | Back-channel logout, the replay guard, the session cap, the cold-start floor. |
 | [Step-up](doc/step-up.md) | Assurance levels, the required level, the voter, the challenge. |
 | [Token refresh](doc/token-refresh.md) | The lock, the shared outcome, family revocation. |
+| [SAML accounts](doc/saml.md) | SAML sign-ins through `phil/saml-sp-bundle`, into the accounts of the provisioner. |
 | [Extension points](doc/extension-points.md) | Ports, events, services. |
 | [Security](doc/security.md) | The threats covered and what stays with the application. |
 | [Testing](doc/testing.md) | How the bundle is tested. |
@@ -73,6 +76,7 @@ A link to `/oidc/start?return_to=/account` signs the user in and lands on the ac
 
 PHP 8.5 or later with `ext-sodium` and `ext-uri`; Symfony 8.2's security bundle and components, framework bundle, HTTP
 client, cache, clock and lock; `web-token/jwt-library` 4.2, which the `oidc_login` authenticator runs on.
+The SAML accounts need `phil/saml-sp-bundle`.
 
 ## Contributing
 

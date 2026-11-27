@@ -43,6 +43,7 @@ Symfony's `OidcAuthorizationRequestEvent` remains available to compute other par
 | `back_channel_logout.cold_start_floor` | The floor of the replay store, and an instant of its own |
 | `return_to.origins` | Where a sign-in may land |
 | `paths` | Every route and landing page |
+| `saml.verified_email_from` | The SAML identity providers whose addresses reach the provisioner |
 
 ## Services
 
@@ -50,3 +51,4 @@ Symfony's `OidcAuthorizationRequestEvent` remains available to compute other par
 |---|---|
 | `security.authenticator.oidc_login.token_refresher.<firewall>` | Symfony's refresher, to force a renewal |
 | `OIDC_ASSURANCE:<level>` | The attribute of `AssuranceVoter`, in `#[IsGranted]` or `is_granted()` |
+| `phil_identity_client.saml_accounts` | The `SamlAccounts` of `phil/saml-sp-bundle` over the provisioner, with `saml.enabled`; see [SAML accounts](saml.md) |

@@ -39,6 +39,9 @@ An `email` only appears when `email_verified` is exactly `true`, and a `phone_nu
 address cannot reach the code that would match it. Key the account on the issuer and the subject, so that two providers
 never share one.
 
+With `saml` turned on, the sign-ins of SAML identity providers reach the same port, with the entity ID of the identity
+provider as issuer and `<key>|<identifier>` as subject; see [SAML accounts](saml.md).
+
 ## What the session keeps
 
 The security token keeps the provider session id, the authentication class, the proofs of authentication and the start

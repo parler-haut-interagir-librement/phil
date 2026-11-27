@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c538e88da937442866ea4cd8144ab36af19cab8a081f994343f22903dbfffebe -->
+<!-- phil-dev source-sha256=72a6333583191b32a98cda6ac4dfab7ef4dc105cb277004d1ccff9795d50faa4 -->
 # Approvisionnement
 
 Le bundle connecte un utilisateur sur la seule revendication `sub`. L'application décide de ce que cela signifie dans ses
@@ -39,6 +39,9 @@ Un `email` n'apparaît que si `email_verified` vaut exactement `true`, et un `ph
 `phone_number_verified`. Lier un compte existant passe donc par `verifiedEmail()`, et une adresse non vérifiée ne peut
 pas atteindre le code qui la ferait correspondre. Indexez le compte sur l'émetteur et le sujet, pour que deux
 fournisseurs n'en partagent jamais un.
+
+Avec `saml` activé, les connexions des fournisseurs d'identité SAML parviennent au même port, avec l'identifiant d'entité
+du fournisseur d'identité comme émetteur et `<key>|<identifier>` comme sujet ; voir [Comptes SAML](saml.md).
 
 ## Ce que garde la session
 

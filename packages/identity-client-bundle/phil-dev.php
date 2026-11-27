@@ -8,7 +8,7 @@ declare(strict_types=1);
 return [
     'paths' => ['src', 'tests'],
     // The package is released from its own repository: its CHANGELOG uses every section.
-    'docs' => ['public' => true, 'words' => ['PKCE']],
+    'docs' => ['public' => true, 'words' => ['PKCE', 'SCIM']],
     'phpstan' => [
         // The fuzz target runs inside nikic/php-fuzzer, the worker page inside FrankenPHP: each gives them what PHPStan
         // does not know.

@@ -129,6 +129,8 @@ final class ClientServices
             self::registerRefresh($services, $config);
         }
 
+        SamlAccountsComposer::register($services, $config);
+
         $container->parameters()
             ->set(NativeAuthenticatorPass::FIREWALL_PARAMETER, $firewall)
             ->set(NativeAuthenticatorPass::SERVICES_PARAMETER, self::nativeServices($config));

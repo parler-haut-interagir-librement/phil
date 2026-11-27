@@ -4,6 +4,19 @@ All notable changes to `phil/identity-client-bundle` will be documented in this 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.1-alpha.
+
+### Added
+
+- `saml`, off by default: the sign-ins of `phil/saml-sp-bundle` handed to the `UserProvisioner`, so that people signed
+  in through the SAML identity provider of their organisation land in the same accounts, created at their first
+  sign-in. `ProvisionedSamlAccounts`, the `phil_identity_client.saml_accounts` service, is named in
+  `phil_saml_sp.accounts`; its subject is `<key>|<identifier>`, its issuer the entity ID of the identity provider, and
+  the fields of the assertion become claims of the OpenID Connect names, filtered by `claims`. An email address only
+  reaches the provisioner from an identity provider of `saml.verified_email_from`. See [SAML accounts](doc/saml.md).
+
 ## 0.3.0-alpha - 2026-11-24
 
 A level every sign-in has to reach, and a cold-start floor of the replay store. See

@@ -20,6 +20,9 @@
 | Refresh token family revoked by a race | One refresh per token, shared outcome | `SerializedTokenRefreshListener` |
 | Refresh token family revoked by the provider | The whole local session invalidated | `SerializedTokenRefreshListener` |
 | Tokens leaked from a session or a cache | Kept only when read; shared results encrypted | `SignInListener`, `EncryptedRefreshOutcomes` |
+| One SAML identity provider taking over the accounts of another, or of the OpenID Connect provider | The subject carries the key of the identity provider, the issuer its entity ID | `ProvisionedSamlAccounts` |
+| Account takeover through an address a SAML identity provider sends | Addresses dropped unless the identity provider is listed in `saml.verified_email_from` | `ProvisionedSamlAccounts` |
+| Forged, wrapped, foreign, expired or replayed SAML response | Signature, audience, time window and single use checked before this bundle sees the identity | `phil/saml-sp-bundle` |
 
 ## What stays with the application
 

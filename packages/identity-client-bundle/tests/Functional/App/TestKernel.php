@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityClientBundle\Tests\Functional\App;
 
+use ArrayObject;
 use Override;
 use Phil\IdentityClientBundle\Application\Contract\UserProvisioner;
 use Phil\IdentityClientBundle\Application\Event\ElevationRefused;
@@ -14,6 +15,7 @@ use Phil\IdentityClientBundle\Application\Event\RefreshTokenRejected;
 use Phil\IdentityClientBundle\Application\Event\ReturnToDiscarded;
 use Phil\IdentityClientBundle\Application\Event\TokensRefreshed;
 use Phil\IdentityClientBundle\Application\Event\UserSignedIn;
+use Phil\IdentityClientBundle\Infrastructure\DependencyInjection\SamlAccountsComposer;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Clock\MockClock;
@@ -106,6 +108,7 @@ final class TestKernel extends Kernel
         }
 
         $services->set('test.page', TestPage::class)->public();
+        $services->set('test.saml_accounts', ArrayObject::class)->args([[service(SamlAccountsComposer::SERVICE)->nullOnInvalid()]])->public();
     }
 
     private function configureRoutes(RoutingConfigurator $routes): void
