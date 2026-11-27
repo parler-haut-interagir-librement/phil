@@ -1,5 +1,7 @@
 # ASVS 5.0: what the application keeps
 
+[Français](ASVS.fr.md)
+
 The packages of this monorepo meet some requirements of [OWASP ASVS 5.0.0](https://github.com/OWASP/ASVS/tree/v5.0.0/5.0/en)
 and show each one by a test; each package that does so has a page `doc/asvs.md`. Some requirements cannot be met by a
 package: they depend on what the application records, on its accounts, its database roles or its hosts. This guide

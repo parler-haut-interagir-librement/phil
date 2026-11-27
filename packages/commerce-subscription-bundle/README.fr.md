@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f14ad60d85f9baee13049c3dcd5ce5124ff9c5a04913b5eb24d37b1630eafcc4 -->
+<!-- phil-dev source-sha256=3f312b3678c877ca5b37a8dcc15a3aa70efbf1ca00bf1159731ece8b86b0e443 -->
 # phil/commerce-subscription-bundle
 
 **Des offres récurrentes en paliers, avec essais, renouvellement, relances, calcul au prorata, cadeaux et les
@@ -10,8 +10,9 @@ démarre des abonnements avec ou sans essai, commande chaque période de factura
 les paiements échoués et annule à la fin de la période payée. Il change de palier au renouvellement suivant, ou
 sur-le-champ avec la partie inutilisée de la période créditée. Un acheteur offre un abonnement à quelqu'un d'autre
 avec un code. Il dit quelles fonctionnalités un abonné peut utiliser, et ouvre l'abonnement d'une organisation à ses
-membres, avec des places facultatives. Avec DoctrineBundle, les offres, les abonnements, les cadeaux et les places sont
-enregistrés.
+membres, avec des places facultatives. Un abonnement qui expédie quelque chose garde une adresse de livraison, figée
+dans chacune de ses commandes et effacée quelques jours après le dernier envoi. Avec DoctrineBundle, les offres, les
+abonnements, les cadeaux, les places et les adresses de livraison sont enregistrés.
 
 Tant qu'un renouvellement est en souffrance, les étapes de relance de chaque offre disent ce que l'abonné garde après un
 certain nombre de jours : toutes les fonctionnalités par défaut, quelques-unes, ou aucune.
@@ -39,6 +40,7 @@ noyau le taxe. L'application lit `FeatureAccess` pour ouvrir ou fermer une fonct
 | Les organisations, avec des places facultatives | Implémenté et testé |
 | L'accès aux fonctionnalités par palier | Implémenté et testé |
 | Les étapes de relance par offre : toutes les fonctionnalités, quelques-unes ou aucune après un certain nombre de jours de retard | Implémenté et testé |
+| Les adresses de livraison : sur l'abonnement, figées dans chaque commande, effacées après le dernier envoi, dans les demandes d'accès et d'effacement | Implémenté et testé |
 | Le stockage sur Doctrine | Implémenté et testé |
 
 ## Documentation
@@ -54,6 +56,7 @@ noyau le taxe. L'application lit `FeatureAccess` pour ouvrir ou fermer une fonct
 | [Organisations](doc/fr/organizations.md) | L'appartenance par un port, ce qu'un membre peut utiliser, les places. |
 | [Fonctionnalités](doc/fr/features.md) | Ce qu'un abonné ou un membre peut utiliser. |
 | [Relance](doc/fr/dunning.md) | Ce qu'un abonné garde tant qu'un renouvellement est en souffrance, étape par étape. |
+| [Adresses de livraison](doc/fr/delivery-addresses.md) | Où vont les envois d'un abonnement, la copie figée dans chaque commande, le numéro de téléphone, l'effacement. |
 | [Portée](doc/fr/scope.md) | Ce que le module contient, ce qu'il laisse à d'autres paquets et la couture avec eux, et les ports du noyau qu'il implémente. |
 | [Points d'extension](doc/fr/extension-points.md) | Ce qu'une application implémente, configure, remplace ou utilise. |
 | [Tests](doc/fr/testing.md) | Comment le module est testé, et comment lancer ses tests. |
@@ -76,8 +79,10 @@ return [
 
 ## Prérequis
 
-PHP 8.5 ou plus récent ; `phil/commerce-bundle`, `phil/ddd-bundle` et `phil/money` 0.1 ; Doctrine ORM 3.7 ; `psr/clock` 1.0 ;
-`symfony/uid`, `symfony/config` et `symfony/dependency-injection` 8.2 ou plus récent.
+PHP 8.5 ou plus récent ; `phil/commerce-bundle` 0.4 ; `phil/address`, `phil/ddd-bundle` et `phil/money` 0.1 ; Doctrine
+ORM 3.7 et DBAL 4.5 ; `psr/clock` 1.0 ; `symfony/uid`, `symfony/config` et `symfony/dependency-injection` 8.2 ou plus
+récent. Facultatifs : `symfony/console`, `symfony/scheduler` et `symfony/lock` pour la purge des adresses de livraison,
+et `phil/privacy-bundle` 0.3 pour leurs demandes d'accès et d'effacement.
 
 ## Contribuer
 

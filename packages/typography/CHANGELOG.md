@@ -1,5 +1,7 @@
 # Changelog
 
+[Français](CHANGELOG.fr.md)
+
 All notable changes to `phil/typography` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
