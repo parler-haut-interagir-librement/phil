@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9eeb4cfd7766f9aa48411643887dd898d4bcc0bb5c5d0713955b61b3063347d8 -->
+<!-- phil-dev source-sha256=647f064bd82ba590a6be305034c693804320bf8acbd56a2b1ca455719d5bb647 -->
 # Formats
 
 ## Le CSV lu
@@ -91,6 +91,7 @@ sci,Sciences,
 sci-math-alg,Algebra,sci-math
 ```
 
-### Formats ultérieurs
+### Questions
 
-L'importation des questions d'une évaluation, avec leurs choix et leurs réponses, est un format ultérieur.
+Les questions d'un quiz et d'un sondage ont chacune un profil, dans les paquets qui les possèdent, et partagent les
+conventions de [Fichiers de questions](question-files.md).

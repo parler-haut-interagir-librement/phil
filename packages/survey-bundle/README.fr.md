@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ffeaa56d45f4274890a3898b7fca6e02ac72760bf4bbbe878233bd7fcfdfc71f -->
+<!-- phil-dev source-sha256=17aa5a06b77a67b657bd0d3a4070b56ada8cc3ef55cf28dc3bb55a51d5b27803 -->
 # phil/survey-bundle
 
 **Menez des sondages qui s'adaptent à chaque réponse : sections conditionnelles, questions de classement et de matrice,
@@ -21,8 +21,10 @@ adresse IP, le jour seulement. La **rétroaction de séance** s'ouvre dans une f
 **addenda** permettent à un répondant de compléter une réponse envoyée ; les **résultats** sont retenus sous un minimum,
 et ne sont montrés aux répondants que si un questionnaire les active. Chaque questionnaire fixe la durée de
 conservation de ses réponses, et une purge planifiée supprime le reste. Les questionnaires sont faits à partir de
-**gabarits**, et exportés et importés en JSON avec un schéma publié. Les réponses identifiées participent à
-l'exportation et à l'effacement de `phil/privacy-bundle`.
+**gabarits**, et exportés et importés en JSON avec un schéma publié ; leurs questions viennent aussi d'un **fichier
+CSV** par `phil/import-wizard`, avec un essai à blanc qui refuse, cellule par cellule, chaque ligne que le
+questionnaire refuserait. Les réponses identifiées participent à l'exportation et à l'effacement de
+`phil/privacy-bundle`.
 
 Les pages fonctionnent sans JavaScript ; un contrôleur Stimulus affiche une question ou une section à la fois, avec la
 progression. Les tables, sur Doctrine DBAL, sont testées sur SQLite, MySQL 8.4 et PostgreSQL 17.
@@ -38,6 +40,7 @@ progression. Les tables, sur Doctrine DBAL, sont testées sur SQLite, MySQL 8.4 
 | Les résultats retenus sous un minimum, les résultats publics après la réponse, désactivés par défaut | Implémenté et testé |
 | Une conservation par questionnaire, sa purge planifiée | Implémenté et testé |
 | Les gabarits et le gabarit `session_feedback` | Implémenté et testé |
+| L'importation CSV des questions par `phil/import-wizard`, son essai à blanc et sa commande | Implémenté, testé et soumis au fuzzing |
 | L'exportation et l'effacement de `phil/privacy-bundle` | Implémenté et testé |
 | Les pages sans JavaScript et le contrôleur Stimulus `progress` | Implémenté ; le rythme du contrôleur est testé sous Node |
 | Un constructeur visuel de conditions, des exportations vers des tableurs | Non commencé |
@@ -49,6 +52,7 @@ progression. Les tables, sur Doctrine DBAL, sont testées sur SQLite, MySQL 8.4 
 | [Installation](doc/fr/installation.md) | Les prérequis et l'installation. |
 | [Configuration](doc/fr/configuration.md) | Chaque option, avec un exemple. |
 | [Questionnaires](doc/fr/questionnaires.md) | Le modèle, les types de questions, les conditions, le format JSON et les gabarits. |
+| [Importation CSV](doc/fr/csv-import.md) | Le fichier CSV des questions, ses cellules, l'essai à blanc, l'importation dans un questionnaire et la commande. |
 | [Réponses](doc/fr/responses.md) | Les envois, les fins et les redirections, les quotas, l'anonymat, la rétroaction de séance et les addenda. |
 | [Résultats, conservation et vie privée](doc/fr/results.md) | Les résultats et leur minimum, la purge, l'exportation et l'effacement. |
 | [Pages](doc/fr/pages.md) | Les routes, les gabarits et le contrôleur Stimulus. |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8cd945f2fcc9346f99712f59cc786cc3182966bb554af4549de0fa72ab76e4c7 -->
+<!-- phil-dev source-sha256=24c644105e9279e700d03212bc41b50bc7bd5ea5a7a035fb6b640fc9b4eabfba -->
 # Points d'extension
 
 La bibliothèque en est à ses versions `0.x` : les ports, les objets-valeurs et les exceptions peuvent changer dans une
@@ -84,7 +84,8 @@ Ces cibles appartiennent aux bundles qui possèdent les enregistrements, et s'é
   `organisational-unit` ; `write()` crée et déplace les unités, un parent toujours écrit dans un lot antérieur à celui
   de ses enfants ; le `unit_code` d'une personne reçoit sa réponse des mêmes clés.
 
-L'importation des questions d'une évaluation est un format ultérieur, avec son propre profil et sa propre cible.
+- **Questions** — les questions d'une évaluation et d'un sondage : leurs profils et leurs cibles sont écrits dans les
+  paquets qui les possèdent, comme le dit [Fichiers de questions](question-files.md).
 
 ## Sources
 
