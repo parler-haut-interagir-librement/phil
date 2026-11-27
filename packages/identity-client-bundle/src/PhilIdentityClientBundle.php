@@ -10,6 +10,7 @@ use Phil\IdentityClientBundle\Infrastructure\DependencyInjection\ClientConfigura
 use Phil\IdentityClientBundle\Infrastructure\DependencyInjection\ClientServices;
 use Phil\IdentityClientBundle\Infrastructure\DependencyInjection\FirewallComposer;
 use Phil\IdentityClientBundle\Infrastructure\DependencyInjection\NativeAuthenticatorPass;
+use Phil\IdentityClientBundle\Infrastructure\DependencyInjection\SamlAccountsComposer;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Processor;
@@ -65,6 +66,7 @@ final class PhilIdentityClientBundle extends AbstractBundle
         $config = new Processor()->processConfiguration($configuration, $builder->getExtensionConfig($extension->getAlias()));
 
         FirewallComposer::prepend($builder, $config);
+        SamlAccountsComposer::prepend($builder, $config);
     }
 
     /**

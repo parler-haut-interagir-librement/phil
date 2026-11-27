@@ -69,7 +69,13 @@ phil_identity_client:
     tokens:
         keep_access_token: false
         keep_id_token: false
+
+    saml:
+        enabled: false                # the sign-ins of phil/saml-sp-bundle, into the UserProvisioner
+        verified_email_from: []       # the identity providers trusted to verify the addresses they send
 ```
+
+`saml` is described in [SAML accounts](saml.md).
 
 ## Values of a network
 

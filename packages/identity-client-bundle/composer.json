@@ -7,6 +7,8 @@
         "back-channel-logout",
         "oidc",
         "openid-connect",
+        "saml",
+        "sso",
         "step-up",
         "symfony-bundle"
     ],
@@ -42,12 +44,17 @@
         "web-token/jwt-library": "^4.2"
     },
     "require-dev": {
+        "phil/saml-sp": "^0.1@dev",
+        "phil/saml-sp-bundle": "^0.1@dev",
         "phpbench/phpbench": "^1.7",
         "phpunit/phpunit": "^13.4",
         "psr/container": "^2.0",
         "symfony/browser-kit": "^8.2",
         "symfony/http-client-contracts": "^3.8",
         "symfony/routing": "^8.2"
+    },
+    "suggest": {
+        "phil/saml-sp-bundle": "To sign people in through the SAML identity provider of their organisation, into the accounts of the UserProvisioner"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

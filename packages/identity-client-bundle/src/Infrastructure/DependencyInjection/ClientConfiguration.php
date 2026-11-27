@@ -37,6 +37,7 @@ use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
  *     elevation: array{max_age: ?int, retry_after: int, required_level: ?string, levels: array<string, Level>},
  *     refresh: array{enabled: bool, leeway: int, wait_timeout: float, lock_ttl: float, outcome_ttl: int, cache: string},
  *     tokens: array{keep_access_token: bool, keep_id_token: bool},
+ *     saml: array{enabled: bool, verified_email_from: list<string>},
  * }
  */
 final class ClientConfiguration
@@ -175,6 +176,17 @@ final class ClientConfiguration
                     ->children()
                         ->booleanNode('keep_access_token')->defaultFalse()->end()
                         ->booleanNode('keep_id_token')->defaultFalse()->end()
+                    ->end()
+                ->end()
+                ->arrayNode('saml')
+                    ->info('Hands the sign-ins of phil/saml-sp-bundle to the UserProvisioner, through the phil_identity_client.saml_accounts service.')
+                    ->canBeEnabled()
+                    ->children()
+                        ->arrayNode('verified_email_from')
+                            ->info('The keys of the identity providers trusted to verify the email addresses they send; the address of any other is dropped.')
+                            ->scalarPrototype()->cannotBeEmpty()->end()
+                            ->defaultValue([])
+                        ->end()
                     ->end()
                 ->end()
             ->end();
