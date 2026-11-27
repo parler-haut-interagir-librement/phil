@@ -41,6 +41,8 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
  * The reservation expires after `$reservationTtl` seconds (or the key's own retention, if shorter): a process that
  * dies before its response blocks retries for that long only. The answered key is then kept for its retention, `$ttl`
  * or the controller's `#[Idempotent(ttl: …)]`.
+ *
+ * A request API Platform handles is left alone, attribute or not: its operations are not guarded here.
  */
 final readonly class IdempotencyListener
 {
@@ -84,6 +86,12 @@ final readonly class IdempotencyListener
 
     public function onControllerArguments(ControllerArgumentsEvent $event): void
     {
+        $request = $event->getRequest();
+
+        if (ApiPlatformRequests::handles($request)) {
+            return;
+        }
+
         $attributes = $event->getAttributes(Idempotent::class);
 
         if ([] === $attributes) {
@@ -93,8 +101,6 @@ final readonly class IdempotencyListener
         if (!$this->guard instanceof IdempotencyGuard) {
             throw new LogicException('An #[Idempotent] controller needs an IdempotencyStore: set phil_api_contract.idempotency.connection or cache_pool, or alias the port to a store of the application.');
         }
-
-        $request = $event->getRequest();
 
         try {
             $key = IdempotencyKey::fromHeader($request->headers->get(IdempotencyKey::HEADER));

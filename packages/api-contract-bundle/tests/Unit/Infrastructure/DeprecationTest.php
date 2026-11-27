@@ -12,6 +12,7 @@ use Phil\ApiContract\Exception\InvalidContractValue;
 use Phil\ApiContractBundle\Infrastructure\Console\DeprecationsCommand;
 use Phil\ApiContractBundle\Infrastructure\DependencyInjection\CheckDeprecatedEndpoints;
 use Phil\ApiContractBundle\Infrastructure\Deprecation\CacheObservedDeprecations;
+use Phil\ApiContractBundle\Infrastructure\Http\ApiPlatformRequests;
 use Phil\ApiContractBundle\Infrastructure\Http\DeprecatedEndpoint;
 use Phil\ApiContractBundle\Infrastructure\Http\DeprecationListener;
 use Phil\ApiContractBundle\Infrastructure\HttpClient\DeprecationObservingHttpClient;
@@ -22,6 +23,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
 use Psr\Log\AbstractLogger;
+use stdClass;
 use Stringable;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TraceableAdapter;
@@ -41,6 +43,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 #[CoversClass(DeprecatedEndpoint::class)]
 #[CoversClass(DeprecationListener::class)]
+#[CoversClass(ApiPlatformRequests::class)]
 #[CoversClass(CacheObservedDeprecations::class)]
 #[CoversClass(DeprecationObservingHttpClient::class)]
 #[CoversClass(DeprecationsCommand::class)]
@@ -73,6 +76,24 @@ final class DeprecationTest extends TestCase
         $response = new Response();
         $listener->onResponse(new ResponseEvent($kernel, $plain, HttpKernelInterface::MAIN_REQUEST, $response));
         self::assertFalse($response->headers->has('Deprecation'));
+    }
+
+    public function testARequestApiPlatformHandlesIsLeftAloneEvenWithTheAttribute(): void
+    {
+        $kernel = self::createStub(HttpKernelInterface::class);
+        $listener = new DeprecationListener();
+
+        foreach (['_api_resource_class' => 'App\Entity\Book', '_api_operation' => new stdClass()] as $name => $value) {
+            $request = Request::create('/api/books');
+            $request->attributes->set($name, $value);
+            $event = new ControllerEvent($kernel, static fn (): Response => new Response(), $request, HttpKernelInterface::MAIN_REQUEST);
+            $event->setController($event->getController(), [new DeprecatedEndpoint('2026-11-01', '2027-05-01')]);
+
+            $listener->onController($event);
+            $response = new Response(headers: ['Sunset' => 'Sat, 01 May 2027 00:00:00 GMT']);
+            $listener->onResponse(new ResponseEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST, $response));
+            self::assertSame([false, 'Sat, 01 May 2027 00:00:00 GMT', false], [$response->headers->has('Deprecation'), $response->headers->get('Sunset'), $response->headers->has('Link')], $name);
+        }
     }
 
     public function testAnAttributeThatCannotBeSentIsRefusedWhenBuilt(): void

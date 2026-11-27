@@ -51,7 +51,9 @@ A service implementing `Phil\ApiContract\Contract\OpenApiRule` of `phil/api-cont
 
 `ProblemException` carries any `ProblemDetails` the application builds — its type, extensions and headers — and is
 answered as a problem wherever it is thrown; `problem_details.paths` widens that to every exception under the paths
-given. `ProblemDetailsResponse` writes one from a controller. See [Problems](problems.md).
+given. `ProblemDetailsResponse` writes one from a controller. A request API Platform handles keeps API Platform's
+own errors under the paths, and its controllers skip `#[Idempotent]` and `#[DeprecatedEndpoint]`. See
+[Problems](problems.md#requests-api-platform-handles).
 
 ## Configuration
 

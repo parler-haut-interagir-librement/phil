@@ -9,6 +9,7 @@ use DateTimeImmutable;
 use LogicException;
 use Phil\ApiContract\Exception\InvalidContractValue;
 use Phil\ApiContractBundle\Infrastructure\Http\AnonymousCallers;
+use Phil\ApiContractBundle\Infrastructure\Http\ApiPlatformRequests;
 use Phil\ApiContractBundle\Infrastructure\Http\CallerScopeResolver;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyListener;
 use Phil\ApiContractBundle\Infrastructure\Http\IdempotencyReservation;
@@ -27,6 +28,7 @@ use Phil\Idempotency\StoredResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
+use stdClass;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\HttpFoundation\Request;
@@ -42,6 +44,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 #[CoversClass(Idempotent::class)]
 #[CoversClass(ProblemException::class)]
 #[CoversClass(IdempotencyReservation::class)]
+#[CoversClass(ApiPlatformRequests::class)]
 final class IdempotencyListenerTest extends TestCase
 {
     public function testANewKeyIsReservedThenAnswered(): void
@@ -264,6 +267,31 @@ final class IdempotencyListenerTest extends TestCase
         $request->attributes->set(IdempotencyListener::RESERVED, new IdempotencyReservation(Reservation::create(IdempotencyScope::of('ip:10.0.0.1'), IdempotencyKey::fromString('k1')), 100));
         new IdempotencyListener(null, new FixedScopeResolver(), 100, new NativeClock())->onResponse($this->response($request, new Response()));
         self::assertTrue($request->attributes->has(IdempotencyListener::RESERVED));
+    }
+
+    public function testARequestApiPlatformHandlesIsLeftAloneEvenWithTheAttribute(): void
+    {
+        foreach (['_api_resource_class' => 'App\Entity\Book', '_api_operation' => new stdClass()] as $name => $value) {
+            $store = new InMemoryIdempotencyStore();
+            $request = self::request(null);
+            $request->attributes->set($name, $value);
+            $event = self::controller($request, new Idempotent());
+            $controller = $event->getController();
+
+            self::listener($store)->onControllerArguments($event);
+            self::listener($store)->onResponse($this->response($request, new Response()));
+            self::assertSame([[], $controller, ['order-1']], [$store->calls, $event->getController(), $event->getArguments()], $name);
+            self::assertFalse($request->attributes->has(IdempotencyListener::RESERVED));
+            self::assertFalse($request->attributes->has(IdempotencyListener::ANONYMOUS_CALLERS));
+        }
+
+        $store = new InMemoryIdempotencyStore();
+        $this->assertProblem(400, 'An Idempotency-Key header is required.', static fn () => self::listener($store)->onControllerArguments(self::controller(self::request(null), new Idempotent())));
+
+        $withoutStore = self::request(null);
+        $withoutStore->attributes->set('_api_operation', new stdClass());
+        new IdempotencyListener(null, new FixedScopeResolver(), 100, new NativeClock())->onControllerArguments(self::controller($withoutStore, new Idempotent()));
+        self::assertSame([], $store->calls);
     }
 
     public function testTheRequestKeepsTheReservationTheStoreGave(): void

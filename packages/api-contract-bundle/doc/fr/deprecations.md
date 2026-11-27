@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=80516a6099bfa609ceae707ad5e356bb6b2f874174205dcca0ce2c25d514100a -->
+<!-- phil-dev source-sha256=ca7ca44887207d62718e5edb1d90f4c69a95d1d50cf0611e953079acbdc2c551 -->
 # Obsolescences
 
 ## Côté serveur
@@ -26,6 +26,10 @@ illisible, un retrait antérieur à l'obsolescence ou un lien contenant une espa
 un tel service est vérifié à sa première requête. `Deprecation` et `Sunset` remplacent ceux que le contrôleur a définis.
 Le `Link` s'ajoute à côté des propres en-têtes `Link` de la réponse, comme la pagination ou le préchargement, jamais à
 leur place.
+
+Une requête que traite API Platform — celle qui porte l'attribut `_api_resource_class` ou `_api_operation` — ne reçoit
+aucun de ces en-têtes, même si son contrôleur porte l'attribut : API Platform annonce ses propres opérations, avec leur
+`deprecationReason` et leur `sunset`.
 
 ## Côté client
 

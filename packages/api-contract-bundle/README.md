@@ -18,7 +18,9 @@ The bundle plugs into the HTTP kernel through listeners on its controller, respo
 Symfony's HTTP client. Doctrine DBAL, or a cache pool under a Symfony lock, keeps the idempotency keys, Symfony Security
 and `phil/tenancy-bundle` scope them by user, API client and tenant, Symfony Messenger carries the tenant into the keys
 of messages, the Console component runs the two commands, and the Yaml component reads a YAML document; each of these
-is optional. The design implements the library's ports with adapters for each of these components.
+is optional. The design implements the library's ports with adapters for each of these components. The requests API
+Platform handles are left to it: its errors keep their own members, and its operations are neither keyed nor
+announced by the bundle, so `problem_details.paths` may cover `/api` beside API Platform.
 
 ## Status
 

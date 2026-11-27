@@ -16,6 +16,10 @@ use Throwable;
  * configured paths, an HTTP exception becomes the blank problem of its status, an `OptimisticLockException` of
  * Doctrine — a write over a version someone else changed — a `409` of the stable type `WRITE_CONFLICT_TYPE`, and any
  * other exception a `500` without detail — except in debug, where Symfony shows it.
+ *
+ * A request API Platform handles is left to API Platform under the paths too, so that its errors keep their own
+ * members — the violations of a `422` among them —: only a `ProblemException`, which the application throws on
+ * purpose, is answered there.
  */
 final readonly class ProblemDetailsListener
 {
@@ -44,7 +48,9 @@ final readonly class ProblemDetailsListener
             return;
         }
 
-        if (!$this->covers($event->getRequest()->getPathInfo())) {
+        $request = $event->getRequest();
+
+        if (ApiPlatformRequests::handles($request) || !$this->covers($request->getPathInfo())) {
             return;
         }
 

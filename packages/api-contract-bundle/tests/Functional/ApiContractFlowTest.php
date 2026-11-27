@@ -70,6 +70,21 @@ final class ApiContractFlowTest extends FunctionalTestCase
         self::assertNotSame('application/problem+json', $page->headers->get('Content-Type'));
     }
 
+    public function testARequestApiPlatformHandlesIsLeftToIt(): void
+    {
+        $missing = $this->handle(Request::create('/api/books/missing'));
+        self::assertSame(404, $missing->getStatusCode());
+        self::assertNotSame('application/problem+json', $missing->headers->get('Content-Type'));
+
+        $first = $this->post('/api/books', '{}', null);
+        $again = $this->post('/api/books', '{}', 'key-9');
+        self::assertSame([201, 201, null, null, null], [$first->getStatusCode(), $again->getStatusCode(), $first->headers->get('Deprecation'), $again->headers->get('Idempotent-Replayed'), $again->headers->get('Sunset')]);
+        self::assertSame(2, $this->controller()->orders);
+
+        $ours = $this->post('/api/old-orders', '{}', null);
+        self::assertSame([400, 'application/problem+json'], [$ours->getStatusCode(), $ours->headers->get('Content-Type')]);
+    }
+
     public function testADeprecatedEndpointSaysSo(): void
     {
         $response = $this->handle(Request::create('/api/old'));

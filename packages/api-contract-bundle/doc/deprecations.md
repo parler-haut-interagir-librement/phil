@@ -25,6 +25,10 @@ endpoint. A controller that is not such a service is checked at its first reques
 any the controller set; the `Link` is added beside the response's own `Link` headers, such as pagination or
 preload, never in their place.
 
+A request API Platform handles — one that carries the attribute `_api_resource_class` or `_api_operation` — gets none
+of these headers, even when its controller carries the attribute: API Platform announces its own operations, with
+their `deprecationReason` and `sunset`.
+
 ## As a client
 
 `DeprecationObservingHttpClient` decorates the `http_client` service. When a response carries `Deprecation` or

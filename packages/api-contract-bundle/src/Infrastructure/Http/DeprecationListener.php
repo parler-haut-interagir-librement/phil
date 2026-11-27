@@ -11,7 +11,8 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 /**
  * Announces the deprecation of a controller marked `#[DeprecatedEndpoint]` on each of its responses. `Deprecation`
  * and `Sunset` replace any the controller set; the `Link` with the relation `deprecation` is added beside the
- * response's own `Link` headers — pagination, preload —, never in their place.
+ * response's own `Link` headers — pagination, preload —, never in their place. A request API Platform handles is left
+ * alone, attribute or not: API Platform announces the deprecation of its own operations.
  */
 final class DeprecationListener
 {
@@ -19,6 +20,10 @@ final class DeprecationListener
 
     public function onController(ControllerEvent $event): void
     {
+        if (ApiPlatformRequests::handles($event->getRequest())) {
+            return;
+        }
+
         $attributes = $event->getAttributes(DeprecatedEndpoint::class);
 
         if ([] !== $attributes) {

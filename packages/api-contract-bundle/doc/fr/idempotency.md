@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=21bb7475cb43eb699abd21cc80a11c2f284b2bdc6ae29fe75d8e4fd8959797a3 -->
+<!-- phil-dev source-sha256=0831bc4ebfc4da5e64e2b2ef6554a2d419fa5877597571e04339b7b4860845d6 -->
 # Idempotence
 
 Un contrôleur marqué `#[Idempotent]` exige un en-tête `Idempotency-Key` et s'exécute une fois par clé : une nouvelle
@@ -40,6 +40,10 @@ d'écrire — et son client reçoit un problème `409` intitulé `IdempotencyLis
 nouvelle tentative lise l'issue de la requête qui tient la clé.
 
 Seuls le statut, le corps et `idempotency.replayed_headers` sont conservés.
+
+Une requête que traite API Platform — celle qui porte l'attribut `_api_resource_class` ou `_api_operation` — est laissée
+telle quelle, même si son contrôleur porte `#[Idempotent]` : aucune clé n'est lue, réservée ni rejouée pour elle. La
+garde couvre les contrôleurs de l'application, sous `/api` ou ailleurs.
 
 ## Les contrôles d'accès avant le rejeu
 

@@ -5,7 +5,8 @@
 phil_api_contract:
     problem_details:
         # Regular expressions on the path under which every exception is answered as a problem. None by default:
-        # a ProblemException is answered as a problem wherever it is thrown.
+        # a ProblemException is answered as a problem wherever it is thrown. A request API Platform handles keeps
+        # its own errors under these paths.
         paths: ['^/api/']
     idempotency:
         # How many seconds an answered key is remembered; a controller's #[Idempotent(ttl: …)] replaces it. 86400

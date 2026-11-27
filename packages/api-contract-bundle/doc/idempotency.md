@@ -37,6 +37,10 @@ of its own, which `phil/idempotency` checks before it writes — and its client 
 
 Only the status, the body and `idempotency.replayed_headers` are kept.
 
+A request API Platform handles — one that carries the attribute `_api_resource_class` or `_api_operation` — is left
+alone, even when its controller carries `#[Idempotent]`: no key is read, reserved or replayed for it. The guard covers
+the application's own controllers, under `/api` or anywhere else.
+
 ## Access checks before the replay
 
 The listener runs on `kernel.controller_arguments`, at priority `IdempotencyListener::PRIORITY` (-10100), after

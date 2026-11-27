@@ -89,6 +89,9 @@ final class TestKernel extends Kernel
         $routes->add('missing', '/api/missing')->controller([ApiController::class, 'missing']);
         $routes->add('old', '/api/old')->controller([ApiController::class, 'old']);
         $routes->add('old_orders', '/api/old-orders')->controller([ApiController::class, 'oldOrder'])->methods(['POST']);
+        // Two routes as API Platform declares them: the resource class among the defaults, its operation set later.
+        $routes->add('api_books_missing', '/api/books/missing')->controller([ApiController::class, 'missing'])->defaults(['_api_resource_class' => 'App\\Entity\\Book']);
+        $routes->add('api_books_post', '/api/books')->controller([ApiController::class, 'oldOrder'])->methods(['POST'])->defaults(['_api_resource_class' => 'App\\Entity\\Book']);
         $routes->add('page', '/page')->controller([ApiController::class, 'missing']);
     }
 }

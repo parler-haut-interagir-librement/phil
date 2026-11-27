@@ -16,6 +16,12 @@ The next version is 0.3.3-alpha.
   option names buses, the compiler pass `AddTenantIdempotencyScopeMiddleware` tags it for those alone, with the order of
   the attribute. The bus of the idempotency middleware is no longer looked for in the configuration of the buses, where
   a middleware placed by its attribute does not appear.
+- The listeners leave the requests API Platform handles — those that carry the attribute `_api_resource_class` or
+  `_api_operation` — to API Platform. Under `problem_details.paths`, `ProblemDetailsListener` answers only a
+  `ProblemException` there, so that API Platform's errors keep their own members, the violations of a `422` among
+  them; `IdempotencyListener` and `DeprecationListener` skip them, attribute or not. `ApiPlatformRequests::handles()`
+  tells the two kinds of requests apart, without loading API Platform. The documentation of the problems says that the
+  `phil/api-symfony` template covers `/api` with API Platform under these paths.
 - The documentation of the problems says that a write conflict is read wrapped by Messenger's `HandlerFailedException`
   or unwrapped by a bus with `unwrap_exceptions`.
 

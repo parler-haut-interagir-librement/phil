@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2e360228e9b51b496abef6adb6bc9167a655ec3dad57b9417c33e551aca495eb -->
+<!-- phil-dev source-sha256=f54fc16eeb4475c7b93ea9b8afaa94254aaa2f8b9ddfe5f74d93f59df7e16c26 -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace, configure ou utilise. Le port `IdempotencyStore` est celui de
@@ -52,8 +52,9 @@ intégrées — voyez [Vérification](verification.md#les-règles-propres-à-lap
 
 `ProblemException` porte tout `ProblemDetails` que construit l'application — son type, ses extensions et ses en-têtes —
 et reçoit une réponse sous forme de problème, où qu'elle soit levée. `problem_details.paths` étend ce comportement à
-toute exception sous les chemins donnés. `ProblemDetailsResponse` en écrit un depuis un contrôleur. Voir
-[Problèmes](problems.md).
+toute exception sous les chemins donnés. `ProblemDetailsResponse` en écrit un depuis un contrôleur. Une requête que
+traite API Platform garde ses propres erreurs sous les chemins, et ses contrôleurs ignorent `#[Idempotent]` et
+`#[DeprecatedEndpoint]`. Voir [Problèmes](problems.md#les-requêtes-que-traite-api-platform).
 
 ## Configuration
 

@@ -7,10 +7,12 @@ namespace Phil\ApiContractBundle\Tests\Unit\Infrastructure;
 use Doctrine\ORM\OptimisticLockException;
 use Phil\ApiContract\Exception\ApiContractException;
 use Phil\ApiContract\Problem\ProblemDetails;
+use Phil\ApiContractBundle\Infrastructure\Http\ApiPlatformRequests;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemDetailsListener;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemDetailsResponse;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use stdClass;
@@ -27,6 +29,7 @@ use Throwable;
 #[CoversClass(ProblemDetailsListener::class)]
 #[CoversClass(ProblemDetailsResponse::class)]
 #[CoversClass(ProblemException::class)]
+#[CoversClass(ApiPlatformRequests::class)]
 final class ProblemDetailsListenerTest extends TestCase
 {
     public function testAProblemIsAnsweredWherever(): void
@@ -104,6 +107,36 @@ final class ProblemDetailsListenerTest extends TestCase
 
         self::assertSame(409, $this->handle(new ProblemDetailsListener(['^/api/']), $wrapped, '/api/x')?->getStatusCode());
         self::assertSame(500, $this->handle(new ProblemDetailsListener(['^/api/']), new RuntimeException('deeper', previous: $wrapped), '/api/x')?->getStatusCode());
+    }
+
+    #[DataProvider('apiPlatformAttributes')]
+    public function testARequestApiPlatformHandlesIsLeftToItUnderThePaths(string $attribute, mixed $value): void
+    {
+        $listener = new ProblemDetailsListener(['^/api/']);
+        $request = Request::create('/api/books');
+        $request->attributes->set($attribute, $value);
+
+        foreach ([new HttpException(422, 'Invalid.'), new NotFoundHttpException(), new RuntimeException('x')] as $exception) {
+            $event = new ExceptionEvent(self::createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST, $exception);
+            $listener($event);
+            self::assertNull($event->getResponse(), $exception::class);
+        }
+
+        $event = new ExceptionEvent(self::createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST, ProblemException::of(409, 'Busy'));
+        $listener($event);
+        self::assertSame([409, 'Busy'], [$event->getResponse()?->getStatusCode(), $this->title($event->getResponse())]);
+
+        $response = $this->handle($listener, new HttpException(422, 'Invalid.'), '/api/orders');
+        self::assertSame([422, 'Unprocessable Content'], [$response?->getStatusCode(), $this->title($response)]);
+    }
+
+    /**
+     * @return iterable<string, array{string, mixed}>
+     */
+    public static function apiPlatformAttributes(): iterable
+    {
+        yield 'resource class' => ['_api_resource_class', 'App\Entity\Book'];
+        yield 'operation' => ['_api_operation', new stdClass()];
     }
 
     private function title(?Response $response): mixed
