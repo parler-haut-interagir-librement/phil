@@ -1,10 +1,12 @@
-<!-- phil-dev source-sha256=3b7c9cabe8200080a0a25cc502269c0b657e05c12861bf3c1c0d1b6ae4b3a113 -->
+<!-- phil-dev source-sha256=9007540344776208451287f94aea803759489b14e0d9ee7612bb7376ce80b1b4 -->
 # Référence
 
 | Type | Genre | Rôle |
 |---|---|---|
-| `PhilGeoBundle` | `final class`, `AbstractBundle` | Alias `phil_geo` ; ajoute l'objet intégrable en préfixe, enregistre le type de formulaire et l'extension Twig |
-| `config/doctrine/Coordinates.orm.xml` | mappage Doctrine | `Coordinates` comme objet intégrable sur deux colonnes |
+| `PhilGeoBundle` | `final class`, `AbstractBundle` | Alias `phil_geo` ; ajoute le mappage de `Coordinates` à l'ORM, enregistre le type de formulaire et l'extension Twig |
+| `PhilGeoBundle::DOCTRINE_MAPPING` | `const string` | `phil_geo.doctrine_mapping`, le paramètre défini quand l'ORM est configuré et que `doctrine_mapping` est activé |
+| `Infrastructure\Doctrine\CoordinatesMappingDriver` | `final readonly class`, `MappingDriver` de Doctrine | Associe `Coordinates` avec les attributs de `CoordinatesEmbeddable` |
+| `Infrastructure\Doctrine\CoordinatesEmbeddable` | `final class`, `#[ORM\Embeddable]`, interne | Les attributs de `Coordinates` : deux colonnes `float`, `latitude` et `longitude` |
 | `Infrastructure\Form\CoordinatesType` | type de formulaire | Une position en deux champs |
 | `Infrastructure\Form\CoordinatesTransformer` | transformateur de données | Entre `Coordinates` et les deux champs |
 | `Infrastructure\Twig\GeoExtension` | extension Twig | `geo_distance()`, `format_distance`, `geo_attributes()`, `geo_schema()` |

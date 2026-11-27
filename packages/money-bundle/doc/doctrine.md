@@ -15,8 +15,8 @@ unchecked; storing anything but a `Currency` or `null` throws `InvalidType`.
 
 ## The `Money` embeddable
 
-`Phil\Money\Money` is mapped as an embeddable (`config/doctrine/Money.orm.xml`): two columns, the amount in minor
-units as a `bigint` and the currency as a `phil_currency`.
+`Phil\Money\Money` is mapped as an embeddable: two columns, the amount in minor units as a `bigint` and the currency
+as a `phil_currency`.
 
 ```php
 #[ORM\Embedded(class: Money::class)]
@@ -41,3 +41,35 @@ optional amount is a nullable `phil_currency` column and a nullable `bigint` col
 
 The mapping is registered when the application configures the ORM and `doctrine_mapping` is `true`
 ([configuration.md](configuration.md)).
+
+### How the mapping is declared
+
+The mapping is written in Doctrine attributes, on `Infrastructure\Doctrine\MoneyEmbeddable`: `#[ORM\Embeddable]`, and
+an `#[ORM\Column]` on each property. `phil/money` is a plain PHP library that does not know Doctrine, so the attributes
+cannot sit on `Money` itself; `MoneyEmbeddable` mirrors its two properties, `minorUnits` and `currency`, and is never
+instantiated. `Infrastructure\Doctrine\MoneyMappingDriver` reads those attributes with Doctrine's attribute driver
+and maps `Money` with them. A compiler pass of the bundle adds that driver to the driver chain of the default entity
+manager, for the class `Phil\Money\Money` alone.
+
+### Several entity managers
+
+The bundle maps `Money` on the default entity manager. An application whose amounts live in another manager sets
+`doctrine_mapping: false` and adds the driver itself, in the `build()` of its kernel:
+
+```php
+use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+use Phil\Money\Money;
+use Phil\MoneyBundle\Infrastructure\Doctrine\MoneyMappingDriver;
+use Symfony\Component\DependencyInjection\Definition;
+
+protected function build(ContainerBuilder $container): void
+{
+    // The parameter holds the name of the entity manager.
+    $container->setParameter('app.billing_entity_manager', 'billing');
+    $container->addCompilerPass(new DoctrineOrmMappingsPass(
+        new Definition(MoneyMappingDriver::class),
+        [Money::class],
+        ['app.billing_entity_manager'],
+    ));
+}
+```

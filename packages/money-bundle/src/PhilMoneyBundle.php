@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Phil\MoneyBundle;
 
+use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
+use Phil\Money\Money;
 use Phil\MoneyBundle\Application\AcceptedCurrencies;
 use Phil\MoneyBundle\Infrastructure\Doctrine\CurrencyType;
+use Phil\MoneyBundle\Infrastructure\Doctrine\MoneyMappingDriver;
 use Phil\MoneyBundle\Infrastructure\Form\MoneyType;
 use Phil\MoneyBundle\Infrastructure\Twig\MoneyExtension;
 use Phil\MoneyBundle\Infrastructure\Validator\AcceptedCurrencyValidator;
@@ -17,6 +20,7 @@ use Symfony\Component\Config\Definition\Configuration;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Twig\Attribute\AsTwigFilter;
@@ -36,6 +40,9 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  */
 final class PhilMoneyBundle extends AbstractBundle
 {
+    /** The parameter that turns the mapping of `Money` on, set only when the ORM is configured. */
+    public const string DOCTRINE_MAPPING = 'phil_money.doctrine_mapping';
+
     #[Override]
     protected string $extensionAlias = 'phil_money';
 
@@ -91,18 +98,30 @@ final class PhilMoneyBundle extends AbstractBundle
 
         $container->extension('doctrine', ['dbal' => ['types' => [CurrencyType::NAME => CurrencyType::class]]]);
 
-        // The bundle's own tree, read before its extension loads: the mapping must reach DoctrineBundle first.
+        // The bundle's own tree, read before its extension loads, beside the configuration of DoctrineBundle.
         /** @var array{doctrine_mapping: bool} $config */
         $config = new Processor()->processConfiguration(new Configuration($this, $builder, $this->extensionAlias), $builder->getExtensionConfig($this->extensionAlias));
         $orm = array_any($builder->getExtensionConfig('doctrine'), static fn (mixed $doctrine): bool => \is_array($doctrine) && isset($doctrine['orm']));
 
         if ($config['doctrine_mapping'] && $orm && interface_exists(EntityManagerInterface::class)) {
-            $container->extension('doctrine', ['orm' => ['mappings' => ['PhilMoney' => [
-                'type' => 'xml',
-                'is_bundle' => false,
-                'dir' => $this->getPath().'/config/doctrine',
-                'prefix' => 'Phil\Money',
-            ]]]]);
+            $container->parameters()->set(self::DOCTRINE_MAPPING, true);
+        }
+    }
+
+    /**
+     * Adds `MoneyMappingDriver` to the driver chain of the default entity manager, for `Money` alone, when
+     * `prependExtension()` found the ORM configured and the mapping on.
+     */
+    #[Override]
+    public function build(ContainerBuilder $container): void
+    {
+        if (class_exists(DoctrineOrmMappingsPass::class)) {
+            $container->addCompilerPass(new DoctrineOrmMappingsPass(
+                new Definition(MoneyMappingDriver::class),
+                [Money::class],
+                [],
+                self::DOCTRINE_MAPPING,
+            ));
         }
     }
 

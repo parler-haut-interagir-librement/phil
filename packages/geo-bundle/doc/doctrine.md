@@ -19,6 +19,37 @@ $candidates = $repository->createQueryBuilder('s')
     ->getQuery()->getResult();
 ```
 
+## How the mapping is declared
+
+The mapping is written in Doctrine attributes, on `Infrastructure\Doctrine\CoordinatesEmbeddable`: `#[ORM\Embeddable]`,
+and an `#[ORM\Column]` of type `float` on `latitude` and on `longitude`. `phil/geo` is a plain PHP library that does
+not know Doctrine, so the attributes cannot sit on `Coordinates` itself; `CoordinatesEmbeddable` mirrors its two
+properties and is never instantiated. `Infrastructure\Doctrine\CoordinatesMappingDriver` reads those attributes with
+Doctrine's attribute driver and maps `Coordinates` with them.
+
+When the application configures the ORM and `doctrine_mapping` is on, the bundle sets the parameter
+`phil_geo.doctrine_mapping` (`PhilGeoBundle::DOCTRINE_MAPPING`), and its compiler pass adds the driver to the driver
+chain of the default entity manager, for the class `Phil\Geo\Coordinates` alone. An application whose places live in
+another entity manager sets `doctrine_mapping: false` and adds the driver itself, in the `build()` of its kernel:
+
+```php
+use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+use Phil\Geo\Coordinates;
+use Phil\GeoBundle\Infrastructure\Doctrine\CoordinatesMappingDriver;
+use Symfony\Component\DependencyInjection\Definition;
+
+protected function build(ContainerBuilder $container): void
+{
+    // The parameter holds the name of the entity manager.
+    $container->setParameter('app.places_entity_manager', 'places');
+    $container->addCompilerPass(new DoctrineOrmMappingsPass(
+        new Definition(CoordinatesMappingDriver::class),
+        [Coordinates::class],
+        ['app.places_entity_manager'],
+    ));
+}
+```
+
 ## An optional position
 
 The embeddable is a position always: its two columns are `NOT NULL`, and Doctrine cannot leave an embedded object

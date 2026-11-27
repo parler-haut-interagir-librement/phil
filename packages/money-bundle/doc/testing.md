@@ -4,7 +4,8 @@
 
 `tests/Unit` tests each class alone: the accepted currencies, the locale-aware decimal, the form type through a
 form factory, each constraint with Symfony's `ConstraintValidatorTestCase`, the Twig filter in an environment, the
-column type on a platform, and the bundle's configuration, services and prepended Doctrine configuration.
+column type on a platform, the mapping driver that reads the attributes of `MoneyEmbeddable` for `Money`, and the
+bundle's configuration, services, prepended Doctrine configuration and compiler pass.
 
 `tests/Functional` boots a kernel in `fr_CA` with FrameworkBundle, TwigBundle and DoctrineBundle on SQLite: a price
 entered in a form, the constraints with their French messages, the filter, and a `Product` whose price is stored

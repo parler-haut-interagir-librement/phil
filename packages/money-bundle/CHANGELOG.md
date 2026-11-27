@@ -8,10 +8,14 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.3-alpha.
 
-Development only.
-
 ### Changed
 
+- The ORM mapping of `Money` is written in Doctrine attributes, on `Infrastructure\Doctrine\MoneyEmbeddable`, instead
+  of `config/doctrine/Money.orm.xml`, which is removed: `Infrastructure\Doctrine\MoneyMappingDriver` reads them for
+  `Money`, and a compiler pass of the bundle adds it to the default entity manager when the ORM is configured and
+  `doctrine_mapping` is on (`PhilMoneyBundle::DOCTRINE_MAPPING`). The columns are unchanged. Nothing is prepended to
+  `doctrine.orm.mappings` any more; an application that declared the `PhilMoney` mapping on another entity manager
+  adds the driver with `DoctrineOrmMappingsPass` instead.
 - The development requirements ask for the latest minor of each dependency (`doctrine/orm` 3.8, `doctrine/dbal` 4.6,
   `doctrine/doctrine-bundle` 3.4, `twig/twig` 3.31, …).
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on

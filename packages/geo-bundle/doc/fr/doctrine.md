@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ba8d881901692fbbeed4cfff1c87b5cbfa4f1cb373fca3e0fe9ee90c448bf85e -->
+<!-- phil-dev source-sha256=e2b71faff9c9738fe966d7edf263e55330340326756c8fd1c378b59d8c39787a -->
 # Doctrine
 
 Avec l'ORM configuré et `doctrine_mapping` laissé activé, `Phil\Geo\Coordinates` est un objet intégrable de deux
@@ -19,6 +19,39 @@ $candidates = $repository->createQueryBuilder('s')
     ->andWhere('s.position.longitude BETWEEN :west AND :east')
     ->setParameters(['south' => $box->south, 'north' => $box->north, 'west' => $box->west, 'east' => $box->east])
     ->getQuery()->getResult();
+```
+
+## Comment le mappage est déclaré
+
+Le mappage s'écrit en attributs Doctrine, sur `Infrastructure\Doctrine\CoordinatesEmbeddable` : `#[ORM\Embeddable]`,
+et un `#[ORM\Column]` de type `float` sur `latitude` et sur `longitude`. `phil/geo` est une simple bibliothèque PHP qui
+ne connaît pas Doctrine : les attributs ne peuvent donc pas se trouver sur `Coordinates` elle-même.
+`CoordinatesEmbeddable` reprend ses deux propriétés et n'est jamais instanciée.
+`Infrastructure\Doctrine\CoordinatesMappingDriver` lit ces attributs avec le pilote d'attributs de Doctrine et s'en
+sert pour associer `Coordinates`.
+
+Quand l'application configure l'ORM et que `doctrine_mapping` est activé, le bundle définit le paramètre
+`phil_geo.doctrine_mapping` (`PhilGeoBundle::DOCTRINE_MAPPING`), et sa passe de compilation ajoute le pilote à la chaîne
+de pilotes du gestionnaire d'entités par défaut, pour la seule classe `Phil\Geo\Coordinates`. Une application dont les
+lieux sont dans un autre gestionnaire d'entités définit `doctrine_mapping: false` et ajoute le pilote elle-même, dans le
+`build()` de son noyau :
+
+```php
+use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+use Phil\Geo\Coordinates;
+use Phil\GeoBundle\Infrastructure\Doctrine\CoordinatesMappingDriver;
+use Symfony\Component\DependencyInjection\Definition;
+
+protected function build(ContainerBuilder $container): void
+{
+    // The parameter holds the name of the entity manager.
+    $container->setParameter('app.places_entity_manager', 'places');
+    $container->addCompilerPass(new DoctrineOrmMappingsPass(
+        new Definition(CoordinatesMappingDriver::class),
+        [Coordinates::class],
+        ['app.places_entity_manager'],
+    ));
+}
 ```
 
 ## Une position facultative

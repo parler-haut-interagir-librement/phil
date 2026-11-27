@@ -34,17 +34,15 @@ doctrine:
     dbal:
         types:
             phil_currency: Phil\MoneyBundle\Infrastructure\Doctrine\CurrencyType
-    orm:                     # only when the application configures the ORM and doctrine_mapping is true
-        mappings:
-            PhilMoney:
-                type: xml
-                is_bundle: false
-                dir: '%vendor%/phil/money-bundle/config/doctrine'
-                prefix: Phil\Money
 ```
 
-An application with several entity managers sets `doctrine_mapping: false` and declares the `PhilMoney` mapping on
-the managers that need it.
+When the application also configures the ORM and `doctrine_mapping` is `true`, the bundle sets the parameter
+`phil_money.doctrine_mapping` (`PhilMoneyBundle::DOCTRINE_MAPPING`), and its compiler pass adds
+`Infrastructure\Doctrine\MoneyMappingDriver` to the driver chain of the default entity manager, for
+`Phil\Money\Money` alone. The mapping itself is in attributes ([Doctrine](doctrine.md)).
+
+An application with several entity managers sets `doctrine_mapping: false` and adds the driver to the managers that
+need it ([Doctrine](doctrine.md#several-entity-managers)).
 
 ## Exchange rates
 
