@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=73b84056786c1194e33ab13440f2b50b33bd618396f550b3238596792a4661e1 -->
+<!-- phil-dev source-sha256=38f8845ec8d1a94fcb225d5340cedbae6689e98cb52c0b0e868eb90c8429cfdd -->
 # Nonces
 
 Un nonce est une valeur aléatoire qu'une réponse donne à ses propres éléments `<script>` et `<style>`, et qu'elle liste

@@ -102,8 +102,8 @@ phil_browser_security:
 ```
 
 `gallery` vaut `default-src 'self'; img-src 'self' https://images.example.com`. Une politique peut en étendre une qui en
-étend une autre ; un cycle fait échouer la construction. `strict_dynamic`, `report`, `nonces`, `inline` et `trusted_types` sont
-propres à la politique.
+étend une autre ; un cycle fait échouer la construction. `strict_dynamic`, `report`, `nonces`, `inline` et
+`trusted_types` sont propres à la politique.
 
 ## Empreintes du code en ligne
 

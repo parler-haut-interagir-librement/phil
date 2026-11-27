@@ -131,8 +131,9 @@ writes an empty attribute, which allows nothing.
 
 When the response also sends a policy that takes nonces — a report-only policy that tries the strict one on the same
 pages, for instance — the templates get their nonces and only that policy lists them. The templates follow the
-overrides known when they are rendered: an override added after that does not change what they wrote. The hashes of `inline` and of `allowInline()` stay in a policy without nonces; a browser that
-understands them then ignores `'unsafe-inline'` in that directive, so a transitional page lists none.
+overrides known when they are rendered: an override added after that does not change what they wrote. The hashes of
+`inline` and of `allowInline()` stay in a policy without nonces; a browser that understands them then ignores
+`'unsafe-inline'` in that directive, so a transitional page lists none.
 
 ## Nonces and HTTP caches
 
