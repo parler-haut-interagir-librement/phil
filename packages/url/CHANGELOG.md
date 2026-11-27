@@ -4,6 +4,20 @@ All notable changes to `phil/url` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.5-alpha.
+
+### Changed
+
+- `ext-intl` is no longer required, only suggested: `symfony/polyfill-intl-idn` provides `idn_to_ascii()` and
+  `idn_to_utf8()` when it is not loaded. Without `ext-intl`, an international host is converted about 15 times more
+  slowly, and `display()` shows it in ASCII, `xn--bcher-kva.example`, since no spoof checker can vouch for its
+  letters; with it, nothing changes.
+- A host of lowercase ASCII letters, digits and hyphens skips the IDNA conversion: `Url::fromString()` checks it as
+  before, a label with hyphens in third and fourth place, `ab--shop.example`, still refused, and `display()` no longer
+  runs the spoof checker on it, about three times faster.
+
 ## 0.1.4-alpha - 2026-11-15
 
 ### Added

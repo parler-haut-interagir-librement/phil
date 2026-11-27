@@ -86,6 +86,6 @@ Check the prefix on `Url`, never on the text it was read from.
 |---|---|
 | `scheme`, `host`, `port`, `path`, `query`, `fragment` | The parts; `port` is `null` for the default |
 | `toString()` | The normalised address |
-| `display()` | As people read it: `example.com/shop` for `https://www.example.com/shop/`, `bücher.example` for `https://xn--bcher-kva.example/`; a host whose letters mix scripts or pass for another's stays in ASCII; the escaped letters of the path and query are shown as letters, `example.com/thé`, while an escape of ASCII, an invisible character, a space or a control stays escaped |
+| `display()` | As people read it: `example.com/shop` for `https://www.example.com/shop/`, `bücher.example` for `https://xn--bcher-kva.example/`; a host whose letters mix scripts or pass for another's stays in ASCII, and so does every international host without `ext-intl`, whose spoof checker vouches for the letters; the escaped letters of the path and query are shown as letters, `example.com/thé`, while an escape of ASCII, an invisible character, a space or a control stays escaped |
 | `isOn(...$domains)` | Whether the host is one of these domains or under one: `m.facebook.com` is on `facebook.com` |
 | `segments()` | The path's segments, empty ones dropped |
