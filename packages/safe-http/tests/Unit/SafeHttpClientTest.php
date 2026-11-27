@@ -430,6 +430,48 @@ final class SafeHttpClientTest extends TestCase
         }
     }
 
+    public function testEachKindOfRedirectFromHttpsToHttpIsRefusedBeforeItIsFollowed(): void
+    {
+        foreach ([301, 302, 303, 307, 308] as $status) {
+            foreach (['http://example.com/plain', 'http://example.org/plain'] as $location) {
+                /** @var ArrayObject<int, string> $urls */
+                $urls = new ArrayObject();
+                $responses = [new MockResponse('', ['http_code' => $status, 'response_headers' => ['Location' => $location]]), new MockResponse('tampered')];
+                $client = $this->client(static function (string $method, string $url) use ($urls, &$responses): MockResponse {
+                    $urls[] = $url;
+
+                    return array_shift($responses) ?? new MockResponse('');
+                });
+
+                try {
+                    $client->get('https://example.com/');
+                    self::fail(\sprintf('The %d downgrade to %s is refused.', $status, $location));
+                } catch (RefusedAddress $refusedAddress) {
+                    self::assertSame(\sprintf('The redirect from "https://example.com/" to "%s" leaves https for http: its headers, body and answer would travel in clear text.', $location), $refusedAddress->getMessage());
+                    self::assertSame(['https://example.com/'], $urls->getArrayCopy(), 'The http address is never requested.');
+                }
+            }
+        }
+    }
+
+    public function testEachKindOfRedirectFromHttpToHttpsIsFollowed(): void
+    {
+        foreach ([301, 302, 303, 307, 308] as $status) {
+            $response = $this->client([new MockResponse('', ['http_code' => $status, 'response_headers' => ['Location' => 'https://example.com/secure']]), new MockResponse('ok')])->get('http://example.com/');
+
+            self::assertSame(['https://example.com/secure', 'ok'], [$response->url->toString(), $response->body], (string) $status);
+        }
+    }
+
+    public function testARelativeRedirectFromAnHttpsAddressStaysOnHttps(): void
+    {
+        foreach ([301, 302, 303, 307, 308] as $status) {
+            $response = $this->client([new MockResponse('', ['http_code' => $status, 'response_headers' => ['Location' => '/moved']]), new MockResponse('ok')])->get('https://example.com/a');
+
+            self::assertSame(['https://example.com/moved', 'ok'], [$response->url->toString(), $response->body], (string) $status);
+        }
+    }
+
     public function testARedirectWithoutLocationOrOfAnotherStatusIsTheAnswer(): void
     {
         $bare = $this->client([new MockResponse('', ['http_code' => 302])])->get('https://example.com/');

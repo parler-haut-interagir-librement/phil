@@ -17,8 +17,14 @@ default port dropped.
 
 `AddressGuard::redirect($from, $location)` resolves a `Location` against the address that answered, as a browser
 resolves it — absolute, relative to the root or to the path, without a scheme, with `..` — then checks the result as
-a first address. `javascript:`, `data:`, `file:` and a redirect to an IP address are refused. A redirect from HTTPS to
-HTTP is followed: the guard is about where the request goes, not about how it travels.
+a first address. `javascript:`, `data:`, `file:` and a redirect to an IP address are refused.
+
+A redirect from an HTTPS address to an HTTP one is refused with `RefusedAddress`, whatever its status — `301`, `302`,
+`303`, `307` or `308` — and whether the `Location` names the same host or another: the request would go on in clear
+text, where its headers, and the body a `307` or a `308` sends again, can be read on the way, and where the answer can
+be changed before it reaches the application. The message names both addresses. A redirect from HTTP to HTTPS is
+followed, and so is a redirect that keeps its scheme; a relative `Location`, or one without a scheme, keeps the scheme
+of the address that answered.
 
 ## Private networks
 

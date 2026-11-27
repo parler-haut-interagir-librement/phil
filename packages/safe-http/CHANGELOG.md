@@ -4,6 +4,17 @@ All notable changes to `phil/safe-http` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.3-alpha.
+
+### Security
+
+- A redirect from an HTTPS address to an HTTP one is refused with `RefusedAddress::downgrade()`, whatever its status
+  (`301`, `302`, `303`, `307`, `308`) and its host: the headers, the body a `307` or a `308` sends again, and the answer
+  would travel in clear text, where they can be read or changed. A redirect from HTTP to HTTPS, or one that keeps its
+  scheme, is still followed.
+
 ## 0.2.2-alpha - 2026-11-24
 
 ### Changed

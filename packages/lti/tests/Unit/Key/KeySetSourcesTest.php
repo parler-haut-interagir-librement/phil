@@ -132,7 +132,7 @@ final class KeySetSourcesTest extends TestCase
     {
         $source = $this->source(static fn (string $method, string $url): MockResponse => str_starts_with($url, 'https') ? new MockResponse('', ['http_code' => 302, 'response_headers' => ['Location' => 'http://lms.example.org/other']]) : new MockResponse('{"keys":[]}'));
 
-        $this->expectExceptionMessageIsOrContains('is too large, or was redirected away from HTTPS.');
+        $this->expectExceptionMessageIsOrContains('The key set at "https://lms.example.org/jwks" cannot be read: The redirect from "https://lms.example.org/jwks" to "http://lms.example.org/other" leaves https for http');
         $source->keySet(Url::fromString(self::JWKS));
     }
 

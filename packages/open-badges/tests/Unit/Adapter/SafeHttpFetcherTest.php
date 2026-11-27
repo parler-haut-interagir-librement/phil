@@ -78,7 +78,7 @@ final class SafeHttpFetcherTest extends TestCase
     {
         $fetcher = $this->fetcher(new MockResponse('', ['http_code' => 302, 'response_headers' => ['Location' => 'http://other.example.org/did.json']]), new MockResponse('{}'));
 
-        $this->expectExceptionObject(InvalidCredential::because('The DID document at "https://issuer.example.org/.well-known/did.json" was redirected away from HTTPS.'));
+        $this->expectExceptionObject(InvalidCredential::because('The DID document at "https://issuer.example.org/.well-known/did.json" cannot be read: The redirect from "https://issuer.example.org/.well-known/did.json" to "http://other.example.org/did.json" leaves https for http: its headers, body and answer would travel in clear text.'));
         $fetcher->fetch(Url::fromString('https://issuer.example.org/.well-known/did.json'));
     }
 

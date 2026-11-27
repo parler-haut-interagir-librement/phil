@@ -11,7 +11,7 @@ a database, an administration page on the loopback. phil/safe-http reads such ad
   no IP address in any of its spellings, no user name nor password;
 - Symfony's `NoPrivateNetworkHttpClient` refuses a host that is or resolves to a loopback, private, link-local or
   reserved address, and connects to the address it checked;
-- the redirects are followed one by one, each checked, up to a count;
+- the redirects are followed one by one, each checked, up to a count; a redirect from HTTPS to HTTP is refused;
 - the silence of the host and the whole duration of the read, redirects included, are bounded;
 - the headers of an answer are bounded in bytes and in count, counted as they arrive;
 - the body is read in chunks, only for the media types asked for, up to a number of bytes or a stop mark, and the

@@ -63,7 +63,7 @@ final class SafeHttpMetadataFetcherTest extends TestCase
     {
         $responses = [new MockResponse('', ['http_code' => 302, 'response_headers' => ['location' => 'http://idp.example.org/plain']]), new MockResponse('<x/>')];
 
-        $this->expectExceptionMessageIsOrContains('or was redirected away from HTTPS.');
+        $this->expectExceptionMessageIsOrContains('The metadata at "https://idp.example.org/metadata" cannot be fetched: The redirect from "https://idp.example.org/metadata" to "http://idp.example.org/plain" leaves https for http');
 
         $this->fetcher(static function () use (&$responses): MockResponse {
             return array_shift($responses) ?? new MockResponse('');
