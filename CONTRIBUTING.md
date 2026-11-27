@@ -26,7 +26,9 @@ follows:
    translatable; formats, plurals, addresses and typography follow the locale, from CLDR and other open references.
 5. **Private by design.** No tracking and no third-party call without the site's explicit configuration. Analytics in
    aggregates only, IP addresses anonymised. Personal fields are declared so that they can be exported and erased.
-   Queued messages carry identifiers, never personal data.
+   Queued messages carry identifiers, never personal data. A message a package has published keeps its class name;
+   one that must be renamed takes `#[AsMessage(serializedTypeName: …, serializedTypeNameAliases: […])]`, its old name
+   among the aliases, so that the messages already queued are still decoded.
 6. **Fast, measured, worker-safe.** Each hot path has a benchmark, and a change that slows it needs a reason.
    Complexity is bounded. No state survives a request, or it is reset through `kernel.reset`. Plain PHP is the
    reference and works everywhere (PHP-FPM, CLI, FrankenPHP); an optional accelerator lives in its own package, only

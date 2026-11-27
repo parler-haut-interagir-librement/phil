@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Phil\ApiContractBundle\Infrastructure\Messenger;
 
 use Override;
+use Phil\Idempotency\Messenger\IdempotencyMiddleware;
 use Phil\Idempotency\Messenger\IdempotencyStamp;
 use Phil\Idempotency\PayloadFingerprint;
+use Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware;
 use Phil\TenancyBundle\Infrastructure\Messenger\TenantStamp;
+use Symfony\Component\Messenger\Attribute\AsMessageMiddleware;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
@@ -28,7 +31,11 @@ use Symfony\Component\Messenger\Stamp\StampInterface;
  *
  * An envelope that is not received, or that lacks either stamp, passes through as it is. The middleware holds no state:
  * a worker that handles messages of many tenants scopes each one by its own stamp.
+ *
+ * It runs after the tenant middleware of `phil/tenancy-bundle` and before the idempotency middleware, on every bus, or
+ * on the buses `idempotency.messenger.buses` names.
  */
+#[AsMessageMiddleware(bus: '*', before: IdempotencyMiddleware::class, after: TenantMiddleware::class)]
 final readonly class TenantIdempotencyScopeMiddleware implements MiddlewareInterface
 {
     public const string SCOPE_PREFIX = 'tenant:';

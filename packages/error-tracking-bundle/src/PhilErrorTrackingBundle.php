@@ -60,6 +60,7 @@ use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
+use Symfony\Component\Messenger\Event\HandlerFailureEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
@@ -378,7 +379,9 @@ final class PhilErrorTrackingBundle extends AbstractBundle
         if ($this->bool($messenger, 'enabled') && class_exists(WorkerMessageFailedEvent::class)) {
             $services->set(WorkerFailureListener::class)
                 ->args([service(SafeCapture::class), $this->bool($messenger, 'retries')])
-                ->tag('kernel.event_listener', ['event' => WorkerMessageFailedEvent::class, 'method' => 'onMessageFailed']);
+                ->tag('kernel.event_listener', ['event' => WorkerMessageFailedEvent::class, 'method' => 'onMessageFailed'])
+                ->tag('kernel.event_listener', ['event' => HandlerFailureEvent::class, 'method' => 'onHandlerFailed'])
+                ->tag('kernel.reset', ['method' => 'reset']);
         }
 
         if ($this->bool($capture, 'console') && class_exists(Command::class)) {

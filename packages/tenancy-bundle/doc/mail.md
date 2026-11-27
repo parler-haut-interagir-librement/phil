@@ -61,8 +61,8 @@ handler send through. For a message sent in a tenant with settings, it adds:
 
 What the message already says wins: a header it carries is never replaced. A message sent in no tenant, or in a
 tenant without settings, leaves as the application's. A message queued by Messenger is sent by the worker in the
-tenant it was dispatched in, which `TenantMiddleware` restores: add the middleware to the bus that carries
-`SendEmailMessage` ([integrations.md](integrations.md)).
+tenant it was dispatched in, which `TenantMiddleware` restores on every bus, the one that carries `SendEmailMessage`
+included ([integrations.md](integrations.md)).
 
 The decorator holds no state: the tenant is read from the context at each message, and the transports' connections
 are closed between requests and messages as Symfony closes them.

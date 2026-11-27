@@ -128,7 +128,7 @@ final class PhilApiContractBundle extends AbstractBundle
                                     ->defaultFalse()
                                 ->end()
                                 ->arrayNode('buses')
-                                    ->info('The buses the tenant scope is added to: "messenger.bus.default". None by default: every bus whose middleware holds the IdempotencyMiddleware of phil/idempotency.')
+                                    ->info('The buses the tenant scope is added to: "messenger.bus.default". None by default: every bus, before the idempotency middleware.')
                                     ->scalarPrototype()->cannotBeEmpty()->end()
                                     ->defaultValue([])
                                 ->end()
@@ -210,7 +210,8 @@ final class PhilApiContractBundle extends AbstractBundle
                 throw new InvalidConfigurationException('phil_api_contract.idempotency.messenger.tenant_scope reads the TenantStamp of phil/tenancy-bundle: enable PhilTenancyBundle, or turn the option off.');
             }
 
-            $services->set(TenantIdempotencyScopeMiddleware::class);
+            // Without buses named, the #[AsMessageMiddleware] of the class puts it on every bus.
+            $services->set(TenantIdempotencyScopeMiddleware::class)->autoconfigure([] === $config['idempotency']['messenger']['buses']);
             $builder->setParameter(AddTenantIdempotencyScopeMiddleware::BUSES, $config['idempotency']['messenger']['buses']);
         }
 

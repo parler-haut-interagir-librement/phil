@@ -125,13 +125,26 @@ second handler definition with its own options.
 |---|---|---|
 | Command | A `DomainError` | The `DomainError` itself, unwrapped |
 | Command | Several handlers fail, one of them with a `DomainError` | The first `DomainError` among the wrapped exceptions |
-| Command | Anything else | Messenger's `HandlerFailedException`, unchanged |
+| Command | Anything else | Messenger's `HandlerFailedException`, unchanged; on a bus with `unwrap_exceptions`, the exception the handler threw when it alone failed |
 | Query | Anything | The exception the handler threw, unwrapped, whatever its type |
 
 The asymmetry is deliberate. A command may have several handlers and several things may fail: only the domain
 error means something to the caller, and unwrapping any other failure would pass it off as an invariant refusal.
 A query has exactly one handler, so its one failure comes out as is, and the caller catches a "not found" without
 knowing Messenger.
+
+A bus configured with Messenger's `unwrap_exceptions: true` throws the exception of a single failing handler itself,
+instead of a `HandlerFailedException`, when the application dispatches. Both adapters read either form: the domain
+error of a command and the failure of a query come out the same way, and only a command's other failure changes, as
+the application asked.
+
+```yaml
+framework:
+    messenger:
+        buses:
+            command.bus:
+                unwrap_exceptions: true
+```
 
 ## Messages on a transport
 
@@ -143,6 +156,17 @@ Commands may be routed to an asynchronous transport. Two consequences:
   travel as strings and become `Identifier` objects inside the handler.
 - **An asynchronous command fails in the worker, not in the caller.** `dispatch()` returns as soon as the message
   is sent, and a `DomainError` raised later is handled by Messenger's retry and failure transports.
+- **Rename a queued message with its old name as an alias.** The JSON serializer writes the class of the message in
+  its `type` header, and a worker reads it back. A command renamed or moved to another namespace takes Messenger's
+  `#[AsMessage(serializedTypeName: …, serializedTypeNameAliases: […])]`, the old class name among the aliases, so that
+  the messages queued before the change are still decoded:
+
+  ```php
+  #[AsMessage(serializedTypeName: 'billing.charge_order', serializedTypeNameAliases: ['App\\Billing\\Application\\ChargeOrderCommand'])]
+  final readonly class ChargeOrder implements Command
+  ```
+
+  A stable type name of its own, rather than the class, lets the class move again without an alias.
 
 ## Using the adapters without the bundle
 

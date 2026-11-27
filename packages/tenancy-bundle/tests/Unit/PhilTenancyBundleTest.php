@@ -98,6 +98,7 @@ final class PhilTenancyBundleTest extends TestCase
         self::assertTrue($container->getAutoconfiguredInstanceof()[TenantActivation::class]->hasTag(PhilTenancyBundle::ACTIVATION_TAG));
 
         self::assertEquals([new Reference(TenantContext::class)], $container->getDefinition(TenantMiddleware::class)->getArguments());
+        self::assertTrue($container->getDefinition(TenantMiddleware::class)->isAutoconfigured(), 'Its #[AsMessageMiddleware] puts it on every bus.');
         self::assertEquals([new Reference(TenantContext::class)], $container->getDefinition(TenantOption::class)->getArguments());
         self::assertSame([
             ['event' => 'console.command', 'method' => 'onCommand'],

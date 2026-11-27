@@ -4,6 +4,21 @@ All notable changes to `phil/api-contract-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.3.3-alpha.
+
+### Changed
+
+- `TenantIdempotencyScopeMiddleware` carries Messenger's `#[AsMessageMiddleware(bus: '*')]`, before the
+  `IdempotencyMiddleware` of `phil/idempotency` and after the `TenantMiddleware` of `phil/tenancy-bundle`. When
+  `idempotency.messenger.buses` names no bus, the bundle registers it autoconfigured and it goes on every bus; when the
+  option names buses, the compiler pass `AddTenantIdempotencyScopeMiddleware` tags it for those alone, with the order of
+  the attribute. The bus of the idempotency middleware is no longer looked for in the configuration of the buses, where
+  a middleware placed by its attribute does not appear.
+- The documentation of the problems says that a write conflict is read wrapped by Messenger's `HandlerFailedException`
+  or unwrapped by a bus with `unwrap_exceptions`.
+
 ## 0.3.2-alpha - 2026-11-25
 
 ### Added

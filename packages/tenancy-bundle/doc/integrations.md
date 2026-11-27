@@ -120,7 +120,13 @@ other is a 403.
 
 ## Messenger
 
-Add the middleware to the buses whose messages act in a tenant:
+`TenantMiddleware` carries Messenger's `#[AsMessageMiddleware(bus: '*')]`, and the bundle registers it
+autoconfigured: it goes on every bus, in front of the middleware that sends and handles the message, and before the
+Doctrine middleware `doctrine_ping_connection`, `doctrine_close_connection`, `doctrine_open_transaction_logger` and
+`doctrine_transaction`, so that the connection they open is the tenant's. Nothing needs listing.
+
+A bus whose configuration lists it keeps it where the configuration puts it, for an application that writes the order
+out:
 
 ```yaml
 framework:
@@ -129,6 +135,16 @@ framework:
             messenger.bus.default:
                 middleware:
                     - Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware
+```
+
+To keep it off the buses the configuration does not list, redefine the service without autoconfiguration:
+
+```yaml
+# config/services.yaml
+services:
+    Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware:
+        autoconfigure: false
+        arguments: ['@Phil\TenancyBundle\Application\TenantContext']
 ```
 
 | Envelope | What the middleware does |

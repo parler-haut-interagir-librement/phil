@@ -160,10 +160,12 @@ final class PhilApiContractBundleTest extends TestCase
 
         $container = $this->load([['idempotency' => ['messenger' => ['tenant_scope' => true]]]], ['PhilTenancyBundle' => 'x']);
         self::assertSame([], $container->getDefinition(TenantIdempotencyScopeMiddleware::class)->getArguments());
-        self::assertSame([], $container->getParameter(AddTenantIdempotencyScopeMiddleware::BUSES), 'Every bus of the idempotency middleware by default.');
+        self::assertSame([], $container->getParameter(AddTenantIdempotencyScopeMiddleware::BUSES));
+        self::assertTrue($container->getDefinition(TenantIdempotencyScopeMiddleware::class)->isAutoconfigured(), 'Every bus by default, through its #[AsMessageMiddleware].');
 
         $container = $this->load([['idempotency' => ['messenger' => ['tenant_scope' => true, 'buses' => ['messenger.bus.default', 'event.bus']]]]], ['PhilTenancyBundle' => 'x']);
         self::assertSame(['messenger.bus.default', 'event.bus'], $container->getParameter(AddTenantIdempotencyScopeMiddleware::BUSES));
+        self::assertFalse($container->getDefinition(TenantIdempotencyScopeMiddleware::class)->isAutoconfigured(), 'The buses named only, through the compiler pass.');
 
         try {
             $this->load([['idempotency' => ['messenger' => ['tenant_scope' => true, 'buses' => ['']]]]], ['PhilTenancyBundle' => 'x']);

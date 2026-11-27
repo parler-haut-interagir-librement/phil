@@ -11,7 +11,9 @@ use Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware;
 use Phil\TenancyBundle\Infrastructure\Messenger\TenantStamp;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use stdClass;
+use Symfony\Component\Messenger\Attribute\AsMessageMiddleware;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
@@ -24,6 +26,17 @@ final class TenantMiddlewareTest extends TestCase
 {
     /** @var list<?string> the tenant active when the next middleware ran */
     private array $seen = [];
+
+    public function testItGoesOnEveryBusBeforeTheDoctrineMiddleware(): void
+    {
+        $attributes = new ReflectionClass(TenantMiddleware::class)->getAttributes(AsMessageMiddleware::class);
+        self::assertCount(1, $attributes);
+        $attribute = $attributes[0]->newInstance();
+
+        self::assertSame('*', $attribute->bus);
+        self::assertSame(['doctrine_ping_connection', 'doctrine_close_connection', 'doctrine_open_transaction_logger', 'doctrine_transaction'], $attribute->before);
+        self::assertNull($attribute->after);
+    }
 
     public function testAMessageDispatchedInATenantIsStamped(): void
     {

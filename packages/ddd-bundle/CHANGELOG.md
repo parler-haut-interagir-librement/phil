@@ -4,6 +4,18 @@ All notable changes to `phil/ddd-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+Documentation only.
+
+### Changed
+
+- The documentation of the buses tells how failures come out on a Messenger bus with `unwrap_exceptions`: the domain
+  error of a command and the failure of a query come out the same, and a command's other failure unwrapped.
+- The documentation of the buses tells how to rename a queued command with Messenger's `serializedTypeNameAliases`.
+
 ## 0.2.0-alpha - 2026-11-26
 
 ### Added

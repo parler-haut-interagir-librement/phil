@@ -19,7 +19,7 @@ All types live under `Phil\Idempotency`.
 | `Store\DbalIdempotencyStore` | final readonly class | The store on a Doctrine DBAL connection; `purge()`, `reservation()`. |
 | `Store\IdempotencyTable` | final class | `NAME`, `configure()`. |
 | `Store\CacheIdempotencyStore` | final readonly class | The store on a PSR-6 pool under a Symfony lock. |
-| `Messenger\IdempotencyMiddleware` | final readonly class | Handles a received message once per key, and refuses a key reused with another content unless `$compareContent` is false; `MAX_DEPTH`. |
+| `Messenger\IdempotencyMiddleware` | final readonly class, `#[AsMessageMiddleware]` on every bus | Handles a received message once per key, and refuses a key reused with another content unless `$compareContent` is false; `MAX_DEPTH`. |
 | `Messenger\IdempotencyStamp` | final readonly class | `DEFAULT_SCOPE`, `$key`, `$scope`, `$fingerprint`. |
 | `Contract\FingerprintedMessage` | interface | `idempotencyFingerprint()`: the fingerprint of the fields of a message's intention. |
 | `Exception\IdempotencyException` | interface | What the library throws. |

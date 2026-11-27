@@ -6,7 +6,20 @@
 new IdempotencyMiddleware(IdempotencyGuard $guard, bool $compareContent = true)
 ```
 
-Register the guard and the middleware as services, then add the middleware to a bus, before the handlers:
+Register the guard and the middleware as services. The middleware carries Messenger's
+`#[AsMessageMiddleware(bus: '*')]`: registered autoconfigured, as `_defaults` of `config/services.yaml` does, it goes on
+every bus, in front of the middleware that sends and handles the message.
+
+```yaml
+# config/services.yaml
+services:
+    _defaults:
+        autoconfigure: true
+    Phil\Idempotency\Messenger\IdempotencyMiddleware: ~
+```
+
+A bus whose configuration lists it keeps it where the configuration puts it. To have it on some buses only, register
+it with `autoconfigure: false` and list it in their configuration:
 
 ```yaml
 framework:

@@ -18,9 +18,11 @@ use Phil\Idempotency\Tests\Unit\Fixture\RecordingStore;
 use Phil\Idempotency\Tests\Unit\Fixture\Refund;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use RuntimeException;
 use stdClass;
 use Symfony\Component\Clock\MockClock;
+use Symfony\Component\Messenger\Attribute\AsMessageMiddleware;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\RecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
@@ -45,6 +47,17 @@ final class IdempotencyMiddlewareTest extends TestCase
     {
         $this->store = new RecordingStore();
         $this->clock = new MockClock(new DateTimeImmutable('2026-11-11 12:00:00 UTC'));
+    }
+
+    public function testAnAutoconfiguredServiceGoesOnEveryBus(): void
+    {
+        $attributes = new ReflectionClass(IdempotencyMiddleware::class)->getAttributes(AsMessageMiddleware::class);
+        self::assertCount(1, $attributes);
+        $attribute = $attributes[0]->newInstance();
+
+        self::assertSame('*', $attribute->bus);
+        self::assertNull($attribute->before);
+        self::assertNull($attribute->after);
     }
 
     public function testAReceivedMessageIsHandledOncePerKey(): void
