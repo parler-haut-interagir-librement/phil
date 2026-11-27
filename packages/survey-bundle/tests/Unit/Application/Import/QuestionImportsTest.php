@@ -272,6 +272,7 @@ final class QuestionImportsTest extends TestCase
     {
         $repository = $this->countingRepository();
         $repository->inner->save(Samples::questionnaire());
+
         $target = new QuestionImportTarget(new Questionnaires($repository, new RedirectPolicy(['https://example.org'])), 'games');
 
         $refused = $target->write($this->batch([
@@ -287,6 +288,7 @@ final class QuestionImportsTest extends TestCase
     {
         $repository = $this->countingRepository();
         $repository->inner->save(Samples::questionnaire());
+
         $target = new QuestionImportTarget(new Questionnaires($repository, new RedirectPolicy(['https://example.org'])), 'games');
 
         $target->write($this->batch([[2, ['question_id' => 'rules', 'type' => 'scale', 'label' => 'Rules', 'min' => 1, 'max' => 5, 'section' => 'more']]]));
