@@ -50,6 +50,14 @@ return [
             'PregMatchRemoveDollar' => [
                 'ignoreSourceCodeByRegex' => ['1 === preg_match\\(.\\/\\^\\[a-z0-9\\.-\\]\\+\\$\\/.*=> \\$name,'],
             ],
+            // The host read by AddressReader is ASCII and lowercase already, so IDNA only changes a name that the pattern
+            // of a host name refuses afterwards: whichever way the fast path goes, the name comes out the same or is refused.
+            'Identical' => [
+                'ignoreSourceCodeByRegex' => ['1 === preg_match\\(.\\/\\^\\[a-z0-9\\.-\\]\\+\\$\\/.*=> \\$name,'],
+            ],
+            'LogicalAndAllSubExprNegation' => [
+                'ignoreSourceCodeByRegex' => ['1 === preg_match\\(.\\/\\^\\[a-z0-9\\.-\\]\\+\\$\\/.*=> \\$name,'],
+            ],
             // A Url refuses every whitespace in its text, so the path of a Vimeo address never ends with a new line: the
             // pattern of its path matches the same with or without the D modifier.
             'PregMatchRemoveFlags' => [
