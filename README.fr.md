@@ -14,7 +14,7 @@ ensuite copié dans son propre dépôt, en **lecture seule**, d'où Composer l'i
 
 ## Principes
 
-Douze principes valent pour chaque paquet ; le [guide de contribution](CONTRIBUTING.md#principles) traduit chacun en
+Douze principes valent pour chaque paquet ; le [guide de contribution](CONTRIBUTING.fr.md#principes) traduit chacun en
 règles que suit un changement.
 
 1. **Sûr par défaut.** Les réglages prudents sont ceux qu'on obtient sans rien faire, et toute entrée est hostile tant
@@ -349,8 +349,8 @@ l'application.
 ## Contribuer
 
 Les tickets et les demandes de fusion vont dans **ce dépôt**, jamais dans les dépôts copiés, que chaque copie écrase.
-Lisez le [guide de contribution](CONTRIBUTING.md) et le [code de conduite](CODE_OF_CONDUCT.md). Signalez une
-vulnérabilité en privé, comme l'explique la [politique de sécurité](SECURITY.md), jamais dans un ticket public.
+Lisez le [guide de contribution](CONTRIBUTING.fr.md) et le [code de conduite](CODE_OF_CONDUCT.fr.md). Signalez une
+vulnérabilité en privé, comme l'explique la [politique de sécurité](SECURITY.fr.md), jamais dans un ticket public.
 
 ## Licence
 

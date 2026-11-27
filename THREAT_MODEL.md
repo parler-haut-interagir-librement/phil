@@ -1,5 +1,7 @@
 # Threat model
 
+[Français](THREAT_MODEL.fr.md)
+
 ## What this project does and where untrusted input enters
 
 PHIL is a monorepo of PHP 8.5 libraries and Symfony bundles (`packages/<name>/`, each published as `phil/<name>`). The
