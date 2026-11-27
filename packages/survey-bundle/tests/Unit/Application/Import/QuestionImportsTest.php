@@ -30,6 +30,7 @@ use Phil\SurveyBundle\Domain\ValueObject\Ending;
 use Phil\SurveyBundle\Domain\ValueObject\Question;
 use Phil\SurveyBundle\Domain\ValueObject\Questionnaire;
 use Phil\SurveyBundle\Domain\ValueObject\Section;
+use Phil\SurveyBundle\Tests\Fixtures\CountingQuestionnaireRepository;
 use Phil\SurveyBundle\Tests\Fixtures\Samples;
 use Phil\SurveyBundle\Tests\Fixtures\Stage;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -238,6 +239,78 @@ final class QuestionImportsTest extends TestCase
         self::assertNull($this->stage->questionnaires->find('fresh'));
     }
 
+    public function testTheTargetRefusesEveryRowItCannotReadWithoutKeepingOnlyTheFirst(): void
+    {
+        $target = new QuestionImportTarget($this->stage->questionnaires, 'fresh');
+        $refused = $target->write($this->batch([
+            [2, ['question_id' => 'a', 'type' => 'scale', 'label' => 'A']],
+            [3, ['question_id' => 'b', 'type' => 'scale', 'label' => 'B']],
+        ]));
+
+        self::assertSame([2, 3], array_keys($refused));
+    }
+
+    public function testTheRowsRefusedWhenReadAndThoseRefusedByTheQuestionnaireAreAllRefused(): void
+    {
+        $this->stage->questionnaireRepository->save(Samples::questionnaire());
+        $target = new QuestionImportTarget($this->stage->questionnaires, 'games');
+        $refused = $target->write($this->batch([
+            [2, ['question_id' => 'a', 'type' => 'scale', 'label' => 'A']],
+            [3, ['question_id' => 'fun', 'type' => 'text', 'label' => 'Fun']],
+            [4, ['question_id' => 'fun', 'type' => 'text', 'label' => 'Fun']],
+            [5, ['question_id' => 'new_one', 'type' => 'yes_no', 'label' => 'New?']],
+        ]));
+
+        self::assertSame([2, 3, 4], array_keys($refused));
+        self::assertSame('min', $refused[2][0]->column);
+        self::assertNull($refused[3][0]->column);
+        self::assertNull($refused[4][0]->column);
+        self::assertSame('New?', $this->stage->questionnaires->get('games')->question('new_one')?->label);
+    }
+
+    public function testNothingIsSavedWhenTheQuestionnaireRefusesEveryRow(): void
+    {
+        $repository = $this->countingRepository();
+        $repository->inner->save(Samples::questionnaire());
+        $target = new QuestionImportTarget(new Questionnaires($repository, new RedirectPolicy(['https://example.org'])), 'games');
+
+        $refused = $target->write($this->batch([
+            [2, ['question_id' => 'fun', 'type' => 'text', 'label' => 'Fun']],
+            [3, ['question_id' => 'fun', 'type' => 'text', 'label' => 'Fun']],
+        ]));
+
+        self::assertSame([2, 3], array_keys($refused));
+        self::assertSame(0, $repository->saves);
+    }
+
+    public function testTheQuestionsAndTheSectionsKeptAreRenumbered(): void
+    {
+        $repository = $this->countingRepository();
+        $repository->inner->save(Samples::questionnaire());
+        $target = new QuestionImportTarget(new Questionnaires($repository, new RedirectPolicy(['https://example.org'])), 'games');
+
+        $target->write($this->batch([[2, ['question_id' => 'rules', 'type' => 'scale', 'label' => 'Rules', 'min' => 1, 'max' => 5, 'section' => 'more']]]));
+
+        self::assertInstanceOf(Questionnaire::class, $repository->last);
+        self::assertSame(['fun', 'comment'], array_map(static fn (Question $question): string => $question->name, $repository->last->sections[1]->questions));
+        self::assertSame([0, 1], array_keys($repository->last->sections[1]->questions));
+
+        $target->write($this->batch([
+            [2, ['question_id' => 'fun', 'type' => 'scale', 'label' => 'Fun', 'min' => 1, 'max' => 5, 'section' => 'more']],
+            [3, ['question_id' => 'comment', 'type' => 'textarea', 'label' => 'Comment', 'section' => 'more']],
+        ]));
+
+        self::assertSame(['about', 'more'], array_map(static fn (Section $section): string => $section->name, $repository->last->sections));
+        self::assertSame([0, 1], array_keys($repository->last->sections));
+    }
+
+    public function testAKeyEndingWithALineBreakIsNoKey(): void
+    {
+        $this->expectException(InvalidQuestionnaire::class);
+
+        new QuestionImportTarget($this->stage->questionnaires, "games\n");
+    }
+
     public function testAKeyThatIsNoKeyIsRefused(): void
     {
         $this->expectException(InvalidQuestionnaire::class);
@@ -302,6 +375,19 @@ final class QuestionImportsTest extends TestCase
         $question = $this->stage->questionnaires->get('couleurs')->question('couleur');
         self::assertTrue($question?->required);
         self::assertSame('Bleu', $question->choices[1]->label);
+    }
+
+    /**
+     * @param non-empty-list<array{int, array<string, string|int>}> $rows
+     */
+    private function batch(array $rows): Batch
+    {
+        return new Batch(QuestionCsvProfile::TYPE, 1, array_map(static fn (array $row): PlannedRow => new PlannedRow($row[0], RowAction::Create, new NaturalKey([(string) $row[1]['question_id']]), $row[1], [], []), $rows));
+    }
+
+    private function countingRepository(): CountingQuestionnaireRepository
+    {
+        return new CountingQuestionnaireRepository($this->stage->questionnaireRepository);
     }
 
     /**

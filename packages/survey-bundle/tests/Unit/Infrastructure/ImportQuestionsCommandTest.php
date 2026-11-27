@@ -83,6 +83,24 @@ final class ImportQuestionsCommandTest extends TestCase
         self::assertSame('scale', $this->stage->questionnaires->get('games')->question('fun')?->type->value);
     }
 
+    public function testAFileRefusedByTheTargetAfterAPreviewedOneIsStillNamed(): void
+    {
+        $this->stage->questionnaires->save(Samples::questionnaire());
+        $file = $this->file("question_id,type,label,choices\nmood,single_choice,Mood,\nfun,text,Fun,\n");
+
+        self::assertSame(Command::FAILURE, $this->command->execute(['file' => $file, 'key' => 'games', '--write' => true]));
+        self::assertStringContainsString("1 refused.\nLine 3: refused\n  Row: is refused — ", $this->command->getDisplay(true));
+    }
+
+    public function testTheErrorsAreWrittenInTheErrorStyle(): void
+    {
+        $this->command->execute(['file' => '/no/such/file.csv', 'key' => 'games'], ['decorated' => true]);
+        self::assertSame("\033[37;41mThe file cannot be read.\033[39;49m\n", $this->command->getDisplay());
+
+        $this->command->execute(['file' => $this->file("question_id,type,label\nq,text,Q\n"), 'key' => 'No key'], ['decorated' => true]);
+        self::assertSame("\033[37;41mThe key of a questionnaire is 1 to 64 lower-case letters, digits, \"_\" or \"-\".\033[39;49m\n", $this->command->getDisplay());
+    }
+
     public function testAFileThatCannotBeReadIsInvalid(): void
     {
         self::assertSame(Command::INVALID, $this->command->execute(['file' => '/no/such/file.csv', 'key' => 'games']));

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Phil\SurveyBundle\Application\Import\QuestionImportTarget;
+
 /*
  * What the shared development tooling reads of this package: its paths and its exceptions to the shared
  * configurations, nothing else.
@@ -77,7 +79,22 @@ return [
                     '.*createFromFormat\\(\'!\'\\.DateTimeInterface::ATOM, \\$text\\).*',
                     // A style the formatter leaves open ends with the line, which is the last the command writes.
                     '.*writeln\\(\'<error>\'\\.\\$[a-zA-Z]+->getMessage\\(\\)\\.\'</error>\'\\);.*',
+                    '.*writeln\\(\'<error>\'\\.OutputFormatter::escape\\(\\$[a-zA-Z]+->getMessage\\(\\)\\)\\.\'</error>\'\\);.*',
                 ],
+            ],
+            // The sections left once one is removed are read at once by the search for another, or by the spread that
+            // adds a section, and both start the numbering again.
+            'UnwrapArrayValues' => [
+                'ignoreSourceCodeByRegex' => ['.*return array_values\\(array_filter\\(\\$replaced, .*'],
+            ],
+            // A choice of the cell is trimmed before the pattern reads it: what follows its "=" never holds only blanks.
+            'UnwrapTrim' => [
+                'ignoreSourceCodeByRegex' => ['.*\'\' !== trim\\(\$parts\[2\]\).*'],
+            ],
+            // The early return of a batch no row of which could be read only spares building the questionnaire again: it
+            // comes out the same, or is refused for having no section, and nothing is saved either way.
+            'ReturnRemoval' => [
+                'ignore' => [QuestionImportTarget::class.'::write'],
             ],
             // A questionnaire the check misses is inserted, the insert is refused by its key, and the update follows: the same row.
             'ArrayItemRemoval' => [

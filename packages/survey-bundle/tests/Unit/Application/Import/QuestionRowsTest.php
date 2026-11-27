@@ -107,6 +107,46 @@ final class QuestionRowsTest extends TestCase
         self::assertSame(str_repeat('é', 255), $question->choices[0]->label);
     }
 
+    public function testABlankChoiceTakesNoNumber(): void
+    {
+        $question = QuestionRows::read(['question_id' => 'q', 'type' => 'single_choice', 'label' => 'Q', 'choices' => 'A||B'])->question;
+
+        self::assertSame(['1', '2'], $question->values());
+    }
+
+    public function testALabelAfterAValueIsMeasuredWithoutItsBlanks(): void
+    {
+        $question = QuestionRows::read(['question_id' => 'q', 'type' => 'single_choice', 'label' => 'Q', 'choices' => 'a=   '.str_repeat('é', 255).'|b=B'])->question;
+
+        self::assertSame(str_repeat('é', 255), $question->choices[0]->label);
+    }
+
+    public function testTheProfileRecognisesItsHeadersByName(): void
+    {
+        $aliases = [];
+
+        foreach (QuestionCsvProfile::profile()->columns as $column) {
+            $aliases[$column->name] = $column->aliases;
+        }
+
+        self::assertSame([
+            'question_id' => ['id', 'identifier', 'question id', 'name', 'identifiant', 'nom', 'code'],
+            'type' => ['question type', 'kind', 'type de question'],
+            'label' => ['question', 'question text', 'text', 'stem', 'libellé', 'énoncé', 'texte'],
+            'required' => ['mandatory', 'obligatoire', 'requis', 'requise'],
+            'help' => ['hint', 'help text', 'description', 'aide', 'indice'],
+            'choices' => ['options', 'answers', 'columns', 'choix', 'réponses', 'colonnes'],
+            'rows' => ['matrix rows', 'statements', 'lignes', 'lignes de la matrice'],
+            'min' => ['minimum', 'lowest', 'minimum value', 'valeur minimale'],
+            'max' => ['maximum', 'highest', 'maximum value', 'valeur maximale'],
+            'max_length' => ['length', 'maximum length', 'longueur', 'longueur maximale'],
+            'section' => ['section name', 'section id', 'page', 'partie'],
+            'section_title' => ['section title', 'section heading', 'titre de section', 'titre de la section'],
+        ], $aliases);
+        self::assertSame(['question_id', 'type', 'label'], array_values(array_map(static fn (Column $column): string => $column->name, array_filter(QuestionCsvProfile::profile()->columns, static fn (Column $column): bool => $column->required))));
+        self::assertEquals([new QuestionRowRule()], QuestionCsvProfile::profile()->rules);
+    }
+
     public function testAHundredChoicesAndFiftyRowsAreRead(): void
     {
         $question = QuestionRows::read([
