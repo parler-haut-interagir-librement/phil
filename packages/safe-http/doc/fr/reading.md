@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b7e4dc806b9144fa2113701ed2c9a09af5a3a80efd0c31ea8d8c8c2fc9a2efd7 -->
+<!-- phil-dev source-sha256=5ca01c155afd2e54a6b65ec5ac028883e45a262ad53257c0777c8cd6c2eaddfc -->
 # Lecture
 
 ## Le client
@@ -70,7 +70,8 @@ l'information `response_headers`, et par nom.
 | `send($method, $url, $headers, $body, $rule)` | Une méthode quelconque, avec ses en-têtes et son corps : le statut, les en-têtes, et le corps que la règle lit |
 
 `$url` est un `Phil\Url\Url`, ou une chaîne que la garde lit. Une redirection — `301`, `302`, `303`, `307` ou `308` avec
-un `Location` — est suivie avec la même méthode ; un autre `3xx`, ou un `3xx` sans `Location`, est la réponse.
+un `Location` — est suivie avec la même méthode, sauf si elle quitte HTTPS pour HTTP : cette redirection lève
+`RefusedAddress`. Un autre `3xx`, ou un `3xx` sans `Location`, est la réponse.
 
 ## Envoyer
 
@@ -111,8 +112,8 @@ n'était pas destiné. Un autre `3xx`, ou un `3xx` sans `Location`, est la répo
 ### Les en-têtes et les identifiants de connexion
 
 Les en-têtes donnés à `send()` vont seulement au schéma, à l'hôte et au port de la première adresse. Une redirection
-vers la même origine les porte ; une redirection ailleurs — un autre hôte, un sous-domaine, un autre port, HTTPS vers
-HTTP — n'en porte aucun, seulement l'en-tête `Accept` de la règle et le `User-Agent` des limites. Un `Authorization`,
+vers la même origine les porte ; une redirection ailleurs — un autre hôte, un sous-domaine, un autre port, HTTP vers
+HTTPS — n'en porte aucun, seulement l'en-tête `Accept` de la règle et le `User-Agent` des limites. Un `Authorization`,
 un `Cookie` ou une clé d'API n'atteint jamais un hôte que la requête n'a pas nommé.
 
 Le client n'écrit aucun journal, et aucun de ses messages ne nomme la valeur d'un en-tête : les exceptions nomment
@@ -139,7 +140,7 @@ Toutes implémentent `SafeHttpException`.
 
 | Exception | Quand |
 |---|---|
-| `RefusedAddress` | L'adresse ou une redirection n'est pas une adresse HTTP ou HTTPS d'un nom d'hôte, ou son hôte est un réseau privé ou s'y résout |
+| `RefusedAddress` | L'adresse ou une redirection n'est pas une adresse HTTP ou HTTPS d'un nom d'hôte, une redirection quitte HTTPS pour HTTP, ou son hôte est un réseau privé ou s'y résout |
 | `TooManyRedirects` | Les redirections dépassent `maxRedirects` |
 | `FetchFailed` | L'hôte ne répond pas, reste silencieux plus longtemps que `timeout`, la lecture dépasse `maxDuration`, les en-têtes dépassent `maxHeaderBytes` ou `maxHeaders`, ou la connexion se rompt |
 | `RefusedRedirect` | Une requête avec un corps, ou d'une méthode autre que `GET`, `HEAD` ou `OPTIONS`, a reçu une redirection pour réponse |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a69106087edfcdddf9efbe93097dcf06ff913e9e4f9cc0bfd1d7325a1a62e6e5 -->
+<!-- phil-dev source-sha256=bd592bb6869f46128434e9a277b3c20d12bb1931f1bfee4c93855733ba0b3d10 -->
 # La garde
 
 ## Adresses
@@ -18,9 +18,14 @@ port par défaut retiré.
 
 `AddressGuard::redirect($from, $location)` résout un `Location` à partir de l'adresse qui a répondu, comme un
 navigateur le résout — absolu, relatif à la racine ou au chemin, sans schéma, avec `..` — puis vérifie le résultat
-comme une première adresse. `javascript:`, `data:`, `file:` et une redirection vers une adresse IP sont refusés. Une
-redirection de HTTPS vers HTTP est suivie : la garde porte sur la destination de la requête, non sur la façon dont elle
-voyage.
+comme une première adresse. `javascript:`, `data:`, `file:` et une redirection vers une adresse IP sont refusés.
+
+Une redirection d'une adresse HTTPS vers une adresse HTTP est refusée par `RefusedAddress`, quel que soit son statut —
+`301`, `302`, `303`, `307` ou `308` — et que le `Location` nomme le même hôte ou un autre : la requête se poursuivrait
+en clair, où ses en-têtes, et le corps qu'un `307` ou un `308` renvoie, peuvent être lus en chemin, et où la réponse peut
+être modifiée avant d'atteindre l'application. Le message nomme les deux adresses. Une redirection de HTTP vers HTTPS
+est suivie, tout comme une redirection qui garde son schéma ; un `Location` relatif, ou sans schéma, garde le schéma de
+l'adresse qui a répondu.
 
 ## Réseaux privés
 

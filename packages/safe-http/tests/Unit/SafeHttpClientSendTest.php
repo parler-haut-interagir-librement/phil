@@ -343,7 +343,6 @@ final class SafeHttpClientSendTest extends TestCase
      */
     public static function otherOrigins(): iterable
     {
-        yield 'another scheme' => ['http://example.com/'];
         yield 'another port' => ['https://example.com:8443/'];
         yield 'a subdomain' => ['https://www.example.com/'];
     }
@@ -356,6 +355,31 @@ final class SafeHttpClientSendTest extends TestCase
 
         self::assertContains('Authorization: Bearer secret', $this->headersSent(0));
         self::assertNotContains('Authorization: Bearer secret', $this->headersSent(1));
+    }
+
+    public function testAnUpgradeToHttpsCarriesNoneOfTheHeaders(): void
+    {
+        $response = $this->client([new MockResponse('', ['http_code' => 308, 'response_headers' => ['Location' => 'https://example.com/']]), new MockResponse('ok')])
+            ->send('GET', 'http://example.com/', ['Authorization' => 'Bearer secret']);
+
+        self::assertSame('https://example.com/', $response->url->toString());
+        self::assertContains('Authorization: Bearer secret', $this->headersSent(0));
+        self::assertNotContains('Authorization: Bearer secret', $this->headersSent(1));
+    }
+
+    public function testADowngradeToHttpIsRefusedAndTheHeadersNeverSentInClearText(): void
+    {
+        foreach ([301, 302, 303, 307, 308] as $status) {
+            $this->sent->exchangeArray([]);
+
+            try {
+                $this->client([new MockResponse('', ['http_code' => $status, 'response_headers' => ['Location' => 'http://example.com/']]), new MockResponse('')])
+                    ->send('GET', 'https://example.com/', ['Authorization' => 'Bearer secret']);
+                self::fail(\sprintf('The %d downgrade is refused.', $status));
+            } catch (RefusedAddress) {
+                self::assertCount(1, $this->sent, (string) $status);
+            }
+        }
     }
 
     public function testTheRedirectsOfSendAreBounded(): void

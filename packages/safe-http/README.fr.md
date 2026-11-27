@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=78fabf8f7ae60a59a6bd8be8b2d18b0a7a5c0c00f5a7067acd372489b368da9e -->
+<!-- phil-dev source-sha256=3f5e48d9b4cbb8d20320a5772b4cf485dc56f0149637f2488b3b14e7cacf5f04 -->
 # phil/safe-http
 
 **Reading other sites safely: an HTTP client on Symfony HttpClient that refuses private networks, follows redirects it checks itself, and bounds the time, the size and the redirects of what it reads.**
@@ -12,7 +12,8 @@ d'administration sur la boucle locale. phil/safe-http lit de telles adresses :
   phil/url : aucune adresse IP, sous aucune de ses écritures, ni nom d'utilisateur ni mot de passe ;
 - le `NoPrivateNetworkHttpClient` de Symfony refuse un hôte qui est une adresse de boucle locale, privée, de lien local
   ou réservée, ou qui s'y résout, et se connecte à l'adresse qu'il a vérifiée ;
-- les redirections sont suivies une à une, chacune vérifiée, jusqu'à un nombre donné ;
+- les redirections sont suivies une à une, chacune vérifiée, jusqu'à un nombre donné ; une redirection de HTTPS vers
+  HTTP est refusée ;
 - le silence de l'hôte et la durée totale de la lecture, redirections comprises, sont bornés ;
 - les en-têtes d'une réponse sont bornés en octets et en nombre, comptés à mesure qu'ils arrivent ;
 - le corps est lu par morceaux, seulement pour les types de média demandés, jusqu'à un nombre d'octets ou une marque

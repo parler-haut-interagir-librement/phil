@@ -68,7 +68,8 @@ Symfony HttpClient bounds neither the count nor the bytes of the headers, and ke
 | `send($method, $url, $headers, $body, $rule)` | Any method, with its headers and body: the status, the headers, and the body the rule reads |
 
 `$url` is a `Phil\Url\Url`, or a string the guard reads. A redirect — `301`, `302`, `303`, `307` or `308` with a
-`Location` — is followed with the same method; another `3xx`, or one without `Location`, is the answer.
+`Location` — is followed with the same method, unless it leaves HTTPS for HTTP: that redirect throws
+`RefusedAddress`. Another `3xx`, or one without `Location`, is the answer.
 
 ## Sending
 
@@ -108,7 +109,7 @@ request — a `POST`, a `PUT`, a `DELETE`, or a `GET` with a body — follows no
 ### Headers and credentials
 
 The headers given to `send()` go to the scheme, the host and the port of the first address only. A redirect to the
-same origin carries them; a redirect anywhere else — another host, a subdomain, another port, HTTPS to HTTP — carries
+same origin carries them; a redirect anywhere else — another host, a subdomain, another port, HTTP to HTTPS — carries
 none of them, only the `Accept` of the rule and the `User-Agent` of the limits. An `Authorization`, a `Cookie` or an
 API key never reach a host the request did not name.
 
@@ -136,7 +137,7 @@ All implement `SafeHttpException`.
 
 | Exception | When |
 |---|---|
-| `RefusedAddress` | The address or a redirect is not an HTTP or HTTPS address of a host name, or its host is or resolves to a private network |
+| `RefusedAddress` | The address or a redirect is not an HTTP or HTTPS address of a host name, a redirect leaves HTTPS for HTTP, or its host is or resolves to a private network |
 | `TooManyRedirects` | The redirects outnumber `maxRedirects` |
 | `FetchFailed` | The host does not answer, stays silent past `timeout`, the read outlasts `maxDuration`, the headers pass `maxHeaderBytes` or `maxHeaders`, or the connection breaks |
 | `RefusedRedirect` | A request with a body, or of a method other than `GET`, `HEAD` or `OPTIONS`, was answered by a redirect |

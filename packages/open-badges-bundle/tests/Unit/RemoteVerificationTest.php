@@ -172,7 +172,7 @@ final class RemoteVerificationTest extends TestCase
     {
         $methods = $this->methods([new MockResponse('', ['http_code' => 302, 'response_headers' => ['Location' => 'http://partner.example/issuer']]), $this->profile()]);
 
-        $this->expectExceptionObject(InvalidCredential::because('The profile of the issuer "https://partner.example/issuer" was redirected away from HTTPS.'));
+        $this->expectExceptionObject(InvalidCredential::because('The profile of the issuer "https://partner.example/issuer" could not be read: The redirect from "https://partner.example/issuer" to "http://partner.example/issuer" leaves https for http: its headers, body and answer would travel in clear text.'));
         $methods->key(self::METHOD);
     }
 

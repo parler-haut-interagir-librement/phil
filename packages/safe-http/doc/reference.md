@@ -10,7 +10,7 @@ Every public type of the package, with its role.
 | `Phil\SafeHttp\SafeResponse` | `final readonly class` | The answer: address, redirects, status, headers, body |
 | `Phil\SafeHttp\AddressGuard` | `final class` | The check of a first address and of a redirect |
 | `Phil\SafeHttp\Exception\SafeHttpException` | interface | Every exception of the package |
-| `Phil\SafeHttp\Exception\RefusedAddress` | `final class` | An address, a redirect or a host refused |
+| `Phil\SafeHttp\Exception\RefusedAddress` | `final class` | An address, a redirect, a redirect from HTTPS to HTTP or a host refused |
 | `Phil\SafeHttp\Exception\TooManyRedirects` | `final class` | A chain of redirects too long |
 | `Phil\SafeHttp\Exception\FetchFailed` | `final class` | No answer within the limits, or headers past them |
 | `Phil\SafeHttp\Exception\RefusedRedirect` | `final class` | A redirect answered to a request that follows none |

@@ -36,6 +36,7 @@ final class ExceptionsTest extends TestCase
             [FetchFailed::headersTooLarge($address, 1024, 10), '"'.$cut.'" sent headers past 1024 bytes or 10 headers.'],
             [RefusedAddress::notPublic($address, $previous), '"'.$cut.'" is not an http or https address of a host name.'],
             [RefusedAddress::redirect($address, $previous), 'The redirect to "'.$cut.'" is not an http or https address of a host name.'],
+            [RefusedAddress::downgrade($address, $address), 'The redirect from "'.$cut.'" to "'.$cut.'" leaves https for http: its headers, body and answer would travel in clear text.'],
             [RefusedAddress::privateNetwork($address, $previous), '"'.$cut.'" is or resolves to a private, loopback, link-local or reserved network.'],
             [TooManyRedirects::after(3, $address), '"'.$cut.'" redirects more than 3 times.'],
             [RefusedRedirect::forRequest('POST', $address, 303), '"'.$cut.'" answered POST with the redirect 303, which a request with a body or a method other than GET, HEAD or OPTIONS does not follow.'],
