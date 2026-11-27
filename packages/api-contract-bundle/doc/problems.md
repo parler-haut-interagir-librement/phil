@@ -9,6 +9,24 @@
 | `OptimisticLockException` of Doctrine, thrown or wrapped up to eight levels deep — by Messenger's `HandlerFailedException`, or unwrapped by a bus with `unwrap_exceptions` | Under `problem_details.paths`, in debug too | A `409` of the stable type `urn:phil:problem:write-conflict` (`ProblemDetailsListener::WRITE_CONFLICT_TYPE`), without the entity nor its versions |
 | Any other exception | Under `problem_details.paths`, out of debug | A `500` without detail; in debug, Symfony's error page |
 
+## Requests API Platform handles
+
+API Platform answers the errors of its own operations as problems, with members of its own — the violations of a
+`422` among them. A request that carries the attribute `_api_resource_class` or `_api_operation`, which API Platform
+puts on the requests it handles, is therefore left to it even under `problem_details.paths`: only a `ProblemException`
+is answered there, since the application throws it on purpose. The other routes under the same paths — a controller
+of the application beside the API Platform resources — keep their problems. `ApiPlatformRequests::handles()` tells
+the two apart; nothing of API Platform is loaded for it.
+
+The `phil/api-symfony` template relies on it: it covers `/api` with API Platform and lists `^/api/` under
+`problem_details.paths`.
+
+```yaml
+phil_api_contract:
+    problem_details:
+        paths: ['^/api/']    # API Platform keeps its own errors; the application's controllers under /api get problems
+```
+
 ```php
 use Phil\ApiContract\Problem\ProblemDetails;
 use Phil\ApiContractBundle\Infrastructure\Http\ProblemException;

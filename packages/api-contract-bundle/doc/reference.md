@@ -6,9 +6,10 @@
 | `Application\Library` | `final class` | The ports of the libraries the bundle aliases, by name |
 | `Infrastructure\Http\ProblemException` | exception | A problem to answer with, and its headers |
 | `Infrastructure\Http\ProblemDetailsResponse` | response | A problem, `application/problem+json` |
-| `Infrastructure\Http\ProblemDetailsListener` | `kernel.exception` listener | Exceptions as problems |
+| `Infrastructure\Http\ProblemDetailsListener` | `kernel.exception` listener | Exceptions as problems; a request API Platform handles is left to it, but for a `ProblemException` |
+| `Infrastructure\Http\ApiPlatformRequests` | `final class`, static | `handles()`: whether a request carries `_api_resource_class` or `_api_operation`; constants `RESOURCE_CLASS`, `OPERATION` |
 | `Infrastructure\Http\Idempotent` | attribute | A controller that requires an `Idempotency-Key`; its retention, `ttl`, and its policy for anonymous callers, `anonymous` |
-| `Infrastructure\Http\IdempotencyListener` | listener | The guard of `phil/idempotency` around such a controller, after its access checks; constants `REPLAYED_HEADER`, `RESERVED`, `ANONYMOUS_CALLERS`, `PRIORITY`, `RESERVATION_LOST`, `KEY_FORMAT` |
+| `Infrastructure\Http\IdempotencyListener` | listener | The guard of `phil/idempotency` around such a controller, after its access checks, never on a request API Platform handles; constants `REPLAYED_HEADER`, `RESERVED`, `ANONYMOUS_CALLERS`, `PRIORITY`, `RESERVATION_LOST`, `KEY_FORMAT` |
 | `Infrastructure\Http\IdempotencyReservation` | value | The reservation a request took, from `phil/idempotency`, and the retention of its answer |
 | `Infrastructure\Http\IdempotencyScopeResolver` | interface | Who sent a request |
 | `Infrastructure\Http\CallerScopeResolver` | resolver | The tenant, the client and the user, hashed; anonymous callers refused or scoped by address, by the endpoint's policy or the configured one; constant `ANONYMOUS` |
@@ -20,7 +21,7 @@
 | `Infrastructure\Http\TokenAttributeClientResolver` | resolver | The client named by an attribute of the security token; constant `DEFAULT_ATTRIBUTE` |
 | `Infrastructure\Http\AnonymousCallers` | string enum | `Refuse` (`refuse`), `ByIp` (`ip`) |
 | `Infrastructure\Http\DeprecatedEndpoint` | attribute | A deprecated controller and its dates |
-| `Infrastructure\Http\DeprecationListener` | listener | Its headers on each response, its `Link` beside the response's own |
+| `Infrastructure\Http\DeprecationListener` | listener | Its headers on each response, its `Link` beside the response's own; none on a request API Platform handles |
 | `Infrastructure\DependencyInjection\CheckDeprecatedEndpoints` | compiler pass | Every `#[DeprecatedEndpoint]` of the controller services, built when the container is |
 | `Infrastructure\DependencyInjection\AddTenantIdempotencyScopeMiddleware` | compiler pass, internal | `TenantIdempotencyScopeMiddleware` tagged `messenger.middleware` for each bus `idempotency.messenger.buses` names, with the `before` and `after` of its `#[AsMessageMiddleware]`, unless the bus lists it already; constants `BUSES`, `MIDDLEWARE_TAG` |
 | `Infrastructure\HttpClient\DeprecationObservingHttpClient` | HTTP client decorator | The signals of the APIs called |
