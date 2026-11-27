@@ -38,8 +38,9 @@ type.
 
 ## Bounds
 
-The file is read within the `SourceLimits` the application gives; the profile of a survey gives its own,
-`QuestionCsvProfile::limits()`: 1 MiB, 300 rows after the header and 32 cells a row. Each column of both profiles
+Each profile gives the `SourceLimits` its file is read within, tighter than the defaults of this library:
+`QuestionImportProfile::limits()` of an assessment, 4 MiB, 1000 rows after the header and 32 cells a row;
+`QuestionCsvProfile::limits()` of a survey, 1 MiB, 300 rows and 32 cells. Each column of both profiles
 bounds its cells — an identifier of 64 characters, a text of the question, the cell of a list by the longest list its
 package accepts. A file beyond its bounds is refused whole, before any row is planned.
 
