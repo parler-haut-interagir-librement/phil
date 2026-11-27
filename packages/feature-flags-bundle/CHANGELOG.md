@@ -4,9 +4,7 @@ All notable changes to `phil/feature-flags-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.1.3-alpha.
+## 0.1.3-alpha - 2026-11-26
 
 ### Changed
 
