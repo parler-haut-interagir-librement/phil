@@ -4,9 +4,7 @@ All notable changes to `phil/organizations-bundle` will be documented in this fi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.3.0-alpha.
+## 0.3.0-alpha - 2026-11-26
 
 The units in the access model of `phil/access-bundle`, their roles holding below them as they do in `UnitAccess`. A
 minor version and not a patch: with that bundle, a kind `unit` joins the model, and a model that already holds one

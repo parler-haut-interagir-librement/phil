@@ -4,9 +4,7 @@ All notable changes to `phil/courses-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
-## Unreleased
-
-The next version is 0.4.0-alpha.
+## 0.4.0-alpha - 2026-11-26
 
 ### Added
 
