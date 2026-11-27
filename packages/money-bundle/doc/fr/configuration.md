@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=7a4a7bf5cb3adbe4bc292cc799e897d1ca3d7d464305b3bd5f67ea1221b9afac -->
+<!-- phil-dev source-sha256=96da7fd0ef68623bf4e6508afc263c9b4c2eb8ed4d55c539d35ec15623a101ff -->
 # Configuration
 
 ```yaml
@@ -35,17 +35,15 @@ doctrine:
     dbal:
         types:
             phil_currency: Phil\MoneyBundle\Infrastructure\Doctrine\CurrencyType
-    orm:                     # only when the application configures the ORM and doctrine_mapping is true
-        mappings:
-            PhilMoney:
-                type: xml
-                is_bundle: false
-                dir: '%vendor%/phil/money-bundle/config/doctrine'
-                prefix: Phil\Money
 ```
 
-Une application avec plusieurs gestionnaires d'entités définit `doctrine_mapping: false` et déclare l'association
-`PhilMoney` sur les gestionnaires qui en ont besoin.
+Quand l'application configure aussi l'ORM et que `doctrine_mapping` vaut `true`, le bundle définit le paramètre
+`phil_money.doctrine_mapping` (`PhilMoneyBundle::DOCTRINE_MAPPING`), et sa passe de compilation ajoute
+`Infrastructure\Doctrine\MoneyMappingDriver` à la chaîne de pilotes du gestionnaire d'entités par défaut, pour la seule
+classe `Phil\Money\Money`. Le mappage lui-même est en attributs ([Doctrine](doctrine.md)).
+
+Une application avec plusieurs gestionnaires d'entités définit `doctrine_mapping: false` et ajoute le pilote aux
+gestionnaires qui en ont besoin ([Doctrine](doctrine.md#plusieurs-gestionnaires-dentités)).
 
 ## Taux de change
 

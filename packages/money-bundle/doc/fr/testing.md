@@ -1,12 +1,13 @@
-<!-- phil-dev source-sha256=ef3a81dd3a4335528e882bcf967ba403a9019948f4fa14fe3b7bbcb5ebbef5da -->
+<!-- phil-dev source-sha256=30fb4a928a37f81228607fc1e2740a141bd734b1e83e96b228bbcef4e6eb6c0d -->
 # Tests
 
 ## Les tests du bundle
 
 `tests/Unit` teste chaque classe seule : les devises acceptées, le décimal sensible à la locale, le type de formulaire
 par une fabrique de formulaires, chaque contrainte avec le `ConstraintValidatorTestCase` de Symfony, le filtre Twig dans
-un environnement, le type de colonne sur une plateforme, ainsi que la configuration, les services et la configuration
-Doctrine ajoutée en préfixe du bundle.
+un environnement, le type de colonne sur une plateforme, le pilote de mappage qui lit les attributs de `MoneyEmbeddable` pour `Money`,
+ainsi que la configuration, les services, la configuration Doctrine ajoutée en préfixe et la passe de compilation du
+bundle.
 
 `tests/Functional` démarre un noyau en `fr_CA` avec FrameworkBundle, TwigBundle et DoctrineBundle sur SQLite : un prix
 saisi dans un formulaire, les contraintes avec leurs messages français, le filtre, et un `Product` dont le prix est
