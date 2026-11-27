@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=644c578e35d5be8ef9e5a831bd88ced355fad225c5096cf954e429df616bb723 -->
+<!-- phil-dev source-sha256=078a1e1cd5835efef64abc1deac2e8f43056d2e4487f015b76720a1d82fa26cb -->
 # Portée
 
 Les abonnements pour le noyau du commerce : des offres en paliers d'une famille, des périodes de facturation, des
@@ -34,13 +34,15 @@ Le module donne à ces paquets ce à quoi un abonné a droit, et rien qu'ils aur
 | Les fonctionnalités qu'une personne peut utiliser maintenant | `FeatureAccess::features()` et `grants()` | Celles de ses propres abonnements, de ses organisations — chaque membre, ou les détenteurs de places —, des cadeaux échangés, et les étapes de relance d'un renouvellement en souffrance |
 | Qui détient un abonnement, de quel palier, jusqu'à quand | `SubscriptionRepository::forSubscribers()`, `Subscription::offerCode()`, `periodEnd()`, `state()`, `payer()` | L'identifiant stable de l'abonné, jamais une adresse courriel ; qui paie un abonnement offert |
 | Qui, dans une organisation, l'utilise | `SeatRepository::holdsSeat()`, et l'`OrganizationMembership` de l'application | Les membres qui détiennent les premières places d'une offre qui les compte |
+| Où va un envoi | `DeliveryAddresses::of()` et `ofOrder()` | L'adresse d'un abonnement, et la copie figée dans chaque commande, jusqu'à leur effacement |
 
 - **Un droit sur le contenu est un nom de fonctionnalité** : `phil/content-access` associe une page, un fichier ou un
   épisode à une fonctionnalité (`episodes:early`), et interroge `FeatureAccess::grants()` ; ce module ne sait jamais ce
   qu'ouvre une fonctionnalité.
 - **Un avantage est dû par période payée** : `phil/benefit-deliverables` lit l'état et la fin de période d'un abonnement
   pour savoir qui se voit dû quoi ce trimestre, et garde ce qu'il a livré dans son propre stockage ; ce module ne garde
-  aucune livraison.
+  aucune livraison. Il lit l'adresse où un avantage est expédié par un port qui lui est propre, qu'un adaptateur
+  alimente à partir de `DeliveryAddresses`.
 - **Aucun des deux paquets n'est requis** : ce module ne dépend d'aucun des deux, et ni l'un ni l'autre n'a besoin de
   plus que les lectures ci-dessus.
 - **Les organisations elles-mêmes**, leurs membres et leurs rôles, relèvent de l'application : le module les lit par

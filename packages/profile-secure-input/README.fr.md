@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=aba7874cf21b147b58ba921bb81e9815a9ce420ac4a248b0c334bdb71d97e590 -->
+<!-- phil-dev source-sha256=35ba5f577bf0beecc66193298972cbcad2b83c052bfc6d9ef6cc283add5ae3a6 -->
 # phil/profile-secure-input
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/parler-haut-interagir-librement/profile-secure-input/badge)](https://scorecard.dev/viewer/?uri=github.com/parler-haut-interagir-librement/profile-secure-input)
