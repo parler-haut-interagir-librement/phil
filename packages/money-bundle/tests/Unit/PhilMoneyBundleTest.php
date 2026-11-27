@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Phil\MoneyBundle\Tests\Unit;
 
+use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\DoctrineExtension;
+use Phil\Money\Money;
 use Phil\MoneyBundle\Application\AcceptedCurrencies;
 use Phil\MoneyBundle\Infrastructure\Doctrine\CurrencyType;
+use Phil\MoneyBundle\Infrastructure\Doctrine\MoneyMappingDriver;
 use Phil\MoneyBundle\Infrastructure\Form\MoneyType;
 use Phil\MoneyBundle\Infrastructure\Twig\MoneyExtension;
 use Phil\MoneyBundle\Infrastructure\Validator\AcceptedCurrencyValidator;
@@ -16,7 +19,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -87,38 +92,69 @@ final class PhilMoneyBundleTest extends TestCase
         self::assertSame([[], 'EUR'], $this->load([['default_currency' => 'EUR']])->getDefinition(AcceptedCurrencies::class)->getArguments());
     }
 
-    public function testTheColumnTypeAndTheEmbeddableArePrependedToDoctrine(): void
+    public function testTheColumnTypeIsPrependedAndTheEmbeddableTurnedOnBesideTheOrm(): void
     {
         $container = $this->prepend([], [['orm' => []]]);
-        $bundle = new PhilMoneyBundle();
 
         self::assertSame([
             ['orm' => []],
             ['dbal' => ['types' => [CurrencyType::NAME => CurrencyType::class]]],
-            ['orm' => ['mappings' => ['PhilMoney' => [
-                'type' => 'xml',
-                'is_bundle' => false,
-                'dir' => $bundle->getPath().'/config/doctrine',
-                'prefix' => 'Phil\Money',
-            ]]]],
         ], $container->getExtensionConfig('doctrine'));
-        self::assertFileExists($bundle->getPath().'/config/doctrine/Money.orm.xml');
+        self::assertTrue($container->getParameter(PhilMoneyBundle::DOCTRINE_MAPPING));
     }
 
     public function testWithoutTheOrmOnlyTheColumnTypeIsPrepended(): void
     {
+        $container = $this->prepend([], [['dbal' => []]]);
+
         self::assertSame([
             ['dbal' => []],
             ['dbal' => ['types' => [CurrencyType::NAME => CurrencyType::class]]],
-        ], $this->prepend([], [['dbal' => []]])->getExtensionConfig('doctrine'));
+        ], $container->getExtensionConfig('doctrine'));
+        self::assertFalse($container->hasParameter(PhilMoneyBundle::DOCTRINE_MAPPING));
     }
 
     public function testTheEmbeddableCanBeLeftToTheApplication(): void
     {
+        $container = $this->prepend([['doctrine_mapping' => false]], [['orm' => []]]);
+
         self::assertSame([
             ['orm' => []],
             ['dbal' => ['types' => [CurrencyType::NAME => CurrencyType::class]]],
-        ], $this->prepend([['doctrine_mapping' => false]], [['orm' => []]])->getExtensionConfig('doctrine'));
+        ], $container->getExtensionConfig('doctrine'));
+        self::assertFalse($container->hasParameter(PhilMoneyBundle::DOCTRINE_MAPPING));
+    }
+
+    public function testTheDriverJoinsTheChainOfTheDefaultEntityManagerForMoneyAlone(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('doctrine.default_entity_manager', 'default');
+        $container->register('doctrine.orm.default_metadata_driver');
+        $container->setParameter(PhilMoneyBundle::DOCTRINE_MAPPING, true);
+        new PhilMoneyBundle()->build($container);
+        $this->runMappingPasses($container);
+
+        $calls = $container->getDefinition('doctrine.orm.default_metadata_driver')->getMethodCalls();
+        self::assertCount(1, $calls);
+        self::assertIsArray($calls[0]);
+        [$method, $arguments] = $calls[0];
+        self::assertSame('addDriver', $method);
+        self::assertIsArray($arguments);
+        [$driver, $namespace] = $arguments;
+        self::assertSame(Money::class, $namespace);
+        self::assertInstanceOf(Definition::class, $driver);
+        self::assertSame(MoneyMappingDriver::class, $driver->getClass());
+    }
+
+    public function testTheDriverStaysOutWhileTheMappingIsOff(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('doctrine.default_entity_manager', 'default');
+        $container->register('doctrine.orm.default_metadata_driver');
+        new PhilMoneyBundle()->build($container);
+        $this->runMappingPasses($container);
+
+        self::assertSame([], $container->getDefinition('doctrine.orm.default_metadata_driver')->getMethodCalls());
     }
 
     public function testWithoutDoctrineNothingIsPrepended(): void
@@ -144,6 +180,16 @@ final class PhilMoneyBundleTest extends TestCase
         $this->extension()->load($configs, $container);
 
         return $container;
+    }
+
+    private function runMappingPasses(ContainerBuilder $container): void
+    {
+        $passes = array_filter($container->getCompilerPassConfig()->getPasses(), static fn (CompilerPassInterface $pass): bool => $pass instanceof DoctrineOrmMappingsPass);
+        self::assertCount(1, $passes);
+
+        foreach ($passes as $pass) {
+            $pass->process($container);
+        }
     }
 
     /**

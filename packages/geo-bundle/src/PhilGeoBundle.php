@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace Phil\GeoBundle;
 
+use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Override;
+use Phil\Geo\Coordinates;
 use Phil\Geo\Geocoding\Timeouts;
 use Phil\GeoBundle\Infrastructure\DependencyInjection\GeocodingServices;
+use Phil\GeoBundle\Infrastructure\Doctrine\CoordinatesMappingDriver;
 use Phil\GeoBundle\Infrastructure\Form\CoordinatesType;
 use Phil\GeoBundle\Infrastructure\Twig\GeoExtension;
 use Symfony\Component\Config\Definition\Configuration;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Kernel\AbstractBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Twig\Attribute\AsTwigFilter;
@@ -26,6 +30,9 @@ use Twig\Attribute\AsTwigFilter;
  */
 final class PhilGeoBundle extends AbstractBundle
 {
+    /** The parameter that turns the mapping of `Coordinates` on, set only when the ORM is configured. */
+    public const string DOCTRINE_MAPPING = 'phil_geo.doctrine_mapping';
+
     #[Override]
     protected string $extensionAlias = 'phil_geo';
 
@@ -191,18 +198,30 @@ final class PhilGeoBundle extends AbstractBundle
             return;
         }
 
-        // The bundle's own tree, read before its extension loads: the mapping must reach DoctrineBundle first.
+        // The bundle's own tree, read before its extension loads, beside the configuration of DoctrineBundle.
         /** @var array{doctrine_mapping: bool} $config */
         $config = new Processor()->processConfiguration(new Configuration($this, $builder, $this->extensionAlias), $builder->getExtensionConfig($this->extensionAlias));
         $orm = array_any($builder->getExtensionConfig('doctrine'), static fn (mixed $doctrine): bool => \is_array($doctrine) && isset($doctrine['orm']));
 
         if ($config['doctrine_mapping'] && $orm) {
-            $container->extension('doctrine', ['orm' => ['mappings' => ['PhilGeo' => [
-                'type' => 'xml',
-                'is_bundle' => false,
-                'dir' => $this->getPath().'/config/doctrine',
-                'prefix' => 'Phil\Geo',
-            ]]]]);
+            $container->parameters()->set(self::DOCTRINE_MAPPING, true);
+        }
+    }
+
+    /**
+     * Adds `CoordinatesMappingDriver` to the driver chain of the default entity manager, for `Coordinates` alone, when
+     * `prependExtension()` found the ORM configured and the mapping on.
+     */
+    #[Override]
+    public function build(ContainerBuilder $container): void
+    {
+        if (class_exists(DoctrineOrmMappingsPass::class)) {
+            $container->addCompilerPass(new DoctrineOrmMappingsPass(
+                new Definition(CoordinatesMappingDriver::class),
+                [Coordinates::class],
+                [],
+                self::DOCTRINE_MAPPING,
+            ));
         }
     }
 

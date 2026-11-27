@@ -2,8 +2,10 @@
 
 | Type | Kind | Role |
 |---|---|---|
-| `PhilGeoBundle` | `final class`, `AbstractBundle` | Alias `phil_geo`; prepends the embeddable, registers the form type and the Twig extension |
-| `config/doctrine/Coordinates.orm.xml` | Doctrine mapping | `Coordinates` as an embeddable on two columns |
+| `PhilGeoBundle` | `final class`, `AbstractBundle` | Alias `phil_geo`; adds the mapping of `Coordinates` to the ORM, registers the form type and the Twig extension |
+| `PhilGeoBundle::DOCTRINE_MAPPING` | `const string` | `phil_geo.doctrine_mapping`, the parameter set when the ORM is configured and `doctrine_mapping` is on |
+| `Infrastructure\Doctrine\CoordinatesMappingDriver` | `final readonly class`, Doctrine `MappingDriver` | Maps `Coordinates` with the attributes of `CoordinatesEmbeddable` |
+| `Infrastructure\Doctrine\CoordinatesEmbeddable` | `final class`, `#[ORM\Embeddable]`, internal | The attributes of `Coordinates`: two `float` columns, `latitude` and `longitude` |
 | `Infrastructure\Form\CoordinatesType` | form type | A position as two fields |
 | `Infrastructure\Form\CoordinatesTransformer` | data transformer | Between `Coordinates` and the two fields |
 | `Infrastructure\Twig\GeoExtension` | Twig extension | `geo_distance()`, `format_distance`, `geo_attributes()`, `geo_schema()` |

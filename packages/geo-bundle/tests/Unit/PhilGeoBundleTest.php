@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Phil\GeoBundle\Tests\Unit;
 
+use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\DoctrineExtension;
+use Phil\Geo\Coordinates;
+use Phil\GeoBundle\Infrastructure\Doctrine\CoordinatesMappingDriver;
 use Phil\GeoBundle\Infrastructure\Form\CoordinatesType;
 use Phil\GeoBundle\Infrastructure\Twig\GeoExtension;
 use Phil\GeoBundle\PhilGeoBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 
@@ -32,32 +37,59 @@ final class PhilGeoBundleTest extends TestCase
         self::assertTrue($container->getDefinition(GeoExtension::class)->hasTag('twig.runtime'));
     }
 
-    public function testTheEmbeddableIsPrependedToDoctrine(): void
+    public function testTheEmbeddableIsTurnedOnBesideTheOrm(): void
     {
         $container = $this->prepend([], [['orm' => []]]);
-        $bundle = new PhilGeoBundle();
 
-        self::assertSame([
-            ['orm' => []],
-            ['orm' => ['mappings' => ['PhilGeo' => [
-                'type' => 'xml',
-                'is_bundle' => false,
-                'dir' => $bundle->getPath().'/config/doctrine',
-                'prefix' => 'Phil\Geo',
-            ]]]],
-        ], $container->getExtensionConfig('doctrine'));
-        self::assertFileExists($bundle->getPath().'/config/doctrine/Coordinates.orm.xml');
+        self::assertTrue($container->getParameter(PhilGeoBundle::DOCTRINE_MAPPING));
+        // Nothing is prepended to DoctrineBundle: the driver joins its chain through the compiler pass.
+        self::assertSame([['orm' => []]], $container->getExtensionConfig('doctrine'));
     }
 
-    public function testWithoutTheOrmNothingIsPrepended(): void
+    public function testWithoutTheOrmNothingIsTurnedOn(): void
     {
-        self::assertSame([['dbal' => []]], $this->prepend([], [['dbal' => []]])->getExtensionConfig('doctrine'));
+        $container = $this->prepend([], [['dbal' => []]]);
+
+        self::assertFalse($container->hasParameter(PhilGeoBundle::DOCTRINE_MAPPING));
+        self::assertSame([['dbal' => []]], $container->getExtensionConfig('doctrine'));
     }
 
     public function testTheEmbeddableCanBeLeftToTheApplication(): void
     {
-        self::assertSame([['orm' => []]], $this->prepend([['doctrine_mapping' => false]], [['orm' => []]])->getExtensionConfig('doctrine'));
-        self::assertCount(2, $this->prepend([['doctrine_mapping' => true]], [['orm' => []]])->getExtensionConfig('doctrine'));
+        self::assertFalse($this->prepend([['doctrine_mapping' => false]], [['orm' => []]])->hasParameter(PhilGeoBundle::DOCTRINE_MAPPING));
+        self::assertTrue($this->prepend([['doctrine_mapping' => true]], [['orm' => []]])->hasParameter(PhilGeoBundle::DOCTRINE_MAPPING));
+    }
+
+    public function testTheDriverJoinsTheChainOfTheDefaultEntityManagerForCoordinatesAlone(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('doctrine.default_entity_manager', 'default');
+        $container->register('doctrine.orm.default_metadata_driver');
+        $container->setParameter(PhilGeoBundle::DOCTRINE_MAPPING, true);
+        new PhilGeoBundle()->build($container);
+        $this->runMappingPasses($container);
+
+        $calls = $container->getDefinition('doctrine.orm.default_metadata_driver')->getMethodCalls();
+        self::assertCount(1, $calls);
+        self::assertIsArray($calls[0]);
+        [$method, $arguments] = $calls[0];
+        self::assertSame('addDriver', $method);
+        self::assertIsArray($arguments);
+        [$driver, $namespace] = $arguments;
+        self::assertSame(Coordinates::class, $namespace);
+        self::assertInstanceOf(Definition::class, $driver);
+        self::assertSame(CoordinatesMappingDriver::class, $driver->getClass());
+    }
+
+    public function testTheDriverStaysOutWhileTheMappingIsOff(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('doctrine.default_entity_manager', 'default');
+        $container->register('doctrine.orm.default_metadata_driver');
+        new PhilGeoBundle()->build($container);
+        $this->runMappingPasses($container);
+
+        self::assertSame([], $container->getDefinition('doctrine.orm.default_metadata_driver')->getMethodCalls());
     }
 
     public function testWithoutDoctrineNothingIsPrepended(): void
@@ -72,6 +104,16 @@ final class PhilGeoBundleTest extends TestCase
         $extension->prepend($container);
 
         self::assertSame([['unknown' => true]], $container->getExtensionConfig('phil_geo'));
+    }
+
+    private function runMappingPasses(ContainerBuilder $container): void
+    {
+        $passes = array_filter($container->getCompilerPassConfig()->getPasses(), static fn (CompilerPassInterface $pass): bool => $pass instanceof DoctrineOrmMappingsPass);
+        self::assertCount(1, $passes);
+
+        foreach ($passes as $pass) {
+            $pass->process($container);
+        }
     }
 
     /**

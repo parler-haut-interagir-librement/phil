@@ -4,7 +4,8 @@
 |---|---|
 | `CoordinatesType`, `CoordinatesTransformer` | Submitting, showing, an empty optional position, half a position, a position off the Earth |
 | `GeoExtension` | Distances, their writing in each system and locale, the attributes of a place blurred or not |
-| `PhilGeoBundle` | The services, the embeddable prepended with the ORM only, and left to the application on demand |
+| `PhilGeoBundle` | The services, the embeddable turned on with the ORM only, and left to the application on demand; the driver added to the default entity manager by the compiler pass |
+| `CoordinatesMappingDriver` | `Coordinates` mapped from the attributes of `CoordinatesEmbeddable`, two `float` columns; any other class refused |
 | `GeocodingServices` | No provider, one, several chained and cached, the IP locator, every option and bound, the options a provider needs |
 | `DatabaseUpdater`, `phil:geo:maxmind:update` | Archives the tests write — headers as tar writes them, a directory, a file in the way, an archive inside the archive, a database after the end —; the checksum kept and the download skipped, forced; every refusal leaving the database in place; the account sent; the output, plain and coloured |
 | Geocoding in an application | Nominatim answered by a `MockHttpClient` as `http_client`, through `cache.app`: one request for two questions |

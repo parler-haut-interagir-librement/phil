@@ -10,14 +10,14 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  *
  * - the `service()` function of the container configurator, which the analyser does not see as declared by
  *   `symfony/dependency-injection` although that package defines it;
- * - the optional integrations — `doctrine/dbal`, `doctrine/orm` and `twig/twig` —, which the production code uses
- *   but only requires in development and suggests: the bundle registers each one only when its package is
- *   installed.
+ * - the optional integrations — `doctrine/dbal`, `doctrine/orm` with `doctrine/persistence` and the compiler pass of
+ *   `doctrine/doctrine-bundle`, and `twig/twig` —, which the production code uses but only requires in development
+ *   and suggests: the bundle registers each one only when its package is installed.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
     ->addPathToScan(__DIR__.'/tests', isDev: true)
-    ->ignoreErrorsOnPackages(['doctrine/dbal', 'doctrine/orm', 'twig/twig'], [ErrorType::DEV_DEPENDENCY_IN_PROD])
+    ->ignoreErrorsOnPackages(['doctrine/dbal', 'doctrine/doctrine-bundle', 'doctrine/orm', 'doctrine/persistence', 'twig/twig'], [ErrorType::DEV_DEPENDENCY_IN_PROD])
     ->ignoreUnknownFunctions([
         'Symfony\Component\DependencyInjection\Loader\Configurator\service',
     ]);

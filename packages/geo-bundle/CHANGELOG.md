@@ -4,6 +4,19 @@ All notable changes to `phil/geo-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Changed
+
+- The ORM mapping of `Coordinates` is written in Doctrine attributes, on `Infrastructure\Doctrine\CoordinatesEmbeddable`,
+  instead of `config/doctrine/Coordinates.orm.xml`, which is removed: `Infrastructure\Doctrine\CoordinatesMappingDriver`
+  reads them for `Coordinates`, and a compiler pass of the bundle adds it to the default entity manager when the ORM is
+  configured and `doctrine_mapping` is on (`PhilGeoBundle::DOCTRINE_MAPPING`). The columns are unchanged. Nothing is
+  prepended to `doctrine.orm.mappings` any more; an application that declared the `PhilGeo` mapping on another entity
+  manager adds the driver with `DoctrineOrmMappingsPass` instead.
+
 ## 0.1.1-alpha - 2026-11-25
 
 ### Added
