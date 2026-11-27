@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phil\StructuredDataBundle\Tests\Unit\Infrastructure;
 
 use Phil\BrowserSecurityBundle\Application\ContentSecurityPolicyContext;
+use Phil\BrowserSecurityBundle\Application\HeaderBuilder;
+use Phil\BrowserSecurityBundle\Application\PolicyRegistry;
 use Phil\BrowserSecurityBundle\Application\RequestState;
 use Phil\BrowserSecurityBundle\Domain\Enum\InlineKind;
 use Phil\IndexingConsent\Contract\HasIndexingConsent;
@@ -127,5 +129,14 @@ final class StructuredDataExtensionTest extends TestCase
 
         self::assertSame($policy->nonce(InlineKind::Script), $nonce);
         self::assertSame(['script' => $nonce], RequestState::of($request)->nonces());
+    }
+
+    public function testAPolicyWithoutNoncesGivesNone(): void
+    {
+        $request = Request::create('https://example.com/');
+        $policy = new ContentSecurityPolicyContext(new RequestStack([$request]), new HeaderBuilder(PolicyRegistry::fromConfig(['default' => ['nonces' => false]])));
+
+        self::assertNull(new ContentSecurityPolicyNonce($policy)->scriptNonce());
+        self::assertSame([], RequestState::of($request)->nonces());
     }
 }

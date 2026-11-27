@@ -4,6 +4,25 @@ All notable changes to `phil/browser-security-bundle` will be documented in this
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.2-alpha.
+
+### Added
+
+- `nonces` on each policy, `true` by default: a policy declared with `nonces: false` lists the hashes of the request
+  but never its nonces, a transitional policy for pages whose templates still write inline code while the rest of the
+  site keeps its nonces. `PolicyDefinition::$nonces`, `HeaderBuilder::takesNonces()`,
+  `ContentSecurityPolicyContext::noncesEnabled()`, and the `$nonces` argument of `RequestState::sources()`.
+
+### Changed
+
+- `ContentSecurityPolicyContext::nonce()`, `scriptNonce()`, `styleNonce()` and `sharedNonce()` return `?string`: null
+  when each policy the response sends is declared with `nonces: false`, and then `csp_nonce()` gives null,
+  `csp_meta()` writes nothing, and `importmap()` and the HTML error page write no `nonce` attribute.
+  `ContentSecurityPolicyContext` takes the `HeaderBuilder` as a second, optional argument. Without a policy declared
+  with `nonces: false`, every method still returns a nonce.
+
 ## 0.2.1-alpha - 2026-11-25
 
 ### Added

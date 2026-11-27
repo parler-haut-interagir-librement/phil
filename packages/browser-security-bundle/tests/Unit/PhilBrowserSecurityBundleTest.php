@@ -125,7 +125,7 @@ final class PhilBrowserSecurityBundleTest extends TestCase
         $builder = $container->getDefinition(HeaderBuilder::class);
         self::assertEquals([new Reference(PolicyRegistry::class), 'default', null, 'csp'], $builder->getArguments());
         self::assertTrue($builder->isPublic());
-        self::assertEquals([new Reference('request_stack')], $container->getDefinition(ContentSecurityPolicyContext::class)->getArguments());
+        self::assertEquals([new Reference('request_stack'), new Reference(HeaderBuilder::class)], $container->getDefinition(ContentSecurityPolicyContext::class)->getArguments());
         self::assertTrue($container->getDefinition(ContentSecurityPolicyContext::class)->isPublic());
         self::assertSame([[
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
@@ -208,7 +208,7 @@ final class PhilBrowserSecurityBundleTest extends TestCase
             'report_only' => 'strict',
             'policies' => [
                 'site' => ['directives' => ['default-src' => "'self'", 'img-src' => ['a' => "'self'", 'b' => 'data:'], 'upgrade-insecure-requests' => true], 'strict_dynamic' => true],
-                'strict' => ['extends' => 'site', 'directives' => ['script-src' => []], 'report' => false],
+                'strict' => ['extends' => 'site', 'directives' => ['script-src' => []], 'report' => false, 'nonces' => false],
             ],
             'exclude_paths' => [3, '/_debug'],
             'importmap' => false,
@@ -227,6 +227,8 @@ final class PhilBrowserSecurityBundleTest extends TestCase
         self::assertTrue($policies['site']['strict_dynamic'] ?? null);
         self::assertSame('site', $policies['strict']['extends'] ?? null);
         self::assertFalse($policies['strict']['report'] ?? null);
+        self::assertTrue($policies['site']['nonces'] ?? null);
+        self::assertFalse($policies['strict']['nonces'] ?? null);
         self::assertEquals([new Reference(PolicyRegistry::class), 'site', 'strict', 'csp'], $container->getDefinition(HeaderBuilder::class)->getArguments());
         self::assertSame("default-src 'self'; img-src 'self' data:; upgrade-insecure-requests; script-src 'none'", PolicyRegistry::fromConfig($policies)->get('strict')->policy->header());
         self::assertSame(['/_debug'], $container->getDefinition(ContentSecurityPolicyListener::class)->getArgument(2));

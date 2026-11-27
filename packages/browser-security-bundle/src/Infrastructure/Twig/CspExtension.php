@@ -15,6 +15,9 @@ use Twig\TwigFunction;
  * - `csp_nonce('script')` and `csp_nonce('style')`, the value of a `nonce` attribute;
  * - `csp_meta()`, the `<meta name="csp-nonce">` tag that Turbo reads to give the scripts and styles it adds the
  *   nonce of the page, allowed for both.
+ *
+ * Under policies declared with `nonces: false`, `csp_nonce()` gives null, which `html_attr({nonce: csp_nonce()})`
+ * leaves out, and `csp_meta()` writes nothing.
  */
 final class CspExtension extends AbstractExtension
 {
@@ -34,6 +37,8 @@ final class CspExtension extends AbstractExtension
 
     private function meta(): string
     {
-        return '<meta name="csp-nonce" content="'.$this->context->sharedNonce().'">';
+        $nonce = $this->context->sharedNonce();
+
+        return null === $nonce ? '' : '<meta name="csp-nonce" content="'.$nonce.'">';
     }
 }

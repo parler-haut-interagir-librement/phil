@@ -124,17 +124,25 @@ final class RequestState
     /**
      * The nonce and hash sources of a kind, in the order they go in the header.
      *
+     * @param bool $nonces false for the hashes alone, for a policy declared with `nonces: false`
+     *
      * @return list<string>
      */
-    public function sources(InlineKind $kind): array
+    public function sources(InlineKind $kind, bool $nonces = true): array
     {
+        $hashes = $this->hashes[$kind->value] ?? [];
+
+        if (!$nonces) {
+            return $hashes;
+        }
+
         $sources = isset($this->nonces[$kind->value]) ? ["'nonce-".$this->nonces[$kind->value]."'"] : [];
 
         if (InlineKind::Style === $kind && $this->sharedNonce) {
             $sources[] = "'nonce-".$this->nonce(InlineKind::Script)."'";
         }
 
-        return [...$sources, ...$this->hashes[$kind->value] ?? []];
+        return [...$sources, ...$hashes];
     }
 
     /**

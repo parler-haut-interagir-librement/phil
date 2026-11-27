@@ -28,7 +28,71 @@ final class HeaderBuilderTest extends TestCase
             'strict' => ['directives' => ['default-src' => ["'none'"], 'script-src-elem' => ["'self'"], 'style-src' => ["'self'"], 'style-src-elem' => ["'self'"]]],
             'quiet' => ['directives' => ['default-src' => ["'self'"]], 'report' => false],
             'empty' => [],
+            'legacy' => ['directives' => ['default-src' => ["'self'"], 'script-src' => ["'self'", "'unsafe-inline'"], 'style-src' => ["'self'"]], 'strict_dynamic' => true, 'nonces' => false],
+            'legacy-strict' => ['directives' => ['default-src' => ["'none'"]], 'nonces' => false, 'report' => false],
         ]);
+    }
+
+    public function testAPolicyWithoutNoncesListsTheHashesAlone(): void
+    {
+        $state = new RequestState();
+        $script = $state->nonce(InlineKind::Script);
+        $style = $state->nonce(InlineKind::Style);
+        $state->addHash(InlineKind::Script, 'a()');
+
+        self::assertSame(
+            [
+                HeaderBuilder::ENFORCE => "default-src 'self'; script-src 'self' 'unsafe-inline' ".SourceSyntax::hashOf('a()')." 'strict-dynamic'; style-src 'self'",
+                HeaderBuilder::REPORT_ONLY => "default-src 'self'; script-src 'self' 'nonce-".$script."' ".SourceSyntax::hashOf('a()')." 'strict-dynamic'; style-src 'self' 'nonce-".$style."'",
+            ],
+            new HeaderBuilder($this->policies, 'legacy', 'default')->build($state),
+        );
+    }
+
+    public function testAPolicyWithoutNoncesNorHashesGetsNoStrictDynamic(): void
+    {
+        $state = new RequestState();
+        $state->nonce(InlineKind::Script);
+
+        self::assertSame(
+            [HeaderBuilder::ENFORCE => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'"],
+            new HeaderBuilder($this->policies, 'legacy')->build($state),
+        );
+    }
+
+    public function testTheResponseTakesNoncesUnlessEveryPolicySentDeclinesThem(): void
+    {
+        $state = new RequestState();
+
+        self::assertTrue(new HeaderBuilder($this->policies)->takesNonces($state));
+        self::assertFalse(new HeaderBuilder($this->policies, 'legacy')->takesNonces($state));
+        self::assertFalse(new HeaderBuilder($this->policies, 'legacy', 'legacy-strict')->takesNonces($state));
+        self::assertTrue(new HeaderBuilder($this->policies, 'legacy', 'default')->takesNonces($state));
+        self::assertTrue(new HeaderBuilder($this->policies, 'default', 'legacy')->takesNonces($state));
+        self::assertFalse(new HeaderBuilder($this->policies, null, 'legacy')->takesNonces($state));
+        self::assertTrue(new HeaderBuilder($this->policies, null)->takesNonces($state), 'no policy sent: the nonces stay');
+
+        $state->addOverride(new PolicyOverride('legacy'));
+        self::assertFalse(new HeaderBuilder($this->policies)->takesNonces($state));
+        $state->addOverride(new PolicyOverride(reportOnly: true));
+        self::assertFalse(new HeaderBuilder($this->policies)->takesNonces($state), 'report-only still declines them');
+        self::assertArrayNotHasKey(HeaderBuilder::ENFORCE, new HeaderBuilder($this->policies)->build($state));
+
+        $state->addOverride(new PolicyOverride('default'));
+        self::assertTrue(new HeaderBuilder($this->policies)->takesNonces($state));
+
+        $disabled = new RequestState();
+        $disabled->addOverride(new PolicyOverride(disabled: true));
+        self::assertTrue(new HeaderBuilder($this->policies, 'legacy')->takesNonces($disabled), 'a disabled policy sends nothing: the nonces stay');
+    }
+
+    public function testTakingNoncesWithAnUnknownPolicy(): void
+    {
+        $state = new RequestState();
+        $state->addOverride(new PolicyOverride('missing'));
+
+        $this->expectException(UnknownPolicy::class);
+        new HeaderBuilder($this->policies)->takesNonces($state);
     }
 
     public function testTheEnforcedPolicyAlone(): void

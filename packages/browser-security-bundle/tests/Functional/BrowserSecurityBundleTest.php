@@ -90,6 +90,23 @@ final class BrowserSecurityBundleTest extends KernelTestCase
         self::assertStringNotContainsString($script[1], $again, 'a worker gives each request its own nonce');
     }
 
+    public function testAPageUnderATransitionalPolicyGetsNoNonce(): void
+    {
+        $response = $this->request('GET', 'https://example.com/legacy');
+        $header = (string) $response->headers->get('Content-Security-Policy');
+        $content = (string) $response->getContent();
+
+        self::assertStringContainsString("script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'", $header);
+        self::assertStringNotContainsString("'nonce-", $header);
+        self::assertStringNotContainsString("'strict-dynamic'", $header);
+        self::assertDoesNotMatchRegularExpression('/\snonce=|csp-nonce/', $content);
+        self::assertStringContainsString('<script type="importmap">', $content);
+        self::assertStringContainsString("<script>console.log('legacy');</script>", $content);
+        self::assertTrue($response->headers->hasCacheControlDirective('public'), 'without a nonce, the page stays in shared caches');
+
+        self::assertMatchesRegularExpression("/script-src 'self' 'nonce-[^']+' 'strict-dynamic'/", (string) $this->request('GET', 'https://example.com/page')->headers->get('Content-Security-Policy'), 'the other pages keep their nonces');
+    }
+
     public function testTheErrorPageCarriesTheNoncesOfThePolicy(): void
     {
         // In debug, the ErrorListener of HttpKernel drops the policy of an error page; FrameworkBundle picks the HTML

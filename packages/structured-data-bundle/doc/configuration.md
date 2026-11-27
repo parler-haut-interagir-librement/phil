@@ -50,7 +50,7 @@ phil_structured_data:
 | `web_page` | `true` | Each page as a `WebPage`, `#webpage` at its address — without its query —, part of the site when the site is on |
 | `breadcrumb.menu` | `null` | The menu whose breadcrumb is each page's `BreadcrumbList`; needs phil/menu-bundle |
 | `nonce.request_attribute` | `null` | The attribute of the main request that holds a nonce for the JSON-LD element; by default the element has none, and the page keeps its shared cache |
-| `nonce.content_security_policy` | `false` | The JSON-LD element takes the script nonce of the policy phil/browser-security-bundle sends, which then names it; needs that bundle. A page with a nonce leaves shared caches |
+| `nonce.content_security_policy` | `false` | The JSON-LD element takes the script nonce of the policy phil/browser-security-bundle sends, which then names it, and none under a policy declared with `nonces: false`; needs that bundle. A page with a nonce leaves shared caches |
 | `check.timeout` | `10` | The seconds `phil:structured-data:check` waits for a page, 0.1 at least |
 | `allow_localhost` | `false` | Whether an address of the graphs may be on `localhost` or under `.localhost`, for the factories of `Schema` and the validator of the check: `true` under `when@dev` and `when@test` only |
 

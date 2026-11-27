@@ -10,6 +10,9 @@ The next version is 0.1.1-alpha.
 
 ### Changed
 
+- `ContentSecurityPolicyNonce` gives no nonce when each policy phil/browser-security-bundle sends is declared with
+  `nonces: false`: the next `ScriptNonceProvider` is asked, and the script element of a page served under such a
+  policy carries no `nonce` attribute.
 - The development requirements accept `phil/browser-security-bundle` 0.2, the minor version of its main branch and no
   earlier one, so that the package installs on its own beside that bundle.
 - Requires the latest minor of each dependency (`symfony/service-contracts` 3.8), and of each development requirement

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phil\BrowserSecurityBundle\Tests\Unit\Infrastructure;
 
 use Phil\BrowserSecurityBundle\Application\ContentSecurityPolicyContext;
+use Phil\BrowserSecurityBundle\Application\HeaderBuilder;
+use Phil\BrowserSecurityBundle\Application\PolicyRegistry;
 use Phil\BrowserSecurityBundle\Application\ReportParser;
 use Phil\BrowserSecurityBundle\Application\ReportReceiver;
 use Phil\BrowserSecurityBundle\Application\RequestState;
@@ -28,6 +30,11 @@ use Twig\Loader\ArrayLoader;
 #[CoversClass(NoncedImportMapRuntime::class)]
 final class HttpAndTwigTest extends TestCase
 {
+    private function legacy(): HeaderBuilder
+    {
+        return new HeaderBuilder(PolicyRegistry::fromConfig(['default' => ['nonces' => false]]));
+    }
+
     public function testTheEndpointAnswersWithTheReceipt(): void
     {
         $reports = new MemoryReports();
@@ -62,6 +69,33 @@ final class HttpAndTwigTest extends TestCase
             $twig->render('page'),
         );
         self::assertTrue($state->sharedNonce);
+    }
+
+    public function testTheTwigFunctionsUnderAPolicyWithoutNonces(): void
+    {
+        $request = new Request();
+        $requests = new RequestStack([$request]);
+        $twig = new Environment(new ArrayLoader([
+            'page' => '[{{ csp_meta() }}]{{ csp_nonce() is null ? "none" : "nonce" }}|{{ csp_nonce("style") is null ? "none" : "nonce" }}',
+        ]), ['autoescape' => 'html', 'strict_variables' => true]);
+        $twig->addExtension(new CspExtension(new ContentSecurityPolicyContext($requests, $this->legacy())));
+
+        self::assertSame('[]none|none', $twig->render('page'));
+        self::assertSame([], RequestState::of($request)->nonces());
+        self::assertFalse(RequestState::of($request)->sharedNonce);
+    }
+
+    public function testImportmapUnderAPolicyWithoutNonces(): void
+    {
+        $request = new Request();
+        $generator = self::createStub(ImportMapGenerator::class);
+        $generator->method('getImportMapData')->willReturn([]);
+        $runtime = NoncedImportMapRuntime::create(new ImportMapRenderer($generator), new ContentSecurityPolicyContext(new RequestStack([$request]), $this->legacy()));
+
+        self::assertStringContainsString('<script type="importmap">', $runtime->importmap());
+        self::assertStringNotContainsString('nonce', $runtime->importmap('app'));
+        self::assertStringContainsString('<script type="importmap" nonce="mine">', $runtime->importmap(['app'], ['nonce' => 'mine']));
+        self::assertSame([], RequestState::of($request)->nonces());
     }
 
     public function testImportmapGetsTheScriptNonce(): void

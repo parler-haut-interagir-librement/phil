@@ -13,7 +13,8 @@ use Symfony\Component\AssetMapper\ImportMap\ImportMapRenderer;
 /**
  * The `importmap()` function of AssetMapper with the script nonce of the response on each tag it writes — the import
  * map, the module preloads, the polyfill and the entry points —, unless the template gives a `nonce` of its own. The
- * Stimulus controllers and Turbo load through it.
+ * Stimulus controllers and Turbo load through it. Under policies declared with `nonces: false`, the tags carry no
+ * nonce.
  */
 final class NoncedImportMapRuntime extends ImportMapRuntime
 {
@@ -39,6 +40,8 @@ final class NoncedImportMapRuntime extends ImportMapRuntime
     #[Override]
     public function importmap(string|array $entryPoint = 'app', array $attributes = []): string
     {
-        return parent::importmap($entryPoint, $attributes + ['nonce' => $this->context->nonce(InlineKind::Script)]);
+        $nonce = $this->context->nonce(InlineKind::Script);
+
+        return parent::importmap($entryPoint, null === $nonce ? $attributes : $attributes + ['nonce' => $nonce]);
     }
 }
