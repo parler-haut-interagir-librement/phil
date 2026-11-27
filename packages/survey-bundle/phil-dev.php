@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Phil\SurveyBundle\Application\Import\QuestionImportTarget;
+
 /*
  * What the shared development tooling reads of this package: its paths and its exceptions to the shared
  * configurations, nothing else.
@@ -15,10 +17,12 @@ return [
     'js' => ['paths' => ['assets', 'tests/js']],
     'twig' => ['paths' => ['templates']],
     'fuzz' => [
-        // Questionnaire documents nobody wrote, read by the JSON exchange format, from the seeds of
-        // tests/Fuzz/corpus/<target>.
+        // Text nobody wrote, from the seeds of tests/Fuzz/corpus/<target>: questionnaire documents read by the JSON
+        // exchange format.
         'targets' => [
             'survey-questionnaire-json' => 'tests/Fuzz/survey-questionnaire-json.php',
+            // The CSV files of questions people upload, read and planned by the profile of the questions.
+            'survey-question-csv' => 'tests/Fuzz/survey-question-csv.php',
         ],
     ],
     'docs' => ['public' => true, 'translations' => 'blocking'],
@@ -75,7 +79,22 @@ return [
                     '.*createFromFormat\\(\'!\'\\.DateTimeInterface::ATOM, \\$text\\).*',
                     // A style the formatter leaves open ends with the line, which is the last the command writes.
                     '.*writeln\\(\'<error>\'\\.\\$[a-zA-Z]+->getMessage\\(\\)\\.\'</error>\'\\);.*',
+                    '.*writeln\\(\'<error>\'\\.OutputFormatter::escape\\(\\$[a-zA-Z]+->getMessage\\(\\)\\)\\.\'</error>\'\\);.*',
                 ],
+            ],
+            // The sections left once one is removed are read at once by the search for another, or by the spread that
+            // adds a section, and both start the numbering again.
+            'UnwrapArrayValues' => [
+                'ignoreSourceCodeByRegex' => ['.*return array_values\\(array_filter\\(\\$replaced, .*'],
+            ],
+            // A choice of the cell is trimmed before the pattern reads it: what follows its "=" never holds only blanks.
+            'UnwrapTrim' => [
+                'ignoreSourceCodeByRegex' => ['.*\'\' !== trim\\(\$parts\[2\]\).*'],
+            ],
+            // The early return of a batch no row of which could be read only spares building the questionnaire again: it
+            // comes out the same, or is refused for having no section, and nothing is saved either way.
+            'ReturnRemoval' => [
+                'ignore' => [QuestionImportTarget::class.'::write'],
             ],
             // A questionnaire the check misses is inserted, the insert is refused by its key, and the update follows: the same row.
             'ArrayItemRemoval' => [

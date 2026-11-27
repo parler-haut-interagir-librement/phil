@@ -80,7 +80,7 @@ bin/console phil:survey:import welcome.json --replace
 ```
 
 `Questionnaires` saves, finds, removes, exports and imports questionnaires, and checks each ending's redirect against
-the allowed origins before saving.
+the allowed origins before saving. The questions alone also come from a CSV file, see [CSV import](csv-import.md).
 
 ## Templates
 

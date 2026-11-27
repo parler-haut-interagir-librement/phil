@@ -11,6 +11,7 @@ use Phil\SurveyBundle\Application\BuiltInTemplates;
 use Phil\SurveyBundle\Application\Contract\FeedbackSessions;
 use Phil\SurveyBundle\Application\Contract\QuestionnaireTemplates;
 use Phil\SurveyBundle\Application\Handler\PurgeSurveyResponsesHandler;
+use Phil\SurveyBundle\Application\Import\QuestionImports;
 use Phil\SurveyBundle\Application\Message\PurgeSurveyResponses;
 use Phil\SurveyBundle\Application\NoSessions;
 use Phil\SurveyBundle\Application\Participations;
@@ -23,6 +24,7 @@ use Phil\SurveyBundle\Domain\Contract\QuestionnaireRepository;
 use Phil\SurveyBundle\Domain\Contract\ResponseRepository;
 use Phil\SurveyBundle\Infrastructure\Console\ExportQuestionnaireCommand;
 use Phil\SurveyBundle\Infrastructure\Console\ImportQuestionnaireCommand;
+use Phil\SurveyBundle\Infrastructure\Console\ImportQuestionsCommand;
 use Phil\SurveyBundle\Infrastructure\Doctrine\DbalQuestionnaireRepository;
 use Phil\SurveyBundle\Infrastructure\Doctrine\DbalResponseRepository;
 use Phil\SurveyBundle\Infrastructure\Doctrine\SurveySchemaListener;
@@ -111,6 +113,7 @@ final class SurveyServices
         $container->register(Submissions::class, Submissions::class)
             ->setArguments([$responses, new Reference(Participations::class), new Reference(RedirectPolicy::class), $clock, new Reference(FeedbackSessions::class)])
             ->setPublic(true);
+        $container->register(QuestionImports::class, QuestionImports::class)->setArguments([new Reference(Questionnaires::class)])->setPublic(true);
         $container->register(Results::class, Results::class)->setArguments([$responses])->setPublic(true);
         $container->register(Addenda::class, Addenda::class)->setArguments([$responses, $clock])->setPublic(true);
         $container->register(PurgeSurveyResponsesHandler::class, PurgeSurveyResponsesHandler::class)
@@ -143,6 +146,8 @@ final class SurveyServices
             foreach ([ExportQuestionnaireCommand::class, ImportQuestionnaireCommand::class] as $command) {
                 $container->register($command, $command)->setArguments([new Reference(Questionnaires::class)])->addTag('console.command');
             }
+
+            $container->register(ImportQuestionsCommand::class, ImportQuestionsCommand::class)->setArguments([new Reference(QuestionImports::class)])->addTag('console.command');
         }
 
         $schedule = $config['schedule'];

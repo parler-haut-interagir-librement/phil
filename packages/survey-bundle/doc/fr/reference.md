@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=88a88b91aee56a302d79e84502d20f67b0512a520ffb1a430c1a3ff80360de80 -->
+<!-- phil-dev source-sha256=ea004673d4824b612e6afe4b83bf485c3e94bb7ce091d9fb98b1e2307b2dad06 -->
 # Référence
 
 | Type ou fichier | Rôle |
@@ -22,11 +22,15 @@
 | `Application\Contract\QuestionnaireTemplates`, `TemplateChain`, `BuiltInTemplates` | Le port des gabarits, la chaîne des fournisseurs, le gabarit `session_feedback` |
 | `Application\NoRespondent` | Le répondant quand l'application n'a aucun membre connecté |
 | `Application\Message\PurgeSurveyResponses`, `Handler\PurgeSurveyResponsesHandler` | La purge des réponses échues |
-| `Application\Exception\SurveyRefused`, `UnknownQuestionnaire` | Un refus et sa raison ; une clé qu'aucun questionnaire n'a |
+| `Application\Import\QuestionImports` | L'importation CSV des questions : le fichier lu dans ses limites, l'essai à blanc, l'importation |
+| `Application\Import\QuestionCsvProfile`, `QuestionRowRule` | Le profil du fichier CSV des questions et ses limites ; la vérification d'une ligne dans l'essai à blanc |
+| `Application\Import\QuestionRows`, `ImportedQuestion` | Une ligne lue comme une question, avec sa section |
+| `Application\Import\QuestionImportTarget` | Un questionnaire comme cible de `phil/import-wizard` |
+| `Application\Exception\SurveyRefused`, `UnknownQuestionnaire`, `InvalidQuestionRow` | Un refus et sa raison ; une clé qu'aucun questionnaire n'a ; une ligne de questions refusée, avec sa colonne |
 | `Infrastructure\Doctrine\SurveyTables`, `SurveySchemaListener` | Les tables, et l'écouteur qui les ajoute au schéma de l'ORM |
 | `Infrastructure\Doctrine\DbalQuestionnaireRepository`, `DbalResponseRepository`, `Sql`, `Column` | Le stockage sur Doctrine DBAL, ses compteurs atomiques |
 | `Infrastructure\Http\SurveyController`, `SurveyGuard` | Les pages, et leur vérification CSRF sans état |
-| `Infrastructure\Console\ExportQuestionnaireCommand`, `ImportQuestionnaireCommand` | `phil:survey:export`, `phil:survey:import` |
+| `Infrastructure\Console\ExportQuestionnaireCommand`, `ImportQuestionnaireCommand`, `ImportQuestionsCommand` | `phil:survey:export`, `phil:survey:import`, `phil:survey:import-questions` |
 | `Infrastructure\Scheduler\SurveySchedule` | Le calendrier `phil_survey` |
 | `Infrastructure\Privacy\SurveyPrivacy` | Le module `survey` de `phil/privacy-bundle` |
 | `Infrastructure\DependencyInjection\SurveyServices`, `RespondentPass`, `CsrfProtectionPass` | Les services, le service du répondant, la vérification de la protection CSRF |

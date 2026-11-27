@@ -85,6 +85,7 @@ sci,Sciences,
 sci-math-alg,Algebra,sci-math
 ```
 
-### Later formats
+### Questions
 
-The import of the questions of an assessment, with their choices and answers, is a later format.
+The questions of a quiz and of a survey have profiles of their own, in the packages that own them, and share the
+conventions of [Question files](question-files.md).

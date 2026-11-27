@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a0f8536e5cd644361505d32003193f1d59c599ec2bb5f23a2d458530ffcb541c -->
+<!-- phil-dev source-sha256=a2a7fa46318788bd1fd3c3ff786e6577fc3ce21671127ea8506909c9c31338ac -->
 # Questionnaires
 
 Un `Questionnaire` est une valeur immuable : ses sections et ses questions, ses variables calculées, ses fins et ses
@@ -83,7 +83,8 @@ bin/console phil:survey:import welcome.json --replace
 ```
 
 `Questionnaires` enregistre, trouve, supprime, exporte et importe des questionnaires, et vérifie la redirection de
-chaque fin d'après les origines autorisées avant d'enregistrer.
+chaque fin d'après les origines autorisées avant d'enregistrer. Les questions seules viennent aussi d'un fichier CSV,
+voir [Importation CSV](csv-import.md).
 
 ## Gabarits
 

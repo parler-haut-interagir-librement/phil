@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6f84fa52d06988ee737c9649a78c51d0f549869db70ee473f7c665ac72f3ec82 -->
+<!-- phil-dev source-sha256=723c9ee9b43c62770e291f003973d171ae218ce7fd7c5d422bc4879e4cefa3da -->
 # phil/import-wizard
 
 **Importez des fichiers CSV sans surprise : un essai à blanc donne pour chaque ligne l'aperçu d'une création, d'une mise à jour ou d'un refus, les correspondances se rejouent et les lignes refusées reviennent à corriger.**
@@ -27,7 +27,8 @@ forme d'un fichier CSV, chacune avec sa ligne et ses erreurs, à corriger puis �
 **`TemplateFile`** donne le gabarit d'un type, réduit à ses en-têtes.
 
 `LmsProfiles` fournit les trois fichiers CSV d'une plateforme d'apprentissage : les personnes, leurs inscriptions à des
-cours et l'arbre des unités organisationnelles.
+cours et l'arbre des unités organisationnelles. Les questions des quiz et des sondages suivent les conventions communes
+des fichiers de questions, avec les profils des paquets qui les possèdent.
 
 ## État
 
@@ -40,7 +41,8 @@ cours et l'arbre des unités organisationnelles.
 | `RejectedRowsFile`, `TemplateFile`, `CsvWriter` : les fichiers à corriger et les gabarits, formules protégées | Implémenté et testé |
 | `LmsProfiles` : personnes, inscriptions, unités organisationnelles | Implémenté et testé |
 | `DateOrder` et le port `RowRule` | Implémenté et testé |
-| Lecture de XLSX et d'ODS, importation des questions d'une évaluation | Non écrit |
+| Les conventions des fichiers de questions des quiz et des sondages, dont les profils sont dans leurs paquets | Documenté |
+| Lecture de XLSX et d'ODS, de GIFT et de QTI | Non écrit |
 
 ## Documentation
 
@@ -49,6 +51,7 @@ cours et l'arbre des unités organisationnelles.
 | [Installation](doc/fr/installation.md) | Les prérequis, l'installation et une première importation du début à la fin. |
 | [Profils](doc/fr/profiles.md) | Colonnes, types, vérifications, clés naturelles, références, règles, correspondance, sérialisation. |
 | [Formats](doc/fr/formats.md) | Le CSV lu et écrit, et les trois formats d'une plateforme d'apprentissage. |
+| [Fichiers de questions](doc/fr/question-files.md) | Les fichiers CSV des questions des quiz et des sondages, et les conventions qu'ils partagent. |
 | [L'essai à blanc](doc/fr/dry-run.md) | Le plan, l'aperçu, les raisons, son écriture et les fichiers de lignes refusées. |
 | [Points d'extension](doc/fr/extension-points.md) | La cible, la recherche, les sources et les règles qu'implémente une application. |
 | [Tests](doc/fr/testing.md) | Les tests, la cible de fuzzing et le banc d'essai. |

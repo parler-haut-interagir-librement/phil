@@ -14,6 +14,7 @@ change them, and its CHANGELOG says how.
 | The templates | Override them under `templates/bundles/PhilSurveyBundle/` |
 | The texts | Translate the domain `phil_survey` |
 | The exchange of questionnaires | `Questionnaires::export()` and `import()`, or the JSON schema in `schema/` |
+| The CSV import of questions | `QuestionImports`, or `QuestionCsvProfile::profile()` with a `QuestionImportTarget` given to the planner and the importer of `phil/import-wizard`; another source of rows implements its `RowSource` |
 
 The bundle dispatches no event. A response is recorded in one transaction; an application that reacts to it reads the
 `Receipt` that `Submissions::submit()` returns.

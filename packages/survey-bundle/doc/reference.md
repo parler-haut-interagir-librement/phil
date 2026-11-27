@@ -21,11 +21,15 @@
 | `Application\Contract\QuestionnaireTemplates`, `TemplateChain`, `BuiltInTemplates` | The port of the templates, the chain of the providers, the `session_feedback` template |
 | `Application\NoRespondent` | The respondent when the application has no signed-in member |
 | `Application\Message\PurgeSurveyResponses`, `Handler\PurgeSurveyResponsesHandler` | The purge of the responses past their retention |
-| `Application\Exception\SurveyRefused`, `UnknownQuestionnaire` | A refusal and its reason; a key no questionnaire has |
+| `Application\Import\QuestionImports` | The CSV import of questions: the file read within its bounds, the dry run, the import |
+| `Application\Import\QuestionCsvProfile`, `QuestionRowRule` | The profile of the CSV file of questions and its bounds; the check of a row in the dry run |
+| `Application\Import\QuestionRows`, `ImportedQuestion` | A row read as a question, with its section |
+| `Application\Import\QuestionImportTarget` | A questionnaire as the target of `phil/import-wizard` |
+| `Application\Exception\SurveyRefused`, `UnknownQuestionnaire`, `InvalidQuestionRow` | A refusal and its reason; a key no questionnaire has; a row of questions refused, with its column |
 | `Infrastructure\Doctrine\SurveyTables`, `SurveySchemaListener` | The tables, and the listener that adds them to the ORM's schema |
 | `Infrastructure\Doctrine\DbalQuestionnaireRepository`, `DbalResponseRepository`, `Sql`, `Column` | The store on Doctrine DBAL, its atomic counters |
 | `Infrastructure\Http\SurveyController`, `SurveyGuard` | The pages, and their stateless CSRF check |
-| `Infrastructure\Console\ExportQuestionnaireCommand`, `ImportQuestionnaireCommand` | `phil:survey:export`, `phil:survey:import` |
+| `Infrastructure\Console\ExportQuestionnaireCommand`, `ImportQuestionnaireCommand`, `ImportQuestionsCommand` | `phil:survey:export`, `phil:survey:import`, `phil:survey:import-questions` |
 | `Infrastructure\Scheduler\SurveySchedule` | The schedule `phil_survey` |
 | `Infrastructure\Privacy\SurveyPrivacy` | The module `survey` of `phil/privacy-bundle` |
 | `Infrastructure\DependencyInjection\SurveyServices`, `RespondentPass`, `CsrfProtectionPass` | The services, the respondent's service, the check of the CSRF protection |

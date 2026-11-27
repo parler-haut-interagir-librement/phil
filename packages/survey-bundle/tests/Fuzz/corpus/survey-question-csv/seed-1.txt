@@ -1,0 +1,4 @@
+question_id,type,label,required,choices,min,max,section,section_title
+overall,scale,How was it?,yes,,1,5,,
+liked,multiple_choice,What did you like?,no,talks=Talks|food=Food|Venue,,2,extras,Extras
+again,yes_no,Again?,,,,,,

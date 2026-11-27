@@ -4,6 +4,20 @@ All notable changes to `phil/survey-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- The CSV import of the questions of a questionnaire through `phil/import-wizard`: `QuestionCsvProfile`, one row per
+  question by its identifier, with its type, label, help, choices and rows written `value = label` or by position,
+  bounds, section and the usual English and French headers, a file of 1 MiB, 300 rows and 32 cells at most;
+  `QuestionRowRule`, which refuses in the dry run each row the questionnaire would refuse, with the cell at fault;
+  `QuestionImportTarget`, which replaces a question in place with its condition kept, moves it to the section a row
+  names, adds the new ones, creates a questionnaire that does not exist, and refuses only the rows the questionnaire
+  refuses as a whole; `QuestionImports`, the public service of the dry run and the import.
+- The command `phil:survey:import-questions`: the dry run line by line, and the import with `--write`.
+- The fuzz target `survey-question-csv`, and the documentation of the import in `doc/csv-import.md`.
+
 ## 0.1.1-alpha - 2026-11-25
 
 ### Security
