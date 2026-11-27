@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f8733d58cb01ccadec2332a4cfa0dc461a2a397c223c691ebe794681b86aeb40 -->
+<!-- phil-dev source-sha256=beb683edb1a4d2de6a69056eb4739cd1f198edfc8ebf45377f0fdc7a0d8488d2 -->
 # phil/url
 
 **Des adresses Web comme des valeurs normalisées, avec leur genre détecté : Facebook, YouTube, Mastodon, un site Web.**
@@ -20,7 +20,7 @@ gouvernemental, appartiennent à l'application, dans sa propre enum, acceptée �
 prend le premier cas qui accepte, ensemble par ensemble : les cas précis passent donc en premier et les cas fourre-tout
 en dernier.
 
-`phil/url` est une bibliothèque PHP simple basée sur `ext-intl`, `ext-mbstring` et `phil/enums`, dont l'`EnumSet` porte
+`phil/url` est une bibliothèque PHP simple basée sur `ext-mbstring`, `symfony/polyfill-intl-idn` et `phil/enums`, dont l'`EnumSet` porte
 les genres acceptés. Dans une application Symfony, utilisez `phil/url-bundle` : un champ de formulaire qui détecte le
 genre, la contrainte `UrlOfType`, un type de colonne Doctrine et des filtres Twig. La conception repose sur des types
 valeurs et des enums : un `TypedUrl` est une adresse avec son genre, et un genre est n'importe quel cas de n'importe
@@ -69,7 +69,9 @@ $typed->url->display();    // "instagram.com/shop"
 
 ## Prérequis
 
-PHP 8.5 ou plus récent avec `ext-intl` et `ext-mbstring` ; `phil/enums` 0.3.
+PHP 8.5 ou plus récent avec `ext-mbstring` ; `phil/enums` 0.3 et `symfony/polyfill-intl-idn`. `ext-intl` est suggérée :
+elle convertit les hôtes internationaux plus vite que le polyfill, et son vérificateur d'usurpation permet à `display()` de
+les montrer dans leurs propres lettres ; sans elle, ils sont montrés en ASCII. Voir [l'installation](doc/fr/installation.md).
 
 ## Contribuer
 
