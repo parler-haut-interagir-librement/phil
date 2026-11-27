@@ -78,7 +78,7 @@ final readonly class HeaderBuilder
     public function takesNonces(RequestState $state): bool
     {
         [$enforced, , $disabled] = $this->resolve($state);
-        $names = array_values(array_filter([$enforced, $this->reportOnly], static fn (?string $name): bool => null !== $name));
+        $names = array_filter([$enforced, $this->reportOnly], static fn (?string $name): bool => null !== $name);
 
         if ($disabled || [] === $names) {
             return true;

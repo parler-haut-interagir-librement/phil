@@ -18,6 +18,12 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UnknownPolicy::class)]
 final class PolicyRegistryTest extends TestCase
 {
+    public function testADefinitionTakesNoncesUnlessItDeclinesThem(): void
+    {
+        self::assertTrue(new PolicyDefinition(new Policy(), false, false)->nonces);
+        self::assertFalse(new PolicyDefinition(new Policy(), false, false, false)->nonces);
+    }
+
     public function testThePoliciesOfTheConfiguration(): void
     {
         $registry = PolicyRegistry::fromConfig([

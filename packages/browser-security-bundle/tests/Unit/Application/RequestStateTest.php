@@ -62,6 +62,8 @@ final class RequestStateTest extends TestCase
         self::assertFalse($state->sharedNonce);
 
         self::assertSame([SourceSyntax::hashOf('a()')], $state->sources(InlineKind::Script, nonces: false));
+        $state->addHash(InlineKind::Script, 'c()');
+        self::assertSame([SourceSyntax::hashOf('a()'), SourceSyntax::hashOf('c()')], $state->sources(InlineKind::Script, nonces: false), 'every hash stays');
         $state->shareScriptNonce();
         self::assertSame([SourceSyntax::hashOf('b{}')], $state->sources(InlineKind::Style, nonces: false));
         self::assertSame(["'nonce-".$nonce."'", SourceSyntax::hashOf('b{}')], $state->sources(InlineKind::Style, nonces: true));
