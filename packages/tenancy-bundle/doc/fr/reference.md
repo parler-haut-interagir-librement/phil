@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f2a8569b11e5c34f723321721394fda4e1ee37955fb3cd48f701b7cf0ea463cc -->
+<!-- phil-dev source-sha256=c4874d6ca1307b94beac3a4bc9c3a19c9d5fc26e3f16d54c2333eddff5c05157 -->
 # Référence
 
 Chaque type public du bundle, par couche.
@@ -70,7 +70,7 @@ Chaque type public du bundle, par couche.
 | `Mailer\Contract\TenantMailSettings` | port | Les réglages de courrier de chaque locataire | `ConfiguredTenantMailSettings` dans le bundle, ou celui de l'application |
 | `Mailer\ConfiguredTenantMailSettings` | `final readonly class`, `TenantMailSettings` | Les réglages de `phil_tenancy.mailer`, vérifiés | Implémenté et testé |
 | `Messenger\TenantStamp` | `final readonly class`, `StampInterface` | La référence du locataire dans lequel un message a été réparti, vérifiée | Implémenté et testé |
-| `Messenger\TenantMiddleware` | `final readonly class`, `MiddlewareInterface` | Estampille à la répartition, traite dans le locataire de l'estampille à la réception | Implémenté et testé |
+| `Messenger\TenantMiddleware` | `final readonly class`, `MiddlewareInterface`, `#[AsMessageMiddleware]` sur chaque bus | Estampille à la répartition, traite dans le locataire de l'estampille à la réception ; constante `BEFORE`, les middleware de Doctrine devant lesquels il passe | Implémenté et testé |
 | `Console\TenantOption` | `final readonly class`, écouteur de console | L'option `--tenant` de chaque commande | Implémenté et testé |
 | `Cache\TenantScopedPool` | `final class`, `AdapterInterface`, `CacheInterface`, `NamespacedPoolInterface`, `TenantActivation` | Un pool limité au locataire actif : le sous-espace de noms du locataire à chaque appel, le pool lui-même sans locataire | Implémenté et testé ; décore `cache.app` et les pools construits dessus |
 | `Cache\TenantScopedTagAwarePool` | `final class`, `TagAwareAdapterInterface`, `TagAwareCacheInterface`, `NamespacedPoolInterface`, `TenantActivation` | Les étiquettes préfixées pour le locataire actif ; le sous-espace de noms aussi au-dessus d'un pool nativement à étiquettes | Implémenté et testé ; décore `cache.app.taggable` et les pools à étiquettes |

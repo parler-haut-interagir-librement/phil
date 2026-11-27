@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=e8c9abb9656ade83c3c0164de0b2542e9734a198212e07f79a0b150edb0bd4b7 -->
+<!-- phil-dev source-sha256=8346d12dbaa031344c24c11a162e397238c176718a34a8d1174e526bc8d9032f -->
 # Problèmes
 
 `ProblemDetailsListener` répond aux exceptions par des détails de problème RFC 9457, `application/problem+json`.
@@ -7,7 +7,7 @@
 |---|---|---|
 | `ProblemException` | Partout | Son problème, son statut, ses en-têtes |
 | Une exception HTTP (`NotFoundHttpException`, `AccessDeniedHttpException`…) | Sous `problem_details.paths` | Le problème vierge de son statut : `{"type": "about:blank", "status": 404, "title": "Not Found"}`, avec les en-têtes de l'exception |
-| `OptimisticLockException` de Doctrine, levée ou enveloppée jusqu'à huit niveaux de profondeur | Sous `problem_details.paths`, en mode débogage aussi | Une `409` du type stable `urn:phil:problem:write-conflict` (`ProblemDetailsListener::WRITE_CONFLICT_TYPE`), sans l'entité ni ses versions |
+| `OptimisticLockException` de Doctrine, levée ou enveloppée jusqu'à huit niveaux de profondeur — par la `HandlerFailedException` de Messenger, ou déballée par un bus avec `unwrap_exceptions` | Sous `problem_details.paths`, en mode débogage aussi | Une `409` du type stable `urn:phil:problem:write-conflict` (`ProblemDetailsListener::WRITE_CONFLICT_TYPE`), sans l'entité ni ses versions |
 | Toute autre exception | Sous `problem_details.paths`, hors du mode débogage | Une `500` sans détail ; en mode débogage, la page d'erreur de Symfony |
 
 ```php

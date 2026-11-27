@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d2317f2377bf4f8cd3c0d1c7e65ebb54f8c28b001dd98424f0299a769f4834a5 -->
+<!-- phil-dev source-sha256=1f8a588a79230e1bd61b56dce4712a9b3ddacf7a3f8c462ef2653ef61d022f44 -->
 # Messenger
 
 `Messenger\IdempotencyMiddleware` traite un message reçu une fois par clé.
@@ -7,7 +7,20 @@
 new IdempotencyMiddleware(IdempotencyGuard $guard, bool $compareContent = true)
 ```
 
-Enregistrez la garde et le middleware comme services, puis ajoutez le middleware à un bus, avant les gestionnaires :
+Enregistrez la garde et le middleware comme services. Le middleware porte l'attribut de Messenger
+`#[AsMessageMiddleware(bus: '*')]` : enregistré autoconfiguré, comme le fait `_defaults` de `config/services.yaml`, il
+va sur chaque bus, devant les middleware qui envoient et traitent le message.
+
+```yaml
+# config/services.yaml
+services:
+    _defaults:
+        autoconfigure: true
+    Phil\Idempotency\Messenger\IdempotencyMiddleware: ~
+```
+
+Un bus dont la configuration le liste le garde là où la configuration le met. Pour ne l'avoir que sur certains bus,
+enregistrez-le avec `autoconfigure: false` et listez-le dans leur configuration :
 
 ```yaml
 framework:

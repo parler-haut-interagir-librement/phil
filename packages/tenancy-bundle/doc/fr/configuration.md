@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=aa22d681faf3feaf4494181fe67b3c12be5cb0fdd52ef52ace608659d391605a -->
+<!-- phil-dev source-sha256=a42dba7c032f9f7260145d20ee4f049a265320dff776b292f91b0e97bbab5ef5 -->
 # Référence de la configuration
 
 L'alias de l'extension est `phil_tenancy`. Chaque clé est facultative. Une clé inconnue arrête le noyau avec
@@ -107,7 +107,7 @@ phil_tenancy:
 | `Infrastructure\Doctrine\DoctrineTenantActivation` | toujours ; ne fait rien sans Doctrine | Règle le locataire du contexte sur le filtre de chaque gestionnaire d'entités où il est activé |
 | `Infrastructure\Http\CurrentTenantValueResolver` | toujours | L'argument de contrôleur `#[CurrentTenant]` |
 | `Infrastructure\Session\SessionActiveTenantStore` | `store: session` | Le choix mémorisé, dans la session |
-| `Infrastructure\Messenger\TenantMiddleware` | `symfony/messenger` installé | Le *middleware* qu'un bus ajoute pour transmettre le locataire à travers les transports |
+| `Infrastructure\Messenger\TenantMiddleware` | `symfony/messenger` installé | Le *middleware* qui transmet le locataire à travers les transports ; autoconfiguré, sur chaque bus par son `#[AsMessageMiddleware]` |
 | `Infrastructure\Console\TenantOption` | `console: true`, `symfony/console` installé | L'option `--tenant` |
 | `Domain\Shop\ShopNetwork` | toujours | Les boutiques et les catalogues que chacune inclut |
 | `Application\Shop\ShopContext` | toujours ; public | La boutique de la requête, ses catalogues et l'origine d'une commande |

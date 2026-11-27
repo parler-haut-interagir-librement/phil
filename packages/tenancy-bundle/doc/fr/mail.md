@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a1d269944639f59e069b7e74e7bbd86461a4014ab8bae383f8bdb1fd01146d3b -->
+<!-- phil-dev source-sha256=809cc71c022c32808be00124b939175dc3a7a5936632ee6fcd2ed4d33d3ccd7a -->
 # Courrier par locataire
 
 Le courrier d'un locataire peut partir à sa façon : par son propre serveur SMTP, depuis sa propre adresse, ou — pour un
@@ -63,8 +63,8 @@ Messenger envoient. Pour un message envoyé dans un locataire qui a des réglage
 
 Ce que le message dit déjà l'emporte : un en-tête qu'il porte n'est jamais remplacé. Un message envoyé dans aucun
 locataire, ou dans un locataire sans réglages, part comme celui de l'application. Un message mis en file par Messenger
-est envoyé par le *worker* dans le locataire où il a été réparti, que `TenantMiddleware` rétablit : ajoutez le
-*middleware* au bus qui transporte `SendEmailMessage` ([integrations.md](integrations.md)).
+est envoyé par le *worker* dans le locataire où il a été réparti, que `TenantMiddleware` rétablit sur chaque bus, celui
+qui transporte `SendEmailMessage` compris ([integrations.md](integrations.md)).
 
 Le décorateur ne garde aucun état : le locataire est lu depuis le contexte à chaque message, et les connexions des
 transports sont fermées entre les requêtes et les messages comme Symfony les ferme.

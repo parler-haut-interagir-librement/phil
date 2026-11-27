@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9223b85f19f0901fb2e7637abec1c1a087067cead91971be9c12c53bf5225937 -->
+<!-- phil-dev source-sha256=eda13b1ba861eacdfbfb19a5f907fbe789577a4eff17b819094013e6bf78d44a -->
 # Intégrations
 
 Ce que le bundle branche autour d'`ActiveTenant` : le contexte du locataire, l'écouteur de requêtes, le changement,
@@ -124,7 +124,13 @@ tout autre donne une 403.
 
 ## Messenger
 
-Ajoutez le *middleware* aux bus dont les messages agissent dans un locataire :
+`TenantMiddleware` porte l'attribut de Messenger `#[AsMessageMiddleware(bus: '*')]`, et le bundle l'enregistre
+autoconfiguré : il va sur chaque bus, devant les middleware qui envoient et traitent le message, et avant les
+middleware de Doctrine `doctrine_ping_connection`, `doctrine_close_connection`, `doctrine_open_transaction_logger` et
+`doctrine_transaction`, pour que la connexion qu'ils ouvrent soit celle du locataire. Rien n'est à lister.
+
+Un bus dont la configuration le liste le garde là où la configuration le met, pour une application qui écrit l'ordre
+en entier :
 
 ```yaml
 framework:
@@ -133,6 +139,16 @@ framework:
             messenger.bus.default:
                 middleware:
                     - Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware
+```
+
+Pour le garder hors des bus que la configuration ne liste pas, redéfinissez le service sans autoconfiguration :
+
+```yaml
+# config/services.yaml
+services:
+    Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware:
+        autoconfigure: false
+        arguments: ['@Phil\TenancyBundle\Application\TenantContext']
 ```
 
 | Enveloppe | Ce que fait le *middleware* |

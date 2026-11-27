@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=043d779ad69f34ce3c41bccfae9668df14c47fcc5c2e8025f3fe1e88d9e416c9 -->
+<!-- phil-dev source-sha256=189c08b7f97cfc231291a6814b01d7e0c106ca95ac791c3c1a34243344fe3fed -->
 # Référence
 
 Chaque type public du paquet, par couche.
@@ -39,7 +39,7 @@ Chaque type public du paquet, par couche.
 | `Availability\CacheTenantDatabaseAvailability` | `final readonly class`, `TenantDatabaseAvailability` | Les suspensions dans un pool PSR-6 ; non durable |
 | `Availability\TenantAvailabilityGuard` | `final readonly class` | `check()` : lance `TenantDatabaseUnavailable` pour un locataire suspendu |
 | `Http\RefuseUnavailableTenant` | `final readonly class`, écouteur de requête | Le `503` et son `Retry-After` |
-| `Messenger\RefuseUnavailableTenantMiddleware` | `final readonly class`, middleware Messenger | Laisse les messages d'un locataire suspendu à la stratégie de nouvelle tentative |
+| `Messenger\RefuseUnavailableTenantMiddleware` | `final readonly class`, middleware Messenger, `#[AsMessageMiddleware]` sur chaque bus | Laisse les messages d'un locataire suspendu à la stratégie de nouvelle tentative |
 | `Migration\MigrationRunner` | `final readonly class` | La commande de migration une fois par base, à concurrence bornée, avec un délai |
 | `Migration\MigrationTarget`, `MigrationResult` | `final readonly class` | Une base à migrer, et comment sa migration s'est terminée : `interrupted()` et `notStarted()` pour une exécution arrêtée |
 | `Migration\MigrationStop` | `final class` | Une demande d'arrêt d'une exécution, depuis un gestionnaire de signaux ; une seconde la force |
