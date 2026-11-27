@@ -15,10 +15,12 @@ return [
     'js' => ['paths' => ['assets', 'tests/js']],
     'twig' => ['paths' => ['templates']],
     'fuzz' => [
-        // Questionnaire documents nobody wrote, read by the JSON exchange format, from the seeds of
-        // tests/Fuzz/corpus/<target>.
+        // Text nobody wrote, from the seeds of tests/Fuzz/corpus/<target>: questionnaire documents read by the JSON
+        // exchange format.
         'targets' => [
             'survey-questionnaire-json' => 'tests/Fuzz/survey-questionnaire-json.php',
+            // The CSV files of questions people upload, read and planned by the profile of the questions.
+            'survey-question-csv' => 'tests/Fuzz/survey-question-csv.php',
         ],
     ],
     'docs' => ['public' => true, 'translations' => 'blocking'],

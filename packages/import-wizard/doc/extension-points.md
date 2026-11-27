@@ -83,7 +83,8 @@ These targets belong to the bundles that own the records, and are written there:
   keys; `write()` creates and moves the units, a parent always written in an earlier batch than its children; the
   `unit_code` of a person is answered by the same keys.
 
-The import of the questions of an assessment is a later format, with its own profile and target.
+- **Questions** — the questions of an assessment and of a survey: their profiles and targets are written in the
+  packages that own them, as [Question files](question-files.md) says.
 
 ## Sources
 

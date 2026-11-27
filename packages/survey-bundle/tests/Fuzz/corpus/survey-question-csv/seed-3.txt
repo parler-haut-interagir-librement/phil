@@ -1,0 +1,6 @@
+Identifiant,Type de question,Libellé,Longueur,Aide
+nom,text,"Votre ""nom""",80,Facultatif
+mail,email,Courriel,254,
+when,date,Date,,
+age,number,Âge,,
+age,text,Twice,,

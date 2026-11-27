@@ -24,7 +24,8 @@ fingerprint is the same. **`RejectedRowsFile`** gives back the refused rows as a
 errors, to correct and import again; **`TemplateFile`** gives the header-only template of a type.
 
 `LmsProfiles` ships the three CSV files of a learning platform: the people, their enrolments in courses, and the tree
-of the organisational units.
+of the organisational units. The questions of quizzes and surveys follow the shared conventions of the question
+files, with the profiles of the packages that own them.
 
 ## Status
 
@@ -37,7 +38,8 @@ of the organisational units.
 | `RejectedRowsFile`, `TemplateFile`, `CsvWriter`: the files to correct and the templates, formulas guarded | Implemented and tested |
 | `LmsProfiles`: people, enrolments, organisational units | Implemented and tested |
 | `DateOrder` and the `RowRule` port | Implemented and tested |
-| Reading XLSX and ODS, importing the questions of an assessment | Not written |
+| The conventions of the question files of quizzes and surveys, whose profiles their packages hold | Documented |
+| Reading XLSX and ODS, GIFT and QTI | Not written |
 
 ## Documentation
 
@@ -46,6 +48,7 @@ of the organisational units.
 | [Installation](doc/installation.md) | Requirements, installing, and a first import from start to end. |
 | [Profiles](doc/profiles.md) | Columns, types, checks, natural keys, references, rules, the mapping, serialising. |
 | [Formats](doc/formats.md) | The CSV read and written, and the three formats of a learning platform. |
+| [Question files](doc/question-files.md) | The CSV files of the questions of quizzes and surveys, and the conventions they share. |
 | [The dry run](doc/dry-run.md) | The plan, the preview, the reasons, writing it, and the files of rejected rows. |
 | [Extension points](doc/extension-points.md) | The target, the lookup, the sources and the rules an application implements. |
 | [Testing](doc/testing.md) | The tests, the fuzz target and the benchmark. |

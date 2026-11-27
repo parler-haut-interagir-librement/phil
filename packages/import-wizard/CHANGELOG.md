@@ -4,6 +4,14 @@ All notable changes to `phil/import-wizard` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+### Added
+
+- `doc/question-files.md`: the conventions the CSV files of the questions of quizzes and surveys share — one row per
+  question by `question_id`, its type, lists separated by `|`, choices by position or `value = label`, the check of each
+  row in the dry run, the bounds —, and the profiles of the packages that own them.
+
 ## 0.1.0-alpha - 2026-11-24
 
 ### Added

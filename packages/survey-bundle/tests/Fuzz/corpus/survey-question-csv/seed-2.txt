@@ -1,0 +1,4 @@
+question_id;type;label;rows;choices
+grid;matrix;"Rate; each";food=Food|room=Room;Bad|Good
+order;ranking;Order;;a=A|b=B|c=C
+nps;net_promoter;Recommend?;;

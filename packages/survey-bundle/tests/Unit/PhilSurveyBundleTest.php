@@ -11,6 +11,7 @@ use Phil\SurveyBundle\Application\BuiltInTemplates;
 use Phil\SurveyBundle\Application\Contract\FeedbackSessions;
 use Phil\SurveyBundle\Application\Contract\QuestionnaireTemplates;
 use Phil\SurveyBundle\Application\Handler\PurgeSurveyResponsesHandler;
+use Phil\SurveyBundle\Application\Import\QuestionImports;
 use Phil\SurveyBundle\Application\Message\PurgeSurveyResponses;
 use Phil\SurveyBundle\Application\NoRespondent;
 use Phil\SurveyBundle\Application\NoSessions;
@@ -24,6 +25,7 @@ use Phil\SurveyBundle\Domain\Contract\QuestionnaireRepository;
 use Phil\SurveyBundle\Domain\Contract\ResponseRepository;
 use Phil\SurveyBundle\Infrastructure\Console\ExportQuestionnaireCommand;
 use Phil\SurveyBundle\Infrastructure\Console\ImportQuestionnaireCommand;
+use Phil\SurveyBundle\Infrastructure\Console\ImportQuestionsCommand;
 use Phil\SurveyBundle\Infrastructure\DependencyInjection\CsrfProtectionPass;
 use Phil\SurveyBundle\Infrastructure\DependencyInjection\RespondentPass;
 use Phil\SurveyBundle\Infrastructure\DependencyInjection\SurveyServices;
@@ -216,6 +218,7 @@ final class PhilSurveyBundleTest extends TestCase
             Questionnaires::class => [QuestionnaireRepository::class, RedirectPolicy::class, QuestionnaireTemplates::class],
             Submissions::class => [ResponseRepository::class, Participations::class, RedirectPolicy::class, 'clock', FeedbackSessions::class],
             Results::class => [ResponseRepository::class],
+            QuestionImports::class => [Questionnaires::class],
             Addenda::class => [ResponseRepository::class, 'clock'],
             PurgeSurveyResponsesHandler::class => [QuestionnaireRepository::class, ResponseRepository::class, 'clock'],
         ];
@@ -228,6 +231,8 @@ final class PhilSurveyBundleTest extends TestCase
         self::assertSame([Questionnaires::class], $this->ids($container->getDefinition(ExportQuestionnaireCommand::class)));
         self::assertSame([Questionnaires::class], $this->ids($container->getDefinition(ImportQuestionnaireCommand::class)));
         self::assertTrue($container->getDefinition(ImportQuestionnaireCommand::class)->hasTag('console.command'));
+        self::assertSame([QuestionImports::class], $this->ids($container->getDefinition(ImportQuestionsCommand::class)));
+        self::assertTrue($container->getDefinition(ImportQuestionsCommand::class)->hasTag('console.command'));
         self::assertSame([ResponseRepository::class, Participations::class], $this->ids($container->getDefinition(SurveyPrivacy::class)));
         self::assertSame(
             [Questionnaires::class, Submissions::class, Results::class, Addenda::class, RespondentPass::RESPONDENT, SurveyGuard::class, 'twig'],

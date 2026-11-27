@@ -17,8 +17,9 @@ Questionnaires are **anonymous by default**, and the page says so before the fir
 address, the day only. **Session feedback** opens in a window around each session; **addenda** let a respondent add to
 a sent response; **results** are withheld below a minimum, and shown to respondents only when a questionnaire turns them
 on. Each questionnaire sets how long its responses are kept, and a scheduled purge deletes the rest. Questionnaires are
-made from **templates**, and exported and imported as JSON with a published schema. The identified responses take part
-in the export and erasure of `phil/privacy-bundle`.
+made from **templates**, and exported and imported as JSON with a published schema; their questions also come from a
+**CSV file** through `phil/import-wizard`, with a dry run that refuses each row the questionnaire would refuse, cell by
+cell. The identified responses take part in the export and erasure of `phil/privacy-bundle`.
 
 The pages work without JavaScript; a Stimulus controller shows a question or a section at a time, with the progress.
 The tables, on Doctrine DBAL, are tested on SQLite, MySQL 8.4 and PostgreSQL 17.
@@ -34,6 +35,7 @@ The tables, on Doctrine DBAL, are tested on SQLite, MySQL 8.4 and PostgreSQL 17.
 | Results withheld below a minimum, public results after answering, off by default | Implemented and tested |
 | A retention per questionnaire, its scheduled purge | Implemented and tested |
 | Templates and the `session_feedback` template | Implemented and tested |
+| The CSV import of the questions through `phil/import-wizard`, its dry run and its command | Implemented, tested and fuzzed |
 | The export and the erasure of `phil/privacy-bundle` | Implemented and tested |
 | The pages without JavaScript and the `progress` Stimulus controller | Implemented; the controller's pacing tested under Node |
 | A visual builder of conditions, exports to spreadsheets | Not started |
@@ -45,6 +47,7 @@ The tables, on Doctrine DBAL, are tested on SQLite, MySQL 8.4 and PostgreSQL 17.
 | [Installation](doc/installation.md) | Requirements and installing. |
 | [Configuration](doc/configuration.md) | Every option, with an example. |
 | [Questionnaires](doc/questionnaires.md) | The model, the question types, the conditions, the JSON format and the templates. |
+| [CSV import](doc/csv-import.md) | The CSV file of questions, its cells, the dry run, the import into a questionnaire and the command. |
 | [Responses](doc/responses.md) | Submissions, endings and redirects, quotas, anonymity, session feedback and addenda. |
 | [Results, retention and privacy](doc/results.md) | The results and their minimum, the purge, the export and the erasure. |
 | [Pages](doc/pages.md) | The routes, the templates and the Stimulus controller. |
