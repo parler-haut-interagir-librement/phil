@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6e00dde3a82703ffc579a3f0e18416be1f843b8dc2678baeea4da288e0e6956a -->
+<!-- phil-dev source-sha256=84b8b5f7a0d2d5bd4e1355d0398ccef290df7a35b1ed80d1ffd214a26d632345 -->
 # Points d'extension
 
 Ce qu'une application implémente, configure, remplace ou utilise.
@@ -46,6 +46,7 @@ requête.
 | `back_channel_logout.cold_start_floor` | Le plancher de la réserve de rejeu, et un instant à lui |
 | `return_to.origins` | Où une connexion peut aboutir |
 | `paths` | Chaque route et page d'arrivée |
+| `saml.verified_email_from` | Les fournisseurs d'identité SAML dont les adresses parviennent à l'approvisionneur |
 
 ## Services
 
@@ -53,3 +54,4 @@ requête.
 |---|---|
 | `security.authenticator.oidc_login.token_refresher.<firewall>` | Le service de renouvellement de Symfony, pour forcer un renouvellement |
 | `OIDC_ASSURANCE:<level>` | L'attribut de `AssuranceVoter`, dans `#[IsGranted]` ou `is_granted()` |
+| `phil_identity_client.saml_accounts` | Le `SamlAccounts` de `phil/saml-sp-bundle` sur l'approvisionneur, avec `saml.enabled` ; voir [Comptes SAML](saml.md) |

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=454730e1dd17deba165111afc0ef5513c270193c956aa3d72c65511e8b0fd5cd -->
+<!-- phil-dev source-sha256=59adbdab2eae6dd48d04393a0cf78420c2d48a1439b55f930ec8a9804f592260 -->
 # Sécurité
 
 ## Ce que le bundle garantit
@@ -21,6 +21,9 @@
 | Famille de jetons de renouvellement révoquée par une course | Un renouvellement par jeton, résultat partagé | `SerializedTokenRefreshListener` |
 | Famille de jetons de renouvellement révoquée par le fournisseur | Toute la session locale invalidée | `SerializedTokenRefreshListener` |
 | Jetons divulgués par une session ou un cache | Gardés seulement s'ils sont lus ; résultats partagés chiffrés | `SignInListener`, `EncryptedRefreshOutcomes` |
+| Un fournisseur d'identité SAML qui prend les comptes d'un autre, ou ceux du fournisseur OpenID Connect | Le sujet porte la clé du fournisseur d'identité, l'émetteur son identifiant d'entité | `ProvisionedSamlAccounts` |
+| Prise de contrôle d'un compte par une adresse qu'envoie un fournisseur d'identité SAML | Adresses retirées sauf si le fournisseur d'identité figure dans `saml.verified_email_from` | `ProvisionedSamlAccounts` |
+| Réponse SAML falsifiée, enveloppée, étrangère, expirée ou rejouée | Signature, audience, fenêtre de temps et usage unique vérifiés avant que ce bundle voie l'identité | `phil/saml-sp-bundle` |
 
 ## Ce qui reste à l'application
 

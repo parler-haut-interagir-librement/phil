@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f81410e3c5e2390c70d9c0d94dda35904e4c91ca291e3a42673c0107cafb3858 -->
+<!-- phil-dev source-sha256=c3ab7225a9039af139be8239d23fb91a5977256e0f7ea6b14d0e475ef713016e -->
 # Configuration
 
 Chaque clé de `phil_identity_client`, avec sa valeur par défaut. Seuls `issuer`, `client_id` et un identifiant de
@@ -71,7 +71,13 @@ phil_identity_client:
     tokens:
         keep_access_token: false
         keep_id_token: false
+
+    saml:
+        enabled: false                # the sign-ins of phil/saml-sp-bundle, into the UserProvisioner
+        verified_email_from: []       # the identity providers trusted to verify the addresses they send
 ```
+
+`saml` est décrit dans [Comptes SAML](saml.md).
 
 ## Valeurs d'un réseau
 
