@@ -83,6 +83,58 @@ answers, carries the nonces of the response: the bundle hands `scriptNonce()` an
 without `'unsafe-inline'`. In debug, the ErrorListener of HttpKernel drops the policy of an error page, as Symfony
 does without the bundle.
 
+## A transitional policy without nonces
+
+A site whose older templates still write inline scripts and handlers cannot take nonces everywhere at once: the
+browsers that understand nonces and hashes ignore `'unsafe-inline'` as soon as a directive lists one. A policy declared
+with `nonces: false` lists the hashes of the request but never its nonces, so that those pages keep a policy while the
+rest of the site keeps its nonces:
+
+```yaml
+phil_browser_security:
+    policies:
+        default:
+            directives: { default-src: ["'self'"], object-src: ["'none'"] }
+            strict_dynamic: true
+        transitional:
+            extends: default
+            directives:
+                script-src: ["'self'", "'unsafe-inline'"]
+                style-src: ["'self'", "'unsafe-inline'"]
+            nonces: false
+```
+
+A route or a controller selects it like any other policy, see [Overrides](overrides.md):
+
+```php
+#[ContentSecurityPolicy(policy: 'transitional')]
+public function archive(): Response
+```
+
+When each policy the response sends, enforced and report-only, is declared with `nonces: false`, no nonce is created:
+
+- `csp_nonce()` gives `null`, and `csp_meta()` writes nothing;
+- `importmap()` writes its tags without a `nonce` attribute, unless the template passes one;
+- `ContentSecurityPolicyContext::nonce()`, `scriptNonce()`, `styleNonce()` and `sharedNonce()` return `null`, and the
+  HTML error page writes its elements without a `nonce` attribute;
+- the response, which lists no nonce, is not made private.
+
+`html_attr()` of twig/html-extra leaves out an attribute whose value is `null`, so a template written for both kinds
+of page writes the attribute only when there is a nonce:
+
+```twig
+<script {{ html_attr({nonce: csp_nonce('script')}) }}>document.documentElement.classList.add('js')</script>
+```
+
+Without twig/html-extra, `{% if csp_nonce('script') is not null %}` does the same; a plain `nonce="{{ csp_nonce() }}"`
+writes an empty attribute, which allows nothing.
+
+When the response also sends a policy that takes nonces — a report-only policy that tries the strict one on the same
+pages, for instance — the templates get their nonces and only that policy lists them. The templates follow the
+overrides known when they are rendered: an override added after that does not change what they wrote. The hashes of
+`inline` and of `allowInline()` stay in a policy without nonces; a browser that understands them then ignores
+`'unsafe-inline'` in that directive, so a transitional page lists none.
+
 ## Nonces and HTTP caches
 
 A page with a nonce is a page for one response. A shared cache that stores it serves the same nonce to everyone, which

@@ -3,7 +3,7 @@
 | Point | How |
 |---|---|
 | The policy of one response, from code | `Application\ContentSecurityPolicyContext::override()` with a `PolicyOverride` |
-| A nonce outside Twig | `ContentSecurityPolicyContext::nonce('script')`, `nonce('style')`, `sharedNonce()` |
+| A nonce outside Twig | `ContentSecurityPolicyContext::nonce('script')`, `nonce('style')`, `sharedNonce()`, null under policies with `nonces: false`; `noncesEnabled()` |
 | Inline code written at run time | `ContentSecurityPolicyContext::allowInline('script', $code)` |
 | The policy of a controller | `#[Application\Attribute\ContentSecurityPolicy]` on its class or method |
 | The policy of a route | Its `_csp` default |

@@ -18,11 +18,17 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(UnknownPolicy::class)]
 final class PolicyRegistryTest extends TestCase
 {
+    public function testADefinitionTakesNoncesUnlessItDeclinesThem(): void
+    {
+        self::assertTrue(new PolicyDefinition(new Policy(), false, false)->nonces);
+        self::assertFalse(new PolicyDefinition(new Policy(), false, false, false)->nonces);
+    }
+
     public function testThePoliciesOfTheConfiguration(): void
     {
         $registry = PolicyRegistry::fromConfig([
             'default' => ['directives' => ['default-src' => ["'self'"], 'img-src' => ["'self'"]], 'strict_dynamic' => true],
-            'preview' => ['extends' => 'default', 'directives' => ['img-src' => ['data:']], 'report' => false],
+            'preview' => ['extends' => 'default', 'directives' => ['img-src' => ['data:']], 'report' => false, 'nonces' => false],
             'bare' => [],
         ]);
 
@@ -33,6 +39,8 @@ final class PolicyRegistryTest extends TestCase
         self::assertTrue($registry->get('default')->report);
         self::assertFalse($registry->get('preview')->strictDynamic);
         self::assertFalse($registry->get('preview')->report);
+        self::assertTrue($registry->get('default')->nonces);
+        self::assertFalse($registry->get('preview')->nonces);
         self::assertSame("default-src 'self'; img-src data:", $registry->get('preview')->policy->header());
         self::assertSame('', $registry->get('bare')->policy->header());
     }

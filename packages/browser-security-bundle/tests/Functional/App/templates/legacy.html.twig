@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head>
+    {{ csp_meta() }}
+    {{ importmap('app') }}
+    <style{% if csp_nonce('style') is not null %} nonce="{{ csp_nonce('style') }}"{% endif %}>body { margin: 0; }</style>
+</head>
+<body>
+    <script{% if csp_nonce('script') is not null %} nonce="{{ csp_nonce('script') }}"{% endif %}>console.log('legacy');</script>
+    <button onclick="console.log('old')">old</button>
+</body>
+</html>

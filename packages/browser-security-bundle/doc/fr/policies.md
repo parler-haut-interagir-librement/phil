@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=85ea00814ab60ef28520e534035f7e453fa91c8b407c4e0c72cc45b50b9e0522 -->
+<!-- phil-dev source-sha256=bcd7b4a289747b6d0408e06fc93e900a1a3bad113f6acb6d1d2272f20e58f9a8 -->
 # Politiques
 
 Une politique est une liste de directives, chacune avec ses valeurs, écrites dans l'ordre où elles sont déclarées :
@@ -102,8 +102,8 @@ phil_browser_security:
 ```
 
 `gallery` vaut `default-src 'self'; img-src 'self' https://images.example.com`. Une politique peut en étendre une qui en
-étend une autre ; un cycle fait échouer la construction. `strict_dynamic`, `report`, `inline` et `trusted_types` sont
-propres à la politique.
+étend une autre ; un cycle fait échouer la construction. `strict_dynamic`, `report`, `nonces`, `inline` et
+`trusted_types` sont propres à la politique.
 
 ## Empreintes du code en ligne
 

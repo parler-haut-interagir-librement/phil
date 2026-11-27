@@ -20,6 +20,7 @@ use Phil\BrowserSecurityBundle\Domain\ValueObject\Policy;
  *     directives?: array<string, list<string>|bool>,
  *     strict_dynamic?: bool,
  *     report?: bool,
+ *     nonces?: bool,
  *     inline?: array{script?: list<string>, style?: list<string>},
  *     trusted_types?: array{enabled?: bool, policies?: list<string>, allow_duplicates?: bool},
  * }
@@ -53,7 +54,7 @@ final readonly class PolicyRegistry
         $definitions = [];
 
         foreach ($config as $name => $options) {
-            $definitions[$name] = new PolicyDefinition($policies[$name], $options['strict_dynamic'] ?? false, $options['report'] ?? true);
+            $definitions[$name] = new PolicyDefinition($policies[$name], $options['strict_dynamic'] ?? false, $options['report'] ?? true, $options['nonces'] ?? true);
         }
 
         return new self($definitions);

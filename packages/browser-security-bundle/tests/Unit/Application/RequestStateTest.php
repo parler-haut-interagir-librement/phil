@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Phil\BrowserSecurityBundle\Tests\Unit\Application;
 
 use Phil\BrowserSecurityBundle\Application\ContentSecurityPolicyContext;
+use Phil\BrowserSecurityBundle\Application\HeaderBuilder;
 use Phil\BrowserSecurityBundle\Application\PolicyOverride;
+use Phil\BrowserSecurityBundle\Application\PolicyRegistry;
 use Phil\BrowserSecurityBundle\Application\RequestState;
 use Phil\BrowserSecurityBundle\Domain\Enum\InlineKind;
 use Phil\BrowserSecurityBundle\Domain\Syntax\SourceSyntax;
@@ -58,6 +60,39 @@ final class RequestStateTest extends TestCase
         self::assertSame(["'nonce-".$nonce."'", SourceSyntax::hashOf('a()')], $state->sources(InlineKind::Script));
         self::assertSame([SourceSyntax::hashOf('b{}')], $state->sources(InlineKind::Style));
         self::assertFalse($state->sharedNonce);
+
+        self::assertSame([SourceSyntax::hashOf('a()')], $state->sources(InlineKind::Script, nonces: false));
+        $state->addHash(InlineKind::Script, 'c()');
+        self::assertSame([SourceSyntax::hashOf('a()'), SourceSyntax::hashOf('c()')], $state->sources(InlineKind::Script, nonces: false), 'every hash stays');
+        $state->shareScriptNonce();
+        self::assertSame([SourceSyntax::hashOf('b{}')], $state->sources(InlineKind::Style, nonces: false));
+        self::assertSame(["'nonce-".$nonce."'", SourceSyntax::hashOf('b{}')], $state->sources(InlineKind::Style, nonces: true));
+    }
+
+    public function testTheContextGivesNoNonceWhenThePoliciesDeclineThem(): void
+    {
+        $request = new Request();
+        $policies = PolicyRegistry::fromConfig(['default' => [], 'legacy' => ['nonces' => false]]);
+        $context = new ContentSecurityPolicyContext(new RequestStack([$request]), new HeaderBuilder($policies));
+        $state = RequestState::of($request);
+
+        self::assertTrue($context->noncesEnabled());
+        self::assertSame($state->nonce(InlineKind::Script), $context->nonce());
+
+        $context->override(new PolicyOverride('legacy'));
+        self::assertFalse($context->noncesEnabled());
+        self::assertNull($context->nonce());
+        self::assertNull($context->nonce('style'));
+        self::assertNull($context->scriptNonce());
+        self::assertNull($context->styleNonce());
+        self::assertNull($context->sharedNonce());
+        self::assertFalse($state->sharedNonce);
+        self::assertSame(['script'], array_keys($state->nonces()), 'no nonce is created while they are declined');
+
+        $context->override(new PolicyOverride('default'));
+        self::assertTrue($context->noncesEnabled());
+        self::assertSame($state->nonce(InlineKind::Script), $context->sharedNonce());
+        self::assertTrue($state->sharedNonce);
     }
 
     public function testASharedNonceAllowsStylesToo(): void
@@ -114,11 +149,12 @@ final class RequestStateTest extends TestCase
 
     public function testWithoutARequestTheContextStillGivesANonce(): void
     {
-        $context = new ContentSecurityPolicyContext(new RequestStack());
+        $context = new ContentSecurityPolicyContext(new RequestStack(), new HeaderBuilder(PolicyRegistry::fromConfig(['default' => ['nonces' => false]])));
 
-        self::assertMatchesRegularExpression('#^[A-Za-z0-9+/]{22}==$#', $context->nonce());
+        self::assertTrue($context->noncesEnabled());
+        self::assertMatchesRegularExpression('#^[A-Za-z0-9+/]{22}==$#', (string) $context->nonce());
         self::assertNotSame($context->nonce(), $context->nonce());
-        self::assertMatchesRegularExpression('#^[A-Za-z0-9+/]{22}==$#', $context->sharedNonce());
+        self::assertMatchesRegularExpression('#^[A-Za-z0-9+/]{22}==$#', (string) $context->sharedNonce());
         $context->allowInline('script', 'a()');
         $context->override(new PolicyOverride());
     }

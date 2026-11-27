@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5f9068e87f1d577d83520fd0d26fe22c6313d6c127482012abb4cfe4101c1695 -->
+<!-- phil-dev source-sha256=daeedecc6c5723dccba86339075bdb4519ad4c7535688329f34e61755af4bdf8 -->
 # Référence
 
 ## Domaine
@@ -35,7 +35,7 @@
 | `Application\ResolvedHeaders` | Les en-têtes d'une réponse. |
 | `Application\CookieSigner` | Signe et vérifie la valeur d'un cookie. |
 | `Application\RequestState` | Les surcharges, nonces, empreintes et en-têtes d'une requête. |
-| `Application\ContentSecurityPolicyContext` | Nonces, empreintes et surcharges depuis le code ; `scriptNonce()` et `styleNonce()` pour un appelant qui prend une fonction anonyme. |
+| `Application\ContentSecurityPolicyContext` | Nonces, empreintes et surcharges depuis le code ; `scriptNonce()` et `styleNonce()` pour un appelant qui prend une fonction anonyme ; `noncesEnabled()`. |
 | `Infrastructure\ErrorHandler\ErrorPageNoncePass` | Remet les nonces à la page d'erreur HTML du composant ErrorHandler. |
 | `Application\HeaderBuilder` | Les en-têtes de politique d'une réponse. |
 | `Application\SecurityHeaders` | Les en-têtes voisins, par chemin et avec les surcharges d'une réponse. |

@@ -61,6 +61,16 @@ final class TestKernel extends Kernel
         return new Response($twig->render('page.html.twig'));
     }
 
+    public function legacy(): Response
+    {
+        $tests = $this->getContainer()->get('test.service_container');
+        \assert($tests instanceof ContainerInterface);
+        $twig = $tests->get('twig');
+        \assert($twig instanceof Environment);
+
+        return new Response($twig->render('legacy.html.twig'), Response::HTTP_OK, ['Cache-Control' => 'public, max-age=600']);
+    }
+
     #[ContentSecurityPolicy(policy: 'preview')]
     public function preview(): Response
     {
@@ -176,6 +186,7 @@ final class TestKernel extends Kernel
             'policies' => [
                 'default' => ['directives' => ['default-src' => ["'self'"], 'object-src' => ["'none'"]], 'strict_dynamic' => true],
                 'preview' => ['directives' => ['default-src' => ["'none'"], 'style-src' => ["'unsafe-inline'"], 'sandbox' => true, 'frame-ancestors' => ["'self'"]], 'report' => false],
+                'transitional' => ['extends' => 'default', 'directives' => ['script-src' => ["'self'", "'unsafe-inline'"], 'style-src' => ["'self'", "'unsafe-inline'"]], 'nonces' => false],
             ],
             'reporting' => ['storage' => true, 'rate_limit' => ['limit' => 2, 'cache_pool' => 'cache.app']],
             'headers' => [
@@ -194,6 +205,7 @@ final class TestKernel extends Kernel
     {
         $routes->import('@PhilBrowserSecurityBundle/config/routes.php');
         $routes->add('page', '/page')->controller($this->page(...));
+        $routes->add('legacy', '/legacy')->controller($this->legacy(...))->defaults(['_csp' => ['policy' => 'transitional']]);
         $routes->add('described', '/described')->controller($this->described(...));
         $routes->add('described_by_hand', '/described-by-hand')->controller($this->describedByHand(...));
         $routes->add('preview', '/preview')->controller($this->preview(...));

@@ -34,6 +34,7 @@ of each response.
 | Policies by directive, checked at build time, named policies and inheritance | Implemented and tested |
 | Overrides by route default, controller attribute and service | Implemented and tested |
 | Nonces for Twig, `importmap()` and Turbo, `'strict-dynamic'`, hashes, Trusted Types | Implemented and tested |
+| Transitional policies without nonces (`nonces: false`) | Implemented and tested |
 | Enforced and report-only policies side by side | Implemented and tested |
 | `Cache-Control: private` on a response whose policy lists a nonce | Implemented and tested |
 | The report endpoint counted by a named limiter of phil/rate-limit-bundle | Implemented and tested |
@@ -53,7 +54,7 @@ of each response.
 | [Configuration](doc/configuration.md) | Every option of `phil_browser_security`. |
 | [Policies](doc/policies.md) | Directives and their values, the default policy, named policies, inheritance, hashes, Trusted Types. |
 | [Overrides](doc/overrides.md) | Add, replace and remove, for the policy and every other protection: attributes, route defaults, services. |
-| [Nonces](doc/nonces.md) | `csp_nonce()`, `csp_meta()`, `importmap()`, Turbo, Stimulus, `'strict-dynamic'`, caching. |
+| [Nonces](doc/nonces.md) | `csp_nonce()`, `csp_meta()`, `importmap()`, Turbo, Stimulus, `'strict-dynamic'`, a transitional policy without nonces, caching. |
 | [Deployment](doc/deployment.md) | Report-only first, then enforced, with both headers at once. |
 | [Reports](doc/reports.md) | The endpoint, the two formats, the bounds, the throttle, deduplication, privacy, the event, the store. |
 | [Neighbouring headers](doc/headers.md) | Every header beside the policy, frames by path, integrity, `Clear-Site-Data` at logout. |

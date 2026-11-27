@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c22db27cf0f91e6fea909236f521d780b8aa9b2bad255831453a16c2e3664050 -->
+<!-- phil-dev source-sha256=97ec1c7dfa6596700e747e07aadca9de070bc14efa0d10acdc0de588ea0a11d2 -->
 # phil/browser-security-bundle
 
 **Les protections qu'une application Symfony demande au navigateur, en un seul bundle : une configuration, ajustable
@@ -37,6 +37,7 @@ le profileur montre la politique de chaque réponse.
 | Politiques par directive, vérifiées à la construction, politiques nommées et héritage | Implémenté et testé |
 | Surcharges par valeur par défaut de route, attribut de contrôleur et service | Implémenté et testé |
 | Nonces pour Twig, `importmap()` et Turbo, `'strict-dynamic'`, empreintes, Trusted Types | Implémenté et testé |
+| Politiques de transition sans nonces (`nonces: false`) | Implémenté et testé |
 | Politiques appliquée et report-only côte à côte | Implémenté et testé |
 | `Cache-Control: private` sur une réponse dont la politique liste un nonce | Implémenté et testé |
 | Le point d'entrée des rapports compté par un limiteur nommé de phil/rate-limit-bundle | Implémenté et testé |
@@ -56,7 +57,7 @@ le profileur montre la politique de chaque réponse.
 | [Configuration](doc/fr/configuration.md) | Chaque option de `phil_browser_security`. |
 | [Politiques](doc/fr/policies.md) | Les directives et leurs valeurs, la politique par défaut, les politiques nommées, l'héritage, les empreintes, Trusted Types. |
 | [Surcharges](doc/fr/overrides.md) | Ajouter, remplacer et retirer, pour la politique et chaque autre protection : attributs, valeurs par défaut de route, services. |
-| [Nonces](doc/fr/nonces.md) | `csp_nonce()`, `csp_meta()`, `importmap()`, Turbo, Stimulus, `'strict-dynamic'`, la mise en cache. |
+| [Nonces](doc/fr/nonces.md) | `csp_nonce()`, `csp_meta()`, `importmap()`, Turbo, Stimulus, `'strict-dynamic'`, une politique de transition sans nonces, la mise en cache. |
 | [Déploiement](doc/fr/deployment.md) | D'abord en report-only, puis appliquée, avec les deux en-têtes à la fois. |
 | [Rapports](doc/fr/reports.md) | Le point d'entrée, les deux formats, les bornes, la limitation de débit, le dédoublonnage, la vie privée, l'événement, le magasin. |
 | [En-têtes voisins](doc/fr/headers.md) | Chaque en-tête à côté de la politique, les cadres par chemin, l'intégrité, `Clear-Site-Data` à la déconnexion. |

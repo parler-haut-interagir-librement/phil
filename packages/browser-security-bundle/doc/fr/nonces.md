@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=756039db78dd105f630c9db36a0a29a9756fa5d9c603cd615ce9bc233006553a -->
+<!-- phil-dev source-sha256=38f8845ec8d1a94fcb225d5340cedbae6689e98cb52c0b0e868eb90c8429cfdd -->
 # Nonces
 
 Un nonce est une valeur aléatoire qu'une réponse donne à ses propres éléments `<script>` et `<style>`, et qu'elle liste
@@ -85,6 +85,60 @@ répond, porte les nonces de la réponse : le bundle remet `scriptNonce()` et `s
 élément `<style>`, ainsi que les éléments `<script>` et `<style>` de la page d'exception et de ses vidages, s'exécutent
 sous une politique sans `'unsafe-inline'`. En mode débogage, l'ErrorListener de HttpKernel retire la politique d'une
 page d'erreur, comme le fait Symfony sans le bundle.
+
+## Une politique de transition sans nonces
+
+Un site dont les anciens gabarits écrivent encore des scripts et des gestionnaires en ligne ne peut pas passer aux nonces
+partout d'un coup : les navigateurs qui comprennent les nonces et les empreintes ignorent `'unsafe-inline'` dès qu'une
+directive en liste un. Une politique déclarée avec `nonces: false` liste les empreintes de la requête mais jamais ses
+nonces, pour que ces pages gardent une politique pendant que le reste du site garde ses nonces :
+
+```yaml
+phil_browser_security:
+    policies:
+        default:
+            directives: { default-src: ["'self'"], object-src: ["'none'"] }
+            strict_dynamic: true
+        transitional:
+            extends: default
+            directives:
+                script-src: ["'self'", "'unsafe-inline'"]
+                style-src: ["'self'", "'unsafe-inline'"]
+            nonces: false
+```
+
+Une route ou un contrôleur la choisit comme toute autre politique, voir [Surcharges](overrides.md) :
+
+```php
+#[ContentSecurityPolicy(policy: 'transitional')]
+public function archive(): Response
+```
+
+Quand chaque politique que la réponse envoie, appliquée et en mode rapport seulement, est déclarée avec `nonces: false`,
+aucun nonce n'est créé :
+
+- `csp_nonce()` donne `null`, et `csp_meta()` n'écrit rien ;
+- `importmap()` écrit ses balises sans attribut `nonce`, sauf si le gabarit en passe un ;
+- `ContentSecurityPolicyContext::nonce()`, `scriptNonce()`, `styleNonce()` et `sharedNonce()` retournent `null`, et la
+  page d'erreur HTML écrit ses éléments sans attribut `nonce` ;
+- la réponse, qui ne liste aucun nonce, n'est pas rendue privée.
+
+`html_attr()` de twig/html-extra omet un attribut dont la valeur est `null` : un gabarit écrit pour les deux sortes de
+pages n'écrit donc l'attribut que lorsqu'il y a un nonce :
+
+```twig
+<script {{ html_attr({nonce: csp_nonce('script')}) }}>document.documentElement.classList.add('js')</script>
+```
+
+Sans twig/html-extra, `{% if csp_nonce('script') is not null %}` fait de même ; un simple `nonce="{{ csp_nonce() }}"`
+écrit un attribut vide, qui n'autorise rien.
+
+Quand la réponse envoie aussi une politique qui prend des nonces — une politique en mode rapport seulement qui essaie la
+politique stricte sur les mêmes pages, par exemple —, les gabarits reçoivent leurs nonces et seule cette politique les
+liste. Les gabarits suivent les surcharges connues au moment où ils sont rendus : une surcharge ajoutée ensuite ne change
+pas ce qu'ils ont écrit. Les empreintes de `inline` et de `allowInline()` restent dans une politique sans nonces ; un
+navigateur qui les comprend ignore alors `'unsafe-inline'` dans cette directive, de sorte qu'une page de transition n'en
+liste aucune.
 
 ## Nonces et caches HTTP
 

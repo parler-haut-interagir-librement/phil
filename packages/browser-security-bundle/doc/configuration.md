@@ -17,6 +17,7 @@ phil_browser_security:
                 default-src: ["'self'"]
             strict_dynamic: false     # 'strict-dynamic' next to the nonces and hashes of script-src
             report: true              # report-uri and report-to on this policy
+            nonces: true              # the nonces of the request; false lists its hashes alone (see Nonces)
             inline:                   # inline code allowed by the SHA-256 of its exact content
                 script: []
                 style: []

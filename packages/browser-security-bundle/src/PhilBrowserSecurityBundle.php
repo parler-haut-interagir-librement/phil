@@ -176,6 +176,7 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
                             ->end()
                             ->booleanNode('strict_dynamic')->info("Adds 'strict-dynamic' next to the nonces and hashes of script-src.")->defaultFalse()->end()
                             ->booleanNode('report')->info('Adds report-uri and report-to.')->defaultTrue()->end()
+                            ->booleanNode('nonces')->info('Lists the nonces of the request; false sends its hashes alone, and templates write no nonce when every policy sent declines them.')->defaultTrue()->end()
                             ->arrayNode('inline')
                                 ->info('Inline code allowed by the SHA-256 of its exact content.')
                                 ->addDefaultsIfNotSet()
@@ -378,7 +379,7 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
 
         $services->set(PolicyRegistry::class)->factory([PolicyRegistry::class, 'fromConfig'])->args([$policies]);
         $services->set(HeaderBuilder::class)->args([service(PolicyRegistry::class), $enforce, $reportOnly, $group])->public();
-        $services->set(ContentSecurityPolicyContext::class)->args([service('request_stack')])->public();
+        $services->set(ContentSecurityPolicyContext::class)->args([service('request_stack'), service(HeaderBuilder::class)])->public();
 
         $services->set(BrowserSecurityContext::class)->args([service('request_stack')])->public();
         $builder->setParameter(ReportEndpoint::OPTION, \is_string($config['public_origin'] ?? null) ? $config['public_origin'] : null);
@@ -789,7 +790,7 @@ final class PhilBrowserSecurityBundle extends AbstractBundle
         }
 
         try {
-            /** @var array<string, array{extends?: ?string, directives?: array<string, list<string>|bool>, strict_dynamic?: bool, report?: bool, inline?: array{script?: list<string>, style?: list<string>}, trusted_types?: array{enabled?: bool, policies?: list<string>, allow_duplicates?: bool}}> $policies */
+            /** @var array<string, array{extends?: ?string, directives?: array<string, list<string>|bool>, strict_dynamic?: bool, report?: bool, nonces?: bool, inline?: array{script?: list<string>, style?: list<string>}, trusted_types?: array{enabled?: bool, policies?: list<string>, allow_duplicates?: bool}}> $policies */
             PolicyRegistry::fromConfig($policies);
         } catch (InvalidPolicy $invalidPolicy) {
             throw new InvalidConfigurationException('phil_browser_security.policies: '.$invalidPolicy->getMessage(), $invalidPolicy->getCode(), previous: $invalidPolicy);

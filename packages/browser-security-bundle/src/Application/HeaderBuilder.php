@@ -14,7 +14,8 @@ use Phil\BrowserSecurityBundle\Domain\Exception\InvalidPolicy;
  * The enforced policy goes in `Content-Security-Policy` and the report-only policy, when the configuration names one,
  * in `Content-Security-Policy-Report-Only`, so that a stricter policy can be tried on real traffic while the current
  * one keeps protecting. An override sending the enforced policy as report-only takes that header's place, and one
- * disabling the policy sends neither. A request without nonce, hash nor override pays only for reading the strings built with the policies.
+ * disabling the policy sends neither. A policy declared with `nonces: false` lists the hashes of the request but
+ * never its nonces. A request without nonce, hash nor override pays only for reading the strings built with the policies.
  */
 final readonly class HeaderBuilder
 {
@@ -43,15 +44,7 @@ final readonly class HeaderBuilder
      */
     public function build(RequestState $state, ?string $reportUri = null): array
     {
-        $enforced = $this->enforced;
-        $asReportOnly = false;
-        $disabled = false;
-
-        foreach ($state->overrides as $override) {
-            $enforced = $override->policy ?? $enforced;
-            $asReportOnly = $override->reportOnly ?? $asReportOnly;
-            $disabled = $disabled || $override->disabled;
-        }
+        [$enforced, $asReportOnly, $disabled] = $this->resolve($state);
 
         if ($disabled) {
             return [];
@@ -76,6 +69,45 @@ final readonly class HeaderBuilder
         return array_filter($headers, static fn (string $value): bool => '' !== $value);
     }
 
+    /**
+     * Whether the response takes nonces: false only when each policy it sends, enforced or report-only, is declared
+     * with `nonces: false`. A response that sends no policy keeps its nonces, which nothing reads.
+     *
+     * @throws InvalidPolicy when an override names an unknown policy
+     */
+    public function takesNonces(RequestState $state): bool
+    {
+        [$enforced, , $disabled] = $this->resolve($state);
+        $names = array_filter([$enforced, $this->reportOnly], static fn (?string $name): bool => null !== $name);
+
+        if ($disabled || [] === $names) {
+            return true;
+        }
+
+        return array_any($names, fn (string $name): bool => $this->policies->get($name)->nonces);
+    }
+
+    /**
+     * The enforced policy after the overrides of the request, whether it goes as report-only, and whether it is
+     * disabled.
+     *
+     * @return array{?string, bool, bool}
+     */
+    private function resolve(RequestState $state): array
+    {
+        $enforced = $this->enforced;
+        $asReportOnly = false;
+        $disabled = false;
+
+        foreach ($state->overrides as $override) {
+            $enforced = $override->policy ?? $enforced;
+            $asReportOnly = $override->reportOnly ?? $asReportOnly;
+            $disabled = $disabled || $override->disabled;
+        }
+
+        return [$enforced, $asReportOnly, $disabled];
+    }
+
     private function render(string $name, RequestState $state, ?string $reportUri, bool &$reporting): string
     {
         $definition = $this->policies->get($name);
@@ -88,7 +120,7 @@ final readonly class HeaderBuilder
         $tokens = [];
 
         foreach (InlineKind::cases() as $kind) {
-            $sources = $state->sources($kind);
+            $sources = $state->sources($kind, $definition->nonces);
 
             if ([] === $sources) {
                 continue;

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=94bb299d3a812c22edf21094e5c71fc518d9d43d3894db4f38662ff274d87af4 -->
+<!-- phil-dev source-sha256=ceda58e230f135d2cd3567e5ac4b378b82f9b4a60f4bc15334bfecf8fca0bb51 -->
 # Configuration
 
 Chaque option de `phil_browser_security`, avec sa valeur par défaut.
@@ -18,6 +18,7 @@ phil_browser_security:
                 default-src: ["'self'"]
             strict_dynamic: false     # 'strict-dynamic' next to the nonces and hashes of script-src
             report: true              # report-uri and report-to on this policy
+            nonces: true              # the nonces of the request; false lists its hashes alone (see Nonces)
             inline:                   # inline code allowed by the SHA-256 of its exact content
                 script: []
                 style: []

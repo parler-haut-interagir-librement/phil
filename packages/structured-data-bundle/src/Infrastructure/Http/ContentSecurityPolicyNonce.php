@@ -12,7 +12,8 @@ use Phil\StructuredDataBundle\Application\Contract\ScriptNonceProvider;
 /**
  * The script nonce of the content security policy phil/browser-security-bundle sends with the response: the one its
  * `csp_nonce('script')` gives, created for the page when nothing asked for it before. Asking for it makes the policy
- * name it, and a page with a nonce is not kept in a shared cache: only a site that wants one asks.
+ * name it, and a page with a nonce is not kept in a shared cache: only a site that wants one asks. None when each
+ * policy the response sends is declared without nonces.
  */
 final readonly class ContentSecurityPolicyNonce implements ScriptNonceProvider
 {
@@ -22,7 +23,7 @@ final readonly class ContentSecurityPolicyNonce implements ScriptNonceProvider
     }
 
     #[Override]
-    public function scriptNonce(): string
+    public function scriptNonce(): ?string
     {
         return $this->policy->nonce(InlineKind::Script);
     }

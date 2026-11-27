@@ -98,7 +98,7 @@ phil_browser_security:
 ```
 
 `gallery` is `default-src 'self'; img-src 'self' https://images.example.com`. A policy may extend one that extends
-another; a cycle fails the build. `strict_dynamic`, `report`, `inline` and `trusted_types` are the policy's own.
+another; a cycle fails the build. `strict_dynamic`, `report`, `nonces`, `inline` and `trusted_types` are the policy's own.
 
 ## Hashes of inline code
 
