@@ -64,6 +64,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
+use Symfony\Component\Messenger\Event\HandlerFailureEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\MessengerBundle;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
@@ -132,7 +133,13 @@ final class PhilErrorTrackingBundleTest extends TestCase
         self::assertSame(['kernel.event_listener' => [['event' => 'kernel.exception', 'method' => 'onKernelException', 'priority' => 128]]], $listener->getTags());
         $worker = $container->getDefinition(WorkerFailureListener::class);
         self::assertEquals([new Reference(SafeCapture::class), false], $worker->getArguments());
-        self::assertSame(['kernel.event_listener' => [['event' => WorkerMessageFailedEvent::class, 'method' => 'onMessageFailed']]], $worker->getTags());
+        self::assertSame([
+            'kernel.event_listener' => [
+                ['event' => WorkerMessageFailedEvent::class, 'method' => 'onMessageFailed'],
+                ['event' => HandlerFailureEvent::class, 'method' => 'onHandlerFailed'],
+            ],
+            'kernel.reset' => [['method' => 'reset']],
+        ], $worker->getTags());
         $console = $container->getDefinition(ConsoleErrorListener::class);
         self::assertEquals([new Reference(SafeCapture::class)], $console->getArguments());
         self::assertSame(['kernel.event_listener' => [['event' => 'console.error', 'method' => 'onConsoleError']]], $console->getTags());

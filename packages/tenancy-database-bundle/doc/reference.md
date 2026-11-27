@@ -38,7 +38,7 @@ Every public type of the package, by layer.
 | `Availability\CacheTenantDatabaseAvailability` | `final readonly class`, `TenantDatabaseAvailability` | The suspensions in a PSR-6 pool; not durable |
 | `Availability\TenantAvailabilityGuard` | `final readonly class` | `check()`: throws `TenantDatabaseUnavailable` for a suspended tenant |
 | `Http\RefuseUnavailableTenant` | `final readonly class`, request listener | The `503` and its `Retry-After` |
-| `Messenger\RefuseUnavailableTenantMiddleware` | `final readonly class`, Messenger middleware | Leaves the messages of a suspended tenant to the retry strategy |
+| `Messenger\RefuseUnavailableTenantMiddleware` | `final readonly class`, Messenger middleware, `#[AsMessageMiddleware]` on every bus | Leaves the messages of a suspended tenant to the retry strategy |
 | `Migration\MigrationRunner` | `final readonly class` | The migration command once per database, at bounded concurrency, with a timeout |
 | `Migration\MigrationTarget`, `MigrationResult` | `final readonly class` | One database to migrate, and how its migration ended: `interrupted()` and `notStarted()` for a stopped run |
 | `Migration\MigrationStop` | `final class` | A request to stop a run, from a signal handler; a second one forces it |

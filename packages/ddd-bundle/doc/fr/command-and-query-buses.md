@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=649f8258b76bdcbb8fc1677342ed4462f823eb0c74f9a3e3e5d2e6ccb7c6287d -->
+<!-- phil-dev source-sha256=4e176449c95d663505520f3aed2729f1a85404456ecfc54eb731fc9259f0da0f -->
 # Bus de commandes et de requêtes
 
 Six types dans `Phil\DddBundle\Application\Bus`, et leurs deux adaptateurs Messenger dans
@@ -126,13 +126,26 @@ seconde définition de *handler*, avec ses propres options.
 |---|---|---|
 | Commandes | Une `DomainError` | La `DomainError` elle-même, désenveloppée |
 | Commandes | Plusieurs *handlers* échouent, dont un avec une `DomainError` | La première `DomainError` parmi les exceptions enveloppées |
-| Commandes | Toute autre chose | La `HandlerFailedException` de Messenger, inchangée |
+| Commandes | Toute autre chose | La `HandlerFailedException` de Messenger, inchangée ; sur un bus avec `unwrap_exceptions`, l'exception qu'a levée le *handler* quand lui seul a échoué |
 | Requêtes | N'importe quoi | L'exception levée par le *handler*, désenveloppée, quel que soit son type |
 
 L'asymétrie est voulue. Une commande peut avoir plusieurs *handlers*, et plusieurs choses peuvent échouer : seule
 l'erreur du domaine a un sens pour l'appelant, et désenvelopper tout autre échec le ferait passer pour le refus d'un
 invariant. Une requête a exactement un *handler* : son unique échec sort donc tel quel, et l'appelant attrape un
 « introuvable » sans connaître Messenger.
+
+Un bus configuré avec le `unwrap_exceptions: true` de Messenger lève l'exception d'un *handler* seul en échec, et non
+une `HandlerFailedException`, quand l'application répartit. Les deux adaptateurs lisent l'une ou l'autre forme : l'erreur
+du domaine d'une commande et l'échec d'une requête sortent de la même façon, et seul l'autre échec d'une commande
+change, comme l'application l'a demandé.
+
+```yaml
+framework:
+    messenger:
+        buses:
+            command.bus:
+                unwrap_exceptions: true
+```
 
 ## Messages sur un transport
 
@@ -146,6 +159,17 @@ Les commandes peuvent être routées vers un transport asynchrone. Deux conséqu
 - **Une commande asynchrone échoue dans le *worker*, pas chez l'appelant.** `dispatch()` retourne dès l'envoi du
   message, et une `DomainError` levée plus tard est prise en charge par les transports de nouvelle tentative et
   d'échec de Messenger.
+- **Renommez un message en file avec son ancien nom comme alias.** Le sérialiseur JSON écrit la classe du message dans
+  son en-tête `type`, et un *worker* la relit. Une commande renommée ou déplacée dans un autre espace de noms prend le
+  `#[AsMessage(serializedTypeName: …, serializedTypeNameAliases: […])]` de Messenger, l'ancien nom de classe parmi les
+  alias, pour que les messages mis en file avant le changement soient toujours décodés :
+
+  ```php
+  #[AsMessage(serializedTypeName: 'billing.charge_order', serializedTypeNameAliases: ['App\\Billing\\Application\\ChargeOrderCommand'])]
+  final readonly class ChargeOrder implements Command
+  ```
+
+  Un nom de type stable qui lui est propre, plutôt que la classe, laisse la classe se déplacer encore sans alias.
 
 ## Utiliser les adaptateurs sans le bundle
 

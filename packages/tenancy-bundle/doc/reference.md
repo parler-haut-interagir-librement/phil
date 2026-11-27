@@ -69,7 +69,7 @@ Every public type of the bundle, by layer.
 | `Mailer\Contract\TenantMailSettings` | port | The mail settings of each tenant | `ConfiguredTenantMailSettings` in the bundle, or the application's |
 | `Mailer\ConfiguredTenantMailSettings` | `final readonly class`, `TenantMailSettings` | The settings of `phil_tenancy.mailer`, checked | Implemented and tested |
 | `Messenger\TenantStamp` | `final readonly class`, `StampInterface` | The reference of the tenant a message was dispatched in, checked | Implemented and tested |
-| `Messenger\TenantMiddleware` | `final readonly class`, `MiddlewareInterface` | Stamps on dispatch, handles in the stamp's tenant on receipt | Implemented and tested |
+| `Messenger\TenantMiddleware` | `final readonly class`, `MiddlewareInterface`, `#[AsMessageMiddleware]` on every bus | Stamps on dispatch, handles in the stamp's tenant on receipt; constant `BEFORE`, the Doctrine middleware it runs before | Implemented and tested |
 | `Console\TenantOption` | `final readonly class`, console listener | The `--tenant` option of every command | Implemented and tested |
 | `Cache\TenantScopedPool` | `final class`, `AdapterInterface`, `CacheInterface`, `NamespacedPoolInterface`, `TenantActivation` | A pool scoped to the active tenant: the tenant's sub-namespace on each call, the pool itself with none | Implemented and tested; decorates `cache.app` and the pools built on it |
 | `Cache\TenantScopedTagAwarePool` | `final class`, `TagAwareAdapterInterface`, `TagAwareCacheInterface`, `NamespacedPoolInterface`, `TenantActivation` | Tags prefixed for the active tenant; the sub-namespace too over a natively tag-aware pool | Implemented and tested; decorates `cache.app.taggable` and the tag-aware pools |

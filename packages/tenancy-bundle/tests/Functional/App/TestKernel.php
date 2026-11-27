@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phil\TenancyBundle\Tests\Functional\App;
 
 use Override;
-use Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware;
 use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -90,8 +89,8 @@ final class TestKernel extends Kernel
             ]],
             'messenger' => [
                 'transports' => ['async' => 'in-memory://'],
+                // TenantMiddleware is on the bus through its #[AsMessageMiddleware], not listed here.
                 'routing' => [CountInvoices::class => 'async'],
-                'buses' => ['messenger.bus.default' => ['middleware' => [TenantMiddleware::class]]],
             ],
         ]);
 

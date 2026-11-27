@@ -8,10 +8,11 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.3.1-alpha.
 
-Development only.
-
 ### Changed
 
+- `Messenger\IdempotencyMiddleware` carries Messenger's `#[AsMessageMiddleware(bus: '*')]`: registered as an
+  autoconfigured service, it goes on every bus without being listed. A bus whose configuration lists it keeps it where
+  the configuration puts it; a service with `autoconfigure: false` stays on the buses that list it.
 - The development requirements ask for the latest minor of each dependency (`doctrine/dbal` 4.6).
 
 ## 0.3.0-alpha - 2026-11-17

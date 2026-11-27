@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b8cddb12c9471cb9ac3fc72e5922fb664289abc38665d8a8c9e3c58e7497f59b -->
+<!-- phil-dev source-sha256=042dec845e069c693b424c893779f0fa051c4f265ba5125a71db7d667bbe3211 -->
 # Capture
 
 Les points de capture ci-dessous sont l'interface du bundle : une application y déclare ses erreurs, et par
@@ -10,7 +10,7 @@ quitte un SDK de Sentry le remplace par eux, comme le montre [Migrer depuis sent
 | Point | Service | Source | Étiquettes |
 |---|---|---|---|
 | L'exception sur laquelle se termine une requête, `kernel.exception` à la priorité 128 | `ExceptionListener` | `http` | la requête réduite |
-| Un message en échec dans un *worker*, `WorkerMessageFailedEvent` | `WorkerFailureListener` | `messenger` | `message`, `transport`, `will_retry` |
+| Un message en échec dans un *worker*, `WorkerMessageFailedEvent`, avec le *handler* que nomme `HandlerFailureEvent` | `WorkerFailureListener` | `messenger` | `message`, `transport`, `will_retry`, `handler` quand il est connu |
 | L'erreur sur laquelle se termine une commande, `console.error` | `ConsoleErrorListener` | `console` | `command`, `exit_code` |
 | Un enregistrement de journal du niveau du gestionnaire et au-dessus | `phil_error_tracking.monolog_handler` | `log` | `channel` |
 | Le rapport d'un navigateur | `BrowserErrorController` | `browser` | la page et le `User-Agent` |
@@ -21,8 +21,12 @@ l'enregistrement de journal de la même exception qui suit n'est pas capturé de
 
 Une exception HTTP sous 500 (une 404, une 403) est laissée de côté, sauf si `capture.http.client_errors` vaut true. Un
 message en échec est capturé une fois qu'il ne sera plus retenté, sauf si `capture.messenger.retries` vaut true ;
-l'exception levée par son *handler* est capturée plutôt que la `HandlerFailedException` de Messenger, pour qu'elle se
-groupe comme elle le ferait dans une requête. Les arguments d'une commande ne sont jamais gardés.
+l'exception de chaque *handler* est capturée, un événement pour chaque *handler* qui a échoué, plutôt que la
+`HandlerFailedException` de Messenger, pour qu'elle se groupe comme elle le ferait dans une requête. Le
+`HandlerFailureEvent` de Messenger nomme le *handler* de chaque exception, comme `App\Handler\ExportHandler::__invoke`,
+que l'événement porte sous `handler` ; l'écouteur garde ces noms faiblement, pour le seul message en cours de
+traitement, et les oublie à `kernel.reset`. Un *handler* qui échoue dans une requête, sur un bus réparti de façon
+synchrone, passe plutôt par la capture de la requête. Les arguments d'une commande ne sont jamais gardés.
 
 Le gestionnaire Monolog capture l'exception de la clé `exception` de l'enregistrement, ou sinon l'enregistrement
 lui-même, comme un événement de type `Log record` dont le message est celui de l'enregistrement, avec ses espaces

@@ -6,7 +6,7 @@
 |---|---|---|
 | `ProblemException` | Anywhere | Its problem, its status, its headers |
 | An HTTP exception (`NotFoundHttpException`, `AccessDeniedHttpException`…) | Under `problem_details.paths` | The blank problem of its status: `{"type": "about:blank", "status": 404, "title": "Not Found"}`, with the exception's headers |
-| `OptimisticLockException` of Doctrine, thrown or wrapped up to eight levels deep | Under `problem_details.paths`, in debug too | A `409` of the stable type `urn:phil:problem:write-conflict` (`ProblemDetailsListener::WRITE_CONFLICT_TYPE`), without the entity nor its versions |
+| `OptimisticLockException` of Doctrine, thrown or wrapped up to eight levels deep — by Messenger's `HandlerFailedException`, or unwrapped by a bus with `unwrap_exceptions` | Under `problem_details.paths`, in debug too | A `409` of the stable type `urn:phil:problem:write-conflict` (`ProblemDetailsListener::WRITE_CONFLICT_TYPE`), without the entity nor its versions |
 | Any other exception | Under `problem_details.paths`, out of debug | A `500` without detail; in debug, Symfony's error page |
 
 ```php

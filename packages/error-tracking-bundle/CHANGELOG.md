@@ -4,6 +4,16 @@ All notable changes to `phil/error-tracking-bundle` will be documented in this f
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Changed
+
+- `WorkerFailureListener` listens to Messenger's `HandlerFailureEvent` as well: the event of a failed message carries
+  the handler that failed under `handler`, and each handler that failed is captured as its own event. The names are
+  kept weakly, for the message being handled, and forgotten at `kernel.reset`.
+
 ## 0.1.1-alpha - 2026-11-25
 
 ### Changed

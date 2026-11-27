@@ -56,10 +56,25 @@ final class MessengerQueryBusTest extends TestCase
         $bus->ask(new ExampleQuery());
     }
 
-    private function busHandling(callable $handler): MessengerQueryBus
+    /**
+     * A bus configured with `unwrap_exceptions` throws the handler's exception itself, which comes out as is.
+     */
+    public function testOnABusThatUnwrapsTheHandlerFailureComesOutAsIs(): void
+    {
+        $error = new RuntimeException('connection lost');
+        $bus = $this->busHandling(static function () use ($error): never {
+            throw $error;
+        }, unwrapExceptions: true);
+
+        $this->expectExceptionObject($error);
+
+        $bus->ask(new ExampleQuery());
+    }
+
+    private function busHandling(callable $handler, bool $unwrapExceptions = false): MessengerQueryBus
     {
         return new MessengerQueryBus(new MessageBus([
             new HandleMessageMiddleware(new HandlersLocator([ExampleQuery::class => [$handler]])),
-        ]));
+        ], unwrapExceptions: $unwrapExceptions));
     }
 }

@@ -237,7 +237,8 @@ final class PhilTenancyDatabaseBundle extends AbstractBundle
             ->tag('kernel.event_listener', ['event' => KernelEvents::REQUEST, 'method' => 'onRequest', 'after' => [ResolveActiveTenant::class]]);
 
         if (interface_exists(MiddlewareInterface::class)) {
-            $services->set(RefuseUnavailableTenantMiddleware::class)->args([service(TenantContext::class), service(TenantAvailabilityGuard::class)]);
+            // Autoconfigured: its #[AsMessageMiddleware] puts it on every bus, after the tenant middleware.
+            $services->set(RefuseUnavailableTenantMiddleware::class)->args([service(TenantContext::class), service(TenantAvailabilityGuard::class)])->autoconfigure();
         }
 
         $services->set(TenantDatabaseCreator::class)->args([$connection, service(TenantDatabaseRouter::class)]);

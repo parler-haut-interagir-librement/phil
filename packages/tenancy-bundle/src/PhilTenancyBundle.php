@@ -321,7 +321,8 @@ final class PhilTenancyBundle extends AbstractBundle
         }
 
         if (interface_exists(MiddlewareInterface::class)) {
-            $services->set(TenantMiddleware::class)->args([service(TenantContext::class)]);
+            // Autoconfigured: its #[AsMessageMiddleware] puts it on every bus.
+            $services->set(TenantMiddleware::class)->args([service(TenantContext::class)])->autoconfigure();
         }
 
         if ($config['console'] && class_exists(ConsoleEvents::class)) {

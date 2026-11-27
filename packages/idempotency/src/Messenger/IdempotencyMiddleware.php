@@ -16,6 +16,7 @@ use Phil\Idempotency\IdempotencyKey;
 use Phil\Idempotency\IdempotencyScope;
 use Phil\Idempotency\PayloadFingerprint;
 use Phil\Idempotency\StoredResponse;
+use Symfony\Component\Messenger\Attribute\AsMessageMiddleware;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\RecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
@@ -41,7 +42,11 @@ use Symfony\Component\Messenger\Stamp\StampInterface;
  * A message already handled is acknowledged without running its handlers again. One still being handled elsewhere is
  * retried after the seconds left on its reservation; one whose key was used with another fingerprint is refused,
  * without retry. A handler that throws marks the key failed, so that the retry Messenger schedules runs it again.
+ *
+ * Registered as an autoconfigured service, it goes on every bus, in front of the middleware that sends and handles the
+ * message; a bus whose configuration lists it keeps it where the configuration puts it.
  */
+#[AsMessageMiddleware(bus: '*')]
 final readonly class IdempotencyMiddleware implements MiddlewareInterface
 {
     /** How deep the content of a message is read, objects and arrays included. */

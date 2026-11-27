@@ -20,6 +20,8 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Throwable;
 
 #[CoversClass(ProblemDetailsListener::class)]
@@ -90,6 +92,9 @@ final class ProblemDetailsListenerTest extends TestCase
 
         self::assertSame('urn:phil:problem:write-conflict', ProblemDetailsListener::WRITE_CONFLICT_TYPE);
         self::assertNull($this->handle(new ProblemDetailsListener(['^/api/'], true), $conflict, '/orders/7'));
+
+        $handlerFailed = new HandlerFailedException(new Envelope(new stdClass()), [$conflict]);
+        self::assertSame(409, $this->handle(new ProblemDetailsListener(['^/api/']), $handlerFailed, '/api/x')?->getStatusCode(), 'Wrapped by Messenger, as a bus without unwrap_exceptions throws it.');
 
         $wrapped = $conflict;
 

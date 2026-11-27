@@ -11,35 +11,44 @@ use Phil\Idempotency\Messenger\IdempotencyMiddleware;
 use Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\Attribute\AsMessageMiddleware;
 use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\Middleware\SendMessageMiddleware;
 
 /**
- * The tenant scope of messages on the buses: placed before the idempotency middleware by Messenger, on the buses the
- * configuration names or on those that hold the idempotency middleware, and never twice.
+ * The tenant scope of messages on the buses: on every bus by its attribute, or on the buses the configuration names,
+ * placed before the idempotency middleware by Messenger, and never twice.
  */
 #[CoversClass(AddTenantIdempotencyScopeMiddleware::class)]
 final class AddTenantIdempotencyScopeMiddlewareTest extends TestCase
 {
     private const string SCOPE = TenantIdempotencyScopeMiddleware::class;
 
-    public function testByDefaultTheBusesOfTheIdempotencyMiddlewareReceiveItBeforeIt(): void
+    public function testWithoutBusesNamedThePassLeavesItToTheAttribute(): void
     {
         $container = $this->container([
             'messenger.bus.default' => [TenantMiddleware::class, IdempotencyMiddleware::class, 'send_message'],
-            'command.bus' => [IdempotencyMiddleware::class, TenantMiddleware::class],
-            'event.bus' => [TenantMiddleware::class, 'send_message'],
         ]);
 
-        $this->compile($container);
+        new AddTenantIdempotencyScopeMiddleware()->process($container);
 
-        self::assertSame([TenantMiddleware::class, self::SCOPE, IdempotencyMiddleware::class, 'messenger.middleware.send_message'], $this->middleware($container, 'messenger.bus.default'));
-        self::assertSame([TenantMiddleware::class, self::SCOPE, IdempotencyMiddleware::class], $this->middleware($container, 'command.bus'), 'Messenger meets both constraints when the configuration lists them in the other order.');
-        self::assertSame([TenantMiddleware::class, 'messenger.middleware.send_message'], $this->middleware($container, 'event.bus'), 'A bus without the idempotency middleware is left alone.');
+        self::assertSame([], $container->getDefinition(self::SCOPE)->getTag(AddTenantIdempotencyScopeMiddleware::MIDDLEWARE_TAG), 'The #[AsMessageMiddleware] of the autoconfigured class places it.');
+    }
+
+    public function testTheAttributeOfTheClassPutsItOnEveryBusBeforeTheIdempotencyMiddleware(): void
+    {
+        $attributes = new ReflectionClass(self::SCOPE)->getAttributes(AsMessageMiddleware::class);
+        self::assertCount(1, $attributes);
+        $attribute = $attributes[0]->newInstance();
+
+        self::assertSame('*', $attribute->bus);
+        self::assertSame(IdempotencyMiddleware::class, $attribute->before);
+        self::assertSame(TenantMiddleware::class, $attribute->after);
     }
 
     public function testTheBusesTheConfigurationNamesReceiveItAlone(): void
@@ -47,12 +56,14 @@ final class AddTenantIdempotencyScopeMiddlewareTest extends TestCase
         $container = $this->container([
             'messenger.bus.default' => [IdempotencyMiddleware::class],
             'event.bus' => [TenantMiddleware::class, 'send_message'],
-        ], ['event.bus']);
+            'command.bus' => [IdempotencyMiddleware::class, TenantMiddleware::class],
+        ], ['event.bus', 'command.bus']);
 
         $this->compile($container);
 
         self::assertSame([IdempotencyMiddleware::class], $this->middleware($container, 'messenger.bus.default'));
         self::assertSame([TenantMiddleware::class, self::SCOPE, 'messenger.middleware.send_message'], $this->middleware($container, 'event.bus'), 'In front of the middleware that sends.');
+        self::assertSame([TenantMiddleware::class, self::SCOPE, IdempotencyMiddleware::class], $this->middleware($container, 'command.bus'), 'Messenger meets both constraints when the configuration lists them in the other order.');
         self::assertStringStartsWith('.', AddTenantIdempotencyScopeMiddleware::BUSES, 'A build parameter, gone from the compiled container.');
     }
 
@@ -62,7 +73,7 @@ final class AddTenantIdempotencyScopeMiddlewareTest extends TestCase
             'messenger.bus.default' => [IdempotencyMiddleware::class, self::SCOPE],
             'command.bus' => ['scope', IdempotencyMiddleware::class],
             'query.bus' => ['scope_alias', IdempotencyMiddleware::class],
-        ]);
+        ], ['messenger.bus.default', 'command.bus', 'query.bus']);
         $container->register('messenger.middleware.scope', self::SCOPE);
         $container->setAlias('scope_alias', self::SCOPE);
 
@@ -76,7 +87,7 @@ final class AddTenantIdempotencyScopeMiddlewareTest extends TestCase
 
     public function testABusForWhichItIsAlreadyTaggedKeepsItsTag(): void
     {
-        $container = $this->container(['messenger.bus.default' => [IdempotencyMiddleware::class, 'send_message']]);
+        $container = $this->container(['messenger.bus.default' => [IdempotencyMiddleware::class, 'send_message']], ['messenger.bus.default']);
         $container->getDefinition(self::SCOPE)->addTag(AddTenantIdempotencyScopeMiddleware::MIDDLEWARE_TAG, ['bus' => 'messenger.bus.default']);
 
         $this->compile($container);
@@ -85,27 +96,25 @@ final class AddTenantIdempotencyScopeMiddlewareTest extends TestCase
         self::assertSame([IdempotencyMiddleware::class, self::SCOPE, 'messenger.middleware.send_message'], $this->middleware($container, 'messenger.bus.default'));
     }
 
-    public function testABusThatIsNotWantedDoesNotStopTheOnesThatFollow(): void
+    public function testABusServedAlreadyDoesNotStopTheOnesThatFollow(): void
     {
         $container = $this->container([
-            'event.bus' => [TenantMiddleware::class],
             'with.scope' => [IdempotencyMiddleware::class, self::SCOPE],
             'command.bus' => [IdempotencyMiddleware::class],
-        ]);
+        ], ['with.scope', 'command.bus']);
 
         $this->compile($container);
 
-        self::assertSame([TenantMiddleware::class], $this->middleware($container, 'event.bus'));
         self::assertSame([IdempotencyMiddleware::class, self::SCOPE], $this->middleware($container, 'with.scope'));
-        self::assertSame([self::SCOPE, IdempotencyMiddleware::class], $this->middleware($container, 'command.bus'), 'A bus that precedes it, unwanted or served already, does not end the pass.');
+        self::assertSame([self::SCOPE, IdempotencyMiddleware::class], $this->middleware($container, 'command.bus'), 'A bus that precedes it, served already, does not end the pass.');
     }
 
-    public function testABusWhoseMiddlewareIsNotAListDoesNotStopTheOnesThatFollow(): void
+    public function testABusWhoseMiddlewareIsNotAListIsNotABus(): void
     {
         $container = new ContainerBuilder();
         $container->register(self::SCOPE, self::SCOPE);
         $container->register(IdempotencyMiddleware::class, IdempotencyMiddleware::class);
-        $container->setParameter(AddTenantIdempotencyScopeMiddleware::BUSES, []);
+        $container->setParameter(AddTenantIdempotencyScopeMiddleware::BUSES, ['command.bus']);
         $container->register('broken.bus', MessageBus::class)->addTag('messenger.bus');
         $container->setParameter('broken.bus.middleware', 'not a list');
         $container->register('command.bus', MessageBus::class)->addTag('messenger.bus');
@@ -114,6 +123,12 @@ final class AddTenantIdempotencyScopeMiddlewareTest extends TestCase
         new AddTenantIdempotencyScopeMiddleware()->process($container);
 
         self::assertSame([['bus' => 'command.bus', 'before' => [IdempotencyMiddleware::class], 'after' => [TenantMiddleware::class]]], $container->getDefinition(self::SCOPE)->getTag(AddTenantIdempotencyScopeMiddleware::MIDDLEWARE_TAG));
+
+        $container->setParameter(AddTenantIdempotencyScopeMiddleware::BUSES, ['broken.bus']);
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageIsOrContains('its buses are "command.bus"');
+
+        new AddTenantIdempotencyScopeMiddleware()->process($container);
     }
 
     public function testOnlyTheNamesOfTheConfigurationAreBuses(): void
@@ -124,6 +139,16 @@ final class AddTenantIdempotencyScopeMiddlewareTest extends TestCase
         $this->compile($container);
 
         self::assertSame([TenantMiddleware::class, self::SCOPE, 'messenger.middleware.send_message'], $this->middleware($container, 'event.bus'), 'A value that is not a name is left out, not looked up as a bus.');
+    }
+
+    public function testOnlyNamesThatAreNotNamesLeaveItToTheAttribute(): void
+    {
+        $container = $this->container(['event.bus' => [TenantMiddleware::class]]);
+        $container->setParameter(AddTenantIdempotencyScopeMiddleware::BUSES, [42, null]);
+
+        new AddTenantIdempotencyScopeMiddleware()->process($container);
+
+        self::assertSame([], $container->getDefinition(self::SCOPE)->getTag(AddTenantIdempotencyScopeMiddleware::MIDDLEWARE_TAG));
     }
 
     public function testABusTheConfigurationNamesMustExist(): void
@@ -149,11 +174,9 @@ final class AddTenantIdempotencyScopeMiddlewareTest extends TestCase
 
     public function testMiddlewareThatIsNotAServiceOrHasNoClassIsNamedByItsIdentifier(): void
     {
-        $container = $this->container(['messenger.bus.default' => [IdempotencyMiddleware::class]]);
-        $container->setParameter('messenger.bus.default.middleware', [['id' => IdempotencyMiddleware::class], ['id' => 'unknown'], ['arguments' => []], 'not an item', ['id' => 'factory']]);
+        $container = $this->container(['messenger.bus.default' => [IdempotencyMiddleware::class]], ['messenger.bus.default']);
+        $container->setParameter('messenger.bus.default.middleware', [['id' => IdempotencyMiddleware::class], ['id' => 'unknown'], ['arguments' => []], 'not an item', ['id' => 'factory'], ['id' => self::SCOPE.'_missing']]);
         $container->register('factory');
-        $container->register('broken.bus', MessageBus::class)->addTag('messenger.bus');
-        $container->setParameter('broken.bus.middleware', 'not a list');
 
         new AddTenantIdempotencyScopeMiddleware()->process($container);
 

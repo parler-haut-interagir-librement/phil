@@ -7,6 +7,7 @@ namespace Phil\TenancyBundle\Infrastructure\Messenger;
 use Override;
 use Phil\TenancyBundle\Application\TenantContext;
 use Phil\TenancyBundle\Domain\ValueObject\TenantId;
+use Symfony\Component\Messenger\Attribute\AsMessageMiddleware;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;
@@ -18,9 +19,18 @@ use Symfony\Component\Messenger\Stamp\StampInterface;
  * message received from a transport is handled in the tenant of its stamp, then the worker returns to the tenant
  * it was in. A message received without a stamp is handled in the worker's tenant — usually none, where the
  * Doctrine filter fails closed.
+ *
+ * On every bus, in front of the middleware that opens, pings or closes a Doctrine connection, so that the connection is
+ * the tenant's: an application whose bus configuration lists it keeps it where the configuration puts it.
  */
+#[AsMessageMiddleware(bus: '*', before: self::BEFORE)]
 final readonly class TenantMiddleware implements MiddlewareInterface
 {
+    /**
+     * The middleware of Symfony's Doctrine bridge this one runs before, as a bus configuration names them.
+     */
+    public const array BEFORE = ['doctrine_ping_connection', 'doctrine_close_connection', 'doctrine_open_transaction_logger', 'doctrine_transaction'];
+
     public function __construct(
         private TenantContext $context,
     ) {

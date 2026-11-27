@@ -6,6 +6,7 @@ namespace Phil\TenancyDatabaseBundle\Tests\Unit\Infrastructure\Messenger;
 
 use Phil\TenancyBundle\Application\TenantContext;
 use Phil\TenancyBundle\Domain\ValueObject\TenantId;
+use Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware;
 use Phil\TenancyDatabaseBundle\Domain\Exception\TenantDatabaseUnavailable;
 use Phil\TenancyDatabaseBundle\Infrastructure\Availability\TenantAvailabilityGuard;
 use Phil\TenancyDatabaseBundle\Infrastructure\Messenger\RefuseUnavailableTenantMiddleware;
@@ -13,7 +14,9 @@ use Phil\TenancyDatabaseBundle\Tests\Unit\Fixture\FixedPlacements;
 use Phil\TenancyDatabaseBundle\Tests\Unit\Fixture\MemoryAvailability;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use stdClass;
+use Symfony\Component\Messenger\Attribute\AsMessageMiddleware;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\StackMiddleware;
 use Symfony\Component\Messenger\Stamp\ReceivedStamp;
@@ -32,6 +35,17 @@ final class RefuseUnavailableTenantMiddlewareTest extends TestCase
         $availability->suspendTenant(TenantId::fromString('retail'));
 
         $this->middleware = new RefuseUnavailableTenantMiddleware($this->context, new TenantAvailabilityGuard(new FixedPlacements(), $availability));
+    }
+
+    public function testItGoesOnEveryBusAfterTheTenantMiddlewareAndBeforeTheDoctrineMiddleware(): void
+    {
+        $attributes = new ReflectionClass(RefuseUnavailableTenantMiddleware::class)->getAttributes(AsMessageMiddleware::class);
+        self::assertCount(1, $attributes);
+        $attribute = $attributes[0]->newInstance();
+
+        self::assertSame('*', $attribute->bus);
+        self::assertSame(TenantMiddleware::BEFORE, $attribute->before);
+        self::assertSame(TenantMiddleware::class, $attribute->after);
     }
 
     public function testAReceivedMessageOfASuspendedTenantWaits(): void

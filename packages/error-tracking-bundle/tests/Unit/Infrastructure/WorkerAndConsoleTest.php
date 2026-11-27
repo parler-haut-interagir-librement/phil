@@ -32,9 +32,12 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Event\HandlerFailureEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
+use Symfony\Component\Messenger\Handler\HandlerDescriptor;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 
@@ -63,6 +66,45 @@ final class WorkerAndConsoleTest extends TestCase
         self::assertSame(Source::Messenger, $event->source);
         self::assertSame('LogicException: The export failed', $event->title());
         self::assertSame(['message' => stdClass::class, 'transport' => 'async', 'will_retry' => false], $event->context);
+    }
+
+    public function testTheHandlerThatFailedTagsTheCaptureAndEachFailureIsCaptured(): void
+    {
+        $tracking = new Tracking();
+        $listener = new WorkerFailureListener($tracking->capture);
+        $received = new Envelope(new stdClass(), [new ReceivedStamp('async')]);
+        $export = new LogicException('The export failed');
+        $mail = new RuntimeException('The mail failed');
+        $listener->onHandlerFailed(new HandlerFailureEvent($received, new HandlerDescriptor(static fn (): null => null, ['alias' => 'export']), $export));
+        $listener->onHandlerFailed(new HandlerFailureEvent(new Envelope(new stdClass()), new HandlerDescriptor(static fn (): null => null, ['alias' => 'sync']), $mail));
+
+        $listener->onMessageFailed(new WorkerMessageFailedEvent($received, 'async', new HandlerFailedException($received, [$export, $mail])));
+
+        $events = array_merge(...array_values($tracking->store->events));
+        self::assertCount(2, $events, 'One capture for each handler that failed.');
+        $byTitle = [];
+
+        foreach ($events as $event) {
+            $byTitle[$event->title()] = $event->context;
+        }
+
+        self::assertSame(['message' => stdClass::class, 'transport' => 'async', 'will_retry' => false, 'handler' => 'Closure@export'], $byTitle['LogicException: The export failed'] ?? null);
+        self::assertSame(['message' => stdClass::class, 'transport' => 'async', 'will_retry' => false], $byTitle['RuntimeException: The mail failed'] ?? null, 'A handler of a message dispatched, not received, is not kept.');
+    }
+
+    public function testTheHandlersAreForgottenAtTheReset(): void
+    {
+        $tracking = new Tracking();
+        $listener = new WorkerFailureListener($tracking->capture);
+        $received = new Envelope(new stdClass(), [new ReceivedStamp('async')]);
+        $export = new LogicException('The export failed');
+        $listener->onHandlerFailed(new HandlerFailureEvent($received, new HandlerDescriptor(static fn (): null => null, ['alias' => 'export']), $export));
+        $listener->onHandlerFailed(new HandlerFailureEvent($received, new HandlerDescriptor(static fn (): null => null, ['alias' => 'other']), new LogicException('Other')));
+
+        $listener->reset();
+        $listener->onMessageFailed(new WorkerMessageFailedEvent($received, 'async', new HandlerFailedException($received, [$export])));
+
+        self::assertArrayNotHasKey('handler', $tracking->store->onlyEvent()->context);
     }
 
     public function testEachAttemptWhenAsked(): void

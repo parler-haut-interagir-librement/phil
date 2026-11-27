@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=17c3aae6454a559f9140cb57c0b4197c6db2288356865d3604bafc6a02e337b8 -->
+<!-- phil-dev source-sha256=2e360228e9b51b496abef6adb6bc9167a655ec3dad57b9417c33e551aca495eb -->
 # Points d'extension
 
 Ce qu'une application implémente, remplace, configure ou utilise. Le port `IdempotencyStore` est celui de
@@ -63,7 +63,7 @@ toute exception sous les chemins donnés. `ProblemDetailsResponse` en écrit un 
 | `idempotency.ttl`, `reservation_ttl` | Combien de temps une clé est retenue, et réservée |
 | `idempotency.replayed_headers` | Les en-têtes rejoués avec un corps |
 | `idempotency.anonymous` | Les appelants anonymes refusés, ou rattachés à leur adresse ; `#[Idempotent(anonymous: …)]` en décide pour un point de terminaison |
-| `idempotency.messenger.tenant_scope`, `idempotency.messenger.buses` | Les clés des messages rattachées à leur locataire, par `TenantIdempotencyScopeMiddleware`, que le bundle ajoute aux bus qui contiennent le middleware d'idempotence ou à ceux qui sont nommés |
+| `idempotency.messenger.tenant_scope`, `idempotency.messenger.buses` | Les clés des messages rattachées à leur locataire, par `TenantIdempotencyScopeMiddleware`, qui va sur chaque bus par son `#[AsMessageMiddleware]` ou sur ceux qui sont nommés |
 | `idempotency.client_attribute` | L'attribut du jeton qui nomme le client d'API |
 | `idempotency.connection` | Où les clés sont conservées ; `null` pour un stockage propre à l'application |
 | `idempotency.cache_pool`, `lock_factory` | Les clés plutôt dans un pool de cache, chaque réservation sous un verrou |

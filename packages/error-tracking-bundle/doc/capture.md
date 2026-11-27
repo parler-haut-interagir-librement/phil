@@ -9,7 +9,7 @@ SDK replaces it with them, as [Migrating from sentry-symfony](migrating-from-sen
 | Point | Service | Source | Tags |
 |---|---|---|---|
 | The exception a request ends in, `kernel.exception` at priority 128 | `ExceptionListener` | `http` | the reduced request |
-| A message a worker failed, `WorkerMessageFailedEvent` | `WorkerFailureListener` | `messenger` | `message`, `transport`, `will_retry` |
+| A message a worker failed, `WorkerMessageFailedEvent`, with the handler `HandlerFailureEvent` names | `WorkerFailureListener` | `messenger` | `message`, `transport`, `will_retry`, `handler` when known |
 | The error a command ends in, `console.error` | `ConsoleErrorListener` | `console` | `command`, `exit_code` |
 | A log record of the handler's level and above | `phil_error_tracking.monolog_handler` | `log` | `channel` |
 | A browser's report | `BrowserErrorController` | `browser` | the page and the `User-Agent` |
@@ -19,8 +19,12 @@ The request listener runs before the kernel logs the exception, so that the even
 record of the same exception that follows is not captured again.
 
 An HTTP exception below 500 — a 404, a 403 — is left out unless `capture.http.client_errors` is true. A failed message
-is captured once it will not be retried, unless `capture.messenger.retries` is true; the exception its handler threw is
-captured rather than Messenger's `HandlerFailedException`, so that it groups as it would in a request. The arguments of
+is captured once it will not be retried, unless `capture.messenger.retries` is true; the exception each handler threw
+is captured, one event for each handler that failed, rather than Messenger's `HandlerFailedException`, so that it groups
+as it would in a request. Messenger's `HandlerFailureEvent` names the handler of each exception, as
+`App\Handler\ExportHandler::__invoke`, which the event carries under `handler`; the listener keeps those names weakly,
+for the message being handled only, and forgets them at `kernel.reset`. A handler that fails in a request, on a bus
+dispatched synchronously, reaches the request's capture instead. The arguments of
 a command are never kept.
 
 The Monolog handler captures the exception of the record's `exception` key, or else the record itself, as an event of

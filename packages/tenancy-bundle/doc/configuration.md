@@ -106,7 +106,7 @@ phil_tenancy:
 | `Infrastructure\Doctrine\DoctrineTenantActivation` | always; does nothing without Doctrine | Sets the context's tenant on the filter of every entity manager that has it enabled |
 | `Infrastructure\Http\CurrentTenantValueResolver` | always | The `#[CurrentTenant]` controller argument |
 | `Infrastructure\Session\SessionActiveTenantStore` | `store: session` | The remembered choice, in the session |
-| `Infrastructure\Messenger\TenantMiddleware` | `symfony/messenger` installed | The middleware a bus adds to carry the tenant across transports |
+| `Infrastructure\Messenger\TenantMiddleware` | `symfony/messenger` installed | The middleware that carries the tenant across transports; autoconfigured, on every bus by its `#[AsMessageMiddleware]` |
 | `Infrastructure\Console\TenantOption` | `console: true`, `symfony/console` installed | The `--tenant` option |
 | `Domain\Shop\ShopNetwork` | always | The shops and the catalogues each one includes |
 | `Application\Shop\ShopContext` | always; public | The shop of the request, its catalogues and the origin of an order |

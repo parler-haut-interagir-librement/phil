@@ -91,12 +91,48 @@ final class MessengerCommandBusTest extends TestCase
     }
 
     /**
+     * A bus configured with `unwrap_exceptions` throws the handler's exception itself: the domain error still comes
+     * out as is.
+     */
+    public function testOnABusThatUnwrapsTheDomainErrorComesOutAsIs(): void
+    {
+        $error = new ExampleDomainError('refused');
+        $bus = $this->busHandling([
+            static function () use ($error): never {
+                throw $error;
+            },
+        ], unwrapExceptions: true);
+
+        $this->expectExceptionObject($error);
+
+        $bus->dispatch(new ExampleCommand());
+    }
+
+    /**
+     * On a bus configured with `unwrap_exceptions`, any other failure reaches the caller as the bus gives it: unwrapped,
+     * as the application asked.
+     */
+    public function testOnABusThatUnwrapsAnyOtherFailureComesOutAsTheBusGivesIt(): void
+    {
+        $error = new RuntimeException('failure');
+        $bus = $this->busHandling([
+            static function () use ($error): never {
+                throw $error;
+            },
+        ], unwrapExceptions: true);
+
+        $this->expectExceptionObject($error);
+
+        $bus->dispatch(new ExampleCommand());
+    }
+
+    /**
      * @param list<callable|HandlerDescriptor> $handlers
      */
-    private function busHandling(array $handlers): MessengerCommandBus
+    private function busHandling(array $handlers, bool $unwrapExceptions = false): MessengerCommandBus
     {
         return new MessengerCommandBus(new MessageBus([
             new HandleMessageMiddleware(new HandlersLocator([ExampleCommand::class => $handlers])),
-        ]));
+        ], unwrapExceptions: $unwrapExceptions));
     }
 }

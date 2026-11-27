@@ -98,7 +98,7 @@ final class PhilTenancyDatabaseBundleTest extends TestCase
             ['event' => 'kernel.request', 'method' => 'onRequest', 'after' => [ResolveActiveTenant::class]],
         ], $listener->getTag('kernel.event_listener'));
 
-        self::assertTrue($container->hasDefinition(RefuseUnavailableTenantMiddleware::class));
+        self::assertTrue($container->getDefinition(RefuseUnavailableTenantMiddleware::class)->isAutoconfigured(), 'Its #[AsMessageMiddleware] puts it on every bus.');
         self::assertSame('doctrine.dbal.default_connection', $this->id($container->getDefinition(TenantDatabaseCreator::class)->getArgument(0)));
         self::assertSame('doctrine.orm.default_entity_manager', $this->id($container->getDefinition(TenantMover::class)->getArgument(2)));
 
@@ -335,10 +335,11 @@ final class PhilTenancyDatabaseBundleTest extends TestCase
         $extension = $this->extension();
         self::assertInstanceOf(PrependExtensionInterface::class, $extension);
         $container->registerExtension($extension);
+        $container->loadFromExtension('phil_tenancy_database', ['availability' => 'cache']);
 
         $extension->prepend($container);
 
-        self::assertSame([], $container->getExtensionConfig('phil_tenancy'));
+        self::assertSame([], $container->getExtensionConfig('phil_tenancy'), 'The pool has no framework to reach: it is not shared either.');
     }
 
     public function testNothingIsPrependedForTheTableOfTheSuspensions(): void

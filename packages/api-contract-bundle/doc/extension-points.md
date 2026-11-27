@@ -61,7 +61,7 @@ given. `ProblemDetailsResponse` writes one from a controller. See [Problems](pro
 | `idempotency.ttl`, `reservation_ttl` | How long a key is remembered, and reserved |
 | `idempotency.replayed_headers` | The headers replayed with a body |
 | `idempotency.anonymous` | Anonymous callers refused, or scoped by address; `#[Idempotent(anonymous: …)]` decides for one endpoint |
-| `idempotency.messenger.tenant_scope`, `idempotency.messenger.buses` | The keys of messages scoped by their tenant, through `TenantIdempotencyScopeMiddleware`, which the bundle adds to the buses that hold the idempotency middleware or to those named |
+| `idempotency.messenger.tenant_scope`, `idempotency.messenger.buses` | The keys of messages scoped by their tenant, through `TenantIdempotencyScopeMiddleware`, which goes on every bus by its `#[AsMessageMiddleware]`, or on those named |
 | `idempotency.client_attribute` | The token attribute that names the API client |
 | `idempotency.connection` | Where the keys are kept; `null` for a store of the application's own |
 | `idempotency.cache_pool`, `lock_factory` | The keys in a cache pool instead, each reservation under a lock |

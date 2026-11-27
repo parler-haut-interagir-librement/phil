@@ -7,19 +7,20 @@ namespace Phil\ApiContractBundle\Infrastructure\DependencyInjection;
 use LogicException;
 use Override;
 use Phil\ApiContractBundle\Infrastructure\Messenger\TenantIdempotencyScopeMiddleware;
-use Phil\Idempotency\Messenger\IdempotencyMiddleware;
-use Phil\TenancyBundle\Infrastructure\Messenger\TenantMiddleware;
+use ReflectionClass;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Messenger\Attribute\AsMessageMiddleware;
 
 /**
- * Adds `TenantIdempotencyScopeMiddleware` to the Messenger buses, when `idempotency.messenger.tenant_scope` registered
- * it: on the buses `idempotency.messenger.buses` names, or, when it names none, on every bus whose middleware holds the
- * `IdempotencyMiddleware` of `phil/idempotency`.
+ * Adds `TenantIdempotencyScopeMiddleware` to the Messenger buses `idempotency.messenger.buses` names, when
+ * `idempotency.messenger.tenant_scope` registered it. When the option names no bus, the bundle autoconfigures the
+ * middleware instead, and its `#[AsMessageMiddleware]` puts it on every bus; this pass then does nothing.
  *
- * The middleware is tagged `messenger.middleware` for each bus, before `IdempotencyMiddleware` and after the
- * `TenantMiddleware` of `phil/tenancy-bundle`, and Messenger places it among the bus's middleware. A bus whose
- * configuration already lists it, or for which it is already tagged, keeps it where it is: it is never added twice.
+ * The middleware is tagged `messenger.middleware` for each bus named, with the `before` and `after` of its
+ * `#[AsMessageMiddleware]` — before the `IdempotencyMiddleware` of `phil/idempotency`, after the `TenantMiddleware` of
+ * `phil/tenancy-bundle` — and Messenger places it among the bus's middleware. A bus whose configuration already lists
+ * it, or for which it is already tagged, keeps it where it is: it is never added twice.
  *
  * The pass runs before Messenger's, which reads the middleware of each bus from its `<bus>.middleware` parameter.
  *
@@ -54,16 +55,27 @@ final readonly class AddTenantIdempotencyScopeMiddleware implements CompilerPass
 
         $definition = $container->getDefinition(TenantIdempotencyScopeMiddleware::class);
         $tagged = array_column($definition->getTag(self::MIDDLEWARE_TAG), 'bus');
+        $order = $this->order();
 
-        foreach ($middleware as $bus => $classes) {
-            $wanted = [] === $named ? \in_array(IdempotencyMiddleware::class, $classes, true) : \in_array($bus, $named, true);
-
-            if (!$wanted || \in_array(TenantIdempotencyScopeMiddleware::class, $classes, true) || \in_array($bus, $tagged, true)) {
+        foreach ($named as $bus) {
+            if (\in_array(TenantIdempotencyScopeMiddleware::class, $middleware[$bus], true) || \in_array($bus, $tagged, true)) {
                 continue;
             }
 
-            $definition->addTag(self::MIDDLEWARE_TAG, ['bus' => $bus, 'before' => [IdempotencyMiddleware::class], 'after' => [TenantMiddleware::class]]);
+            $definition->addTag(self::MIDDLEWARE_TAG, ['bus' => $bus] + $order);
         }
+    }
+
+    /**
+     * The `before` and `after` of the middleware's `#[AsMessageMiddleware]`, as lists.
+     *
+     * @return array{before: list<string>, after: list<string>}
+     */
+    private function order(): array
+    {
+        $attribute = new ReflectionClass(TenantIdempotencyScopeMiddleware::class)->getAttributes(AsMessageMiddleware::class)[0]->newInstance();
+
+        return ['before' => (array) $attribute->before, 'after' => (array) $attribute->after];
     }
 
     /**

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=20bc8158c6a91e61a6da827bf6cea683e8fa5aacdab9df5343d7de37e40946fd -->
+<!-- phil-dev source-sha256=412eed1570fe89a613a1579ff21f437cffe1ebdedc8d237460898654bf1f170c -->
 # Configuration
 
 ```yaml
@@ -54,7 +54,7 @@ phil_tenancy_database:
 | `StoreSchemaListener` | avec un stockage `dbal`, à l'écoute de `postGenerateSchema` pour la connexion dont le schéma contient les tables |
 | `TenantAvailabilityGuard` | toujours |
 | `RefuseUnavailableTenant` | toujours, à l'écoute de `kernel.request` deux fois : après `ResolveHostTenant` et avant le pare-feu, puis après `ResolveActiveTenant` |
-| `RefuseUnavailableTenantMiddleware` | quand Messenger est installé ; l'application l'ajoute à ses bus |
+| `RefuseUnavailableTenantMiddleware` | quand Messenger est installé ; autoconfiguré, sur chaque bus par son `#[AsMessageMiddleware]`, après le middleware du locataire |
 | `TenantDatabaseCreator`, `TenantMover` | toujours |
 | `MigrationRunner`, `MigrationTargets` et les trois commandes | quand les composants Console et Process sont installés |
 
@@ -64,7 +64,10 @@ suspensions.
 
 ## Messenger
 
-Ajoutez le middleware après celui de `phil/tenancy-bundle`, qui entre dans le locataire de chaque message reçu :
+`RefuseUnavailableTenantMiddleware` porte l'attribut de Messenger `#[AsMessageMiddleware(bus: '*')]`, et le bundle
+l'enregistre autoconfiguré : il va sur chaque bus, après le middleware du locataire de `phil/tenancy-bundle`, qui entre
+dans le locataire de chaque message reçu, et avant le middleware de Doctrine qui ouvre, sonde ou ferme une connexion.
+Rien n'est à lister. Un bus dont la configuration liste les deux les garde là où la configuration les met :
 
 ```yaml
 framework:

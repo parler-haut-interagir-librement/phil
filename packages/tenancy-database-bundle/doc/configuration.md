@@ -53,7 +53,7 @@ phil_tenancy_database:
 | `StoreSchemaListener` | with a `dbal` store, listening to `postGenerateSchema` for the connection whose schema holds the tables |
 | `TenantAvailabilityGuard` | always |
 | `RefuseUnavailableTenant` | always, listening to `kernel.request` twice: after `ResolveHostTenant` and before the firewall, then after `ResolveActiveTenant` |
-| `RefuseUnavailableTenantMiddleware` | when Messenger is installed; the application adds it to its buses |
+| `RefuseUnavailableTenantMiddleware` | when Messenger is installed; autoconfigured, on every bus by its `#[AsMessageMiddleware]`, after the tenant middleware |
 | `TenantDatabaseCreator`, `TenantMover` | always |
 | `MigrationRunner`, `MigrationTargets` and the three commands | when the Console and Process components are installed |
 
@@ -63,8 +63,10 @@ suspensions.
 
 ## Messenger
 
-Add the middleware after the tenant middleware of `phil/tenancy-bundle`, which enters the tenant of each received
-message:
+`RefuseUnavailableTenantMiddleware` carries Messenger's `#[AsMessageMiddleware(bus: '*')]`, and the bundle registers
+it autoconfigured: it goes on every bus, after the tenant middleware of `phil/tenancy-bundle`, which enters the tenant
+of each received message, and before the Doctrine middleware that opens, pings or closes a connection. Nothing needs
+listing. A bus whose configuration lists both keeps them where the configuration puts them:
 
 ```yaml
 framework:

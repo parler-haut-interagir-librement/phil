@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=07c53e4a677aeedad010aae483ebd4033f12585b09a418506cd99687208ea829 -->
+<!-- phil-dev source-sha256=ac9bd2a700be0ce92b629f86f36f530cb9f34a3ac2c0b6accea7203c30d0e76a -->
 # Configuration
 
 ```yaml
@@ -36,8 +36,8 @@ phil_api_contract:
             # its IdempotencyStamp, to the buses, before the idempotency middleware. Needs PhilTenancyBundle.
             # False by default.
             tenant_scope: false
-            # The buses the middleware is added to. None by default: every bus whose middleware holds the
-            # IdempotencyMiddleware of phil/idempotency.
+            # The buses the middleware is added to. None by default: every bus, through the middleware's
+            # #[AsMessageMiddleware].
             buses: []
     verification:
         # The OpenAPI document phil:api-contract:verify reads when none is named. Null by default.
@@ -66,7 +66,7 @@ la lecture de l'attribut. Un identifiant de `verification.skip` qu'aucune règle
 | `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyTenantResolver` | Un alias de `ActiveTenantResolver`, sur le `TenantContext` de `phil/tenancy-bundle` quand il est installé |
 | `Phil\ApiContractBundle\Infrastructure\Http\IdempotencyClientResolver` | Un alias de `TokenAttributeClientResolver`, sur le jeton de sécurité et `idempotency.client_attribute` |
 | `IdempotencyListener` | Sur `kernel.controller_arguments` à -10100, après les écouteurs des attributs du contrôleur, et sur `kernel.response` |
-| `TenantIdempotencyScopeMiddleware` | Un middleware de Messenger, quand `idempotency.messenger.tenant_scope` est vrai : étiqueté `messenger.middleware` pour les bus de `idempotency.messenger.buses`, avant le middleware d'idempotence |
+| `TenantIdempotencyScopeMiddleware` | Un middleware de Messenger, quand `idempotency.messenger.tenant_scope` est vrai : autoconfiguré, sur chaque bus par son `#[AsMessageMiddleware]`, ou étiqueté `messenger.middleware` pour les seuls bus de `idempotency.messenger.buses` ; avant le middleware d'idempotence |
 | `DeprecationObservingHttpClient` | Décore `http_client`, s'il existe |
 | `Phil\ApiContract\OpenApi\ContractVerifier` | Public ; construit par `ContractVerifierFactory` à partir des règles de la bibliothèque, des services étiquetés `phil_api_contract.openapi_rule` et de `verification.skip` |
 | `DeprecationsCommand`, `VerifyCommand` | `phil:api-contract:deprecations` et `phil:api-contract:verify`, quand Symfony Console est installé |
@@ -77,8 +77,8 @@ Chaque service qui implémente `Phil\ApiContract\Contract\OpenApiRule` reçoit l
 Le bundle ajoute aussi deux passes de compilation : `CheckDeprecatedEndpoints`, qui construit chaque
 `#[DeprecatedEndpoint]` des services étiquetés `controller.service_arguments` et fait échouer la construction sur un
 attribut qui ne peut pas être envoyé ; et `AddTenantIdempotencyScopeMiddleware`, qui ajoute la portée de locataire des
-messages aux bus avant que Messenger lise leur middleware, et fait échouer la construction sur un bus de
-`idempotency.messenger.buses` que l'application n'a pas.
+messages aux bus que nomme `idempotency.messenger.buses` avant que Messenger lise leur middleware, et fait échouer la
+construction sur un bus que l'application n'a pas.
 
 ## Remplacer un port
 

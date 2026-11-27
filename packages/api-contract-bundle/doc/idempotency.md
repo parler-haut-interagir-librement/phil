@@ -152,14 +152,19 @@ phil_api_contract:
     idempotency:
         messenger:
             tenant_scope: true
-            # buses: [messenger.bus.default]   # every bus of the idempotency middleware when left out
+            # buses: [messenger.bus.default]   # every bus when left out
 ```
 
-The middleware goes on the buses `idempotency.messenger.buses` names, or, when it names none, on every bus whose
-middleware holds the `IdempotencyMiddleware` of `phil/idempotency`. The bundle tags it `messenger.middleware` for
-each of them, before `IdempotencyMiddleware` and after the `TenantMiddleware` of `phil/tenancy-bundle`, and
-Messenger places it among the middleware of the bus, in front of the ones that send and handle the message. A bus
-named that the application does not have fails the build, naming the buses it has.
+The middleware carries Messenger's `#[AsMessageMiddleware(bus: '*', before: IdempotencyMiddleware::class, after:
+TenantMiddleware::class)]`. When `idempotency.messenger.buses` names no bus, the bundle registers it autoconfigured,
+and the attribute puts it on every bus, before the `IdempotencyMiddleware` of `phil/idempotency` and after the
+`TenantMiddleware` of `phil/tenancy-bundle`; Messenger places it among the middleware of each bus, in front of the
+ones that send and handle the message. An envelope without an `IdempotencyStamp` passes through it untouched, so a
+bus that never deduplicates pays one method call.
+
+When `idempotency.messenger.buses` names buses, the middleware goes on those alone: the bundle tags it
+`messenger.middleware` for each of them, with the same `before` and `after`. A bus named that the application does
+not have fails the build, naming the buses it has.
 
 A bus whose configuration lists the middleware already keeps it where the configuration puts it, and it is never
 added twice: the manual way remains, for a bus whose order the application writes out:

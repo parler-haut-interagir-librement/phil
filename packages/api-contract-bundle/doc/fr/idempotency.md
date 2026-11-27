@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=6c5fec9d404a041765f51efd44fa50a2d07a610c33c08cabfcfb1338c65e64ed -->
+<!-- phil-dev source-sha256=21bb7475cb43eb699abd21cc80a11c2f284b2bdc6ae29fe75d8e4fd8959797a3 -->
 # Idempotence
 
 Un contrôleur marqué `#[Idempotent]` exige un en-tête `Idempotency-Key` et s'exécute une fois par clé : une nouvelle
@@ -161,14 +161,19 @@ phil_api_contract:
     idempotency:
         messenger:
             tenant_scope: true
-            # buses: [messenger.bus.default]   # every bus of the idempotency middleware when left out
+            # buses: [messenger.bus.default]   # every bus when left out
 ```
 
-Le middleware va sur les bus que nomme `idempotency.messenger.buses` ou, si elle n'en nomme aucun, sur chaque bus dont
-le middleware contient l'`IdempotencyMiddleware` de `phil/idempotency`. Le bundle l'étiquette `messenger.middleware`
-pour chacun d'eux, avant `IdempotencyMiddleware` et après le `TenantMiddleware` de `phil/tenancy-bundle`, et Messenger
-le place parmi les middleware du bus, devant ceux qui envoient et traitent le message. Un bus nommé que l'application
-n'a pas fait échouer la construction, en nommant les bus qu'elle a.
+Le middleware porte l'attribut de Messenger `#[AsMessageMiddleware(bus: '*', before: IdempotencyMiddleware::class,
+after: TenantMiddleware::class)]`. Quand `idempotency.messenger.buses` ne nomme aucun bus, le bundle l'enregistre
+autoconfiguré, et l'attribut le met sur chaque bus, avant l'`IdempotencyMiddleware` de `phil/idempotency` et après le
+`TenantMiddleware` de `phil/tenancy-bundle` ; Messenger le place parmi les middleware de chaque bus, devant ceux qui
+envoient et traitent le message. Une enveloppe sans `IdempotencyStamp` le traverse intacte : un bus qui ne déduplique
+jamais ne paie qu'un appel de méthode.
+
+Quand `idempotency.messenger.buses` nomme des bus, le middleware ne va que sur ceux-là : le bundle l'étiquette
+`messenger.middleware` pour chacun d'eux, avec les mêmes `before` et `after`. Un bus nommé que l'application n'a pas
+fait échouer la construction, en nommant les bus qu'elle a.
 
 Un bus dont la configuration liste déjà le middleware le garde là où la configuration le met, et il n'est jamais
 ajouté deux fois : la voie manuelle reste, pour un bus dont l'application écrit l'ordre en entier :
