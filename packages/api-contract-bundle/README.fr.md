@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=4889607695b5ca317f5ef79b1c65a6896315e950128d80639591e46d9978a4c5 -->
+<!-- phil-dev source-sha256=fcc4e693e2fbab8f51f1f0118fb12057e16036cb190d742bbf51f4e3bd90d822 -->
 # phil/api-contract-bundle
 
 **Des détails de problème, des requêtes idempotentes rejouées, des avis d'obsolescence et la vérification OpenAPI,
@@ -22,7 +22,9 @@ enveloppe le client HTTP de Symfony. Doctrine DBAL, ou un pool de cache sous un 
 d'idempotence, Symfony Security et `phil/tenancy-bundle` les rattachent à l'utilisateur, au client d'API et au
 locataire, Symfony Messenger porte le locataire dans les clés des messages, le composant Console exécute les deux
 commandes et le composant Yaml lit un document YAML ; chacun de ces éléments est facultatif. La conception implémente
-les ports de la bibliothèque avec des adaptateurs pour chacun de ces composants.
+les ports de la bibliothèque avec des adaptateurs pour chacun de ces composants. Les requêtes que traite API Platform
+lui sont laissées : ses erreurs gardent leurs propres membres, et le bundle ne met aucune clé à ses opérations ni ne les
+annonce ; `problem_details.paths` peut donc couvrir `/api` à côté d'API Platform.
 
 ## État
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ac9bd2a700be0ce92b629f86f36f530cb9f34a3ac2c0b6accea7203c30d0e76a -->
+<!-- phil-dev source-sha256=086676f55214c278e79283623fdad4b0b8ac170190e502015d75c32d5407e46b -->
 # Configuration
 
 ```yaml
@@ -6,7 +6,8 @@
 phil_api_contract:
     problem_details:
         # Regular expressions on the path under which every exception is answered as a problem. None by default:
-        # a ProblemException is answered as a problem wherever it is thrown.
+        # a ProblemException is answered as a problem wherever it is thrown. A request API Platform handles keeps
+        # its own errors under these paths.
         paths: ['^/api/']
     idempotency:
         # How many seconds an answered key is remembered; a controller's #[Idempotent(ttl: …)] replaces it. 86400

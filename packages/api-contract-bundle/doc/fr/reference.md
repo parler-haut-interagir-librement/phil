@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0c73c71a1855d6a7f27b70d8bbdc7627886d06002f32ffe05b4452e230e160cf -->
+<!-- phil-dev source-sha256=59aa7433066500fb12d25d2aa786db0aad95dccd6c462a05d4d3e685dd5eaaa6 -->
 # Référence
 
 | Type | Nature | Rôle |
@@ -7,9 +7,10 @@
 | `Application\Library` | `final class` | Les ports des bibliothèques dont le bundle crée les alias, par nom |
 | `Infrastructure\Http\ProblemException` | exception | Un problème à retourner en réponse, et ses en-têtes |
 | `Infrastructure\Http\ProblemDetailsResponse` | réponse | Un problème, `application/problem+json` |
-| `Infrastructure\Http\ProblemDetailsListener` | écouteur de `kernel.exception` | Les exceptions sous forme de problèmes |
+| `Infrastructure\Http\ProblemDetailsListener` | écouteur de `kernel.exception` | Les exceptions sous forme de problèmes ; une requête que traite API Platform lui est laissée, sauf pour une `ProblemException` |
+| `Infrastructure\Http\ApiPlatformRequests` | `final class`, statique | `handles()` : si une requête porte `_api_resource_class` ou `_api_operation` ; constantes `RESOURCE_CLASS`, `OPERATION` |
 | `Infrastructure\Http\Idempotent` | attribut | Un contrôleur qui exige un `Idempotency-Key` ; sa rétention, `ttl`, et sa politique pour les appelants anonymes, `anonymous` |
-| `Infrastructure\Http\IdempotencyListener` | écouteur | La garde de `phil/idempotency` autour d'un tel contrôleur, après ses contrôles d'accès ; constantes `REPLAYED_HEADER`, `RESERVED`, `ANONYMOUS_CALLERS`, `PRIORITY`, `RESERVATION_LOST`, `KEY_FORMAT` |
+| `Infrastructure\Http\IdempotencyListener` | écouteur | La garde de `phil/idempotency` autour d'un tel contrôleur, après ses contrôles d'accès, jamais sur une requête que traite API Platform ; constantes `REPLAYED_HEADER`, `RESERVED`, `ANONYMOUS_CALLERS`, `PRIORITY`, `RESERVATION_LOST`, `KEY_FORMAT` |
 | `Infrastructure\Http\IdempotencyReservation` | valeur | La réservation qu'une requête a prise, venue de `phil/idempotency`, et la rétention de sa réponse |
 | `Infrastructure\Http\IdempotencyScopeResolver` | interface | Qui a envoyé une requête |
 | `Infrastructure\Http\CallerScopeResolver` | résolveur | Le locataire, le client et l'utilisateur, hachés ; les appelants anonymes refusés ou rattachés à leur adresse, selon la politique du point de terminaison ou celle de la configuration ; constante `ANONYMOUS` |
@@ -21,7 +22,7 @@
 | `Infrastructure\Http\TokenAttributeClientResolver` | résolveur | Le client nommé par un attribut du jeton de sécurité ; constante `DEFAULT_ATTRIBUTE` |
 | `Infrastructure\Http\AnonymousCallers` | énumération de chaînes | `Refuse` (`refuse`), `ByIp` (`ip`) |
 | `Infrastructure\Http\DeprecatedEndpoint` | attribut | Un contrôleur obsolète et ses dates |
-| `Infrastructure\Http\DeprecationListener` | écouteur | Ses en-têtes sur chaque réponse, son `Link` à côté de ceux de la réponse |
+| `Infrastructure\Http\DeprecationListener` | écouteur | Ses en-têtes sur chaque réponse, son `Link` à côté de ceux de la réponse ; aucun sur une requête que traite API Platform |
 | `Infrastructure\DependencyInjection\CheckDeprecatedEndpoints` | passe de compilation | Chaque `#[DeprecatedEndpoint]` des services de contrôleur, construit en même temps que le conteneur |
 | `Infrastructure\DependencyInjection\AddTenantIdempotencyScopeMiddleware` | passe de compilation, interne | `TenantIdempotencyScopeMiddleware` étiqueté `messenger.middleware` pour chaque bus que nomme `idempotency.messenger.buses`, avec le `before` et le `after` de son `#[AsMessageMiddleware]`, sauf si le bus le liste déjà ; constantes `BUSES`, `MIDDLEWARE_TAG` |
 | `Infrastructure\HttpClient\DeprecationObservingHttpClient` | décorateur du client HTTP | Les signaux des API appelées |

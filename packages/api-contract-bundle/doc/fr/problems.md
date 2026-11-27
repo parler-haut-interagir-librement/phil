@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8346d12dbaa031344c24c11a162e397238c176718a34a8d1174e526bc8d9032f -->
+<!-- phil-dev source-sha256=ac2ecf9a095cb365a96a3266cdbe9d78cd8bbe70b8c340109bf6ad7fcdb15782 -->
 # Problèmes
 
 `ProblemDetailsListener` répond aux exceptions par des détails de problème RFC 9457, `application/problem+json`.
@@ -9,6 +9,24 @@
 | Une exception HTTP (`NotFoundHttpException`, `AccessDeniedHttpException`…) | Sous `problem_details.paths` | Le problème vierge de son statut : `{"type": "about:blank", "status": 404, "title": "Not Found"}`, avec les en-têtes de l'exception |
 | `OptimisticLockException` de Doctrine, levée ou enveloppée jusqu'à huit niveaux de profondeur — par la `HandlerFailedException` de Messenger, ou déballée par un bus avec `unwrap_exceptions` | Sous `problem_details.paths`, en mode débogage aussi | Une `409` du type stable `urn:phil:problem:write-conflict` (`ProblemDetailsListener::WRITE_CONFLICT_TYPE`), sans l'entité ni ses versions |
 | Toute autre exception | Sous `problem_details.paths`, hors du mode débogage | Une `500` sans détail ; en mode débogage, la page d'erreur de Symfony |
+
+## Les requêtes que traite API Platform
+
+API Platform répond aux erreurs de ses propres opérations par des problèmes, avec ses propres membres — les violations
+d'une `422` entre autres. Une requête qui porte l'attribut `_api_resource_class` ou `_api_operation`, qu'API Platform
+met sur les requêtes qu'il traite, lui est donc laissée même sous `problem_details.paths` : seule une `ProblemException`
+y reçoit une réponse, puisque l'application la lève exprès. Les autres routes sous les mêmes chemins — un contrôleur de
+l'application à côté des ressources d'API Platform — gardent leurs problèmes. `ApiPlatformRequests::handles()` distingue
+les deux ; rien d'API Platform n'est chargé pour cela.
+
+Le gabarit `phil/api-symfony` s'y appuie : il couvre `/api` avec API Platform et liste `^/api/` sous
+`problem_details.paths`.
+
+```yaml
+phil_api_contract:
+    problem_details:
+        paths: ['^/api/']    # API Platform keeps its own errors; the application's controllers under /api get problems
+```
 
 ```php
 use Phil\ApiContract\Problem\ProblemDetails;
