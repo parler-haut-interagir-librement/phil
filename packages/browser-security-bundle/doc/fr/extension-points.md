@@ -1,10 +1,10 @@
-<!-- phil-dev source-sha256=5cbe7b739607298301095b34e203dc84cd721d44d0cb944c5054b9b165f16cbe -->
+<!-- phil-dev source-sha256=7c929c5a48c0e03df19d8a434ca5788b771517282b72e38d82cc26b59228d32a -->
 # Points d'extension
 
 | Point | Comment |
 |---|---|
 | La politique d'une réponse, depuis le code | `Application\ContentSecurityPolicyContext::override()` avec une `PolicyOverride` |
-| Un nonce hors de Twig | `ContentSecurityPolicyContext::nonce('script')`, `nonce('style')`, `sharedNonce()` |
+| Un nonce hors de Twig | `ContentSecurityPolicyContext::nonce('script')`, `nonce('style')`, `sharedNonce()`, nul sous une politique avec `nonces: false` ; `noncesEnabled()` |
 | Du code en ligne écrit à l'exécution | `ContentSecurityPolicyContext::allowInline('script', $code)` |
 | La politique d'un contrôleur | `#[Application\Attribute\ContentSecurityPolicy]` sur sa classe ou sa méthode |
 | La politique d'une route | Sa valeur par défaut `_csp` |

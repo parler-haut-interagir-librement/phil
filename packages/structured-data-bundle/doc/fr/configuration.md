@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a9afb7bbfb504ed5c2bc346566243488eee35e3bcc503e182161743ab34109ec -->
+<!-- phil-dev source-sha256=1b2f3e02a4bceacb918f1807026048302a017c72256c999912748183adf6ca6a -->
 # Configuration
 
 ```yaml
@@ -51,7 +51,7 @@ phil_structured_data:
 | `web_page` | `true` | Chaque page comme `WebPage`, `#webpage` à son adresse — sans sa chaîne de requête —, qui fait partie du site quand le site est activé |
 | `breadcrumb.menu` | `null` | Le menu dont le fil d'Ariane devient la `BreadcrumbList` de chaque page ; exige phil/menu-bundle |
 | `nonce.request_attribute` | `null` | L'attribut de la requête principale qui contient un *nonce* pour l'élément JSON-LD ; par défaut, l'élément n'en a aucun et la page garde son cache partagé |
-| `nonce.content_security_policy` | `false` | L'élément JSON-LD prend le *nonce* de script de la politique qu'envoie phil/browser-security-bundle, qui le nomme alors ; exige ce bundle. Une page avec un *nonce* quitte les caches partagés |
+| `nonce.content_security_policy` | `false` | L'élément JSON-LD prend le *nonce* de script de la politique qu'envoie phil/browser-security-bundle, qui le nomme alors, et aucun sous une politique déclarée avec `nonces: false` ; exige ce bundle. Une page avec un *nonce* quitte les caches partagés |
 | `check.timeout` | `10` | Le nombre de secondes pendant lesquelles `phil:structured-data:check` attend une page, 0,1 au moins |
 | `allow_localhost` | `false` | Si une adresse des graphes peut être sur `localhost` ou sous `.localhost`, pour les fabriques de `Schema` et le validateur de la vérification : `true` sous `when@dev` et `when@test` seulement |
 
