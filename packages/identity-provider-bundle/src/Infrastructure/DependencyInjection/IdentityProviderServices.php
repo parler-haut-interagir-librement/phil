@@ -441,7 +441,7 @@ final class IdentityProviderServices
         $container->register(SignedLinks::class, SignedLinks::class)
             ->setArguments([$config['secret'], $clock, $config['links']['verify_lifetime'], $config['links']['reset_lifetime'], self::LINKS_STORED === $config['links']['mode'] ? new Reference(LinkTokenRepository::class) : null]);
         $container->register(AccountLinks::class, AccountLinks::class)
-            ->setArguments([new Reference(SignedLinks::class), new Reference('router'), new Reference(AccountRepository::class), new Reference(Journal::class), $mailer, new Reference(LinkOrigin::class)])
+            ->setArguments([new Reference(SignedLinks::class), new Reference('router'), new Reference(AccountRepository::class), new Reference(Journal::class), $mailer, new Reference(LinkOrigin::class), new Reference(Transactions::class)])
             ->setPublic(true);
     }
 

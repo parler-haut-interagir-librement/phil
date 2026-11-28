@@ -302,7 +302,7 @@ final class RightsServices
         $services->alias(AccountDeletionStore::class, $config['store'] ?? DbalAccountDeletions::class);
 
         if (null === $config['export_archive']) {
-            $services->set(EncryptedExportArchive::class)->args([$config['export_directory'], '%kernel.secret%']);
+            $services->set(EncryptedExportArchive::class)->args([$config['export_directory'], '%kernel.secret%', $clock]);
         }
 
         $services->alias(ExportArchive::class, $config['export_archive'] ?? EncryptedExportArchive::class);

@@ -10,7 +10,7 @@ may ask for (proofs of consent, the register of incidents): each of them is an a
 |---|---|---|
 | The address of a request without an account | `phil_privacy_guest_request` | Sealed with libsodium's `secretbox` under the key `phil_privacy.guest_request_store`; removed with the request. |
 | The secret of a request's link, of an erasure's progress link | `phil_privacy_guest_request`, `phil_privacy_erasure_request` | 256 random bits, kept as their SHA-256, compared in constant time; the link works once and expires. |
-| An export of someone's data | `account_deletion.export_directory` | A `0600` file of a `0700` directory, sealed with `secretbox` under the key `phil_privacy.export_archive`; removed at its expiry. |
+| An export of someone's data | `account_deletion.export_directory` | A `0600` file of a `0700` directory, sealed with `secretbox` under the key `phil_privacy.export_archive`; refused from its expiry before it is opened, and removed by the next sweep. |
 | The visitor's choice of cookies | The consent cookie | Signed with HMAC-SHA-256 under the key `phil_privacy.consent`; a value that does not verify reads as no choice. |
 | The addresses and IPs that ask for links | The cache pool of `guest_requests.cache` | Never written: each limit is keyed on an HMAC-SHA-256 under its own key. |
 | Personal values in logs | Every Monolog record | Replaced by `[redacted]` before any handler writes them ([Log redaction](log-redaction.md)). |

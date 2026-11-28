@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=42c2e7af5d0d633cb94940a45d710fb487e25621ad002a63e9c617c0a1b552f4 -->
+<!-- phil-dev source-sha256=a80f5b939d73ed3dd732cc08e4a13700e401cbca4fa3c5cd97cc3487a012d741 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension ne sont stables qu'à partir de la version 1.0. D'ici là, une version
@@ -7,6 +7,7 @@ mineure peut les modifier, et son CHANGELOG explique comment.
 | Pour | Faites |
 |---|---|
 | Garder les mineurs, les demandes et les preuves dans une base de données | Implémentez `Contract\MinorStore`, `Contract\RequestStore` et `Contract\ProofStore` |
+| Écrire une réponse ou un passage de relais d'un bloc | Implémentez `Contract\Transactions` sur la base de données des dépôts |
 | Envoyer la confirmation et l'avis de passage de relais | Implémentez `Contract\Notifier` |
 | Laisser un adulte qui gère un compte retirer un consentement | Implémentez `Contract\GuardianLink`, par exemple sur une délégation de comptes |
 | Répondre aux demandes d'accès et d'effacement | Appelez `GuardianConsentRights`, qui implémente `Contract\SubjectRights`, depuis les outils de vie privée |
@@ -27,6 +28,18 @@ l'unique modification qu'il apporte à une preuve.
 
 Un dépôt garde les instants en UTC, tels que les enregistrements les donnent, et les dates sous la forme `YYYY-MM-DD`.
 Un dépôt qui garde un état entre les requêtes implémente `ResetInterface`, comme le font les dépôts en mémoire.
+
+## Les transactions
+
+`GuardianConsent` écrit la réponse d'un tuteur — la demande retirée, une preuve pour chacune de ses fonctionnalités — et
+un passage de relais — les preuves du membre, les demandes abandonnées, l'enregistrement du passage — par un seul appel
+à `Transactions::run($work)` chacun. Un adaptateur sur la base de données des dépôts ouvre une transaction, exécute le
+travail, la valide et, sur un `Throwable`, l'annule et le relance : une écriture qui échoue laisse alors la demande, et
+son lien, tels qu'ils étaient.
+
+`NoTransactions`, la valeur par défaut, exécute le travail tel quel. Elle convient aux dépôts en mémoire et aux dépôts
+qui ne sont pas dans une même base de données ; avec des dépôts en base de données, passez un adaptateur, par exemple
+sur `Connection::transactional()` de Doctrine DBAL. Les événements sont répartis après le retour de `run()`.
 
 ## Le notificateur
 

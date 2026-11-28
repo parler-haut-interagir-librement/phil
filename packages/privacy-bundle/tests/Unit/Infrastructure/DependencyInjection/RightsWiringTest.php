@@ -270,7 +270,9 @@ final class RightsWiringTest extends TestCase
         self::assertEquals(new Reference('lock.factory'), $service->getArgument(2));
         self::assertSame(DbalAccountDeletions::class, (string) $container->getAlias(AccountDeletionStore::class));
         self::assertSame(EncryptedExportArchive::class, (string) $container->getAlias(ExportArchive::class));
-        self::assertSame(['%kernel.project_dir%/var/privacy-exports', '%kernel.secret%'], $container->getDefinition(EncryptedExportArchive::class)->getArguments());
+        $arguments = $container->getDefinition(EncryptedExportArchive::class)->getArguments();
+        self::assertSame(['%kernel.project_dir%/var/privacy-exports', '%kernel.secret%'], \array_slice($arguments, 0, 2));
+        self::assertEquals(new Reference('clock'), $arguments[2]);
         self::assertEquals(new Reference('database_connection'), $container->getDefinition(DbalAccountDeletions::class)->getArgument(0));
         self::assertTrue($container->getDefinition(DbalAccountDeletions::class)->hasTag(RightsServices::PURGER_TAG));
         self::assertTrue($container->getDefinition(DbalConsentProofs::class)->hasTag(RightsServices::PURGER_TAG));

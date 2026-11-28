@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=67438fad24e8edc364ab9b5f0970e05859bbfc3f85045e32f84913bb4256d7bc -->
+<!-- phil-dev source-sha256=5475630a21c33476e96b1e23631a1b60903c4823974fc64cc5bca2d43bd5b6bc -->
 # Sécurité et vie privée
 
 ## Ce que la bibliothèque garde
@@ -22,7 +22,9 @@ lien est signé par l'application et lié à sa demande, et qu'une copie du dép
 comparées avec `hash_equals()`, sous toutes les clés à la fois.
 
 Un jeton s'utilise une fois : `decide()` retire la demande par `RequestStore::consume()`, qu'un dépôt partagé exécute de
-façon atomique, de sorte que deux réponses en concurrence obtiennent une seule preuve. Un vérificateur falsifié laisse
+façon atomique, de sorte que deux réponses en concurrence obtiennent une seule preuve. La demande est retirée et chaque preuve de la
+réponse écrite par un seul appel à `Transactions::run()` : quand une écriture échoue, la transaction est annulée, la
+demande est de retour et son lien répond de nouveau, au lieu d'un jeton utilisé sur une réponse à moitié enregistrée. Un vérificateur falsifié laisse
 la demande intacte. Chaque refus se lit de la même façon, afin de ne rien révéler de la vérification qui a échoué ;
 seule une demande expirée le dit, une fois le vérificateur reconnu.
 

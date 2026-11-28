@@ -137,7 +137,8 @@ The link then carries a random token of 32 bytes in place of the signature; `phi
 keyed hash — an HMAC under a key derived from `secret` —, the account, the purpose, the expiry, and the signature of
 the properties as a fingerprint. A link is valid while its row exists, names the account and the purpose, has not
 expired, and the account still has the properties it was signed over. Verifying an address consumes the token, once
-even when two requests post it at the same time; a password reset revokes every reset link of the account. A copy of
+even when two requests post it at the same time, and verifies the address in the same transaction of
+`Application\Contract\Transactions`: when the write fails, the link works again. A password reset revokes every reset link of the account. A copy of
 the table opens no account.
 
 `AccountLinks::revoke($account, $purpose)` revokes the links of an account still out — of one purpose, or all of them —

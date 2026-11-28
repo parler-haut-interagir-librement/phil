@@ -26,11 +26,13 @@ Every public type of the package, with its role.
 | `Phil\GuardianConsent\ConsentStatus` | enum | `NotRequired`, `Granted`, `Pending`, `Refused`, `HandoverRequired`; `allows()` |
 | `Phil\GuardianConsent\SweepReport` | `final readonly class` | What a sweep erased and told |
 | `Phil\GuardianConsent\NoGuardianLink` | `final readonly class` | The guardian link that names nobody |
+| `Phil\GuardianConsent\NoTransactions` | `final readonly class` | Runs the work without a transaction, for the stores in memory |
 | `Phil\GuardianConsent\Contract\MinorStore` | interface | Where minors are kept |
 | `Phil\GuardianConsent\Contract\RequestStore` | interface | Where requests are kept |
 | `Phil\GuardianConsent\Contract\ProofStore` | interface | Where proofs are kept |
 | `Phil\GuardianConsent\Contract\Notifier` | interface | What sends the confirmation and the handover notice |
 | `Phil\GuardianConsent\Contract\GuardianLink` | interface | Whether an adult manages a member's account |
+| `Phil\GuardianConsent\Contract\Transactions` | interface | The transactions of the stores' database |
 | `Phil\GuardianConsent\Contract\SubjectRights` | interface | Access and erasure, for the privacy tooling |
 | `Phil\GuardianConsent\Memory\InMemoryMinorStore`, `InMemoryRequestStore`, `InMemoryProofStore` | `final class` | The stores in memory, with `reset()` |
 | `Phil\GuardianConsent\Event\ConsentRequested`, `ConsentDecided`, `ConsentRevoked`, `RequestErased`, `HandoverDue`, `HandoverCompleted` | `final readonly class` | The events, carrying identifiers only |

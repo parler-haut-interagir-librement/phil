@@ -6,6 +6,20 @@ All notable changes to `phil/guardian-consent` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+A guardian's answer is written whole: a write that fails no longer uses the link up over an answer half recorded.
+
+### Security
+
+- `GuardianConsent::decide()` removes the request and records the proof of each feature in one call to the new
+  `Contract\Transactions::run()`: when a write fails, the transaction rolls back and the confirmation link answers
+  again. `handOver()` writes the member's proofs, drops their requests and records the handover the same way.
+  `NoTransactions`, the default, runs the work as it comes, for the stores in memory; stores in a database get an
+  adapter on their connection.
+
 ## 0.1.1-alpha - 2026-11-24
 
 ### Changed

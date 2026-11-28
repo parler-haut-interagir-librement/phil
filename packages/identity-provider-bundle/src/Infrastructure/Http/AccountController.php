@@ -97,11 +97,10 @@ final readonly class AccountController
 
         $this->pages->checkCsrf($request);
 
-        if (!$this->links->consume($signature)) {
+        // The link is used up and the address verified in one transaction: a failed write leaves the link working.
+        if (!$this->links->consume($signature, fn () => $this->accounts->verifyEmail($account))) {
             return $this->pages->render('account/link_invalid', [], Response::HTTP_GONE);
         }
-
-        $this->accounts->verifyEmail($account);
 
         return $this->pages->render('account/verified');
     }

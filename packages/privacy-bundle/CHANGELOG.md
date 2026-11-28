@@ -4,6 +4,18 @@ All notable changes to `phil/privacy-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.4.1-alpha.
+
+An export past its expiry no longer opens while it waits for the sweep.
+
+### Security
+
+- `EncryptedExportArchive::get()` reads the expiry in the file's name and returns `null` from it, before it opens the
+  file: an export kept past `account_deletion.export_retention`, until the next sweep removed it, could still be read.
+  The archive takes the bundle's clock as its third argument, the system clock by default.
+
 ## 0.4.0-alpha - 2026-11-25
 
 Every key the bundle derives from the application secret is its HKDF-SHA-256 under a label of its own: the requests

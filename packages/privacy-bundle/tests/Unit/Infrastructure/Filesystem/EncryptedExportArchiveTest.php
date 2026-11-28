@@ -10,6 +10,7 @@ use Phil\PrivacyBundle\Domain\Exception\InvalidPrivacyValue;
 use Phil\PrivacyBundle\Infrastructure\Filesystem\EncryptedExportArchive;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Filesystem\Filesystem;
 
 #[CoversClass(EncryptedExportArchive::class)]
@@ -57,7 +58,7 @@ final class EncryptedExportArchiveTest extends TestCase
     {
         $this->archive()->put(self::A, 'x', new DateTimeImmutable('2026-02-01T00:00:00Z'));
 
-        self::assertNull(new EncryptedExportArchive($this->directory, 'other')->get(self::A));
+        self::assertNull(new EncryptedExportArchive($this->directory, 'other', new MockClock('2026-01-15T00:00:00Z'))->get(self::A));
     }
 
     public function testAnExportIsSealedUnderTheHkdfKeyOfItsLabel(): void
@@ -69,6 +70,48 @@ final class EncryptedExportArchiveTest extends TestCase
 
         self::assertSame('x', sodium_crypto_secretbox_open($box, $nonce, hash_hkdf('sha256', 'secret', 32, 'phil_privacy.export_archive')));
         self::assertFalse(sodium_crypto_secretbox_open($box, $nonce, hash_hmac('sha256', 'phil_privacy.export_archive', 'secret', true)));
+    }
+
+    public function testAnExportReadsAsAbsentFromItsExpiryEvenBeforeThePurge(): void
+    {
+        $clock = new MockClock('2026-01-31T23:59:59Z');
+        $archive = $this->archive($clock);
+        $archive->put(self::A, 'a', new DateTimeImmutable('2026-02-01T00:00:00Z'));
+
+        self::assertSame('a', $archive->get(self::A));
+
+        $clock->modify('2026-02-01T00:00:00Z');
+
+        self::assertNull($archive->get(self::A));
+        self::assertFileExists($this->directory.'/'.self::A.'.1769904000.export', 'The purge removes the file; the read refuses it first.');
+    }
+
+    public function testAnExpiredFileDoesNotHideTheLiveOneOfTheSameReference(): void
+    {
+        $archive = $this->archive();
+        $archive->put(self::A, 'old', new DateTimeImmutable('2026-01-10T00:00:00Z'));
+        $archive->put(self::A, 'live', new DateTimeImmutable('2026-02-01T00:00:00Z'));
+
+        self::assertSame('live', $archive->get(self::A));
+    }
+
+    public function testAnExportWithoutAnExpiryReadsAsAbsent(): void
+    {
+        $archive = $this->archive();
+        $archive->put(self::A, 'a', new DateTimeImmutable('2026-02-01T00:00:00Z'));
+        rename($this->directory.'/'.self::A.'.1769904000.export', $this->directory.'/'.self::A.'.never.export');
+
+        self::assertNull($archive->get(self::A));
+    }
+
+    public function testTheDefaultClockIsTheSystemClock(): void
+    {
+        $archive = new EncryptedExportArchive($this->directory, 'secret');
+        $archive->put(self::A, 'now', new DateTimeImmutable('+1 hour'));
+        $archive->put(self::B, 'past', new DateTimeImmutable('-1 hour'));
+
+        self::assertSame('now', $archive->get(self::A));
+        self::assertNull($archive->get(self::B));
     }
 
     public function testAnEmptySecretIsRefused(): void
@@ -156,9 +199,9 @@ final class EncryptedExportArchiveTest extends TestCase
         self::assertSame(0, $archive->purgeExpired(new DateTimeImmutable('2026-02-01T00:00:00Z')));
     }
 
-    private function archive(): EncryptedExportArchive
+    private function archive(?MockClock $clock = null): EncryptedExportArchive
     {
-        return new EncryptedExportArchive($this->directory, 'secret');
+        return new EncryptedExportArchive($this->directory, 'secret', $clock ?? new MockClock('2026-01-15T00:00:00Z'));
     }
 
     private function permissions(string $path): int

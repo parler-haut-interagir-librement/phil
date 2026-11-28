@@ -6,6 +6,7 @@ change them, and its CHANGELOG says how.
 | To | Do |
 |---|---|
 | Keep minors, requests and proofs in a database | Implement `Contract\MinorStore`, `Contract\RequestStore` and `Contract\ProofStore` |
+| Write an answer or a handover whole | Implement `Contract\Transactions` on the stores' database |
 | Send the confirmation and the handover notice | Implement `Contract\Notifier` |
 | Let an adult who manages an account withdraw a consent | Implement `Contract\GuardianLink`, for instance on a delegation of accounts |
 | Answer access and erasure requests | Call `GuardianConsentRights`, which implements `Contract\SubjectRights`, from the privacy tooling |
@@ -24,6 +25,17 @@ request get one `true`. `ProofStore::append()` only adds; `forgetGuardian()` is 
 
 A store keeps instants in UTC, the way the records give them, and dates as `YYYY-MM-DD`. A store holding state between
 requests implements `ResetInterface`, as the stores in memory do.
+
+## The transactions
+
+`GuardianConsent` writes a guardian's answer — the request removed, a proof for each of its features — and a handover
+— the member's proofs, the requests dropped, the record of the handover — through one call to
+`Transactions::run($work)` each. An adapter on the stores' database begins a transaction, runs the work, commits it,
+and on a throwable rolls back and throws it again: a failed write then leaves the request, and its link, as they were.
+
+`NoTransactions`, the default, runs the work as it comes. It suits the stores in memory and stores that are not in one
+database; with stores in a database, pass an adapter, for instance on Doctrine DBAL's `Connection::transactional()`.
+Events are dispatched after `run()` returns.
 
 ## The notifier
 
