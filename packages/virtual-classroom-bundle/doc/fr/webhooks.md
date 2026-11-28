@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fc98c2a4032967f816824d3e83504944864e107d339d7bb95e9522ffe33f7bbd -->
+<!-- phil-dev source-sha256=29d69cde6cf5ce8794ccc67aada7ba316a6bb6405ddc08fba97b2cbe4b3cee08 -->
 # Webhooks
 
 Les serveurs rappellent l'application à des adresses du bundle, chacune portant une **preuve** : le HMAC-SHA-256 de son
@@ -18,8 +18,9 @@ salle, et ce qui y parvient doit porter la signature propre au serveur. `phil:vi
 ## Ce qui se passe
 
 `WebhookController` vérifie la preuve — une preuve fausse donne un 404, comme une adresse qui n'existe pas —, refuse un
-corps de plus de 1 Mio par un 413, puis remet la notification au fournisseur, qui vérifie sa propre signature et lit ses
-événements. `Classrooms::receive()` les applique :
+corps de plus de 1 Mio par un 413, lu jusqu'à un octet au-delà et pas plus loin, avec ou sans `Content-Length`, puis
+remet la notification au fournisseur, qui vérifie sa propre signature et lit ses événements. `Classrooms::receive()`
+les applique :
 
 - les événements d'une salle autre que celle de l'adresse sont refusés, comme une notification falsifiée ;
 - les événements d'une salle que l'application ne connaît pas, ou d'une salle sur un autre fournisseur, sont ignorés ;
@@ -31,7 +32,7 @@ corps de plus de 1 Mio par un 413, puis remet la notification au fournisseur, qu
 | 204 | Appliquée, ou rien à appliquer. |
 | 401 | Le fournisseur a refusé la notification : sa signature, son âge, sa forme. BigBlueButton cesse alors de réessayer. |
 | 404 | Une preuve fausse, un fournisseur inconnu, un fournisseur qui ne lit aucune notification, une salle qui n'est pas un identifiant. |
-| 413 | Un corps de plus de 1 Mio. |
+| 413 | Un corps de plus de 1 Mio, lu jusqu'à un octet au-delà et pas plus loin. |
 
 Une notification livrée deux fois ne change rien : une arrivée dans un séjour connu n'en ouvre aucun, un départ sans
 séjour ouvert n'en termine aucun, un enregistrement connu n'est pas nouveau.

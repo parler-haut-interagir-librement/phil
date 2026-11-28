@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2ce79e747cb04132e1bd621d46db1ed6c40443f2b7bf39a2442e6aa469df073b -->
+<!-- phil-dev source-sha256=ca4620677b830206272f5f763c0cc4e22be0dc7e2bc522d47df3633beaeae49e -->
 # Terminaux connectés
 
 Un terminal de carte connecté est piloté par le serveur, jamais par la caisse. La caisse demande un débit au serveur ;
@@ -48,7 +48,7 @@ du processeur comme autorisation ; un paiement échoué ou annulé n'est pas com
 |---|---|
 | `200` | Appliquée, déjà appliquée, refusée par l'état du paiement, ou pour un paiement que personne n'a présenté |
 | `400` | Aucun adaptateur ne reconnaît la notification, ou sa signature ne se vérifie pas |
-| `413` | Un corps de plus de 64 Kio |
+| `413` | Un corps de plus de 64 Kio, lu jusqu'à un octet au-delà et pas plus loin |
 
 ## Remboursements
 
