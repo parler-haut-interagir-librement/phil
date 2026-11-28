@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Application;
 
+use Closure;
 use Phil\IdentityProviderBundle\Application\Contract\AccountMailer;
 use Phil\IdentityProviderBundle\Application\Contract\LinkOrigin;
+use Phil\IdentityProviderBundle\Application\Contract\Transactions;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Domain\Contract\AccountRepository;
 use Phil\IdentityProviderBundle\Domain\Exception\InvalidValue;
@@ -34,6 +36,7 @@ final readonly class AccountLinks
         private Journal $journal,
         private ?AccountMailer $mailer = null,
         private ?LinkOrigin $origin = null,
+        private ?Transactions $transactions = null,
     ) {
     }
 
@@ -77,11 +80,26 @@ final readonly class AccountLinks
     }
 
     /**
-     * Uses a link up, once; true in the signed mode, where the change the link leads to ends it.
+     * Uses a link up, once; true in the signed mode, where the change the link leads to ends it. The change the link
+     * leads to, when given, runs after it in the same transaction: when it throws, the link is back and works again.
+     *
+     * @param ?Closure(): void $change
      */
-    public function consume(string $signature): bool
+    public function consume(string $signature, ?Closure $change = null): bool
     {
-        return $this->links->consume($signature);
+        $work = function () use ($signature, $change): bool {
+            if (!$this->links->consume($signature)) {
+                return false;
+            }
+
+            if ($change instanceof Closure) {
+                $change();
+            }
+
+            return true;
+        };
+
+        return $this->transactions instanceof Transactions ? $this->transactions->run($work) : $work();
     }
 
     /**

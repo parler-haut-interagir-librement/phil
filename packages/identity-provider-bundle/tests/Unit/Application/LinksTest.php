@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderBundle\Tests\Unit\Application;
 
+use Closure;
+use Override;
 use Phil\IdentityProviderBundle\Application\AccountLinks;
 use Phil\IdentityProviderBundle\Application\Contract\LinkOrigin;
+use Phil\IdentityProviderBundle\Application\Contract\Transactions;
 use Phil\IdentityProviderBundle\Application\Event\IdentityEventType;
 use Phil\IdentityProviderBundle\Application\SignedLinks;
 use Phil\IdentityProviderBundle\Domain\Model\Link\LinkToken;
@@ -15,10 +18,13 @@ use Phil\IdentityProviderBundle\Tests\Unit\Fixture\RecordingMailer;
 use Phil\IdentityProviderBundle\Tests\Unit\Fixture\Services;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
+use RuntimeException;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
+use Throwable;
 
 #[CoversClass(SignedLinks::class)]
 #[CoversClass(AccountLinks::class)]
@@ -182,6 +188,59 @@ final class LinksTest extends TestCase
         $links->verificationUrl($account);
         self::assertSame(1, $links->revoke($account, SignedLinks::VERIFY));
         self::assertSame([IdentityEventType::LinksRevoked->value, $account->id(), ['purpose' => 'verify', 'count' => 1]], $services->audit->last());
+    }
+
+    public function testAChangeThatFailsLeavesTheLinkWorking(): void
+    {
+        $services = new Services(date('Y-m-d H:i:s'));
+        $tokens = new InMemoryLinkTokenRepository();
+        $transactions = new class($tokens) implements Transactions {
+            public int $rollbacks = 0;
+
+            public function __construct(
+                private readonly InMemoryLinkTokenRepository $tokens,
+            ) {
+            }
+
+            #[Override]
+            public function run(Closure $work): mixed
+            {
+                $held = new ReflectionProperty($this->tokens, 'tokens');
+                $before = $held->getValue($this->tokens);
+
+                try {
+                    return $work();
+                } catch (Throwable $throwable) {
+                    ++$this->rollbacks;
+                    $held->setValue($this->tokens, $before);
+
+                    throw $throwable;
+                }
+            }
+        };
+        $links = new AccountLinks(new SignedLinks(self::SECRET, $services->clock, tokens: $tokens), $this->urls(), $services->accounts, $services->journal, transactions: $transactions);
+        $account = $services->account();
+        $signature = Query::of($links->verificationUrl($account))['signature'];
+
+        try {
+            $links->consume($signature, static function (): never {
+                throw new RuntimeException('The database is gone.');
+            });
+            self::fail('A change that failed was not reported.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('The database is gone.', $runtimeException->getMessage());
+        }
+
+        self::assertSame(1, $transactions->rollbacks);
+        $changed = 0;
+        self::assertTrue($links->consume($signature, static function () use (&$changed): void {
+            ++$changed;
+        }));
+        self::assertSame(1, $changed);
+        self::assertFalse($links->consume($signature, static function () use (&$changed): void {
+            ++$changed;
+        }));
+        self::assertSame(1, $changed, 'A link used up runs no change.');
     }
 
     public function testWithoutMailerNothingIsSent(): void

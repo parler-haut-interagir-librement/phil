@@ -4,6 +4,24 @@ All notable changes to `phil/identity-provider-bundle` will be documented in thi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.4.2-alpha.
+
+A verification link used up while the address could not be written works again.
+
+### Security
+
+- `AccountLinks::consume()` takes the change the link leads to and runs it after the token is used up, in one call to
+  `Application\Contract\Transactions::run()`: `/verify-email` uses up the stored token and verifies the address
+  together, and a failed write gives the link back instead of leaving it used over an address still unverified.
+  `AccountLinks` takes the transactions as its last argument; without them, the work runs as it comes.
+
+### Fixed
+
+- `symfony/clock` is a requirement: `PasswordCheckSemaphore` waits on its `MonotonicClock`, which an installation
+  without the development requirements did not have.
+
 ## 0.4.1-alpha - 2026-11-25
 
 ### Changed
