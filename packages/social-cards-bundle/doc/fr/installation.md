@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9e13c3085a0729b7efdb15070f1b09b1bda363d5ec6decaaf95783b16bb5d97d -->
+<!-- phil-dev source-sha256=d93e40ddc9d6d0f635aafa658191a5246381f711e93ad293a2e46b654253f91c -->
 # Installation
 
 ```sh
@@ -20,6 +20,7 @@ composer require phil/social-cards-bundle
 | `symfony/console` | ^8.2, facultatif | `phil:social-cards:check` |
 | `symfony/ux-twig-component` | ^3.7, facultatif | Le composant `LinkPreview` |
 | `symfony/rate-limiter` | ^8.2, facultatif | La limite de débit des liens collés |
+| `symfony/security-core` | ^8.2, facultatif | L'attribut d'accès des liens collés ; sans lui, leur point de terminaison est refusé à tous |
 | `symfony/stimulus-bundle` | ^3.7, facultatif | Le contrôleur `link-preview`, depuis `assets/` |
 | `ext-imagick` | facultative | `cards.renderer: imagick`, le texte de l'arabe, de l'hébreu et des écritures de l'Inde mis en forme quand ImageMagick est compilé avec libraqm |
 | `phil/media-bundle` | ^0.1 ou ^0.2, facultatif | Un média comme image d'une page |
@@ -47,7 +48,8 @@ phil_social_cards:
 |---|---|
 | `phil_social_cards_image` | `/social-cards/{fingerprint}.png`, `GET` et `HEAD`, l'empreinte en 32 chiffres hexadécimaux |
 
-Le point de terminaison des liens collés est importé à part, derrière le pare-feu des membres qui écrivent :
+Le point de terminaison des liens collés est importé à part, derrière le pare-feu des membres qui écrivent ; il ne répond qu'à un visiteur à qui le
+vérificateur d'autorisation accorde `preview.access`, `IS_AUTHENTICATED` par défaut, et il exige `symfony/security-core` :
 
 ```yaml
 # config/routes/phil_social_cards.yaml

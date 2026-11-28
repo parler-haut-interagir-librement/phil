@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=434cd4d54d2736435f9ff90202a907d1d5bf0a7dedd1ff6f7433f81394f4443c -->
+<!-- phil-dev source-sha256=104088c825269d1770ca163e9f51977894acc4c433a2a3c56e51f22a2f0d18fb -->
 # Fichiers médias
 
 ## Répertoires nommés
@@ -48,7 +48,8 @@ d'écrire quoi que ce soit, lorsqu'un chemin nomme un répertoire qui n'a pas é
 segment vide, `.` ou `..`. Chaque fichier est ensuite écrit dans son répertoire :
 
 - par-dessus le fichier de même chemin, avec les bits de permission et l'heure de modification qu'il avait à
-  l'archivage ;
+  l'archivage, sauf qu'un fichier n'est jamais laissé inscriptible par les autres utilisateurs, ni setuid, setgid ou
+  sticky : ces bits sont effacés, quoi que contienne l'archive ;
 - un lien symbolique qui se trouve à la place d'un fichier est supprimé, jamais suivi pour écrire ;
 - un répertoire qui sort de son répertoire de médias par un lien est refusé ;
 - les répertoires manquants sont créés.
