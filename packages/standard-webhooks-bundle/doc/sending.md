@@ -27,6 +27,12 @@ or has a URL the sender refuses. `DeliveryFailed::$retryable` says which: a `4xx
 same delivery fails the same way; a `5xx` or no answer is worth retrying, with the same id, on the application's
 schedule — a Messenger retry strategy, an outbox and a scheduler —, within the receiver's deduplication window.
 
+A receiver's URL often holds the receiver's own secret, in its path or its query, and the HTTP client writes the URL
+into its transport errors. The message of a `DeliveryFailed` therefore keeps each URL as its origin alone —
+`https://hooks.example.com`, with the port when there is one —, on one line of at most 500 characters, and the
+transport error is not its previous exception: `DeliveryFailed::$cause` names its class. A log or a failed Messenger
+message keeps the failure without the receiver's secret.
+
 ## Receiver URLs given by others
 
 A receiver's URL is usually registered by a third party — a subscriber, a partner shop. Posted to as given, it would
