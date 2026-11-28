@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a0e7e4da52f17ab315e044c1d51660fae30432fb741e7cdd5835104bd6421b3a -->
+<!-- phil-dev source-sha256=362c0d0889900fc89bc682e4b1473c8318901d5bebffc3f29f5e0889cfb858c2 -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.
@@ -27,11 +27,13 @@ Chaque type public du paquet, avec son rôle.
 | `Phil\GuardianConsent\ConsentStatus` | enum | `NotRequired`, `Granted`, `Pending`, `Refused`, `HandoverRequired` ; `allows()` |
 | `Phil\GuardianConsent\SweepReport` | `final readonly class` | Ce qu'un balayage a effacé et communiqué |
 | `Phil\GuardianConsent\NoGuardianLink` | `final readonly class` | Le lien de tuteur qui ne nomme personne |
+| `Phil\GuardianConsent\NoTransactions` | `final readonly class` | Exécute le travail sans transaction, pour les dépôts en mémoire |
 | `Phil\GuardianConsent\Contract\MinorStore` | interface | Où les mineurs sont gardés |
 | `Phil\GuardianConsent\Contract\RequestStore` | interface | Où les demandes sont gardées |
 | `Phil\GuardianConsent\Contract\ProofStore` | interface | Où les preuves sont gardées |
 | `Phil\GuardianConsent\Contract\Notifier` | interface | Ce qui envoie la confirmation et l'avis de passage de relais |
 | `Phil\GuardianConsent\Contract\GuardianLink` | interface | Si un adulte gère le compte d'un membre |
+| `Phil\GuardianConsent\Contract\Transactions` | interface | Les transactions de la base de données des dépôts |
 | `Phil\GuardianConsent\Contract\SubjectRights` | interface | Accès et effacement, pour les outils de vie privée |
 | `Phil\GuardianConsent\Memory\InMemoryMinorStore`, `InMemoryRequestStore`, `InMemoryProofStore` | `final class` | Les dépôts en mémoire, avec `reset()` |
 | `Phil\GuardianConsent\Event\ConsentRequested`, `ConsentDecided`, `ConsentRevoked`, `RequestErased`, `HandoverDue`, `HandoverCompleted` | `final readonly class` | Les événements, qui ne portent que des identifiants |

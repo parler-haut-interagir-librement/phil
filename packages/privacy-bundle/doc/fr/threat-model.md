@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=01485f5322863a5ee8f318f96ab898b449fcfcbdccf72c4e91c18fc76f8c4aa4 -->
+<!-- phil-dev source-sha256=3701a74c82c5a2cadc537548ae9aaa37a977e37c3197a252f7a055f39f66d0a8 -->
 # Modèle de menaces
 
 Ce que le bundle protège, de qui, comment, et ce qu'il laisse à l'application. Il garde des données personnelles peu
@@ -12,7 +12,7 @@ ci-dessous.
 |---|---|---|
 | L'adresse d'une demande sans compte | `phil_privacy_guest_request` | Scellée par le `secretbox` de libsodium sous la clé `phil_privacy.guest_request_store` ; retirée avec la demande. |
 | Le secret du lien d'une demande, du lien de progression d'un effacement | `phil_privacy_guest_request`, `phil_privacy_erasure_request` | 256 bits aléatoires, gardés sous forme de SHA-256, comparés en temps constant ; le lien fonctionne une fois et expire. |
-| Un export des données de quelqu'un | `account_deletion.export_directory` | Un fichier `0600` d'un répertoire `0700`, scellé par `secretbox` sous la clé `phil_privacy.export_archive` ; retiré à son expiration. |
+| Un export des données de quelqu'un | `account_deletion.export_directory` | Un fichier `0600` d'un répertoire `0700`, scellé par `secretbox` sous la clé `phil_privacy.export_archive` ; refusé dès son expiration, avant d'être ouvert, et retiré par le balayage suivant. |
 | Le choix de témoins du visiteur | Le témoin de consentement | Signé par HMAC-SHA-256 sous la clé `phil_privacy.consent` ; une valeur qui ne se vérifie pas se lit comme aucun choix. |
 | Les adresses et les IP qui demandent des liens | Le réservoir de cache de `guest_requests.cache` | Jamais écrites : chaque limite a pour clé un HMAC-SHA-256 sous une clé à elle. |
 | Les valeurs personnelles dans les journaux | Chaque enregistrement Monolog | Remplacées par `[redacted]` avant que tout handler les écrive ([Caviardage des journaux](log-redaction.md)). |

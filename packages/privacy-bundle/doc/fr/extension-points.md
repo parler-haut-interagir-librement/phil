@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ef03d2e83cb51004b88dcf6c7de9b79cd51651027a2f6f53beb53832b401c876 -->
+<!-- phil-dev source-sha256=1d0eafa2e167823eb7758ec744d0f0a4ae6cbcd1a71bd5ed7d01b57543a8698d -->
 # Points d'extension
 
 Toute interface du bundle est un contrat, sous `Phil\PrivacyBundle\Application\Contract`, ou sous
@@ -243,7 +243,7 @@ Garde l'export écrit avant un effacement. Le défaut est `EncryptedExportArchiv
 | Méthode | Contrat |
 |---|---|
 | `put(string $reference, string $content, DateTimeImmutable $expiresAt)` | Garde le document, hors des journaux. |
-| `get(string $reference)` | Le document, ou `null`. |
+| `get(string $reference)` | Le document, ou `null` — `null` aussi à partir de son expiration, que la purge ait eu lieu ou non. |
 | `purgeExpired(DateTimeImmutable $now)` | Retire ce qui a expiré, et dit combien. |
 
 ## `ConsentProofs`

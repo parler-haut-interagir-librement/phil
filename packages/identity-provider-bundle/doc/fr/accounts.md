@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ef498fe9f61f6603da9486704097ab0ccc38a89396a7be946792a5bd4601aa03 -->
+<!-- phil-dev source-sha256=6f0711aaf174cdbaddc353f744ce732d538640d1e9884672285642d78bdd5cbc -->
 # Comptes et mots de passe
 
 ## Comptes
@@ -143,8 +143,9 @@ Le lien porte alors un jeton aléatoire de 32 octets à la place de la signature
 l'empreinte à clé — un HMAC sous une clé dérivée de `secret` —, le compte, l'usage, l'expiration, et la signature des
 propriétés comme empreinte. Un lien est valide tant que sa ligne existe, nomme le compte et l'usage, n'a pas expiré, et
 que le compte a encore les propriétés sur lesquelles il a été signé. Vérifier une adresse sert le jeton, une seule fois
-même quand deux requêtes l'envoient au même moment ; une réinitialisation de mot de passe révoque chaque lien de
-réinitialisation du compte. Une copie de la table n'ouvre aucun compte.
+même quand deux requêtes l'envoient au même moment, et vérifie l'adresse dans la même transaction de
+`Application\Contract\Transactions` : quand l'écriture échoue, le lien fonctionne de nouveau. Une réinitialisation de mot
+de passe révoque chaque lien de réinitialisation du compte. Une copie de la table n'ouvre aucun compte.
 
 `AccountLinks::revoke($account, $purpose)` révoque les liens d'un compte encore en circulation — d'un usage, ou de tous
 —, et journalise `identity.links.revoked` avec leur nombre, comme après un doute sur la boîte de courriel.
