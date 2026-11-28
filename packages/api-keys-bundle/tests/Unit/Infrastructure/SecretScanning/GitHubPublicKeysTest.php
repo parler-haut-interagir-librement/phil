@@ -118,6 +118,28 @@ final class GitHubPublicKeysTest extends TestCase
         self::assertSame($keys->publicPem, $github->key($keys->identifier));
     }
 
+    public function testAnAnswerThatIsNotOkIsCancelled(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(404);
+        $response->expects(self::once())->method('cancel');
+
+        $github = new GitHubPublicKeys($this->streaming(404, static fn (): Generator => yield '', $response), new ArrayAdapter(), new MockClock());
+
+        self::assertNull($github->key('nope'));
+    }
+
+    public function testAnAnswerThatIsTooLongIsCancelled(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->expects(self::once())->method('cancel');
+
+        $github = new GitHubPublicKeys($this->streaming(200, static fn (): Generator => yield str_repeat(' ', GitHubPublicKeys::MAX_BYTES + 1), $response), new ArrayAdapter(), new MockClock());
+
+        self::assertNull($github->key('nope'));
+    }
+
     public function testTheLongestAnswerIsRead(): void
     {
         $keys = new GitHubKeys();
@@ -263,11 +285,15 @@ final class GitHubPublicKeysTest extends TestCase
      * A client whose answer keeps streaming after it is cancelled, as nothing obliges a client to stop at once.
      *
      * @param callable(): Generator<int, string> $contents
+     * @param ResponseInterface|null             $response the response|null $response the response the client gives, a stub by default
      */
-    private function streaming(int $status, callable $contents): HttpClientInterface
+    private function streaming(int $status, callable $contents, ?ResponseInterface $response = null): HttpClientInterface
     {
-        $response = self::createStub(ResponseInterface::class);
-        $response->method('getStatusCode')->willReturn($status);
+        if (!$response instanceof ResponseInterface) {
+            $response = self::createStub(ResponseInterface::class);
+            $response->method('getStatusCode')->willReturn($status);
+        }
+
         $chunks = (static function () use ($contents, $response): Generator {
             foreach ($contents() as $content) {
                 $chunk = self::createStub(ChunkInterface::class);

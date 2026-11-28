@@ -54,6 +54,7 @@ final class PasskeyBodyTest extends TestCase
             self::fail('A body past the limit signs nobody in.');
         } catch (CustomUserMessageAuthenticationException $customUserMessageAuthenticationException) {
             self::assertSame('passkey.refused', $customUserMessageAuthenticationException->getMessageKey());
+            self::assertSame(0, $customUserMessageAuthenticationException->getCode());
         }
 
         self::assertSame(Passkeys::MAX_RESPONSE + 1, ftell($stream));

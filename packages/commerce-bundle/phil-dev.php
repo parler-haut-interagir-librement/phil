@@ -79,10 +79,12 @@ return [
             // Two values that are never null where they are cast: a value still to draw was described by its option, which
             // names its drawer (`OptionValue::described()` requires it, and the stored form is read back through it), and a
             // value checked as chosen once the values to draw are handled holds its text or its choice.
+            // `stream_get_contents()` gives `false` only on a stream already closed, which the request never hands over.
             'CastString' => [
                 'ignoreSourceCodeByRegex' => [
                     '\\$name = \\(string\\) \\$line->configuration->value\\(\\$option\\)\\?->drawer;',
                     '\\$chosen = \\(string\\) \\$value->value;',
+                    '.*\\(string\\) stream_get_contents\\(.*',
                 ],
             ],
             // A deposit holds a share or a fixed amount, never both nor neither: past the fixed amount, its share is an
