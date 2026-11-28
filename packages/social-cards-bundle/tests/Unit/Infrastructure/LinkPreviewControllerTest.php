@@ -18,6 +18,7 @@ use Symfony\Component\RateLimiter\LimiterInterface;
 use Symfony\Component\RateLimiter\RateLimit;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
+use Symfony\Component\RateLimiter\Reservation;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Symfony\Component\Security\Core\Authorization\AccessDecision;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -152,8 +153,8 @@ final class LinkPreviewControllerTest extends TestCase
     {
         foreach (['-10 seconds' => '1', '+0 seconds' => '1', '+1 second' => '1', '+100 seconds' => null] as $retryAt => $expected) {
             $spent = new RateLimit(0, new DateTimeImmutable($retryAt), false, 1);
-            $limiter = new class($spent) implements RateLimiterFactoryInterface {
-                public function __construct(private readonly RateLimit $spent)
+            $limiter = new readonly class($spent) implements RateLimiterFactoryInterface {
+                public function __construct(private RateLimit $spent)
                 {
                 }
 
@@ -161,12 +162,12 @@ final class LinkPreviewControllerTest extends TestCase
                 {
                     $spent = $this->spent;
 
-                    return new class($spent) implements LimiterInterface {
-                        public function __construct(private readonly RateLimit $spent)
+                    return new readonly class($spent) implements LimiterInterface {
+                        public function __construct(private RateLimit $spent)
                         {
                         }
 
-                        public function reserve(int $tokens = 1, ?float $maxTime = null): \Symfony\Component\RateLimiter\Reservation
+                        public function reserve(int $tokens = 1, ?float $maxTime = null): Reservation
                         {
                             throw new LogicException('Not used.');
                         }
@@ -183,7 +184,7 @@ final class LinkPreviewControllerTest extends TestCase
                 }
             };
 
-            $response = (new LinkPreviewController(new LinkPreviews($this->fetcher), $limiter, accessAttribute: null))($this->request());
+            $response = new LinkPreviewController(new LinkPreviews($this->fetcher), $limiter, accessAttribute: null)($this->request());
             $seconds = (int) $response->headers->get('Retry-After');
 
             if (null === $expected) {
