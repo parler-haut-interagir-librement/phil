@@ -39,7 +39,7 @@
         "doctrine/doctrine-bundle": "^3.4",
         "doctrine/persistence": "^4.2",
         "phil/commerce-catalog-bundle": "^0.1@dev",
-        "phil/commerce-logistics-bundle": "^0.2@dev",
+        "phil/commerce-logistics-bundle": "^0.3@dev",
         "phil/commerce-promotions-bundle": "^0.1@dev",
         "phil/commerce-stored-value-bundle": "^0.2@dev",
         "phil/paged-media": "^0.1@dev",

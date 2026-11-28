@@ -39,7 +39,7 @@
     "require-dev": {
         "doctrine/doctrine-bundle": "^3.4",
         "doctrine/persistence": "^4.2",
-        "phil/commerce-logistics-bundle": "^0.2@dev",
+        "phil/commerce-logistics-bundle": "^0.3@dev",
         "phil/product-feeds": "^0.1@dev",
         "phil/resource": "^0.1@dev",
         "phil/taxonomy-bundle": "^0.2@dev",

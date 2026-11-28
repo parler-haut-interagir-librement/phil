@@ -20,7 +20,7 @@ The answer is always `204 No Content` with:
 | `Access-Control-Allow-Methods` | Allowed: the methods of the path. |
 | `Access-Control-Allow-Headers` | Allowed: the headers of the path, or the requested ones when the path allows any; not sent when there are none. |
 | `Access-Control-Max-Age` | Allowed, and the path gives `max_age`. |
-| `Access-Control-Allow-Private-Network: true` | Allowed, the path allows it, and the request sends `Access-Control-Request-Private-Network: true`. |
+| `Access-Control-Allow-Private-Network: true` | Allowed, the path allows it, and the request sends `Access-Control-Request-Private-Network: true`; Chrome sends it no more, see [The private network](configuration.md#the-private-network). |
 
 When the origin, the method or one of the requested headers is not allowed, the answer has only `Vary`: the browser
 reads the missing `Access-Control-Allow-Origin` as a refusal and never sends the request itself. The reason is not

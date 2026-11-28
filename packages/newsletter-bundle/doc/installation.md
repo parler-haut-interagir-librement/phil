@@ -105,6 +105,43 @@ personal information in its Messenger transport and in its failure transport: it
 failure transport — `messenger:failed:show` to look, `messenger:failed:remove` to purge — and a word in its privacy
 policy.
 
+### Running the workers
+
+A campaign queues one `SendDelivery` per recipient, and a subscriber who has signed up waits for `SendConfirmation`.
+Give the confirmations a transport of their own, so that a campaign of fifty thousand deliveries never holds back the
+email a subscriber is waiting for:
+
+```yaml
+# config/packages/messenger.yaml
+framework:
+    messenger:
+        transports:
+            newsletter: '%env(MESSENGER_TRANSPORT_DSN)%'
+            newsletter_confirmation: '%env(NEWSLETTER_CONFIRMATION_TRANSPORT_DSN)%'
+        routing:
+            'Phil\NewsletterBundle\Application\Message\SendConfirmation': newsletter_confirmation
+            # the other messages stay on newsletter
+```
+
+```sh
+php bin/console messenger:consume newsletter_confirmation --time-limit=3600
+php bin/console messenger:consume newsletter scheduler_newsletter --time-limit=3600
+```
+
+`NEWSLETTER_CONFIRMATION_TRANSPORT_DSN` names another queue of the same server, such as
+`doctrine://default?queue_name=newsletter_confirmation`, or a server of its own.
+
+To send a campaign faster, run several workers on `newsletter` rather than `messenger:consume --concurrency`: a
+delivery is short work, one email handed to the mailer's transport, and with messages that short, the parent process
+of `--concurrency`, which takes each message from the transport and hands it to a child, becomes the slowest step. The
+pace of `SendThrottle` holds across workers, since it counts in the pool of `rate_limiter_storage`, which every worker
+shares.
+The added workers consume `newsletter` alone; one worker keeps `scheduler_newsletter`, so that each tick of the
+schedule is handled once.
+
+A worker checks `--time-limit` between messages and never stops one under way: set it longer than the slowest handler,
+so that a worker does not restart after nearly every message.
+
 ## The Markdown editor
 
 With AssetMapper, the bundle adds its Stimulus controller under `@phil/newsletter-bundle`; enable it in

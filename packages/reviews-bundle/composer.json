@@ -42,7 +42,7 @@
         "phil/privacy-bundle": "^0.3@dev",
         "phil/spam-protection-bundle": "^0.3@dev",
         "phil/structured-data": "^0.1@dev",
-        "phil/ux-kit": "^0.6@dev",
+        "phil/ux-kit": "^0.7@dev",
         "phpunit/phpunit": "^13.4",
         "symfony/browser-kit": "^8.2",
         "symfony/cache": "^8.2",

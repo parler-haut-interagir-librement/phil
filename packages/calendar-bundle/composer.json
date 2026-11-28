@@ -53,7 +53,7 @@
         "phil/resource": "^0.1@dev",
         "phil/structured-data": "^0.1@dev",
         "phil/taxonomy-bundle": "^0.2@dev",
-        "phil/ux-kit": "^0.6@dev",
+        "phil/ux-kit": "^0.7@dev",
         "phpunit/phpunit": "^13.4",
         "symfony/asset-mapper": "^8.2",
         "symfony/browser-kit": "^8.2",

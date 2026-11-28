@@ -46,7 +46,7 @@ Each path takes these options:
 | `expose_headers` | `[]` | The response headers its page may read besides the safelisted ones, or `*` alone for any. |
 | `allow_credentials` | `false` | Whether cookies, TLS client certificates and HTTP authentication travel with the request. |
 | `max_age` | `null` | The seconds a browser keeps the answer to a preflight, from 0 to 86400; `null` sends no `Access-Control-Max-Age`, and the browser keeps it for 5 seconds. |
-| `allow_private_network` | `false` | Whether a public page may reach this server on a private network, for the browsers that ask with `Access-Control-Request-Private-Network`. |
+| `allow_private_network` | `false` | Whether a public page may reach this server on a private network, for the browsers that still ask with `Access-Control-Request-Private-Network`. See [The private network](#the-private-network). |
 
 Each path needs at least one origin, in `allow_origins` or `allow_origin_patterns`, and one method.
 
@@ -60,12 +60,34 @@ exact origins, written in lowercase when the configuration has capitals. Other s
 A pattern matches the whole origin: it starts with `^` and ends with `$`, so that `https://app.example.com.evil.test`
 or `https://evilexample.com` never pass for an allowed origin. Escape the dots: `^https://[a-z0-9-]+\.example\.com$`.
 
+Write a subdomain as `[a-z0-9-]+`, never `.*` or `.+`: a host label holds letters, digits and hyphens, never a dot,
+a slash or a colon. `^https://.*example\.com$` allows `https://evil-example.com`, a host anyone can register, since
+nothing asks for a dot before `example.com`; `^https://.+\.example\.com$` allows every level of subdomain. With
+`[a-z0-9-]+\.`, the subdomain is one label, and the dot that ends it is the boundary. Add a port only when the origin
+has one, as `(:[0-9]+)?` for a development server.
+
 ### Headers
 
 `allow_headers` lists the headers a request may send besides the ones every browser may send without asking
 (`Accept`, `Accept-Language`, `Content-Language`, and `Content-Type` with a form or text value). Names are compared
 without case. With `*`, the answer to a preflight names the headers the browser asked for, `Authorization` included,
 rather than sending `*`, which `Authorization` does not match.
+
+### The private network
+
+`allow_private_network` answers the Private Network Access preflight: a page on a public origin that calls a server on
+a private address or on the loopback sends `Access-Control-Request-Private-Network: true`, and the bundle answers
+`Access-Control-Allow-Private-Network: true` when the origin, the method and the headers are allowed and the path
+allows it.
+
+Chrome replaced these headers with Local Network Access, which asks the user instead: a public page that reaches the
+local network or the loopback needs the user's permission, `local-network` or `loopback-network`, and no header of the
+server grants it. Chrome no longer sends `Access-Control-Request-Private-Network`, so the option changes nothing for
+it; it keeps its effect for the browsers that still send the header. The page asks for that permission as
+[Chrome's Local Network Access](https://developer.chrome.com/blog/local-network-access) describes.
+
+Leave it off unless a public page has to call this server on a private network: the user's permission and the origins
+of the path both still apply.
 
 ### Using environment variables
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "87c091e439dbc1b58e7789b4c9d28b28",
+    "content-hash": "1bf9afe31d3e74aa8c05f66d7b898e53",
     "packages": [],
     "packages-dev": [
         {
@@ -4779,7 +4779,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/ux-kit",
-                "reference": "e49e50cc24320ed63cc355247bae1dd4ab66fc7a"
+                "reference": "f36cb02a152b522be71b0f9e9932b93ca55c7429"
             },
             "require": {
                 "ext-mbstring": "*",
@@ -4830,7 +4830,7 @@
             "type": "symfony-bundle",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "0.6.x-dev"
+                    "dev-main": "0.7.x-dev"
                 }
             },
             "autoload": {
