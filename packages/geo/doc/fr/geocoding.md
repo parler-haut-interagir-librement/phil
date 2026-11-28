@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=393ab23d8fd4c72572b08674b3522f3183f4ceaa863fca98f833fc5b22e283d7 -->
+<!-- phil-dev source-sha256=f16ac334e6ccf7c5a686e47257f89da13e3450f09be490bab0f60f34d27646c2 -->
 # Géocodage
 
 ## Les ports
@@ -43,6 +43,11 @@ fixés sur chaque requête par `withOptions()`, de sorte qu'un fournisseur lent 
 plutôt que pendant `default_socket_timeout`, et qu'une réponse lente échoue en `GeocodingFailed`, qu'une chaîne
 contourne. L'un et l'autre sont au-dessus de zéro et d'au plus 120 secondes, l'appel entier n'étant pas plus court que
 l'attente.
+
+Une URL de base peut aussi être un chemin, `/nominatim`, que le client donné résout par rapport à sa propre URI de base.
+Un client qui se replie sur d'autres URI de base quand une requête échoue — le `RetryableHttpClient` de Symfony au-dessus
+d'un `ScopingHttpClient`, comme est construit un client à portée avec `retry_failed.base_uris` — interroge alors à tour
+de rôle les miroirs d'un serveur auto-hébergé ; une URL de base qui est une adresse entière reste sur son hôte.
 
 ```php
 use Phil\Geo\Geocoding\Adapter\NominatimGeocoder;

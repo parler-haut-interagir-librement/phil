@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=095582be70793c7864b5c99a8c09ed1e707c87d368591a5c075c0956012718d3 -->
+<!-- phil-dev source-sha256=4adb1e36d81334e34dd4f4a3c7e203179927932df811796122a14d325639586c -->
 # Géocodage
 
 ```yaml
@@ -112,6 +112,43 @@ $places = $this->geocoder->geocode($address, $request->getLocale());
 ```
 
 Les lieux, les échecs et les fournisseurs sont ceux de `phil/geo` : voir son document sur le géocodage.
+
+## Les miroirs d'un serveur auto-hébergé
+
+Un serveur Nominatim ou Photon à soi tourne souvent sur plusieurs hôtes. Un client à portée du client HTTP de Symfony
+les nomme : `base_uri` est le premier interrogé, et `retry_failed.base_uris` liste les autres, essayés à tour de rôle,
+un par nouvelle tentative, quand une requête échoue. Le géocodeur prend ce client comme `http.client`, et un `base_url`
+qui est un chemin :
+
+```yaml
+framework:
+    http_client:
+        scoped_clients:
+            geocoding.client:
+                base_uri: 'https://geo-a.example.org'
+                retry_failed:
+                    max_retries: 2
+                    delay: 200
+                    base_uris: ['https://geo-b.example.org', 'https://geo-c.example.org']
+
+phil_geo:
+    http:
+        client: geocoding.client
+    geocoding:
+        providers: [nominatim]
+        nominatim:
+            user_agent: 'Example (contact@example.com)'
+            base_url: '/nominatim'      # a path: the client puts the host in front of it
+```
+
+Le client résout le chemin par rapport à l'hôte de chaque tentative : `https://geo-a.example.org/nominatim/search`, puis
+`https://geo-b.example.org/nominatim/search`. Un `base_url` qui est une adresse entière garde son hôte à chaque nouvelle
+tentative : aucun miroir n'est donc interrogé. Chaque tentative a les délais d'attente de `http` : une recherche peut
+retenir un *worker* pendant `max_retries + 1` fois `http.max_duration`, plus les délais entre les tentatives.
+
+`http.client` sert chaque fournisseur, ipstack et la mise à jour de MaxMind. Un fournisseur public listé à côté de celui
+qui est auto-hébergé passe par le même client avec une adresse à lui : ses échecs sont retentés aussi, sur son propre
+hôte, et chaque nouvelle tentative est une requête que compte son quota.
 
 ## Tenir la base MaxMind à jour
 
