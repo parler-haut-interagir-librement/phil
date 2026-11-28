@@ -234,7 +234,7 @@ Keeps the export written before an erasure. The default is `EncryptedExportArchi
 | Method | Contract |
 |---|---|
 | `put(string $reference, string $content, DateTimeImmutable $expiresAt)` | Stores the document, out of the logs. |
-| `get(string $reference)` | The document, or `null`. |
+| `get(string $reference)` | The document, or `null` — `null` too from its expiry, whether or not the purge has run. |
 | `purgeExpired(DateTimeImmutable $now)` | Removes what has expired, and says how many. |
 
 ## `ConsentProofs`
