@@ -38,6 +38,11 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // preg_replace answers null only when PCRE gives up (backtrack or JIT stack limit); the patterns are possessive
+            // and linear on a text cut to 2048 bytes, so none reaches that: the cast only satisfies the type of substr.
+            'CastString' => [
+                'ignoreSourceCodeByRegex' => ['\\$error = \\(string\\) preg_replace\\(.*'],
+            ],
             // A declared length of digits alone is compared to the limit: PHP compares a numeric string to an integer
             // by value, so the cast changes no outcome.
             'CastInt' => [

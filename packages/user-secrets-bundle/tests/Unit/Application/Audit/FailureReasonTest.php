@@ -78,6 +78,15 @@ final class FailureReasonTest extends TestCase
         self::assertSame($message, FailureReason::of(new RuntimeException($message)));
     }
 
+    public function testTheLengthIsCountedInCharactersNotInBytes(): void
+    {
+        $short = str_repeat('é', FailureReason::MAX_LENGTH);
+        $long = str_repeat('é', FailureReason::MAX_LENGTH + 60);
+
+        self::assertSame($short, FailureReason::of(new RuntimeException($short)));
+        self::assertSame(str_repeat('é', FailureReason::MAX_LENGTH - 1).'…', FailureReason::of(new RuntimeException($long)));
+    }
+
     public function testItReadsOnlyTheStartOfALongMessage(): void
     {
         $reason = FailureReason::of(new RuntimeException(str_repeat(' ', FailureReason::MAX_INPUT).'secret-tail'));

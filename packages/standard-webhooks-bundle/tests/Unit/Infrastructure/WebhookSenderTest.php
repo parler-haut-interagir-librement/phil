@@ -156,6 +156,31 @@ final class WebhookSenderTest extends TestCase
         }
     }
 
+    public function testATransportErrorIsReadOnlyUpToItsFirst2048Bytes(): void
+    {
+        // A run of control characters becomes one space: the answer shows where the read stopped.
+        $client = new MockHttpClient(static fn (): MockResponse => throw new TransportException('Z'.str_repeat("\n", 2046).'ABC'));
+
+        try {
+            new WebhookSender($client, new Signer(), new SigningKeys(HmacSecret::generate()), new NativeClock(), allowPrivateNetworks: true)->send('https://hooks.example/hook', self::BODY, WebhookId::fromString('msg_1'));
+            self::fail('An unanswered delivery succeeded.');
+        } catch (DeliveryFailed $deliveryFailed) {
+            self::assertSame('The webhook msg_1 was not answered: Z A', $deliveryFailed->getMessage());
+        }
+    }
+
+    public function testABoundedTransportErrorKeepsItsFirstCharacters(): void
+    {
+        $client = new MockHttpClient(static fn (): MockResponse => throw new TransportException('b'.str_repeat('a', 600)));
+
+        try {
+            new WebhookSender($client, new Signer(), new SigningKeys(HmacSecret::generate()), new NativeClock(), allowPrivateNetworks: true)->send('https://hooks.example/hook', self::BODY, WebhookId::fromString('msg_1'));
+            self::fail('An unanswered delivery succeeded.');
+        } catch (DeliveryFailed $deliveryFailed) {
+            self::assertSame('The webhook msg_1 was not answered: b'.str_repeat('a', 499), $deliveryFailed->getMessage());
+        }
+    }
+
     /**
      * @return iterable<string, array{string}>
      */

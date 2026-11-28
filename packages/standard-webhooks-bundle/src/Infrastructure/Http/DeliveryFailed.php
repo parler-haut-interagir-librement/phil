@@ -64,6 +64,6 @@ final class DeliveryFailed extends RuntimeException implements WebhookException
             substr($error, 0, 2048),
         );
 
-        return \strlen($error) > 500 ? substr($error, 0, 500) : $error;
+        return substr($error, 0, 500);
     }
 }

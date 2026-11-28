@@ -69,6 +69,14 @@ return [
                     '\\$counts\\[\\$row\\[\'keyId\'\\]\\] = \\(int\\) \\$row\\[\'secrets\'\\];',
                 ],
             ],
+            // preg_replace and preg_replace_callback answer null only when PCRE gives up (backtrack or JIT stack limit, or
+            // invalid UTF-8): the patterns are possessive and linear on a message cut to 1,024 bytes and scrubbed to valid
+            // UTF-8, so none reaches that; the cast only satisfies the type the next call reads.
+            'CastString' => [
+                'ignoreSourceCodeByRegex' => [
+                    '\\$message = \\(string\\) preg_replace(_callback)?\\(',
+                ],
+            ],
             // The erasure in memory of a plaintext or a key by `sodium_memzero()`: the variable is no longer read
             // afterwards; the call shortens the time a copy of the secret stays in the memory of the process, which no
             // PHP test can observe.
