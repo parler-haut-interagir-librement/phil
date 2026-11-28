@@ -231,6 +231,31 @@ final class MediaArchiveTest extends TestCase
         self::assertSame(4, $archive->verify($this->directory.'/media.tar'), 'paths alike but apart, and the same path under another directory');
     }
 
+    public function testARestoredFileIsNeverWritableByOthersNorSetuid(): void
+    {
+        file_put_contents($this->directory.'/a', 'a');
+        $writer = TarWriter::create($this->directory.'/media.tar');
+        $writer->addFile('media/open', $this->directory.'/a', 0o666, 0);
+        $writer->addFile('media/script', $this->directory.'/a', 0o777, 0);
+        $writer->close();
+
+        // The header of a third file, written by hand, asks for setuid, setgid and sticky bits.
+        $tar = (string) file_get_contents($this->directory.'/media.tar');
+        $header = substr($tar, 0, 512);
+        $header = substr_replace($header, 'media/special'.str_repeat("\0", 100 - 13), 0, 100);
+        $header = substr_replace($header, \sprintf('%07o', 0o7777)."\0", 100, 8);
+        $header = substr_replace($header, '        ', 148, 8);
+        $header = substr_replace($header, \sprintf('%06o', array_sum(array_map(ord(...), str_split($header))))."\0 ", 148, 8);
+
+        $special = $header.substr($tar, 512, 512);
+        file_put_contents($this->directory.'/media.tar', $special.$tar);
+
+        self::assertSame(3, new MediaArchive(['media' => $this->directory.'/target'])->extract($this->directory.'/media.tar'));
+        self::assertSame(0o664, fileperms($this->directory.'/target/open') & 0o7777);
+        self::assertSame(0o775, fileperms($this->directory.'/target/script') & 0o7777);
+        self::assertSame(0o775, fileperms($this->directory.'/target/special') & 0o7777);
+    }
+
     public function testAColonAfterTheFirstLetterIsNotADriveLetter(): void
     {
         file_put_contents($this->directory.'/a', 'a');
