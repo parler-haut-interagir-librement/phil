@@ -118,6 +118,7 @@ phil_commerce_payment_webhook:
 | 204 | Applied, already applied, refused by the payment's state, or ignored | Stops sending it |
 | 400 | The gateway does not verify or read it | Retries, then gives up |
 | 404 | No gateway for the method, or no payment by the processor's reference yet | Retries |
+| 413 | A body over 1 MiB (`PaymentWebhookController::MAX_BYTES`), read to one byte past it and no further | Gives up |
 
 The change is committed before the 204, so an acknowledged notification is never lost. An ignored notification is
 committed nothing and logged at the `info` level of the `logger` service, when there is one, with its id, the

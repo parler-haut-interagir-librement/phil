@@ -47,7 +47,7 @@ approval; a failed or cancelled payment is not counted.
 |---|---|
 | `200` | Applied, already applied, refused by the payment's state, or for a payment nobody presented |
 | `400` | No adapter recognises the notification, or its signature does not verify |
-| `413` | A body over 64 KiB |
+| `413` | A body over 64 KiB, read to one byte past it and no further |
 
 ## Refunds
 

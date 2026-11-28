@@ -15,8 +15,8 @@ nothing, and a linked video never sends anything: its player is the platform's.
 `ProgressController`, the route `POST /_phil/video/progress`, accepts a body of a kilobyte at most from a page of the
 site — `Sec-Fetch-Site: same-origin`, or an `Origin` of the site where the browser sends no `Sec-Fetch-Site` — and reads
 it as a `ViewingProgress`. It answers `204` whether the viewing is counted or not, so that the answer says nothing of the
-viewer's consent; `400` for a body that is no viewing, `403` for another origin, `413` for a body too large; never
-cached.
+viewer's consent; `400` for a body that is no viewing, `403` for another origin, `413` for a body too large,
+read to one byte past the kilobyte and no further; never cached.
 
 `ViewingTracker::record()` counts a viewing only when tracking is on and the viewer agreed — the consent is asked again
 on the server —: it adds the parts to the heat map of the video and dispatches `VideoProgressed`.

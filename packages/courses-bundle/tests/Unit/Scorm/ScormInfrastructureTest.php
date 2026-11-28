@@ -184,6 +184,28 @@ final class ScormInfrastructureTest extends TestCase
         self::assertSame($expected, $payload instanceof ScormCommitPayload ? [$payload->token, $payload->csrf, $payload->values, $payload->finish] : null);
     }
 
+    public function testACommitWithoutContentLengthIsReadToOneBytePastTheLimitAndNoFurther(): void
+    {
+        $store = new Store();
+        $learner = new class implements CurrentLearner {
+            #[Override]
+            public function current(): ?LearnerId
+            {
+                return null;
+            }
+        };
+        $controller = new ScormController($store->scorm, new CourseRequest(self::createStub(CsrfTokenManagerInterface::class)), $learner);
+        $stream = fopen('php://temp', 'r+');
+        self::assertIsResource($stream);
+        fwrite($stream, str_repeat(' ', ScormController::MAX_BYTES + 4096));
+        rewind($stream);
+        $request = Request::create('/courses/scorm/commit', 'POST', content: $stream);
+        $request->headers->remove('Content-Length');
+
+        self::assertSame(413, $controller->commit($request)->getStatusCode());
+        self::assertSame(ScormController::MAX_BYTES + 1, ftell($stream));
+    }
+
     public function testTheEndpointRefusesWhatItCannotRead(): void
     {
         $store = new Store();

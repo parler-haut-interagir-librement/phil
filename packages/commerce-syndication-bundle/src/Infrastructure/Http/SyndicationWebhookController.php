@@ -17,10 +17,14 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Where partners post their messages, one URL per partner: the application routes `POST` requests to it with a
  * `partner` attribute. It answers `204` for a message applied or already received, `404` for an unknown partner,
- * `400` for a message refused — badly signed, stale, addressed elsewhere, or not one the partner may send.
+ * `400` for a message refused — badly signed, stale, addressed elsewhere, or not one the partner may send —, `413`
+ * for a body longer than `MAX_BYTES`, read to one byte past it and no further.
  */
 final readonly class SyndicationWebhookController
 {
+    /** The longest message read, as the receivers of Standard Webhooks take by default. */
+    public const int MAX_BYTES = 1_048_576;
+
     public function __construct(
         private Inbox $inbox,
         private EntityManagerInterface $entityManager,
@@ -30,13 +34,20 @@ final readonly class SyndicationWebhookController
 
     public function __invoke(Request $request, string $partner): Response
     {
+        // The signature is checked on the bytes received: they are read to one byte past the limit and no further.
+        $body = (string) stream_get_contents($request->getContent(true), self::MAX_BYTES + 1);
+
+        if (\strlen($body) > self::MAX_BYTES) {
+            return new Response(null, Response::HTTP_REQUEST_ENTITY_TOO_LARGE);
+        }
+
         try {
             $headers = WebhookHeaders::fromStrings(
                 $request->headers->get('webhook-id'),
                 $request->headers->get('webhook-timestamp'),
                 $request->headers->get('webhook-signature'),
             );
-            $this->inbox->receive($partner, $headers, $request->getContent(), $this->clock->now());
+            $this->inbox->receive($partner, $headers, $body, $this->clock->now());
         } catch (UnknownPartner) {
             return new Response(null, Response::HTTP_NOT_FOUND);
         } catch (SyndicationRefused|WebhookException) {

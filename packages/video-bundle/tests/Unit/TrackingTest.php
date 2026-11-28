@@ -202,6 +202,21 @@ final class TrackingTest extends TestCase
         self::assertSame(0, $store->heatmap('talk')->viewings);
     }
 
+    public function testABodyPastTheLimitIsReadToOneBytePastItAndNoFurther(): void
+    {
+        [$tracker] = $this->tracker(true);
+        $stream = fopen('php://temp', 'r+');
+        self::assertIsResource($stream);
+        fwrite($stream, str_repeat(' ', ProgressController::MAX_BYTES + 4096));
+        rewind($stream);
+        $request = Request::create('https://example.com/_phil/video/progress', 'POST', content: $stream);
+        $request->headers->set('Sec-Fetch-Site', 'same-origin');
+        $request->headers->remove('Content-Length');
+
+        self::assertSame(413, new ProgressController($tracker)($request)->getStatusCode());
+        self::assertSame(ProgressController::MAX_BYTES + 1, ftell($stream));
+    }
+
     public function testABodyOfAKilobyteIsRead(): void
     {
         [$tracker] = $this->tracker(true);

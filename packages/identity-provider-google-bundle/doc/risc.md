@@ -19,7 +19,8 @@ stateless, and left to anonymous access by the firewall: the token's signature i
 
 ## What the endpoint checks
 
-1. The body is `application/secevent+jwt` — or `application/jwt` —, at most 16 KiB, a JWT in the compact form.
+1. The body is `application/secevent+jwt` — or `application/jwt` —, at most 16 KiB, read to one byte past it and no
+   further, a JWT in the compact form.
 2. Its signature: RS256 only, against the keys the configuration document
    `https://accounts.google.com/.well-known/risc-configuration` names, read through phil/safe-http and cached, by
    Symfony's `OidcSignatureVerifier`.

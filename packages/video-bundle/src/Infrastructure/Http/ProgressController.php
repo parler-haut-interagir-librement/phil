@@ -13,9 +13,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Receives the viewings the player sends with `navigator.sendBeacon()`: `{"video": "<id>", "parts": "0101…"}`, a
- * kilobyte at most, from a page of the site only — `Sec-Fetch-Site: same-origin`, or an `Origin` of the site where the
- * browser sends no `Sec-Fetch-Site`. A viewing is counted or dropped by the tracker; the answer is `204` either way, so
- * that it says nothing of the viewer's consent.
+ * kilobyte at most, read no further, from a page of the site only — `Sec-Fetch-Site: same-origin`, or an `Origin` of
+ * the site where the browser sends no `Sec-Fetch-Site`. A viewing is counted or dropped by the tracker; the answer is
+ * `204` either way, so that it says nothing of the viewer's consent.
  */
 final readonly class ProgressController
 {
@@ -32,7 +32,8 @@ final readonly class ProgressController
             return $this->answer(Response::HTTP_FORBIDDEN);
         }
 
-        $body = $request->getContent();
+        // The origin is no sign-in: the body is read to one byte past the limit and no further.
+        $body = (string) stream_get_contents($request->getContent(true), self::MAX_BYTES + 1);
 
         if (\strlen($body) > self::MAX_BYTES) {
             return $this->answer(Response::HTTP_REQUEST_ENTITY_TOO_LARGE);

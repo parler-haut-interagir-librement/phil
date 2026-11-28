@@ -4,6 +4,16 @@ All notable changes to `phil/commerce-syndication-bundle` will be documented in 
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+### Security
+
+- `SyndicationWebhookController` read the whole body before the `Inbox` verified its signature, without a limit. It
+  reads the stream to one byte past `SyndicationWebhookController::MAX_BYTES`, 1 MiB, and no further, answers `413`
+  beyond it, and the signature is verified on the bytes received.
+
 ## 0.1.2-alpha - 2026-11-26
 
 ### Changed

@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
  * | 204 | Applied, already applied, refused by the payment's state, or ignored | Stops sending it |
  * | 400 | The gateway does not verify or read it | Retries, then gives up |
  * | 404 | No gateway for the method, or no payment by the processor's reference yet | Retries |
+ * | 413 | Longer than `MAX_BYTES`, read to one byte past it and no further | Gives up |
  *
  * A notification applied is committed before the answer, so a 204 is never sent for a change that was lost. An
  * ignored notification — a verified event the store does not act on — changes nothing and is logged at the info
@@ -28,6 +29,9 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final readonly class PaymentWebhookController
 {
+    /** The longest notification read: a processor's event is a few kilobytes. */
+    public const int MAX_BYTES = 1_048_576;
+
     public function __construct(
         private Payments $payments,
         private EntityManagerInterface $entityManager,
@@ -37,6 +41,13 @@ final readonly class PaymentWebhookController
 
     public function __invoke(Request $request, string $method): Response
     {
+        // Anyone may post here: the body is read to one byte past the limit and no further, before any verification.
+        $payload = (string) stream_get_contents($request->getContent(true), self::MAX_BYTES + 1);
+
+        if (\strlen($payload) > self::MAX_BYTES) {
+            return new Response(null, Response::HTTP_REQUEST_ENTITY_TOO_LARGE);
+        }
+
         $headers = [];
 
         foreach ($request->headers->keys() as $name) {
@@ -44,7 +55,7 @@ final readonly class PaymentWebhookController
         }
 
         try {
-            [$outcome, , $notification] = $this->payments->notify($method, $request->getContent(), $headers);
+            [$outcome, , $notification] = $this->payments->notify($method, $payload, $headers);
         } catch (InvalidNotification) {
             return new Response(null, Response::HTTP_BAD_REQUEST);
         } catch (PaymentRefused) {

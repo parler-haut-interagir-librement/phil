@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
  * It answers the elements left out with their error codes, the token of the next commit, after a navigation request
  * the launch of the next activity or the outline, and under a time limit the seconds left and whether the time is up;
  * `400` for a body that is not such an object, `403` for a
- * token or a CSRF token refused, `409` for a session that is over or an attempt ended, open for review only, `413` for a body past `MAX_BYTES`.
+ * token or a CSRF token refused, `409` for a session that is over or an attempt ended, open for review only, `413` for a body past `MAX_BYTES`, read to one byte past it and no further.
  */
 final readonly class ScormController
 {
@@ -43,7 +43,8 @@ final readonly class ScormController
             return $this->error('The commit is too large.', Response::HTTP_REQUEST_ENTITY_TOO_LARGE);
         }
 
-        $body = $request->getContent();
+        // Read before the tokens are checked: to one byte past the limit and no further, whatever the header says.
+        $body = (string) stream_get_contents($request->getContent(true), self::MAX_BYTES + 1);
 
         if (\strlen($body) > self::MAX_BYTES) {
             return $this->error('The commit is too large.', Response::HTTP_REQUEST_ENTITY_TOO_LARGE);

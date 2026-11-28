@@ -10,7 +10,10 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.1.2-alpha.
 
-Tests only.
+### Security
+
+- `ProgressController`, whose origin check is no sign-in, compared the body with its kilobyte after reading it whole.
+  It reads the stream to one byte past `MAX_BYTES` and no further.
 
 ### Changed
 

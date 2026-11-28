@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\IdentityProviderGoogleBundle\Tests\Unit\Infrastructure;
 
+use Phil\IdentityProviderGoogleBundle\Application\SecurityEventTokenReader;
 use Phil\IdentityProviderGoogleBundle\Infrastructure\Http\RiscController;
 use Phil\IdentityProviderGoogleBundle\Tests\Fixture\FakeGoogle;
 use Phil\IdentityProviderGoogleBundle\Tests\Fixture\RiscHarness;
@@ -65,6 +66,25 @@ final class RiscControllerTest extends TestCase
 
         self::assertSame(400, $response->getStatusCode());
         self::assertSame(['err' => 'invalid_request', 'description' => 'The body is too long.'], json_decode((string) $response->getContent(), true));
+    }
+
+    public function testABodyWithoutContentLengthIsReadToOneBytePastTheLimitAndNoFurther(): void
+    {
+        $stream = fopen('php://temp', 'r+');
+        self::assertIsResource($stream);
+        fwrite($stream, str_repeat(' ', SecurityEventTokenReader::MAX_LENGTH + 4096));
+        rewind($stream);
+        $request = Request::create('https://example.com/identity/google/risc', 'POST', content: $stream);
+        $request->headers->set('Content-Type', 'application/secevent+jwt');
+        $request->headers->remove('Content-Length');
+
+        $response = new RiscController(new RiscHarness()->receiver)($request);
+
+        self::assertSame(['err' => 'invalid_request', 'description' => 'The body is too long.'], json_decode((string) $response->getContent(), true));
+        self::assertSame(SecurityEventTokenReader::MAX_LENGTH + 1, ftell($stream));
+
+        $longest = new RiscController(new RiscHarness()->receiver)($this->post(str_repeat('a', SecurityEventTokenReader::MAX_LENGTH), 'application/secevent+jwt'));
+        self::assertSame(['err' => 'invalid_request', 'description' => 'The body is not a security event token in the compact form.'], json_decode((string) $longest->getContent(), true));
     }
 
     public function testABodyOfTheLongestLengthIsRead(): void

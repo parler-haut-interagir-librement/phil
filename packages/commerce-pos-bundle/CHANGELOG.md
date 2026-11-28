@@ -4,6 +4,15 @@ All notable changes to `phil/commerce-pos-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+### Security
+
+- `TerminalNotificationController`, which anyone may post to, checked its limit of 64 KiB after reading the whole
+  body. It reads the stream to one byte past `MAX_BODY` and no further, before any adapter verifies the signature.
+
 ## 0.1.2-alpha - 2026-11-26
 
 ### Changed

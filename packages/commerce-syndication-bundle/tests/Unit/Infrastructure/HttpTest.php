@@ -51,6 +51,21 @@ final class HttpTest extends TestCase
         self::assertSame(400, $controller($this->request('msg_1', '{"type":"x.y","audience":"elsewhere"}'), 'supplier')->getStatusCode());
     }
 
+    public function testABodyPastTheLimitIsReadToOneBytePastItAndNoFurther(): void
+    {
+        [$controller] = $this->controller(0);
+        $stream = fopen('php://temp', 'r+');
+        self::assertIsResource($stream);
+        fwrite($stream, str_repeat(' ', SyndicationWebhookController::MAX_BYTES + 4096));
+        rewind($stream);
+        $request = Request::create('/syndication/supplier', 'POST', content: $stream);
+        $request->headers->remove('Content-Length');
+
+        self::assertSame(413, $controller($request, 'supplier')->getStatusCode());
+        self::assertSame(SyndicationWebhookController::MAX_BYTES + 1, ftell($stream));
+        self::assertSame(400, $controller(Request::create('/', 'POST', content: str_repeat(' ', SyndicationWebhookController::MAX_BYTES)), 'supplier')->getStatusCode());
+    }
+
     public function testTheTransportPostsAndAnswersTheStatus(): void
     {
         $requests = [];

@@ -4,6 +4,16 @@ All notable changes to `phil/commerce-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.5.3-alpha.
+
+### Security
+
+- `PaymentWebhookController`, which anyone may post to, read the whole body before the gateway verified it, without
+  a limit. It reads the stream to one byte past `PaymentWebhookController::MAX_BYTES`, 1 MiB, and no further, and
+  answers `413` beyond it.
+
 ## 0.5.2-alpha - 2026-11-26
 
 ### Changed

@@ -21,6 +21,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 #[CoversClass(PaymentWebhookController::class)]
 final class PaymentWebhookControllerTest extends TestCase
@@ -89,6 +90,29 @@ final class PaymentWebhookControllerTest extends TestCase
         $request = Request::create('/webhooks/card', 'POST', server: ['HTTP_X_SIGNATURE' => 'ok'], content: 'evt_9|ignored|customer.created');
 
         self::assertSame(204, $controller($request, 'card')->getStatusCode());
+    }
+
+    public function testABodyPastTheLimitIsReadToOneBytePastItAndNoFurther(): void
+    {
+        [$controller] = $this->controller(0);
+        $stream = fopen('php://temp', 'r+');
+        self::assertIsResource($stream);
+        fwrite($stream, str_repeat(' ', PaymentWebhookController::MAX_BYTES + 4096));
+        rewind($stream);
+        $request = Request::create('/webhooks/card', 'POST', server: ['HTTP_X_SIGNATURE' => 'ok'], content: $stream);
+        $request->headers->remove('Content-Length');
+
+        self::assertSame(Response::HTTP_REQUEST_ENTITY_TOO_LARGE, $controller($request, 'card')->getStatusCode());
+        self::assertSame(PaymentWebhookController::MAX_BYTES + 1, ftell($stream));
+    }
+
+    public function testABodyOfTheLongestLengthReachesTheGateway(): void
+    {
+        $gateway = new FakeGateway('card');
+        [$controller] = $this->controller(0, $gateway);
+
+        self::assertSame(Response::HTTP_BAD_REQUEST, $controller(Request::create('/webhooks/card', 'POST', server: ['HTTP_X_SIGNATURE' => 'ok'], content: str_repeat(' ', PaymentWebhookController::MAX_BYTES)), 'card')->getStatusCode());
+        self::assertSame(['ok'], $gateway->headers['x-signature']);
     }
 
     /**

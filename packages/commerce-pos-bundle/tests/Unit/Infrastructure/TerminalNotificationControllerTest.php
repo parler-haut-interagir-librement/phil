@@ -59,6 +59,23 @@ final class TerminalNotificationControllerTest extends TestCase
         self::assertSame(413, $tooLarge->getStatusCode());
     }
 
+    public function testABodyPastTheLimitIsReadToOneBytePastItAndNoFurther(): void
+    {
+        $till = new Till();
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::never())->method('flush');
+        $controller = new TerminalNotificationController($till->terminalPayments, $entityManager, new MockClock());
+        $stream = fopen('php://temp', 'r+');
+        self::assertIsResource($stream);
+        fwrite($stream, str_repeat(' ', TerminalNotificationController::MAX_BODY + 4096));
+        rewind($stream);
+        $request = Request::create('/', 'POST', content: $stream);
+        $request->headers->remove('Content-Length');
+
+        self::assertSame(413, $controller($request)->getStatusCode());
+        self::assertSame(TerminalNotificationController::MAX_BODY + 1, ftell($stream));
+    }
+
     public function testABodyOfTheLargestSizeIsRead(): void
     {
         $till = new Till();
