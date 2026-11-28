@@ -11,7 +11,8 @@ the listener of `#[RequiresScope]`, the endpoint of GitHub's secret scanning wit
 the four commands, the members' page and its form, and the configuration and wiring. The suite `tests/Functional` boots
 an application with FrameworkBundle, SecurityBundle, TwigBundle, DoctrineBundle on SQLite, `phil/api-contract-bundle`,
 `phil/rate-limit-bundle` and `phil/usage-meter-bundle`, and follows a token from the members' page to the API — its
-scopes, its quota, its revocation —, through a report of GitHub's secret scanning, and through the commands.
+scopes, its quota, its revocation —, through a report of GitHub's secret scanning, and through the commands; it also
+signs the test client into the API with the attributes of a token, and without them.
 
 From the monorepo root:
 
@@ -62,5 +63,24 @@ $issued = $tokens->create('alice@example.com', 'test', ['projects:read']);
 
 $client->request('GET', '/api/projects', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$issued->plainText]);
 ```
+
+A test that is about the API rather than the token signs the client in on the stateless firewall instead. The third
+argument of `loginUser()` gives the security token the attributes the bundle's authenticator would set: an identifier,
+so that the token counts as an API token, and the scopes that `#[RequiresScope]` checks. Without the identifier, the
+voter treats the sign-in as another authentication and grants no scope, unless `other_authentications` is enabled.
+
+```php
+use Phil\ApiKeysBundle\Infrastructure\Security\ApiTokenHandler;
+use Symfony\Component\Security\Http\Authenticator\AccessTokenAuthenticator;
+
+$client->loginUser($user, 'api', [
+    ApiTokenHandler::TOKEN_ID_ATTRIBUTE => 'test-token',
+    AccessTokenAuthenticator::SCOPE_ATTRIBUTE => ['projects:read'],
+]);
+$client->request('GET', '/api/projects');
+```
+
+The token is sent again with each request of the client; the authenticator, the roles of the scopes, the lookup of the token and its last
+use are left out: the tests of the token itself go through the `Authorization` header as above.
 
 A `MockClock` as the bundle's `clock` moves a token past its expiry or its throttle interval.

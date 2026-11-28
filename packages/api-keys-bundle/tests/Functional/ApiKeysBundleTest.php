@@ -12,6 +12,7 @@ use Override;
 use Phil\ApiKeysBundle\Application\ApiTokens;
 use Phil\ApiKeysBundle\Domain\Contract\ApiTokenRepository;
 use Phil\ApiKeysBundle\Domain\Token\TokenOwner;
+use Phil\ApiKeysBundle\Infrastructure\Security\ApiTokenHandler;
 use Phil\ApiKeysBundle\PhilApiKeysBundle;
 use Phil\ApiKeysBundle\Tests\Functional\App\TestKernel;
 use Phil\ApiKeysBundle\Tests\Unit\Fixture\GitHubKeys;
@@ -24,10 +25,12 @@ use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\Security\Core\User\InMemoryUser;
+use Symfony\Component\Security\Http\Authenticator\AccessTokenAuthenticator;
 
 /**
  * A token followed from the members' page to the API and back: created, used with its scopes, counted, refused once
- * revoked; a token revoked once GitHub reports it leaked; the commands; and the mapping, valid and in step with the schema.
+ * revoked; a token revoked once GitHub reports it leaked; the API signed into by the test client with the attributes of
+ * a token; the commands; and the mapping, valid and in step with the schema.
  */
 #[CoversNothing]
 final class ApiKeysBundleTest extends WebTestCase
@@ -119,6 +122,31 @@ final class ApiKeysBundleTest extends WebTestCase
         self::assertResponseStatusCodeSame(401);
         self::assertResponseHeaderSame('WWW-Authenticate', 'Bearer realm="api",error="invalid_token"');
         self::assertResponseHeaderSame('Content-Type', 'application/problem+json');
+    }
+
+    public function testTheTestClientSignsIntoTheApiWithTheAttributesOfAToken(): void
+    {
+        $member = new InMemoryUser('alice@example.com', 'secret', ['ROLE_MEMBER']);
+        $this->client->loginUser($member, 'api', [ApiTokenHandler::TOKEN_ID_ATTRIBUTE => 'test-token', AccessTokenAuthenticator::SCOPE_ATTRIBUTE => ['projects:read']]);
+
+        $this->client->request('GET', '/api/projects');
+        self::assertResponseIsSuccessful();
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true);
+        self::assertIsArray($body);
+        self::assertSame('alice@example.com', $body['user'] ?? null);
+
+        $this->client->request('PUT', '/api/projects/1');
+        self::assertResponseStatusCodeSame(403);
+        self::assertResponseHeaderSame('WWW-Authenticate', 'Bearer realm="api",error="insufficient_scope",scope="projects:write"');
+    }
+
+    public function testASignInWithoutTheAttributesOfATokenHoldsNoScope(): void
+    {
+        $this->client->loginUser(new InMemoryUser('alice@example.com', 'secret', ['ROLE_MEMBER']), 'api', [AccessTokenAuthenticator::SCOPE_ATTRIBUTE => ['projects:read']]);
+
+        $this->client->request('GET', '/api/projects');
+        self::assertResponseStatusCodeSame(403);
+        self::assertResponseHeaderSame('WWW-Authenticate', 'Bearer realm="api",error="insufficient_scope",scope="projects:read"');
     }
 
     public function testARequestWithoutATokenIsChallenged(): void

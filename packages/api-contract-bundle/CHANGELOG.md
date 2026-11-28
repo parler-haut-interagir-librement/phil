@@ -24,6 +24,8 @@ The next version is 0.3.3-alpha.
   `phil/api-symfony` template covers `/api` with API Platform under these paths.
 - The documentation of the problems says that a write conflict is read wrapped by Messenger's `HandlerFailedException`
   or unwrapped by a bus with `unwrap_exceptions`.
+- The development requirements add `symfony/browser-kit` 8.2, for the test client the functional suite signs a user in
+  with on the stateless firewall.
 
 ## 0.3.2-alpha - 2026-11-25
 

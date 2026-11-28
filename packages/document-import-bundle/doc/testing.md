@@ -12,7 +12,7 @@ Twig, and `MediaLibraryStore` against the media library of `phil/media-bundle` o
 imports an RTF file through the configured style map with a listener of `DocumentImported`, and exports a document
 the importer reads again; it then boots an application with FrameworkBundle, Messenger, TwigBundle and
 `phil/upload-scan-bundle`, refuses a file holding the EICAR test string before it is parsed, queues a DOCX file whose
-message carries its claim alone, imports it on the in-memory transport's message, reports a refused one by its claim,
+message carries its claim alone, imports it by consuming the in-memory transport, reports a refused one by its claim,
 and renders the report fragment.
 
 From the monorepo root:
@@ -28,5 +28,12 @@ The bundle is held to 100 % covered mutation score by Infection, like the librar
 Set `media.store: folder` in the test environment to keep the images out of the media library, and assert on the
 blocks and the media of `Imported`: the addresses are the prefix followed by the file names, the same from one run
 to the next. A listener of `DocumentImported` is tested by dispatching the event with an `Imported` the test builds.
-With `async`, route `ImportDocument` to an `in-memory://` transport in the test environment, assert on the messages
-it holds, and dispatch them again with a `ReceivedStamp` to run the handler.
+With `async`, route `ImportDocument` to an `in-memory://` transport in the test environment. A `KernelTestCase` counts
+the queued messages with `assertQueuedMessageCount(1, 'imports', ImportDocument::class)`, reads them with
+`getQueuedMessages('imports')` and runs the handler with `consumeQueuedMessages('imports')`, which fails the test when
+the import fails after its retries:
+
+```php
+self::assertQueuedMessageCount(1, 'imports', ImportDocument::class);
+self::assertSame(1, self::consumeQueuedMessages('imports'));
+```

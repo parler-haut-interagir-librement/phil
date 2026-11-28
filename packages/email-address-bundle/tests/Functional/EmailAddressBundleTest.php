@@ -23,7 +23,6 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\RemoteEvent\Event\Mailer\MailerDeliveryEvent;
 use Symfony\Component\RemoteEvent\Event\Mailer\MailerEngagementEvent;
@@ -115,7 +114,8 @@ final class EmailAddressBundleTest extends KernelTestCase
         $consumer->consume($bounce);
         $consumer->consume($spam);
 
-        $sent = array_values($this->transport()->getSent());
+        self::assertQueuedMessageCount(2, 'async', BounceDecidedMessage::class);
+        $sent = array_values(self::getQueuedMessages('async'));
         self::assertCount(2, $sent);
         $messages = array_map(static fn (Envelope $envelope): object => $envelope->getMessage(), $sent);
         $fingerprint = $this->service(EmailAddresses::class, EmailAddresses::class)->fingerprint('ada.lovelace@example.org');
@@ -139,9 +139,8 @@ final class EmailAddressBundleTest extends KernelTestCase
         self::assertSame(0, $tester->execute(['file' => self::FIXTURES.'arf.eml']));
         self::assertSame("duplicate\n", $tester->getDisplay());
 
-        $sent = array_values($this->transport()->getSent());
-        self::assertCount(2, $sent);
-        $this->assertNoAddressReachesTheQueue($sent, ['ada@', 'grace@', 'example.org', 'example.com']);
+        self::assertQueuedMessageCount(2, 'async');
+        $this->assertNoAddressReachesTheQueue(array_values(self::getQueuedMessages('async')), ['ada@', 'grace@', 'example.org', 'example.com']);
     }
 
     /**
@@ -160,11 +159,6 @@ final class EmailAddressBundleTest extends KernelTestCase
                 self::assertStringNotContainsString(strtolower($fragment), strtolower(serialize($envelope->getMessage())));
             }
         }
-    }
-
-    private function transport(): InMemoryTransport
-    {
-        return $this->service('messenger.transport.async', InMemoryTransport::class);
     }
 
     /**

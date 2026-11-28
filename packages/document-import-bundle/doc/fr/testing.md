@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=88e9a69b86a0c75c251db1695fbe6c38c4ae5fcd6239de7938bee05f3181a817 -->
+<!-- phil-dev source-sha256=9deeb0bcd0c07440bdbab05b9d639bce1cc2f673cdd3b6fcd2abc02bef5cb95a -->
 # Tests
 
 ## Les tests du bundle
@@ -14,7 +14,7 @@ bundle, importe un collage HTML dont l'image SVG porte un script, importe un fic
 configurée et un écouteur de `DocumentImported`, et exporte un document que l'importateur relit ; il démarre ensuite une
 application avec FrameworkBundle, Messenger, TwigBundle et `phil/upload-scan-bundle`, refuse avant de le lire un fichier
 qui contient la chaîne de test EICAR, met en file un fichier DOCX dont le message ne porte que sa référence, l'importe
-sur le message du transport en mémoire, signale un fichier refusé par sa référence, et produit le fragment du rapport.
+en consommant le transport en mémoire, signale un fichier refusé par sa référence, et produit le fragment du rapport.
 
 Depuis la racine du monodépôt :
 
@@ -29,5 +29,12 @@ Infection maintient le bundle à un score de mutation couverte de 100 %, comme l
 Définissez `media.store: folder` dans l'environnement de test pour garder les images hors de la médiathèque, et vérifiez
 les blocs et les médias de `Imported` : les adresses sont le préfixe suivi des noms de fichiers, identiques d'une
 exécution à l'autre. Un écouteur de `DocumentImported` se teste en répartissant l'événement avec un `Imported` que
-construit le test. Avec `async`, acheminez `ImportDocument` vers un transport `in-memory://` dans l'environnement de test,
-vérifiez les messages qu'il contient, et répartissez-les de nouveau avec une `ReceivedStamp` pour exécuter le *handler*.
+construit le test. Avec `async`, acheminez `ImportDocument` vers un transport `in-memory://` dans l'environnement de test. Un
+`KernelTestCase` compte les messages en file avec `assertQueuedMessageCount(1, 'imports', ImportDocument::class)`, les
+lit avec `getQueuedMessages('imports')` et exécute le *handler* avec `consumeQueuedMessages('imports')`, qui fait échouer
+le test quand l'importation échoue après ses nouvelles tentatives :
+
+```php
+self::assertQueuedMessageCount(1, 'imports', ImportDocument::class);
+self::assertSame(1, self::consumeQueuedMessages('imports'));
+```

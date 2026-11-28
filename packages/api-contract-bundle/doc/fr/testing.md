@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=51db007570801c32ff461bd67c3f5269f688c470d757df4c9d9fce4b23c7cbd1 -->
+<!-- phil-dev source-sha256=98f6d4ecb54878d2006008c56ba95ba202f103ded43451b27bfd4cd589f0962c -->
 # Tests
 
 | Domaine | Ce qui est couvert |
@@ -15,8 +15,9 @@
 Une suite fonctionnelle démarre un noyau avec FrameworkBundle, DoctrineBundle sur SQLite, SecurityBundle avec deux
 utilisateurs et le bundle, un locataire par hôte, puis envoie des requêtes aux points de terminaison de `ApiController` :
 une commande créée une fois par clé et rejouée, une clé réutilisée, une clé manquante, un échec exécuté de nouveau, deux
-locataires et deux utilisateurs sur un même stockage avec la même clé, une permission révoquée durant la rétention et
-refusée par `#[IsGranted]` sans le corps conservé, une requête refusée qui ne réserve aucune clé, un appelant anonyme
+locataires et deux utilisateurs sur un même stockage avec la même clé, deux clients d'un même utilisateur connectés par
+le client de test avec l'attribut `client_id` de leur jeton, chacun avec ses propres clés, une permission révoquée durant
+la rétention et refusée par `#[IsGranted]` sans le corps conservé, une requête refusée qui ne réserve aucune clé, un appelant anonyme
 refusé, des problèmes sous `/api/` et pas ailleurs, les en-têtes d'obsolescence, sur un rejeu aussi ; le vérificateur est
 construit et sa commande vérifie un document dans la console de l'application. Lorsque le bundle est installé seul, FrameworkBundle n'étant qu'un prérequis de
 développement, la suite est sautée.
@@ -33,3 +34,18 @@ vendor/bin/phil-dev services up
 eval "$(vendor/bin/phil-dev services env)"
 vendor/bin/phpunit packages/api-contract-bundle/tests/Integration
 ```
+
+## Tester une application
+
+Sur un pare-feu sans état qui utilise l'authentificateur `access_token`, le client de test connecte un utilisateur avec
+les attributs que le gestionnaire de jetons de l'application donnerait, et renvoie ce jeton à chaque requête. La partie
+client de la portée d'idempotence lit `idempotency.client_attribute` (`client_id` par défaut) : deux clients d'un même
+utilisateur se testent donc sans émettre de jetons :
+
+```php
+$client->loginUser($user, 'api', ['client_id' => 'mobile-app']);
+$client->request('POST', '/api/orders', server: ['HTTP_IDEMPOTENCY_KEY' => '"order-1"'], content: '{"item":"a"}');
+```
+
+Un pare-feu sans `access_token` ne relit pas ce jeton à la requête suivante : le test envoie alors des identifiants à
+chaque requête, comme le fait un en-tête HTTP Basic.

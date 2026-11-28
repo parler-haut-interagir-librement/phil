@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b45f04611e82ea226bd4ff596a54fedb8262885790d05027f31b9ce0e8a9cf26 -->
+<!-- phil-dev source-sha256=94c1719cee05efb5e3e7faf5661d9862aba1e55853e6a4c7b503c16d3d86bc9d -->
 # Tests
 
 ## Les tests du bundle
@@ -12,7 +12,7 @@ problème, le *voter* et l'écouteur de `#[RequiresScope]`, le point de terminai
 avec une paire de clés qu'il fabrique, les intégrations, les quatre commandes, la page des membres et son formulaire, et la configuration et le câblage. La
 suite `tests/Functional` démarre une application avec FrameworkBundle, SecurityBundle, TwigBundle, DoctrineBundle sur
 SQLite, `phil/api-contract-bundle`, `phil/rate-limit-bundle` et `phil/usage-meter-bundle`. Elle suit un jeton de la
-page des membres jusqu'à l'API (ses portées, son quota, sa révocation), à travers un rapport de l'analyse de secrets de GitHub et à travers les commandes.
+page des membres jusqu'à l'API (ses portées, son quota, sa révocation), à travers un rapport de l'analyse de secrets de GitHub et à travers les commandes ; elle connecte aussi le client de test à l'API avec les attributs d'un jeton, et sans eux.
 
 Depuis la racine du monodépôt :
 
@@ -63,6 +63,27 @@ $issued = $tokens->create('alice@example.com', 'test', ['projects:read']);
 
 $client->request('GET', '/api/projects', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$issued->plainText]);
 ```
+
+Un test qui porte sur l'API plutôt que sur le jeton connecte plutôt le client au pare-feu sans état. Le troisième
+argument de `loginUser()` donne au jeton de sécurité les attributs que l'authentificateur du bundle donnerait :
+un identifiant, pour que le jeton compte comme un jeton d'API, et les portées que vérifie `#[RequiresScope]`. Sans
+l'identifiant, le *voter* traite la connexion comme une autre authentification et n'accorde aucune portée, sauf si
+`other_authentications` est activé.
+
+```php
+use Phil\ApiKeysBundle\Infrastructure\Security\ApiTokenHandler;
+use Symfony\Component\Security\Http\Authenticator\AccessTokenAuthenticator;
+
+$client->loginUser($user, 'api', [
+    ApiTokenHandler::TOKEN_ID_ATTRIBUTE => 'test-token',
+    AccessTokenAuthenticator::SCOPE_ATTRIBUTE => ['projects:read'],
+]);
+$client->request('GET', '/api/projects');
+```
+
+Le jeton est renvoyé à chaque requête du client ; l'authentificateur, les rôles des portées, la recherche du jeton et sa
+dernière utilisation sont laissés de côté : les tests du jeton lui-même passent par l'en-tête `Authorization`, comme
+plus haut.
 
 Une `MockClock` comme `clock` du bundle fait passer un jeton au-delà de son expiration ou de son intervalle de limite
 de débit.

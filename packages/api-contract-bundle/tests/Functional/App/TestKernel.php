@@ -15,7 +15,7 @@ use Symfony\Component\Security\Core\User\InMemoryUser;
 
 /**
  * An application as small as the bundle needs: FrameworkBundle, DoctrineBundle on SQLite, SecurityBundle with two
- * users signed in by HTTP Basic, one tenant per host, and the bundle with problems under `/api/` — or under the block a
+ * users signed in by HTTP Basic, or by the test client on the stateless `access_token` authenticator, one tenant per host, and the bundle with problems under `/api/` — or under the block a
  * test hands the constructor —; the endpoints of `ApiController`.
  */
 final class TestKernel extends Kernel
@@ -71,9 +71,10 @@ final class TestKernel extends Kernel
         $container->extension('security', [
             'password_hashers' => [InMemoryUser::class => 'plaintext'],
             'providers' => ['users' => ['memory' => ['users' => ['ada' => ['password' => 'ada', 'roles' => ['ROLE_USER']], 'grace' => ['password' => 'grace', 'roles' => ['ROLE_USER']]]]]],
-            'firewalls' => ['api' => ['pattern' => '^/api/', 'stateless' => true, 'http_basic' => true]],
+            'firewalls' => ['api' => ['pattern' => '^/api/', 'stateless' => true, 'http_basic' => true, 'access_token' => ['token_handler' => RefusingAccessTokenHandler::class], 'entry_point' => 'http_basic']],
         ]);
         $container->services()->set(ApiController::class)->public()->tag('controller.service_arguments');
+        $container->services()->set(RefusingAccessTokenHandler::class);
         $container->services()->set(OrderVoter::class)->public()->tag('security.voter');
         $container->services()->set(HostTenant::class);
         $container->services()->alias(IdempotencyTenantResolver::class, HostTenant::class);
