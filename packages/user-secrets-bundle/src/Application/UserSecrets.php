@@ -6,6 +6,7 @@ namespace Phil\UserSecretsBundle\Application;
 
 use DateTimeImmutable;
 use Phil\UserSecretsBundle\Application\Audit\AuditTrail;
+use Phil\UserSecretsBundle\Application\Audit\FailureReason;
 use Phil\UserSecretsBundle\Application\Audit\SecretEventKind;
 use Phil\UserSecretsBundle\Application\Contract\RefreshLock;
 use Phil\UserSecretsBundle\Application\Contract\TokenRefresher;
@@ -39,7 +40,9 @@ use Throwable;
  *
  * A refresh runs under the refresh lock when there is one, and its token is saved by a compare-and-swap on the row,
  * so that two processes keep one refreshed token. An OAuth token revoked, removed or erased is revoked at its service
- * by the application's revoker once it is gone locally; a failure there is logged and audited, never thrown.
+ * by the application's revoker once it is gone locally; a failure there is logged and audited, never thrown. A log
+ * keeps the service, the class of the exception and its message redacted, never the exception itself: a connector's
+ * diagnostic may carry the token it was sending.
  */
 final readonly class UserSecrets
 {
@@ -308,11 +311,12 @@ final readonly class UserSecrets
         try {
             $token = $this->envelope->open($secret);
         } catch (UnreadableSecret $unreadableSecret) {
-            $this->logger?->warning('User secret {secret} of {owner} did not open, so it is not revoked at its service: {reason}', [
+            $this->logger?->warning('User secret {secret} of {owner} did not open, so it is not revoked at its service.', [
                 'owner' => $secret->owner()->value,
                 'secret' => $secret->name()->value,
-                'reason' => $unreadableSecret->getMessage(),
-                'exception' => $unreadableSecret,
+                'service' => $secret->service()->value,
+                'exception_class' => $unreadableSecret::class,
+                'reason' => FailureReason::of($unreadableSecret),
             ]);
 
             return null;
@@ -346,12 +350,12 @@ final readonly class UserSecrets
         try {
             $revoker->revoke($secret->service(), $token);
         } catch (Throwable $throwable) {
-            $this->logger?->warning('User secret {secret} of {owner} was not revoked at the service {service}: {reason}', [
+            $this->logger?->warning('User secret {secret} of {owner} was not revoked at the service {service}.', [
                 'owner' => $secret->owner()->value,
                 'secret' => $secret->name()->value,
                 'service' => $secret->service()->value,
-                'reason' => $throwable->getMessage(),
-                'exception' => $throwable,
+                'exception_class' => $throwable::class,
+                'reason' => FailureReason::of($throwable, $token->accessToken, $token->refreshToken),
             ]);
             $this->audit->record(SecretEventKind::ServiceRevocationFailed, $secret->owner(), $secret->name());
 

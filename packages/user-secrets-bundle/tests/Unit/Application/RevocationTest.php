@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Override;
 use Phil\UserSecretsBundle\Application\Audit\AuditTrail;
 use Phil\UserSecretsBundle\Application\Contract\TokenRevoker;
+use Phil\UserSecretsBundle\Application\Exception\UnreadableSecret;
 use Phil\UserSecretsBundle\Application\UserSecrets;
 use Phil\UserSecretsBundle\Domain\Credential\ApiKey;
 use Phil\UserSecretsBundle\Domain\Credential\CredentialKind;
@@ -122,11 +123,35 @@ final class RevocationTest extends TestCase
             'removed member-1/github-2', 'service_revocation_failed member-1/github-2',
         ], $this->auditor->lines());
         self::assertSame([
-            'warning: User secret github of member-1 was not revoked at the service github: The revocation endpoint answered 503.',
-            'warning: User secret github-2 of member-1 was not revoked at the service github: The revocation endpoint answered 503.',
+            'warning: User secret github of member-1 was not revoked at the service github.',
+            'warning: User secret github-2 of member-1 was not revoked at the service github.',
         ], $this->logger->lines());
-        self::assertSame($failure, $this->logger->records[0][2]['exception']);
-        self::assertSame('github', $this->logger->records[0][2]['service']);
+        self::assertSame([
+            'owner' => 'member-1',
+            'secret' => 'github',
+            'service' => 'github',
+            'exception_class' => RuntimeException::class,
+            'reason' => 'The revocation endpoint answered 503.',
+        ], $this->logger->records[0][2]);
+        self::assertArrayNotHasKey('exception', $this->logger->records[1][2]);
+    }
+
+    public function testAConnectorDiagnosticThatCarriesTheTokenIsLoggedRedacted(): void
+    {
+        $failure = new RuntimeException('POST https://auth.example.com/oauth/revoke?token=gho_16C7e42F292c6912E7710c838347Ae178B4a answered 400 for token gho_16C7e42F292c6912E7710c838347Ae178B4a and refresh ghr_refresh-value with Authorization: Bearer xyz.');
+        $secrets = $this->secrets([new RecordingRevoker('github', $failure)]);
+        $secrets->store($this->owner(), $this->secretName('github'), $this->service('github'), OAuthToken::of('gho_16C7e42F292c6912E7710c838347Ae178B4a', 'ghr_refresh-value'));
+
+        $secrets->revoke($this->owner(), $this->secretName('github'));
+
+        $context = $this->logger->records[0][2];
+        self::assertSame(['warning: User secret github of member-1 was not revoked at the service github.'], $this->logger->lines());
+        self::assertArrayNotHasKey('exception', $context);
+        self::assertSame(RuntimeException::class, $context['exception_class']);
+        self::assertSame('POST https://auth.example.com/oauth/revoke?[redacted] answered 400 for token [redacted] and refresh [redacted] with Authorization: [redacted] [redacted]', $context['reason']);
+        self::assertStringNotContainsString('gho_', serialize($context));
+        self::assertStringNotContainsString('ghr_', serialize($context));
+        self::assertStringNotContainsString('xyz', serialize($context));
     }
 
     public function testAnErrorOfTheRevokerDoesNotStopTheErasure(): void
@@ -150,7 +175,14 @@ final class RevocationTest extends TestCase
 
         self::assertSame([], $revoker->revoked);
         self::assertNotNull($this->repository->get($this->owner(), $this->secretName('github'))?->revokedAt());
-        self::assertSame(['warning: User secret github of member-1 did not open, so it is not revoked at its service: The sealed value of secret "github" names no known format.'], $this->logger->lines());
+        self::assertSame(['warning: User secret github of member-1 did not open, so it is not revoked at its service.'], $this->logger->lines());
+        self::assertSame([
+            'owner' => 'member-1',
+            'secret' => 'github',
+            'service' => 'github',
+            'exception_class' => UnreadableSecret::class,
+            'reason' => 'The sealed value of secret "github" names no known format.',
+        ], $this->logger->records[0][2]);
         self::assertSame(['revoked member-1/github'], $this->auditor->lines());
     }
 

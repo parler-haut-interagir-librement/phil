@@ -4,6 +4,19 @@ All notable changes to `phil/user-secrets-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.1-alpha.
+
+### Security
+
+- A revoker that fails is logged with a fixed message, the service, the exception's class and its message redacted,
+  never with the exception itself: a connector's diagnostic that carried the token it was sending, a signed URL or an
+  `Authorization` header no longer reaches the log. The redaction removes the secret's own tokens, the user
+  information, query and fragment of URLs, the values of credential schemes and of fields named like a credential, and
+  long opaque strings, and keeps one line of at most 240 characters. A sealed value that does not open is logged the
+  same way. `ext-mbstring` is required.
+
 ## 0.2.0-alpha - 2026-11-24
 
 Instants are written and read in UTC, whatever the time zone of the process.

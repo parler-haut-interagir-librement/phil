@@ -78,8 +78,15 @@ bundle asks the service to revoke it too, once the token is gone locally: the fi
 receives the token, usually for the service's revocation endpoint ([RFC 7009](https://www.rfc-editor.org/rfc/rfc7009)).
 A `revoked_at_service` event follows. A revoker that throws — the service is down, refuses, or the revoker has a bug —
 never brings the token back and never stops an erasure: the failure is written to the `logger` service at `warning`
-level, with its exception, and a `service_revocation_failed` event goes to the auditors. A sealed value that no longer
-opens is logged the same way and wiped all the same.
+level, and a `service_revocation_failed` event goes to the auditors. A sealed value that no longer opens is logged the
+same way and wiped all the same.
+
+The log record has a fixed message and a context of identifiers: `owner`, `secret`, `service`, `exception_class`, and
+`reason`, the exception's message redacted. The exception itself stays out of the record, since its message and its
+trace may hold the token the revoker was sending. The reason is one line of at most 240 characters, without the
+secret's own access and refresh tokens, without the user information, query and fragment of a URL, without the value
+of a credential scheme (`Bearer …`) or of a field named like a credential (`access_token=…`, `"client_secret": …`), and
+without any run of 20 or more letters, digits, `-`, `_`, `+` or `=` that mixes letters and digits.
 
 API keys are not revoked at the service: few services offer an endpoint for it, and the owner revokes a key where they
 made it. A secret whose service no revoker serves is not opened when it goes. [OAuth tokens](oauth-tokens.md#writing-a-revoker)
