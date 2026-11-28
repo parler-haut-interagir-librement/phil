@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=b7e2c7a487df5c214cba2f3065cc8aef700076a813ffd74bf59bd1a480c9188e -->
+<!-- phil-dev source-sha256=b509114cb26577b112f0c59fd3de2f576affb987078f3537d4f1a8919ced335e -->
 # Installation
 
 ```sh
@@ -107,6 +107,43 @@ Acheminer `SendEmailMessage` reste le choix de l'application pour ses propres co
 renseignements personnels dans son transport Messenger et dans sa file des échecs : il lui faut une règle de
 conservation pour la file des échecs — `messenger:failed:show` pour regarder, `messenger:failed:remove` pour purger — et
 un mot dans sa politique de confidentialité.
+
+### Exécuter les *workers*
+
+Une campagne met en file un `SendDelivery` par destinataire, et un abonné qui vient de s'inscrire attend
+`SendConfirmation`. Donnez aux confirmations un transport à part, pour qu'une campagne de cinquante mille livraisons ne
+retarde jamais le courriel qu'un abonné attend :
+
+```yaml
+# config/packages/messenger.yaml
+framework:
+    messenger:
+        transports:
+            newsletter: '%env(MESSENGER_TRANSPORT_DSN)%'
+            newsletter_confirmation: '%env(NEWSLETTER_CONFIRMATION_TRANSPORT_DSN)%'
+        routing:
+            'Phil\NewsletterBundle\Application\Message\SendConfirmation': newsletter_confirmation
+            # the other messages stay on newsletter
+```
+
+```sh
+php bin/console messenger:consume newsletter_confirmation --time-limit=3600
+php bin/console messenger:consume newsletter scheduler_newsletter --time-limit=3600
+```
+
+`NEWSLETTER_CONFIRMATION_TRANSPORT_DSN` nomme une autre file du même serveur, comme
+`doctrine://default?queue_name=newsletter_confirmation`, ou un serveur à part.
+
+Pour envoyer une campagne plus vite, lancez plusieurs *workers* sur `newsletter` plutôt que
+`messenger:consume --concurrency` : une livraison est un travail court, un courriel remis au transport du mailer, et
+avec des messages aussi courts, le processus parent de `--concurrency`, qui prend chaque message du transport et le
+confie à un enfant, devient l'étape la plus lente. Le rythme de `SendThrottle` tient d'un *worker* à l'autre, puisqu'il
+compte dans le bassin de `rate_limiter_storage`, que tous les *workers* partagent.
+Les *workers* ajoutés consomment `newsletter` seul ; un seul *worker* garde `scheduler_newsletter`, pour que chaque
+tic de l'horaire soit traité une fois.
+
+Un *worker* vérifie `--time-limit` entre les messages et n'arrête jamais un message en cours : fixez-le plus long que le
+gestionnaire le plus lent, pour qu'un *worker* ne redémarre pas après presque chaque message.
 
 ## L'éditeur Markdown
 
