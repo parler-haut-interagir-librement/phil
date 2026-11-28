@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=89ad3913f46d092f7a129656aec492a91450fa3027abca142f550cf6277edeed -->
+<!-- phil-dev source-sha256=3ca79c66c12b6cec427564128c785bb4e156464f6f03666709cc1faeb2139308 -->
 # Clés d'accès
 
 Le module `passkeys` permet à un compte d'enregistrer des clés d'accès — des identifiants WebAuthn détectables — et de
@@ -29,7 +29,9 @@ biométrique.
 | Options de connexion | `POST /passkey/options` | Un défi ; déconnecté, aucun identifiant n'est listé, de sorte que le navigateur offre les clés d'accès qu'il détient. |
 | Connexion | `POST /passkey/login` | `PasskeyAuthenticator` vérifie la réponse et connecte le compte ou, s'il est connecté, le réauthentifie. |
 
-Les requêtes JSON portent le jeton CSRF dans l'en-tête `X-CSRF-Token`.
+Les requêtes JSON portent le jeton CSRF dans l'en-tête `X-CSRF-Token`. La réponse d'un enregistrement ou d'une connexion est lue jusqu'à un octet au-delà de
+`Passkeys::MAX_RESPONSE`, 32 Kio, et pas plus loin, avec ou sans `Content-Length` : une réponse plus longue est refusée
+avec `passkey.refused`.
 
 ## Ce qui est vérifié
 

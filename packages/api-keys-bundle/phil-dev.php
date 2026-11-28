@@ -14,6 +14,9 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // `stream_get_contents()` gives `false` only on a stream already closed, which the request never hands over: the
+            // cast changes nothing that can be observed.
+            'CastString' => ['ignoreSourceCodeByRegex' => ['.*\\(string\\) stream_get_contents\\(.*']],
             // The values of a console argument or option given as an array are strings: the filter only tells PHPStan
             // so, and nothing else reaches the commands.
             'UnwrapArrayFilter' => [

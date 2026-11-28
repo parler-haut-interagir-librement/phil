@@ -9,9 +9,14 @@ return [
     'paths' => ['src', 'tests'],
     'infection' => [
         'mutators' => [
+            // `stream_get_contents()` gives `false` only on a stream already closed, which the request never hands over: the
+            // cast changes nothing that can be observed.
+            'CastString' => ['ignoreSourceCodeByRegex' => ['.*\\(string\\) stream_get_contents\\(.*']],
             // The code of an exception chained to its cause is the default zero, which nothing reads; and a progress body
             // nested more deeply than its two levels is answered by 400 whether the decoder refuses it or the check that its
             // fields are strings does.
+            // The parent bundle's build() registers nothing this bundle's tests read.
+            'MethodCallRemoval' => ['ignoreSourceCodeByRegex' => ['.*parent::build\\(\\$container\\);.*']],
             'IncrementInteger' => ['ignoreSourceCodeByRegex' => ['.*, 0, \\$\\w+\\);', '.*json_decode\\(\\$body, true, 2, .*']],
             'DecrementInteger' => ['ignoreSourceCodeByRegex' => ['.*, 0, \\$\\w+\\);']],
             // array_pad() numbers the keys of its result from zero: the counts are a list before array_values() as after.

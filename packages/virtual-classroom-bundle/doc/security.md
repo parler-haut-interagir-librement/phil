@@ -7,7 +7,8 @@
 - The address of the signed events of a room cannot end it nor reach another room; a notification naming another room
   than its address is refused.
 - The provider then checks its own signature: BigBlueButton's tokens, JaaS's `X-Jaas-Signature` within five minutes.
-- A body is 1 MiB at most; the readers of phil/virtual-classroom bound the rest.
+- A body is 1 MiB at most, read to one byte past it and no further; the readers of phil/virtual-classroom bound the
+  rest.
 - Changing `webhook_secret` changes every address: the rooms open at that moment lose their callbacks, and
   `phil:virtual-classroom:sync` makes up for them.
 

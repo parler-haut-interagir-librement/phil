@@ -15,6 +15,9 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // `stream_get_contents()` gives `false` only on a stream already closed, which the request never hands over: the
+            // cast changes nothing that can be observed.
+            'CastString' => ['ignoreSourceCodeByRegex' => ['.*\\(string\\) stream_get_contents\\(.*']],
             // A cache item is a hit whatever it holds: the value stored with a replayed identifier or a held subject is
             // never read, `true` only gives the item something to keep.
             'TrueValue' => [

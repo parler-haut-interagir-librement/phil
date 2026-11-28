@@ -55,7 +55,7 @@ nothing.
 | `400` | The body is not such an object |
 | `403` | The CSRF token or the attempt token is refused: unknown, forged, expired, or another learner's |
 | `409` | The session is over: it ended, or a later launch opened a newer one; or its attempt ended, and opens for review only |
-| `413` | The body is larger than 2 MiB |
+| `413` | The body is larger than 2 MiB, read to one byte past it and no further |
 
 The attempt token names the attempt, the session and the moment it expires, signed by an HMAC under a key
 derived from `phil_courses.scorm.secret` by HKDF-SHA256 for that usage alone (`ScormTokens::USAGE`); it holds `phil_courses.scorm.token_ttl` seconds after the last commit, four hours by

@@ -4,6 +4,15 @@ All notable changes to `phil/courses-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.4.1-alpha.
+
+### Security
+
+- `ScormController::commit()` checked its limit of 2 MiB after reading the whole body when no `Content-Length` was
+  sent, before the CSRF and attempt tokens. It reads the stream to one byte past `MAX_BYTES` and no further.
+
 ## 0.4.0-alpha - 2026-11-26
 
 ### Added

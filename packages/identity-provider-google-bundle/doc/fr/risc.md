@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=d771a68ff5c2ec0813fffd346592a02f44ca1170da33fe9429ee1e5884f9668e -->
+<!-- phil-dev source-sha256=e280572e0fcacb28a61e752864cc5328a70dddde3fcb3ba379e63306f6d2e828 -->
 # Cross-Account Protection
 
 La Cross-Account Protection (RISC) de Google avertit les applications auxquelles une personne se connecte avec Google
@@ -21,7 +21,7 @@ signature du jeton qui authentifie Google.
 
 ## Ce que vérifie le point de terminaison
 
-1. Le corps est `application/secevent+jwt` — ou `application/jwt` —, de 16 Kio au plus, un JWT en forme compacte.
+1. Le corps est `application/secevent+jwt` — ou `application/jwt` —, de 16 Kio au plus, lu jusqu'à un octet au-delà et pas plus loin, un JWT en forme compacte.
 2. Sa signature : RS256 seulement, contre les clés que nomme le document de configuration
    `https://accounts.google.com/.well-known/risc-configuration`, lu par phil/safe-http et mis en cache, par
    l'`OidcSignatureVerifier` de Symfony.

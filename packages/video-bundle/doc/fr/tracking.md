@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=1341316cd6893c87cf372a532b80d9e5d4d161320af659299f923aea647f56f2 -->
+<!-- phil-dev source-sha256=0e576fd6803cc78aaa6b2ea660885dc126f13412790ffc74e98b286320c84046 -->
 # Progression du visionnement
 
 ## Ce qui est compté
@@ -18,7 +18,7 @@ plateforme.
 site — `Sec-Fetch-Site: same-origin`, ou une `Origin` du site là où le navigateur n'envoie pas `Sec-Fetch-Site` — et le
 lit comme un `ViewingProgress`. Il répond `204` que le visionnement soit compté ou non, de sorte que la réponse ne dit
 rien du consentement du spectateur ; `400` pour un corps qui n'est pas un visionnement, `403` pour une autre origine,
-`413` pour un corps trop gros ; jamais mis en cache.
+`413` pour un corps trop gros, lu jusqu'à un octet au-delà du kilooctet et pas plus loin ; jamais mis en cache.
 
 `ViewingTracker::record()` ne compte un visionnement que si le suivi est activé et que le spectateur a accepté — le
 consentement est de nouveau demandé sur le serveur — : il ajoute les parties à la carte de chaleur de la vidéo et

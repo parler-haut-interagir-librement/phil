@@ -16,8 +16,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 /**
  * The push endpoint of security events (RFC 8935), `phil_identity_provider_google_risc`: the transmitter posts one
  * token, `application/secevent+jwt`, and is answered `202 Accepted` once it was acted on, a `400` with the error code
- * and a description otherwise, or a `503` when the keys could not be read, so that it sends the token again. It is
- * not found while the receiver is off.
+ * and a description otherwise, or a `503` when the keys could not be read, so that it sends the token again. A body
+ * is read to one byte past `SecurityEventTokenReader::MAX_LENGTH` and no further. It is not found while the receiver
+ * is off.
  */
 final readonly class RiscController
 {
@@ -46,8 +47,15 @@ final readonly class RiscController
             return $this->error(InvalidSecurityEventToken::malformed('The body is too long.'));
         }
 
+        // Read before the token is verified: to one byte past the limit and no further, whatever the header says.
+        $body = (string) stream_get_contents($request->getContent(true), SecurityEventTokenReader::MAX_LENGTH + 1);
+
+        if (\strlen($body) > SecurityEventTokenReader::MAX_LENGTH) {
+            return $this->error(InvalidSecurityEventToken::malformed('The body is too long.'));
+        }
+
         try {
-            $this->receiver->receive(trim($request->getContent()));
+            $this->receiver->receive(trim($body));
         } catch (InvalidSecurityEventToken $invalid) {
             return $this->error($invalid);
         } catch (TransmitterUnreachable) {

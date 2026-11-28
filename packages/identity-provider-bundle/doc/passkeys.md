@@ -26,7 +26,9 @@ phil_identity_provider:
 | Sign-in options | `POST /passkey/options` | A challenge; signed out, no credential listed, so the browser offers the passkeys it holds. |
 | Sign-in | `POST /passkey/login` | `PasskeyAuthenticator` verifies the answer and signs the account in, or, signed in, re-authenticates it. |
 
-The JSON requests carry the CSRF token in the header `X-CSRF-Token`.
+The JSON requests carry the CSRF token in the header `X-CSRF-Token`. The answer of a registration or a sign-in is read
+to one byte past `Passkeys::MAX_RESPONSE`, 32 KiB, and no further, with or without a `Content-Length`: a longer one is
+refused with `passkey.refused`.
 
 ## What is checked
 

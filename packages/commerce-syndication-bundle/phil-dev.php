@@ -12,6 +12,13 @@ return [
         // What the core's modules sell.
         'words' => ['sellables'],
     ],
+    'infection' => [
+        'mutators' => [
+            // `stream_get_contents()` gives `false` only on a stream already closed, which the request never hands over: the
+            // cast changes nothing that can be observed.
+            'CastString' => ['ignoreSourceCodeByRegex' => ['.*\\(string\\) stream_get_contents\\(.*']],
+        ],
+    ],
     'phpstan' => [
         // The fuzz targets run inside nikic/php-fuzzer, which gives them `$config`; PHPStan knows neither.
         'excludePaths' => ['tests/Fuzz/*'],

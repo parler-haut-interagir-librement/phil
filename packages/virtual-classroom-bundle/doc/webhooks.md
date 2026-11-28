@@ -17,8 +17,9 @@ address of an account, to set in the console of the provider.
 ## What happens
 
 `WebhookController` checks the proof — a wrong one is a 404, as an address that does not exist —, refuses a body over
-1 MiB with a 413, then hands the notification to the provider, which checks its own signature and reads its events.
-`Classrooms::receive()` applies them:
+1 MiB with a 413, read to one byte past it and no further with or without a `Content-Length`, then hands the
+notification to the provider, which checks its own signature and reads its events. `Classrooms::receive()` applies
+them:
 
 - the events of a room other than the address's are refused, as a forged notification;
 - the events of a room the application does not know, or of a room on another provider, are ignored;

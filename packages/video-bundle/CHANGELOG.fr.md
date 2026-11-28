@@ -11,7 +11,10 @@ Les mises à jour suivent les principes de [Keep a CHANGELOG](https://keepachang
 
 La prochaine version est la 0.1.2-alpha.
 
-Tests seulement.
+### Sécurité
+
+- `ProgressController`, dont la vérification de l'origine n'est pas une connexion, comparait le corps à son kilooctet
+  après l'avoir lu en entier. Il lit le flux jusqu'à un octet au-delà de `MAX_BYTES` et pas plus loin.
 
 ### Modifié
 

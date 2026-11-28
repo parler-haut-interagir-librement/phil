@@ -157,8 +157,9 @@ The controller hands each request to the `Inbox`, which verifies the signature w
 timestamp against the tolerance and the audience against `identity`, ignores a message id already received, and
 applies the message. A message id is the sender's own: it is remembered per partner, so another partner using the
 same id is not mistaken for it. The controller answers `204` for a message applied or already received, `404` for an
-unknown partner, and `400` for anything refused — badly signed, stale, addressed elsewhere, unreadable, an amount out
-of range, a cost never published.
+unknown partner, `400` for anything refused — badly signed, stale, addressed elsewhere, unreadable, an amount out
+of range, a cost never published —, and `413` for a body over 1 MiB (`SyndicationWebhookController::MAX_BYTES`), read
+to one byte past it and no further, before the signature is checked on the bytes received.
 
 The `Courier` delivers the outbox: each due message is signed with this application's key and posted.
 

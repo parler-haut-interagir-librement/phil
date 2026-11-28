@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=476c7384291d091fdf0a34064406d3b786428e5bbdf1510377012357876ba596 -->
+<!-- phil-dev source-sha256=732317363d415119f843a14918cf9d7bde8f9a68d76ce2f930b653f03305a9c1 -->
 # Environnement d'exécution SCORM
 
 Une activité SCORM s'exécute dans la plateforme : son contenu trouve l'API d'exécution de sa version, signale où en est
@@ -58,7 +58,7 @@ conserve rien.
 | `400` | Le corps n'est pas un tel objet |
 | `403` | Le jeton CSRF ou le jeton de tentative est refusé : inconnu, falsifié, expiré, ou celui d'un autre apprenant |
 | `409` | La session est terminée : elle a pris fin, ou un lancement plus récent en a ouvert une nouvelle ; ou sa tentative a pris fin, et ne s'ouvre plus qu'en révision |
-| `413` | Le corps dépasse 2 Mio |
+| `413` | Le corps dépasse 2 Mio, lu jusqu'à un octet au-delà et pas plus loin |
 
 Le jeton de tentative nomme la tentative, la session et le moment où il expire, signés par un HMAC sous une clé
 dérivée de `phil_courses.scorm.secret` par HKDF-SHA256 pour cet usage seul (`ScormTokens::USAGE`) ; il tient `phil_courses.scorm.token_ttl` secondes après la dernière validation, quatre

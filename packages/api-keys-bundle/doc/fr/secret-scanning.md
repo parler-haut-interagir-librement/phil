@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=87206575ef6c07f5fbd0ea1d66166f63c325ed8c77acf1463268dc03e2ef21e8 -->
+<!-- phil-dev source-sha256=22010e702ebbb2c3b19a3e65acb5f9a9c4821e82d15d000afb4ecd312705e81b -->
 # Analyse de secrets
 
 Un jeton collé dans un dépôt public est trouvé en quelques minutes, par des personnes comme par des robots. Le programme
@@ -52,7 +52,7 @@ du point de terminaison.
 |---|---|
 | Signée par GitHub, une liste de correspondances | `200`, une étiquette par correspondance |
 | Pas de `Github-Public-Key-Identifier` ni de `Github-Public-Key-Signature`, une clé que GitHub ne publie pas, une signature qui ne se vérifie pas | `403`, le corps non lu |
-| Un corps de plus de 1 Mio | `413` |
+| Un corps de plus de 1 Mio | `413`, lu jusqu'à un octet au-delà de 1 Mio et pas plus loin |
 | Signée, mais pas une liste de correspondances d'un jeton et d'un type | `400` |
 
 La signature est de l'ECDSA avec SHA-256 sur le corps brut, en base64, sous la clé que GitHub publie avec cet

@@ -14,6 +14,9 @@ return [
     'docs' => ['public' => true, 'translations' => 'blocking'],
     'infection' => [
         'mutators' => [
+            // `stream_get_contents()` gives `false` only on a stream already closed, which the request never hands over: the
+            // cast changes nothing that can be observed.
+            'CastString' => ['ignoreSourceCodeByRegex' => ['.*\\(string\\) stream_get_contents\\(.*']],
             // The same moment, taken twice, is the same first arrival.
             'LessThan' => [
                 'ignoreSourceCodeByRegex' => ['.*if \\(null === \$first \|\| \$interval->joinedAt < \$first\) \\{.*'],

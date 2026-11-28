@@ -22,9 +22,17 @@ return [
             ],
             // A numeric string and its integer are one array key, and the index read from `bindec()` is an integer: the
             // cast changes nothing a caller can see.
+            // `stream_get_contents()` gives `false` only on a stream already closed, which the request never hands over: the
+            // cast changes nothing that can be observed.
             'CastString' => [
-                'ignoreSourceCodeByRegex' => ['\\$modules\\[\\(string\\) \\$module\\] = true === \\$on;'],
+                'ignoreSourceCodeByRegex' => [
+                    '\\$modules\\[\\(string\\) \\$module\\] = true === \\$on;',
+                    '.*\\(string\\) stream_get_contents\\(.*',
+                ],
             ],
+            // Signing in refuses with one reason, 'passkey.refused', which is also the fallback of the message: no input names
+            // a first reason other than itself.
+            'Coalesce' => ['ignoreSourceCodeByRegex' => ['.*\\$refused->reasons\\[0\\] \\?\\? .*']],
             'CastInt' => [
                 'ignoreSourceCodeByRegex' => [
                     '\\$text \\.= self::ALPHABET\\[\\(int\\) bindec.*',
@@ -126,12 +134,16 @@ return [
                     // A text that PHP cannot read as a duration counts as zero seconds; -1 is refused as 0 is, with the
                     // same message.
                     '\\$seconds = 0;',
+                    // The index of the first reason of a refusal that has one, as above.
+                    '.*\\$refused->reasons\\[0\\] \\?\\? .*',
                 ],
             ],
             'IncrementInteger' => [
                 'ignoreSourceCodeByRegex' => [
                     '\\$partLength = \\$offset \\+ 2 <= \\$size.*',
                     '\\$number = ltrim\\(substr\\(\\$der, \\$offset \\+ 2, max\\(0.*',
+                    // The index of the first reason of a refusal that has one, as above.
+                    '.*\\$refused->reasons\\[0\\] \\?\\? .*',
                 ],
             ],
             // A header that ends the signature one byte earlier or later has no length to read, and a length below 1 is

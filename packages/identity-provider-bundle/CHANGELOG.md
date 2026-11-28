@@ -16,6 +16,9 @@ A verification link used up while the address could not be written works again.
   `Application\Contract\Transactions::run()`: `/verify-email` uses up the stored token and verifies the address
   together, and a failed write gives the link back instead of leaving it used over an address still unverified.
   `AccountLinks` takes the transactions as its last argument; without them, the work runs as it comes.
+- `PasskeyAuthenticator`, which anyone signed out may post to, and `PasskeyController::register()` read the whole
+  body before `Passkeys` bounded the answer to `Passkeys::MAX_RESPONSE`. Both read the stream to one byte past that
+  limit and no further, so that a longer answer is refused with `passkey.refused` without being held.
 
 ### Fixed
 

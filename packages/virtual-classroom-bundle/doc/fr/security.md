@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=fdcef2d5e0d8924af063c4ec2d7387c204893ed2814e61907fc80caf0b7afff2 -->
+<!-- phil-dev source-sha256=93e25ccf75e93cd748ee0a87b4bb408ac2ffdc65eea537ba5194f61c78a29bb5 -->
 # Sécurité
 
 ## Le webhook
@@ -9,7 +9,8 @@
   qui nomme une autre salle que son adresse est refusée.
 - Le fournisseur vérifie ensuite sa propre signature : les jetons de BigBlueButton, le `X-Jaas-Signature` de JaaS à
   moins de cinq minutes.
-- Un corps fait 1 Mio au plus ; les lecteurs de phil/virtual-classroom bornent le reste.
+- Un corps fait 1 Mio au plus, lu jusqu'à un octet au-delà et pas plus loin ; les lecteurs de phil/virtual-classroom
+  bornent le reste.
 - Changer `webhook_secret` change chaque adresse : les salles ouvertes à ce moment perdent leurs rappels, et
   `phil:virtual-classroom:sync` les compense.
 

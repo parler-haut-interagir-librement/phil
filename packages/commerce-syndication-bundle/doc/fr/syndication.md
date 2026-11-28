@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=de93bf5ac1f4f097191f31aed9368b5249a499f0d52976730becb25eff0bc816 -->
+<!-- phil-dev source-sha256=05124b4491326d8db0e230dfce1651d7f1bfa16e5b2bdf6722cc959b96a2484d -->
 <!-- phil-dev source-sha256=0 -->
 # Syndication
 
@@ -164,8 +164,10 @@ Le contrôleur remet chaque requête à l'`Inbox`, qui vérifie la signature ave
 l'horodatage à la tolérance et l'audience à `identity`, ignore un identifiant de message déjà reçu, et applique le
 message. Un identifiant de message appartient à l'expéditeur : il est retenu par partenaire, pour qu'un autre
 partenaire qui utilise le même identifiant ne soit pas confondu avec lui. Le contrôleur répond `204` pour un message
-appliqué ou déjà reçu, `404` pour un partenaire inconnu, et `400` pour tout ce qui est refusé — mal signé, périmé,
-adressé ailleurs, illisible, un montant hors des bornes, un coût jamais publié.
+appliqué ou déjà reçu, `404` pour un partenaire inconnu, `400` pour tout ce qui est refusé — mal signé, périmé,
+adressé ailleurs, illisible, un montant hors des bornes, un coût jamais publié — et `413` pour un corps de plus de
+1 Mio (`SyndicationWebhookController::MAX_BYTES`), lu jusqu'à un octet au-delà et pas plus loin, avant que la signature
+soit vérifiée sur les octets reçus.
 
 Le `Courier` livre la boîte d'envoi : chaque message dû est signé avec la clé de cette application et publié.
 

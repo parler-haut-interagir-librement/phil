@@ -141,6 +141,22 @@ final class GitHubSecretScanningControllerTest extends TestCase
         self::assertSame(Response::HTTP_OK, $this->post($longest, $this->keys->identifier, $this->keys->sign($longest))->getStatusCode());
     }
 
+    public function testATooLongBodyIsReadToOneBytePastTheLimitAndNoFurther(): void
+    {
+        $stream = fopen('php://temp', 'r+');
+        self::assertIsResource($stream);
+        fwrite($stream, str_repeat(' ', LeakReport::MAX_BYTES + 4096));
+        rewind($stream);
+        $request = Request::create('/', 'POST', content: $stream);
+        $request->headers->set(GitHubSecretScanningController::IDENTIFIER_HEADER, $this->keys->identifier);
+        $request->headers->set(GitHubSecretScanningController::SIGNATURE_HEADER, $this->keys->sign('[]'));
+
+        $controller = new GitHubSecretScanningController($this->tokens, new GitHubPublicKeys(new MockHttpClient(), new ArrayAdapter(), new MockClock()));
+
+        self::assertSame(Response::HTTP_REQUEST_ENTITY_TOO_LARGE, $controller($request)->getStatusCode());
+        self::assertSame(LeakReport::MAX_BYTES + 1, ftell($stream));
+    }
+
     public function testASignedBodyThatIsNotAReportIsABadRequest(): void
     {
         $response = $this->post('{"token":"x"}', $this->keys->identifier, $this->keys->sign('{"token":"x"}'));

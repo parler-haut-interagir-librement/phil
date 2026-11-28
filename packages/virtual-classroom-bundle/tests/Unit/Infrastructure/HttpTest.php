@@ -202,6 +202,21 @@ final class HttpTest extends TestCase
         self::assertSame(204, $controller(Request::create('/webhook', 'POST', server: ['CONTENT_LENGTH' => '1048576'], content: str_repeat(' ', 1_048_576)), 'main', $token)->getStatusCode());
     }
 
+    public function testABodyWithoutContentLengthIsReadToOneBytePastTheCeilingAndNoFurther(): void
+    {
+        $stage = new Stage();
+        $signer = new WebhookSigner(self::SECRET);
+        $stream = fopen('php://temp', 'r+');
+        self::assertIsResource($stream);
+        fwrite($stream, str_repeat(' ', WebhookController::MAX_BYTES + 4096));
+        rewind($stream);
+        $request = Request::create('/webhook', 'POST', content: $stream);
+        $request->headers->remove('Content-Length');
+
+        self::assertSame(413, new WebhookController($stage->classrooms, $signer)($request, 'main', $signer->token('main', null, 'account'))->getStatusCode());
+        self::assertSame(WebhookController::MAX_BYTES + 1, ftell($stream));
+    }
+
     public function testAContentLengthThatIsNoNumberIsNotTooLarge(): void
     {
         $stage = new Stage();

@@ -20,6 +20,9 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // `stream_get_contents()` gives `false` only on a stream already closed, which the request never hands over: the
+            // cast changes nothing that can be observed.
+            'CastString' => ['ignoreSourceCodeByRegex' => ['.*\\(string\\) stream_get_contents\\(.*']],
             // Past the five hundredth target the loop only reads the rest of the outline: a `continue` there names none
             // either, so the answer is the same and only the walk is longer.
             'Break_' => ['ignore' => [ScormRuntime::class.'::targets::313']],

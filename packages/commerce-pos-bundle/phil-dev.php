@@ -33,6 +33,9 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // `stream_get_contents()` gives `false` only on a stream already closed, which the request never hands over: the
+            // cast changes nothing that can be observed.
+            'CastString' => ['ignoreSourceCodeByRegex' => ['.*\\(string\\) stream_get_contents\\(.*']],
             // The quantity of the pricing context a preset hands to the core's `changeAudience()`: the core prices each
             // line again at the line's own quantity, keeping only the moment, the group and the channel of the context.
             'IncrementInteger' => [

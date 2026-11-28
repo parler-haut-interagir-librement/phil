@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5aa90328f1614585642e40c6d14ba3c1cb2977e00654911885a6cfd3f5617c71 -->
+<!-- phil-dev source-sha256=23bb7f7332054641501f141be74640caf9021df5ccbcfa278d81abe4883f8661 -->
 # Paiements
 
 Une commande passée est payée par un ou plusieurs paiements, chacun par un mode dont la passerelle parle à un
@@ -122,6 +122,7 @@ phil_commerce_payment_webhook:
 | 204 | Appliquée, déjà appliquée, refusée par l'état du paiement, ou ignorée | Cesse de l'envoyer |
 | 400 | La passerelle ne la vérifie pas ou ne la lit pas | Réessaie, puis abandonne |
 | 404 | Aucune passerelle pour le mode, ou pas encore de paiement sous la référence du processeur | Réessaie |
+| 413 | Un corps de plus de 1 Mio (`PaymentWebhookController::MAX_BYTES`), lu jusqu'à un octet au-delà et pas plus loin | Abandonne |
 
 Le changement est validé avant le 204 : une notification dont la réception est confirmée n'est jamais perdue. Une notification ignorée
 ne valide rien et est journalisée au niveau `info` du service `logger`, s'il y en a un, avec son identifiant, le type

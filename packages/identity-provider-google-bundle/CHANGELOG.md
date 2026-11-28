@@ -30,7 +30,8 @@ The next version is 0.1.0-alpha.
   received before through `ReplayGuard`, and dispatches `SecurityEventReceived`; `TransmitterSettings`, with
   `google()`; `SubjectHolds` and `CacheSubjectHolds`.
 - `RiscController` and its route `phil_identity_provider_google_risc`: `202` once acted on, `400` with the error code
-  of RFC 8935, `503` when the keys cannot be read, `404` while the receiver is off.
+  of RFC 8935, `503` when the keys cannot be read, `404` while the receiver is off; the body is read to one byte past
+  16 KiB and no further, whether a `Content-Length` was sent or not.
 - The Flex recipe: the bundle, its configuration and its route, and `GOOGLE_CLIENT_ID`.
 - The fuzz target `google-claims`.
 - The documentation in `doc/`: installation, configuration, linking accounts, Cross-Account Protection, extension
