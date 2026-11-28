@@ -42,6 +42,11 @@ by `withOptions()`, so that a slow provider holds a worker for seconds rather th
 a slow answer fails as a `GeocodingFailed` that a chain passes over. Either is above zero and at most 120 seconds, the
 whole call no shorter than the wait.
 
+A base URL may also be a path, `/nominatim`, that the client given resolves against its own base URI. A client that
+falls back to other base URIs when a request fails — Symfony's `RetryableHttpClient` over a `ScopingHttpClient`, as a
+scoped client with `retry_failed.base_uris` is built — then asks the mirrors of a self-hosted server in turn; a base
+URL that is a whole address stays on its host.
+
 ```php
 use Phil\Geo\Geocoding\Adapter\NominatimGeocoder;
 use Phil\Geo\Geocoding\Timeouts;
