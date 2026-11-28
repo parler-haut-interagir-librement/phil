@@ -55,6 +55,44 @@ final class IcsUrlSourceTest extends TestCase
         return array_values(array_filter($headers, \is_string(...)));
     }
 
+    public function testAFailureNamesThePrivateFeedWithoutItsQuery(): void
+    {
+        $sources = [
+            [new MockResponse('gone', ['http_code' => 404])],
+            [new MockResponse(self::CALENDAR.str_repeat("X-PAD:x\r\n", 200))],
+            [new MockResponse('<html></html>')],
+            [new MockResponse('', ['error' => 'Connection refused'])],
+        ];
+        $messages = [];
+
+        foreach ($sources as $responses) {
+            try {
+                $this->source($responses, bytes: 1024)->fetch($this->calendar('https://example.org:8443/feed.ics?token=s3cr3t#x'));
+                self::fail('The read fails.');
+            } catch (SourceUnavailable $sourceUnavailable) {
+                $messages[] = $sourceUnavailable->getMessage();
+                self::assertStringNotContainsString('s3cr3t', $sourceUnavailable->getMessage());
+            }
+        }
+
+        self::assertSame([
+            '"https://example.org:8443/feed.ics?…" answered with the status 404.',
+            '"https://example.org:8443/feed.ics?…" answered with more bytes than allowed.',
+            '"https://example.org:8443/feed.ics?…" is not a calendar the reader accepts: A calendar starts with BEGIN:VCALENDAR.',
+            '"https://example.org:8443/feed.ics?…" could not be read: Connection refused',
+        ], $messages);
+    }
+
+    public function testAFailureNamesAFeedWithAFragmentAloneWithoutIt(): void
+    {
+        try {
+            $this->source([new MockResponse('gone', ['http_code' => 404])])->fetch($this->calendar('https://example.org/feed.ics#s3cr3t'));
+            self::fail('The read fails.');
+        } catch (SourceUnavailable $sourceUnavailable) {
+            self::assertSame('"https://example.org/feed.ics?…" answered with the status 404.', $sourceUnavailable->getMessage());
+        }
+    }
+
     private function calendar(string $address = 'https://example.org/events.ics'): CalendarSource
     {
         return CalendarSource::of('club', $address, 'Asia/Tokyo');

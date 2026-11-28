@@ -124,4 +124,6 @@ final readonly class ExampleRevoker implements TokenRevoker
 ```
 
 RFC 7009 has the service answer 200 for a token it no longer knows, so revoking twice is harmless. A revoker that throws
-is logged and audited, never thrown to the caller: keep the token out of the exception's message, as the bundle logs it.
+is logged and audited, never thrown to the caller. The log keeps the exception's class and its message redacted, never
+the exception itself ([revocation at the service](secrets.md#revocation-at-the-service)); keep the token out of the
+message all the same, as the redaction recognizes the usual shapes of a credential, not every one.

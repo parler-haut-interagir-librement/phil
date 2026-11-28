@@ -13,6 +13,6 @@ final class TooManyRedirects extends RuntimeException implements SafeHttpExcepti
 {
     public static function after(int $redirects, string $address): self
     {
-        return new self(\sprintf('"%s" redirects more than %d times.', mb_substr($address, 0, 100), $redirects));
+        return new self(\sprintf('"%s" redirects more than %d times.', ShownAddress::of($address), $redirects));
     }
 }

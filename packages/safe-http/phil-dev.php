@@ -32,6 +32,11 @@ return [
     ],
     'infection' => [
         'mutators' => [
+            // preg_replace answers null only when PCRE gives up (backtrack or JIT stack limit); the patterns are possessive
+            // and linear, so no address reaches that: the cast to string only satisfies the type of mb_substr.
+            'CastString' => [
+                'ignoreSourceCodeByRegex' => ['\\$shown = \\(string\\) preg_replace\\(.*'],
+            ],
             // The time left is a float of nanoseconds read twice from the clock: it is never exactly 0 where a
             // read follows the deadline, so `<=` and `<` cannot be told apart.
             'LessThanOrEqualTo' => [

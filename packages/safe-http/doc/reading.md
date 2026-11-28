@@ -114,8 +114,12 @@ none of them, only the `Accept` of the rule and the `User-Agent` of the limits. 
 API key never reach a host the request did not name.
 
 The client writes no log, and none of its messages names a header's value: the exceptions name the address, the
-method and the status. A transport given to the client keeps its own logger, if it has one; Symfony HttpClient's logs
-name the method and the address of a request, never its headers.
+method and the status. An address in a message loses its user information, written `…@`, and its query and
+fragment, written `?…` — the places where a feed, a signed link or a webhook keeps its secret —, and is cut to 100
+characters: `"https://calendar.example/feed.ics?…" could not be read: Connection refused`. The message of a transport
+error is added with its addresses shown the same way, and that error is not kept as the previous exception of
+`FetchFailed` or of `RefusedAddress`, since it holds the whole address. A transport given to the client keeps its own
+logger, if it has one; Symfony HttpClient's logs name the method and the address of a request, never its headers.
 
 ## The answer
 

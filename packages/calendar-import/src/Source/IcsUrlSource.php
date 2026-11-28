@@ -22,7 +22,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 /**
  * An iCalendar feed read by its address, through `phil/safe-http`: no private network, every redirect checked, time and
  * bytes bounded. The read is conditional when validators are given — `If-None-Match`, `If-Modified-Since` —, and a
- * `304 Not Modified` changes nothing.
+ * `304 Not Modified` changes nothing. A failure names the feed by its address without its query and fragment, `?…`
+ * standing for them, since a private feed often keeps its secret there.
  */
 final readonly class IcsUrlSource implements EventSource
 {
@@ -50,7 +51,9 @@ final readonly class IcsUrlSource implements EventSource
     public function fetch(CalendarSource $source, ?FetchValidators $validators = null): Fetched
     {
         $validators ??= new FetchValidators();
-        $address = $source->url->toString();
+        $url = $source->url;
+        // A private feed often keeps its secret in its query: a message shows the address without it.
+        $address = $url->scheme.'://'.$url->host.(null === $url->port ? '' : ':'.$url->port).$url->path.(null === $url->query && null === $url->fragment ? '' : '?…');
 
         try {
             $response = $this->client->send('GET', $source->url, $validators->headers(), '', new ReadRule(self::ACCEPT));

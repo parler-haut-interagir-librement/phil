@@ -25,6 +25,7 @@
     "require": {
         "php": ">=8.5",
         "ext-filter": "*",
+        "ext-mbstring": "*",
         "ext-openssl": "*",
         "ext-sodium": "*",
         "doctrine/collections": "^3.1",

@@ -40,6 +40,10 @@ calendar this time throws `SourceUnavailable`, whose `kind` says why:
 | `TooLarge` | more bytes than allowed |
 | `Invalid` | an answer the reader refuses whole |
 
+The message of a `SourceUnavailable` from `IcsUrlSource`, which the state keeps as the failure's message, names the
+feed by its address without its query and fragment — `"https://calendar.example/feed.ics?…" answered with the status
+404.` —, since a private feed often keeps its secret there; the addresses in a transport error are shown the same way.
+
 ## The iCalendar feed
 
 `IcsUrlSource` reads a feed through `phil/safe-http`.

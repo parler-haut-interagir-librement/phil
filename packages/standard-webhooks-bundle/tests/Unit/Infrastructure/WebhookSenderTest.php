@@ -125,7 +125,59 @@ final class WebhookSenderTest extends TestCase
             self::fail('An unanswered delivery succeeded.');
         } catch (DeliveryFailed $deliveryFailed) {
             self::assertSame([null, 'The webhook msg_1 was not answered: Connection refused', 0, true], [$deliveryFailed->status, $deliveryFailed->getMessage(), $deliveryFailed->getCode(), $deliveryFailed->retryable]);
-            self::assertInstanceOf(TransportException::class, $deliveryFailed->getPrevious());
+            self::assertSame(TransportException::class, $deliveryFailed->cause);
+            self::assertNull($deliveryFailed->getPrevious());
+        }
+    }
+
+    public function testATransportErrorKeepsOnlyTheOriginOfTheReceiversUrl(): void
+    {
+        $client = new MockHttpClient(static fn (string $method, string $url): MockResponse => throw new TransportException(\sprintf("Timeout was reached for \"%s\".\nRetry https://user:pass@hooks.example:8443/x?y#z later", $url)));
+
+        try {
+            new WebhookSender($client, new Signer(), new SigningKeys(HmacSecret::generate()), new NativeClock(), allowPrivateNetworks: true)->send('https://hooks.example/catch/123/s3cr3t-path?token=s3cr3t-query', self::BODY, WebhookId::fromString('msg_1'));
+            self::fail('An unanswered delivery succeeded.');
+        } catch (DeliveryFailed $deliveryFailed) {
+            self::assertSame('The webhook msg_1 was not answered: Timeout was reached for "https://hooks.example". Retry https://hooks.example:8443 later', $deliveryFailed->getMessage());
+            self::assertNull($deliveryFailed->getPrevious());
+            self::assertSame(TransportException::class, $deliveryFailed->cause);
+        }
+    }
+
+    public function testATransportErrorIsBounded(): void
+    {
+        $client = new MockHttpClient(static fn (): MockResponse => throw new TransportException(str_repeat('e', 3000)));
+
+        try {
+            new WebhookSender($client, new Signer(), new SigningKeys(HmacSecret::generate()), new NativeClock(), allowPrivateNetworks: true)->send('https://hooks.example/hook', self::BODY, WebhookId::fromString('msg_1'));
+            self::fail('An unanswered delivery succeeded.');
+        } catch (DeliveryFailed $deliveryFailed) {
+            self::assertSame('The webhook msg_1 was not answered: '.str_repeat('e', 500), $deliveryFailed->getMessage());
+        }
+    }
+
+    public function testATransportErrorIsReadOnlyUpToItsFirst2048Bytes(): void
+    {
+        // A run of control characters becomes one space: the answer shows where the read stopped.
+        $client = new MockHttpClient(static fn (): MockResponse => throw new TransportException('Z'.str_repeat("\n", 2046).'ABC'));
+
+        try {
+            new WebhookSender($client, new Signer(), new SigningKeys(HmacSecret::generate()), new NativeClock(), allowPrivateNetworks: true)->send('https://hooks.example/hook', self::BODY, WebhookId::fromString('msg_1'));
+            self::fail('An unanswered delivery succeeded.');
+        } catch (DeliveryFailed $deliveryFailed) {
+            self::assertSame('The webhook msg_1 was not answered: Z A', $deliveryFailed->getMessage());
+        }
+    }
+
+    public function testABoundedTransportErrorKeepsItsFirstCharacters(): void
+    {
+        $client = new MockHttpClient(static fn (): MockResponse => throw new TransportException('b'.str_repeat('a', 600)));
+
+        try {
+            new WebhookSender($client, new Signer(), new SigningKeys(HmacSecret::generate()), new NativeClock(), allowPrivateNetworks: true)->send('https://hooks.example/hook', self::BODY, WebhookId::fromString('msg_1'));
+            self::fail('An unanswered delivery succeeded.');
+        } catch (DeliveryFailed $deliveryFailed) {
+            self::assertSame('The webhook msg_1 was not answered: b'.str_repeat('a', 499), $deliveryFailed->getMessage());
         }
     }
 

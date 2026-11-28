@@ -8,7 +8,12 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.2.1-alpha.
 
-Development only.
+### Security
+
+- `DeliveryFailed` for a delivery that was not answered keeps each URL of the transport error as its origin alone
+  (scheme, host and port), on one line of at most 500 characters, and no longer holds the transport error as its
+  previous exception: the new `DeliveryFailed::$cause` names its class. A receiver's secret in the path or the query
+  of its URL, which the HTTP client writes into its errors, no longer reaches a log or a failed Messenger message.
 
 ### Changed
 

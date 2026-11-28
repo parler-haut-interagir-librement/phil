@@ -22,7 +22,7 @@ final class AddressGuardTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string}>
+     * @return iterable<string, array{0: string, 1?: string}>
      */
     public static function refused(): iterable
     {
@@ -31,8 +31,8 @@ final class AddressGuardTest extends TestCase
         yield 'decimal IPv4' => ['http://2130706433/'];
         yield 'hexadecimal IPv4' => ['http://0x7f000001/'];
         yield 'IPv6' => ['http://[::ffff:127.0.0.1]/'];
-        yield 'credentials' => ['https://a:b@example.com/'];
-        yield 'empty credentials' => ['https://@example.com/'];
+        yield 'credentials' => ['https://a:b@example.com/', 'https://…@example.com/'];
+        yield 'empty credentials' => ['https://@example.com/', 'https://…@example.com/'];
         yield 'port 0' => ['https://example.com:0/'];
         yield 'scheme' => ['ftp://example.com/'];
         yield 'single label' => ['http://localhost/'];
@@ -41,13 +41,13 @@ final class AddressGuardTest extends TestCase
     }
 
     #[DataProvider('refused')]
-    public function testAnAddressThatIsNotAPublicHostNameIsRefused(string $address): void
+    public function testAnAddressThatIsNotAPublicHostNameIsRefused(string $address, ?string $shown = null): void
     {
         try {
             AddressGuard::address($address);
             self::fail('The address is refused.');
         } catch (RefusedAddress $refusedAddress) {
-            self::assertSame(\sprintf('"%s" is not an http or https address of a host name.', mb_substr($address, 0, 100)), $refusedAddress->getMessage());
+            self::assertSame(\sprintf('"%s" is not an http or https address of a host name.', $shown ?? mb_substr($address, 0, 100)), $refusedAddress->getMessage());
             self::assertInstanceOf(InvalidUrl::class, $refusedAddress->getPrevious());
         }
     }
@@ -103,7 +103,7 @@ final class AddressGuardTest extends TestCase
     public static function downgrades(): iterable
     {
         yield 'same host' => ['http://example.com/plain', 'http://example.com/plain'];
-        yield 'other host' => ['http://example.org/x?q=1', 'http://example.org/x?q=1'];
+        yield 'other host' => ['http://example.org/x?q=1', 'http://example.org/x?…'];
         yield 'scheme in capitals' => ['HTTP://EXAMPLE.COM/', 'http://example.com/'];
         yield 'port of https' => ['http://example.com:443/', 'http://example.com:443/'];
     }

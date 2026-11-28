@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=30b9da082873959f5166dad43fdc6d1988dd1b52ed03086f5daacfb27bf2e645 -->
+<!-- phil-dev source-sha256=260a5a5ea7816097321777195b2a3acdb769da5d86c5f5f1a4ba3c1a21d27df8 -->
 # Stocker et lire les secrets
 
 `UserSecrets` est le service du bundle. Chaque méthode nomme le propriétaire — la personne, par l'identifiant opaque
@@ -81,9 +81,17 @@ bundle demande aussi au service de le révoquer, une fois le jeton disparu local
 en charge le service reçoit le jeton, en général pour le point de terminaison de révocation du service
 ([RFC 7009](https://www.rfc-editor.org/rfc/rfc7009)). Un événement `revoked_at_service` suit. Un révocateur qui lève
 une exception — le service est en panne, refuse, ou le révocateur a un bogue — ne ramène jamais le jeton et n'arrête
-jamais un effacement : l'échec est écrit dans le service `logger` au niveau `warning`, avec son exception, et un
+jamais un effacement : l'échec est écrit dans le service `logger` au niveau `warning`, et un
 événement `service_revocation_failed` va aux auditeurs. Une valeur scellée qui ne s'ouvre plus est journalisée de la
 même façon et effacée malgré tout.
+
+L'enregistrement du journal a un message fixe et un contexte d'identifiants : `owner`, `secret`, `service`,
+`exception_class`, et `reason`, le message de l'exception caviardé. L'exception elle-même reste hors de
+l'enregistrement, puisque son message et sa trace peuvent contenir le jeton que le révocateur envoyait. La raison tient
+sur une seule ligne d'au plus 240 caractères, sans les jetons d'accès et de rafraîchissement du secret, sans les
+informations d'utilisateur, la requête et le fragment d'une URL, sans la valeur d'un schéma d'authentification
+(`Bearer …`) ni d'un champ nommé comme un justificatif (`access_token=…`, `"client_secret": …`), et sans aucune suite
+de 20 lettres, chiffres, `-`, `_`, `+` ou `=` ou plus qui mêle lettres et chiffres.
 
 Les clés d'API ne sont pas révoquées auprès du service : peu de services offrent un point de terminaison pour cela, et
 le propriétaire révoque une clé là où il l'a créée. Un secret dont aucun révocateur ne dessert le service n'est pas

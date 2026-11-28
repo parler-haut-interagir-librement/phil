@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=0b128dca158aef66ab740a8fdd86db12523b17db35ff00643a6088aed5403ad8 -->
+<!-- phil-dev source-sha256=0d4806dcf5f0f60c8ad6707b82ddf0b4ac4e53c2e15de687bf311e24cf46e916 -->
 # Jetons OAuth
 
 ## Un jeton
@@ -129,5 +129,7 @@ final readonly class ExampleRevoker implements TokenRevoker
 ```
 
 La RFC 7009 fait répondre 200 au service pour un jeton qu'il ne connaît plus : révoquer deux fois est donc sans
-conséquence. Un révocateur qui lève une exception est journalisé et audité, jamais levé jusqu'à l'appelant : gardez le
-jeton hors du message de l'exception, car le bundle le journalise.
+conséquence. Un révocateur qui lève une exception est journalisé et audité, jamais levé jusqu'à l'appelant. Le journal garde
+la classe de l'exception et son message caviardé, jamais l'exception elle-même
+([révocation auprès du service](secrets.md#révocation-auprès-du-service)) ; gardez tout de même le jeton hors du
+message, car le caviardage reconnaît les formes usuelles d'un justificatif, pas toutes.

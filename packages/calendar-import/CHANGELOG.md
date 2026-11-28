@@ -4,6 +4,16 @@ All notable changes to `phil/calendar-import` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.1-alpha.
+
+### Security
+
+- The messages of `SourceUnavailable` from `IcsUrlSource`, which the state keeps as the failure's message, name the
+  feed by its address without its query and fragment (`?…`): the secret of a private feed no longer reaches the state,
+  a log or a screen of failures.
+
 ## 0.1.0-alpha - 2026-11-27
 
 ### Added
