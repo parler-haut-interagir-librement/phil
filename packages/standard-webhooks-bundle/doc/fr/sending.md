@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8802277bff73ebed282202c5fbeff18167a1a6054b9f7692ab37187c89e6a71e -->
+<!-- phil-dev source-sha256=416e9c02137dc49595dd65f36d4f83c046f90a201d08999c863fc7296ca13cc3 -->
 # Envoi
 
 `WebhookSender::send()` fait une tentative d'une livraison : le corps, signé avec les clés de signature configurées à
@@ -28,6 +28,12 @@ répond pas, ou a une URL que l'expéditeur refuse. `DeliveryFailed::$retryable`
 refusée est permanent : la même livraison échoue de la même façon. Un `5xx` ou une absence de réponse vaut une
 nouvelle tentative, avec le même identifiant, selon le calendrier de l'application — une stratégie de nouvelles
 tentatives de Messenger, une boîte d'envoi et un planificateur —, dans la fenêtre de déduplication du récepteur.
+
+L'URL d'un récepteur contient souvent le secret du récepteur, dans son chemin ou sa requête, et le client HTTP écrit
+l'URL dans ses erreurs de transport. Le message d'une `DeliveryFailed` garde donc chaque URL réduite à son origine —
+`https://hooks.example.com`, avec le port quand il y en a un —, sur une seule ligne d'au plus 500 caractères, et
+l'erreur de transport n'est pas son exception précédente : `DeliveryFailed::$cause` en nomme la classe. Un journal ou
+un message Messenger en échec garde l'échec sans le secret du récepteur.
 
 ## Des URL de récepteurs données par d'autres
 

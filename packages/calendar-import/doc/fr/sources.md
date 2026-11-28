@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=377117b2f8f01d46c64d6413ef57d0732af974e142f0ae4d8eba697b568a0b76 -->
+<!-- phil-dev source-sha256=f525ad8af0e6ceb825ce7c81a8e46a4b7670d81eea4920f311ca05858525f9e9 -->
 # Sources
 
 Une source est l'endroit d'où viennent les événements. La bibliothèque la lit par un port, `EventSource`, et fournit
@@ -42,6 +42,11 @@ donne aucun calendrier cette fois-ci lance `SourceUnavailable`, dont le `kind` d
 | `Refused` | l'adresse, ou une redirection, mène à un réseau privé ; une redirection non permise ; trop de redirections |
 | `TooLarge` | plus d'octets que permis |
 | `Invalid` | une réponse que le lecteur refuse en entier |
+
+Le message d'une `SourceUnavailable` de `IcsUrlSource`, que l'état garde comme message de l'échec, nomme le flux par son
+adresse sans sa requête ni son fragment — `"https://calendar.example/feed.ics?…" answered with the status 404.` —,
+puisqu'un flux privé garde souvent son secret à cet endroit ; les adresses d'une erreur de transport sont montrées de
+la même façon.
 
 ## Le flux iCalendar
 

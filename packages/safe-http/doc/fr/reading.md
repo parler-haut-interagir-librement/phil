@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5ca01c155afd2e54a6b65ec5ac028883e45a262ad53257c0777c8cd6c2eaddfc -->
+<!-- phil-dev source-sha256=51d7c6954f62da18517108617c8b0e4314529a7c5ecb6ab2044b28cab02d1a8c -->
 # Lecture
 
 ## Le client
@@ -117,8 +117,13 @@ HTTPS — n'en porte aucun, seulement l'en-tête `Accept` de la règle et le `Us
 un `Cookie` ou une clé d'API n'atteint jamais un hôte que la requête n'a pas nommé.
 
 Le client n'écrit aucun journal, et aucun de ses messages ne nomme la valeur d'un en-tête : les exceptions nomment
-l'adresse, la méthode et le statut. Un transport donné au client garde son propre journaliseur, s'il en a un ; les
-journaux de HttpClient de Symfony nomment la méthode et l'adresse d'une requête, jamais ses en-têtes.
+l'adresse, la méthode et le statut. Une adresse dans un message perd ses informations d'utilisateur, écrites `…@`, sa
+requête et son fragment, écrits `?…` — les endroits où un flux, un lien signé ou un webhook garde son secret —, et est
+coupée à 100 caractères : `"https://calendar.example/feed.ics?…" could not be read: Connection refused`. Le message
+d'une erreur de transport est ajouté avec ses adresses montrées de la même façon, et cette erreur n'est pas gardée
+comme exception précédente de `FetchFailed` ni de `RefusedAddress`, puisqu'elle contient l'adresse entière. Un
+transport donné au client garde son propre journaliseur, s'il en a un ; les journaux de HttpClient de Symfony nomment
+la méthode et l'adresse d'une requête, jamais ses en-têtes.
 
 ## La réponse
 
