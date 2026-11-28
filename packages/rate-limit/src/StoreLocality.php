@@ -11,6 +11,7 @@ use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\RateLimiter\RateLimiterBuilder;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\CacheStorage;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
@@ -39,6 +40,9 @@ final readonly class StoreLocality
 
     /** The abstract service of the framework whose children are the limiters of its configuration. */
     public const string LIMITER = 'limiter';
+
+    /** The framework's `RateLimiterBuilder`, whose factories are created at runtime on its storage. */
+    public const string BUILDER = 'limiter_builder';
 
     /** The most services followed from the one asked about. */
     public const int MAX_DEPTH = 32;
@@ -93,6 +97,7 @@ final readonly class StoreLocality
             $pool = match ($class) {
                 CacheStorage::class => $this->poolOf($definition->getArguments()),
                 RateLimiterFactory::class => $this->storageOf($definition->getArguments()),
+                RateLimiterBuilder::class => $this->builderStorageOf($definition->getArguments()),
                 default => null,
             };
 
@@ -116,6 +121,18 @@ final readonly class StoreLocality
         $pool = $arguments[0] ?? $arguments['$pool'] ?? null;
 
         return $pool instanceof Reference ? (string) $pool : null;
+    }
+
+    /**
+     * The storage a `RateLimiterBuilder` is given, by position or by name.
+     *
+     * @param array<array-key, mixed> $arguments
+     */
+    private function builderStorageOf(array $arguments): ?string
+    {
+        $storage = $arguments[0] ?? $arguments['$storage'] ?? null;
+
+        return $storage instanceof Reference ? (string) $storage : null;
     }
 
     /**

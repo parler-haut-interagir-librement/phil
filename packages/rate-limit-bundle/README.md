@@ -2,24 +2,25 @@
 
 **Rate limits declared on Symfony controllers, routes and forms.**
 
-phil/rate-limit-bundle holds requests to named limiters: `#[RateLimit]` on a controller or an action, the route default
-`_rate_limit`, and the `rate_limit` option of a form. The limiters are fixed windows, sliding windows, token buckets and
+phil/rate-limit-bundle holds requests to named limiters: Symfony's `#[RateLimit]` on a controller or an action, the
+route default `_rate_limit`, and the `rate_limit` option of a form. The limiters are fixed windows, sliding windows, token buckets and
 compounds of `symfony/rate-limiter`, declared in the bundle's configuration with their storage, or those of other
 packages. Each request counts under a key — the client's address, the signed-in user, the address and the route, or the
 application's own —, always a keyed hash, never an address in clear. A refusal is answered `429 Too Many Requests` with
 `Retry-After` and the `RateLimit-Policy` and `RateLimit` fields of the IETF draft: a problem in JSON to an API, a Twig
-page to a browser, an error on the form. Each refusal is dispatched as an event.
+page to a browser, an error on the form. Each refusal is dispatched as an event, the bundle's and Symfony's
+`RateLimitExceededEvent`.
 
 ## Status
 
 | Part | State |
 |---|---|
-| `#[RateLimit]` on classes and actions, the route default `_rate_limit` | Implemented and tested |
+| Symfony's `#[RateLimit]` on classes and actions, with its `if`, its `RateLimit` argument and its consumption before the arguments; the route default `_rate_limit` | Implemented and tested |
 | Fixed window, sliding window, token bucket, compound and factory limiters, checked at build | Implemented and tested |
 | Keys `ip`, `user`, `user_or_ip`, `ip_route` and the application's, the network with phil/ip-anonymizer | Implemented and tested |
 | `429` with `Retry-After`, draft or legacy `RateLimit` headers, problem JSON, Twig page in English and French | Implemented and tested |
 | Form submissions limited by form name | Implemented and tested |
-| The `RateLimitExceeded` event, limiters of other packages by tag | Implemented and tested |
+| The `RateLimitExceeded` event and Symfony's `RateLimitExceededEvent`, limiters of other packages by tag | Implemented and tested |
 | Limiters in observation: the `RateLimitObserved` event and a warning, without refusing | Implemented and tested |
 | A store local to each server refused in `prod`, with the guard of phil/rate-limit | Implemented and tested |
 
@@ -29,7 +30,7 @@ page to a browser, an error on the form. Each refusal is dispatched as an event.
 |---|---|
 | [Installation](doc/installation.md) | Requirements, the bundle, the storage. |
 | [Configuration](doc/configuration.md) | Every option, with an example. |
-| [Limiting requests](doc/rules.md) | The attribute, the route default, the order of the rules. |
+| [Limiting requests](doc/rules.md) | Symfony's attribute, the route default, the order of the rules beside `#[IsGranted]`. |
 | [Keys](doc/keys.md) | Who a request counts for, and how the keys are hashed. |
 | [Responses](doc/responses.md) | The `429`, its headers, the problem in JSON, the page, the event. |
 | [Forms](doc/forms.md) | Limiting the submissions of a form by its name. |
@@ -57,7 +58,7 @@ phil_rate_limit:
 ```
 
 ```php
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 
 #[RateLimit('api')]
 final class SearchController
@@ -67,13 +68,15 @@ final class SearchController
 }
 ```
 
+The attribute is Symfony's own: the bundle gives it its limiters, keeps their keys hashed, and answers their refusals.
+
 A login form is limited by Symfony itself: `security.firewalls.<name>.login_throttling` counts each attempt before the
 password is checked and groups IPv6 addresses by /64. The bundle limits everything else: APIs, the other forms, the
 controllers and routes. See [Login forms](doc/configuration.md#login-forms).
 
 ## Requirements
 
-PHP 8.5 or later and Symfony 8.2 or later with FrameworkBundle; TwigBundle for the refusal page, the form component for
+PHP 8.5 or later and Symfony 8.2 or later with FrameworkBundle and its `rate_limiter`; TwigBundle for the refusal page, the form component for
 forms, security for the user keys, phil/ip-anonymizer for network keys, a PSR-3 logger for the warnings of a limiter
 in observation. phil/rate-limit, required, guards the stores in production.
 

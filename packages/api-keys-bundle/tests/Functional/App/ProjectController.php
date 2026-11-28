@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phil\ApiKeysBundle\Tests\Functional\App;
 
 use Phil\ApiKeysBundle\Infrastructure\Attribute\RequiresScope;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**

@@ -8,12 +8,15 @@ use Phil\RateLimitBundle\Application\KeyResolvers;
 use Phil\RateLimitBundle\Application\Limiters;
 use Phil\RateLimitBundle\Application\RateLimitEnforcer;
 use Phil\RateLimitBundle\Application\RateLimitHeaders;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
 use Phil\RateLimitBundle\Infrastructure\Http\RateLimitListener;
 use Phil\RateLimitBundle\Infrastructure\Key\ClientIpKey;
+use Phil\RateLimitBundle\Infrastructure\RateLimiter\AttributeLimiterFactory;
+use Phil\RateLimitBundle\Infrastructure\RateLimiter\AttributeLimits;
 use Phil\RateLimitBundle\Infrastructure\RateLimiter\SymfonyLimiter;
 use Phil\RateLimitBundle\Tests\Unit\Fixture\Locator;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -22,9 +25,10 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 
 /**
- * What the listener adds to every request: a controller without a rule, one with a rule and three, each over a
- * sliding window of symfony/rate-limiter on a memory storage — the cost of the bundle, the storage's own I/O aside —,
- * and the headers written on the response.
+ * What the bundle adds to every request: a route without a rule, one with a rule and three in its `_rate_limit`
+ * default, and one consumption of Symfony's `#[RateLimit]` through the bundle, each over a sliding window of
+ * symfony/rate-limiter on a memory storage — the cost of the bundle, the storage's own I/O aside —, and the headers
+ * written on the response.
  *
  * @BeforeMethods("setUp")
  *
@@ -35,6 +39,10 @@ final class RateLimitListenerBench
     private RateLimitListener $listener;
 
     private HttpKernelInterface $kernel;
+
+    private AttributeLimits $limits;
+
+    private RequestStack $requests;
 
     public function __construct()
     {
@@ -52,6 +60,8 @@ final class RateLimitListenerBench
         $defaults = array_map(static fn (): array => ['key' => 'ip', 'amount' => 1], $limiters);
         $enforcer = new RateLimitEnforcer(new Limiters(new Locator($limiters), $defaults), new KeyResolvers(new Locator(['ip' => new ClientIpKey('a secret of the bench')]), ['ip']), new RateLimitHeaders());
         $this->listener = new RateLimitListener($enforcer);
+        $this->requests = new RequestStack();
+        $this->limits = new AttributeLimits($enforcer, new KeyResolvers(new Locator(['ip' => new ClientIpKey('a secret of the bench')]), ['ip']), $this->requests, 'a secret of the bench');
         $this->kernel = new class implements HttpKernelInterface {
             public function handle(Request $request, int $type = self::MAIN_REQUEST, bool $catch = true): Response
             {
@@ -67,24 +77,35 @@ final class RateLimitListenerBench
 
     public function benchOneRule(): void
     {
-        $this->request([new RateLimit('a')]);
+        $this->request([new Rule('a')]);
     }
 
     public function benchThreeRules(): void
     {
-        $this->request([new RateLimit('a'), new RateLimit('b'), new RateLimit('c')]);
+        $this->request([new Rule('a'), new Rule('b'), new Rule('c')]);
+    }
+
+    public function benchOneAttribute(): void
+    {
+        $request = Request::create('/', server: ['REMOTE_ADDR' => '203.0.113.'.random_int(1, 254)]);
+        $this->requests->push($request);
+        new AttributeLimiterFactory($this->limits, 'a')->create(AttributeLimits::defaultKeyOf($request))->consume();
+        $this->requests->pop();
+        $this->listener->onKernelResponse(new ResponseEvent($this->kernel, $request, HttpKernelInterface::MAIN_REQUEST, new Response()));
     }
 
     /**
-     * @param list<RateLimit> $rules
+     * @param list<Rule> $rules
      */
     private function request(array $rules): void
     {
         $request = Request::create('/', server: ['REMOTE_ADDR' => '203.0.113.'.random_int(1, 254)]);
-        $event = new ControllerEvent($this->kernel, static fn (): Response => new Response(), $request, HttpKernelInterface::MAIN_REQUEST);
-        $event->setController($event->getController(), $rules);
 
-        $this->listener->onKernelController($event);
+        if ([] !== $rules) {
+            $request->attributes->set(RateLimitListener::ROUTE_DEFAULT, $rules);
+        }
+
+        $this->listener->onKernelController(new ControllerEvent($this->kernel, static fn (): Response => new Response(), $request, HttpKernelInterface::MAIN_REQUEST));
         $this->listener->onKernelResponse(new ResponseEvent($this->kernel, $request, HttpKernelInterface::MAIN_REQUEST, new Response()));
     }
 }

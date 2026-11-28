@@ -15,6 +15,9 @@ use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\RateLimiter\RateLimiterBuilder;
+use Symfony\Component\RateLimiter\Storage\CacheStorage;
 
 #[CoversClass(RateLimitGuard::class)]
 #[UsesClass(StoreLocality::class)]
@@ -64,6 +67,21 @@ final class RateLimitGuardTest extends TestCase
 
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessageIsOrContains('the.path: the store "cache.pool" is local to each server, so a client could spend the limit once per server. Name a cache pool on a shared store — Redis, Memcached, a database —, or set "single_server" to true on a single server.');
+
+        new RateLimitGuard()->process($container);
+    }
+
+    public function testTheBuilderOfTheFrameworkIsRefusedOnALocalStorage(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.environment', 'prod');
+        $container->setDefinition('cache.pool', new Definition(FilesystemAdapter::class));
+        $container->setDefinition('limiter_builder.storage', new Definition(CacheStorage::class, [new Reference('cache.pool')]));
+        $container->setDefinition(StoreLocality::BUILDER, new Definition(RateLimiterBuilder::class, [new Reference('limiter_builder.storage')]));
+        RateLimitGuard::watch($container, StoreLocality::BUILDER, 'acme.plans');
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageIsOrContains('acme.plans: the store "limiter_builder" is local to each server');
 
         new RateLimitGuard()->process($container);
     }

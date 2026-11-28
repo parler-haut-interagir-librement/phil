@@ -50,9 +50,11 @@ service `phil_rate_limit.network_address`, or decorate `phil_rate_limit.key.ip`.
 | `Phil\RateLimitBundle\Application\RateLimitEnforcer` (public) | Holds a request to rules, from code that limits its own way |
 | `phil_rate_limit.key.ip`, `.user`, `.user_or_ip`, `.ip_route` | The key strategies |
 | `phil_rate_limit.limiter.<name>`, `phil_rate_limit.factory.<name>` | Each configured limiter and its factory |
+| `phil_rate_limit.attribute.<name>` | Each limiter, tagged and other packages' alike, as Symfony's `#[RateLimit]` names it: a factory tagged `rate_limiter` |
+| `Phil\RateLimitBundle\Infrastructure\RateLimiter\AttributeLimits` | What those factories consume through |
 
 ```php
-$decision = $enforcer->enforce($request, [new RateLimit('exports', 5)]);
+$decision = $enforcer->enforce($request, [new Rule('exports', 5)]);
 ```
 
 ## Events
@@ -61,6 +63,7 @@ $decision = $enforcer->enforce($request, [new RateLimit('exports', 5)]);
 |---|---|
 | `Phil\RateLimitBundle\Application\Event\RateLimitExceeded` | A limiter refused a request or a submission, before it is answered |
 | `Phil\RateLimitBundle\Application\Event\RateLimitObserved` | A limiter in observation would have refused a request or a submission, which goes on |
+| `Symfony\Component\RateLimiter\Event\RateLimitExceededEvent` | Symfony's event of a refusal: dispatched by the bundle after `RateLimitExceeded` on its limiters, with the hashed key, and by Symfony's listener on the limiters of the framework's configuration, with the key as Symfony computed it |
 
 ## Templates and translations
 

@@ -22,14 +22,15 @@ phil_usage_meter:
 ```
 
 ```php
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 
 #[RateLimit('api')]
 #[RequiresScope('projects:read')]
 final class ProjectController
 ```
 
-The rule runs on `kernel.controller`, after the firewall, so the token is known; a refusal is answered `429` with
+Symfony's attribute names the limiter, and the limiter's key strategy counts the request by its token. The rule runs on
+`kernel.controller`, after the firewall, so the token is known; a refusal is answered `429` with
 `Retry-After` and the rate-limit headers, which the counted responses carry too. On a meter, a limit provider's subject
 is `api_token:` and the identifier. Pair the rule with one by client address for the requests without a token.
 

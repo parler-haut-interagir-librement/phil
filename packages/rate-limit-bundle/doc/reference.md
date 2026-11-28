@@ -4,7 +4,7 @@
 
 | Class | Role |
 |---|---|
-| `Domain\Attribute\RateLimit` | The repeatable attribute: limiter, amount, key strategy |
+| `Domain\ValueObject\Rule` | One rule of a route default or a form: limiter, amount, key strategy |
 | `Domain\ValueObject\Decision` | What a limiter answered, and which of two decisions leaves less |
 | `Domain\HeaderStyle` | `draft`, `legacy`, `both`, `none` |
 | `Domain\Exception\RateLimitException` | The marker of the bundle's exceptions |
@@ -22,7 +22,7 @@
 | `Application\KeyResolvers` | The key strategies, by name |
 | `Application\IdentifierKey` | `normalize()`: the form of a username or an e-mail address a key is built from, as Symfony's login throttling builds its own |
 | `Application\RateLimitRules` | The route default and the form option read as rules |
-| `Application\RateLimitEnforcer` | Holds a request to its rules |
+| `Application\RateLimitEnforcer` | Holds a request to its rules, consumes one limit for a hashed key, keeps the tightest decision for the headers |
 | `Application\RateLimitHeaders` | The headers of a decision |
 | `Application\Event\RateLimitExceeded` | The event of a refusal |
 | `Application\Event\RateLimitObserved` | The event of a refusal a limiter in observation did not enforce |
@@ -32,15 +32,18 @@
 
 | Class | Role |
 |---|---|
-| `Infrastructure\Http\RateLimitListener` | `kernel.controller` and `kernel.response` |
-| `Infrastructure\Http\TooManyRequestsResponder` | `kernel.exception`: the problem in JSON or the page |
+| `Infrastructure\Http\RateLimitListener` | `kernel.controller`: the route default; `kernel.response`: the headers |
+| `Infrastructure\Http\TooManyRequestsResponder` | `kernel.exception`: the problem in JSON or the page, for the bundle's refusals and those of Symfony's attribute |
 | `Infrastructure\Key\ClientIpKey`, `UserKey`, `UserOrIpKey`, `IpRouteKey` | The four key strategies |
 | `Infrastructure\IpAnonymizer\NetworkAddress` | The client's network with phil/ip-anonymizer |
 | `Infrastructure\RateLimiter\SymfonyLimiter` | A factory of symfony/rate-limiter as a limiter |
+| `Infrastructure\RateLimiter\AttributeLimiterFactory` | A limiter of the bundle as Symfony's `#[RateLimit]` names it, tagged `rate_limiter` |
+| `Infrastructure\RateLimiter\AttributeLimiter` | The limiter of one key it creates: it consumes, and neither reserves nor resets |
+| `Infrastructure\RateLimiter\AttributeLimits` | The key of Symfony's attribute turned into a key of the bundle, and the consumption through the enforcer |
 | `Infrastructure\Form\RateLimitTypeExtension` | The submissions of forms |
 | `Infrastructure\DependencyInjection\RateLimitServices` | The services of the configuration |
-| `Infrastructure\DependencyInjection\LimitersPass` | The tagged limiters and strategies, and the build's checks |
-| `Infrastructure\Http\RateLimitCacheWarmer` | Stops the build on a rule of a route or a controller that names what nothing declares |
+| `Infrastructure\DependencyInjection\LimitersPass` | The tagged limiters and strategies, their factories for Symfony's attribute, and the build's checks |
+| `Infrastructure\Http\RateLimitCacheWarmer` | Stops the build on a route default or a `#[RateLimit]` that names what nothing declares |
 | `PhilRateLimitBundle` | The bundle and its configuration; it adds the `RateLimitGuard` of `phil/rate-limit`, which refuses a store local to each server in `prod` unless `single_server` is set |
 
 ## Files

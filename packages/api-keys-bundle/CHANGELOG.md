@@ -14,6 +14,8 @@ Development only.
 
 - The development requirements take `twig/twig` 3.31.1 or later, which fixes the advisories of its sandbox published on
   2026-11-24.
+- The development requirements take `phil/rate-limit-bundle` 0.2, and the documentation limits a controller with
+  Symfony's `#[RateLimit]`, which names that bundle's limiters.
 
 ## 0.2.0-alpha - 2026-11-24
 

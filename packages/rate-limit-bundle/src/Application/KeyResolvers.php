@@ -24,6 +24,14 @@ final readonly class KeyResolvers
     }
 
     /**
+     * Whether a strategy has that name.
+     */
+    public function has(string $strategy): bool
+    {
+        return $this->resolvers->has($strategy);
+    }
+
+    /**
      * @throws UnknownLimiter when no strategy has that name
      */
     public function get(string $strategy): KeyResolver

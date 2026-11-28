@@ -18,6 +18,7 @@ use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\RateLimiter\RateLimiterBuilder;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\CacheStorage;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
@@ -178,6 +179,36 @@ final class StoreLocalityTest extends TestCase
         $container->setDefinition('factory.both', new Definition(RateLimiterFactory::class, [[], new Reference('storage.local'), '$storage' => new Reference('storage.shared')]));
 
         self::assertTrue(new StoreLocality()->isLocal($container, 'factory.both'));
+    }
+
+    /**
+     * The factories a builder creates at runtime share its storage: the builder is as local as that storage.
+     */
+    public function testARateLimiterBuilderIsAsLocalAsItsStorage(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setDefinition('cache.local', new Definition(FilesystemAdapter::class));
+        $container->setDefinition('cache.shared', new Definition(RedisAdapter::class));
+        $container->setDefinition('storage.local', new Definition(CacheStorage::class, [new Reference('cache.local')]));
+        $container->setDefinition('storage.shared', new Definition(CacheStorage::class, [new Reference('cache.shared')]));
+        $container->setDefinition(StoreLocality::BUILDER, new Definition(RateLimiterBuilder::class, [new Reference('storage.local'), null]));
+        $container->setDefinition('builder.named', new Definition(RateLimiterBuilder::class, ['$storage' => new Reference('storage.local')]));
+        $container->setDefinition('builder.both', new Definition(RateLimiterBuilder::class, [new Reference('storage.local'), '$storage' => new Reference('storage.shared')]));
+        $container->setDefinition('builder.shared', new Definition(RateLimiterBuilder::class, [new Reference('storage.shared')]));
+        $container->setDefinition('builder.memory', new Definition(RateLimiterBuilder::class, [new Definition(InMemoryStorage::class)]));
+        $container->setDefinition('builder.empty', new Definition(RateLimiterBuilder::class));
+        $container->setAlias(RateLimiterBuilder::class, StoreLocality::BUILDER);
+
+        $locality = new StoreLocality();
+
+        self::assertSame('limiter_builder', StoreLocality::BUILDER);
+        self::assertTrue($locality->isLocal($container, StoreLocality::BUILDER));
+        self::assertTrue($locality->isLocal($container, RateLimiterBuilder::class));
+        self::assertTrue($locality->isLocal($container, 'builder.named'));
+        self::assertTrue($locality->isLocal($container, 'builder.both'));
+        self::assertFalse($locality->isLocal($container, 'builder.shared'));
+        self::assertFalse($locality->isLocal($container, 'builder.memory'), 'A storage defined inline is left to the container.');
+        self::assertFalse($locality->isLocal($container, 'builder.empty'));
     }
 
     public function testAnotherClassTakingAPoolIsShared(): void

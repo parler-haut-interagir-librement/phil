@@ -6,7 +6,7 @@ namespace Phil\RateLimitBundle\Tests\Unit\Infrastructure;
 
 use Phil\RateLimitBundle\Application\Exception\TooManyRequests;
 use Phil\RateLimitBundle\Application\RateLimitEnforcer;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
 use Phil\RateLimitBundle\Infrastructure\RateLimiter\SymfonyLimiter;
 use Phil\RateLimitBundle\Tests\Unit\Fixture\Enforcers;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -75,7 +75,7 @@ final class CombinedLimitersTest extends TestCase
                 'wide' => new SymfonyLimiter(new RateLimiterFactory(['id' => 'wide', 'policy' => 'fixed_window', 'limit' => 10, 'interval' => '1 minute'], $storage), 60),
                 'tight' => new SymfonyLimiter(new RateLimiterFactory(['id' => 'tight', 'policy' => 'sliding_window', 'limit' => 2, 'interval' => '1 minute'], $storage), 60),
             ]);
-            $rules = array_map(static fn (string $limiter): RateLimit => new RateLimit($limiter), $order);
+            $rules = array_map(static fn (string $limiter): Rule => new Rule($limiter), $order);
             $outcomes = [];
 
             for ($hit = 0; $hit < 3; ++$hit) {

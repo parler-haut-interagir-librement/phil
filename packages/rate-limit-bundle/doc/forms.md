@@ -11,12 +11,14 @@ phil_rate_limit:
 ```
 
 ```php
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
+
 $form = $formFactory->createNamed('contact', ContactType::class);
-$form = $formFactory->createNamed('signup', SignupType::class, options: ['rate_limit' => [new RateLimit('signups', key: 'ip_route')]]);
+$form = $formFactory->createNamed('signup', SignupType::class, options: ['rate_limit' => [new Rule('signups', key: 'ip_route')]]);
 $form = $formFactory->createNamed('contact', ContactType::class, options: ['rate_limit' => false]);
 ```
 
-The `rate_limit` option holds the rules of the form, written as a route default is; `null` or `true` takes those the
+The `rate_limit` option holds the rules of the form, written as a route default is or as `Domain\ValueObject\Rule`s; `null` or `true` takes those the
 `forms` section gives the form's name, and `false` none. A form limited by a limiter nothing declares fails the
 container build.
 

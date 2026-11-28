@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phil\RateLimitBundle\Tests\Unit\Infrastructure;
 
+use DateTimeImmutable;
 use Phil\RateLimitBundle\Application\Exception\TooManyRequests;
 use Phil\RateLimitBundle\Domain\ValueObject\Decision;
 use Phil\RateLimitBundle\Infrastructure\Http\TooManyRequestsResponder;
@@ -13,9 +14,13 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\RateLimiter\Exception\RateLimitExceededException;
+use Symfony\Component\RateLimiter\RateLimit;
 use Symfony\Component\Translation\Loader\ArrayLoader;
 use Symfony\Component\Translation\Translator;
+use Throwable;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader as TwigLoader;
 use Twig\Loader\FilesystemLoader;
@@ -75,12 +80,49 @@ final class TooManyRequestsResponderTest extends TestCase
         self::assertNull($this->respond(new TooManyRequestsResponder(), $this->request()));
     }
 
+    public function testARefusalOfALimiterOfTheFrameworkIsAnsweredWithItsWait(): void
+    {
+        $limit = new RateLimit(0, new DateTimeImmutable('+20 seconds'), false, 1);
+        $event = $this->event(new TooManyRequestsHttpException(20, '', new RateLimitExceededException($limit)), $this->request());
+        new TooManyRequestsResponder($this->twig(), 'mine.html.twig')->onKernelException($event);
+
+        self::assertSame('Too many requests|Too many requests. Try again in 20 seconds.|20||fr', $event->getResponse()?->getContent());
+        self::assertSame(429, $event->getResponse()->getStatusCode());
+        self::assertSame('20', $event->getResponse()->headers->get('Retry-After'));
+        self::assertFalse($event->getResponse()->headers->has('RateLimit'));
+
+        $dated = $this->event(new TooManyRequestsHttpException('Sat, 28 Nov 2026 12:00:00 GMT', '', new RateLimitExceededException($limit)), $this->request(accept: 'application/json'));
+        new TooManyRequestsResponder()->onKernelException($dated);
+
+        self::assertSame(0, $this->retryAfter($dated));
+
+        $negative = $this->event(new TooManyRequestsHttpException(-5, '', new RateLimitExceededException($limit)), $this->request(accept: 'application/json'));
+        new TooManyRequestsResponder()->onKernelException($negative);
+
+        self::assertSame(0, $this->retryAfter($negative));
+    }
+
     public function testAnotherExceptionIsLeftAlone(): void
     {
-        $event = new ExceptionEvent(self::createStub(HttpKernelInterface::class), $this->request(accept: 'application/json'), HttpKernelInterface::MAIN_REQUEST, new RuntimeException());
-        new TooManyRequestsResponder($this->twig())->onKernelException($event);
+        foreach ([new RuntimeException(), new TooManyRequestsHttpException(20), new TooManyRequestsHttpException(20, '', new RuntimeException())] as $exception) {
+            $event = $this->event($exception, $this->request(accept: 'application/json'));
+            new TooManyRequestsResponder($this->twig())->onKernelException($event);
 
-        self::assertNull($event->getResponse());
+            self::assertNull($event->getResponse());
+        }
+    }
+
+    private function retryAfter(ExceptionEvent $event): mixed
+    {
+        $problem = json_decode((string) $event->getResponse()?->getContent(), true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($problem);
+
+        return $problem['retry_after'] ?? null;
+    }
+
+    private function event(Throwable $exception, Request $request): ExceptionEvent
+    {
+        return new ExceptionEvent(self::createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST, $exception);
     }
 
     private function twig(): Environment

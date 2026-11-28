@@ -24,5 +24,7 @@ Every public type of the package, with its role.
 |---|---|
 | `LOCAL_ADAPTERS` | The abstract adapters of the framework whose pools are local |
 | `LOCAL_CLASSES` | The classes of local pools and storages |
+| `LIMITER` | `limiter`, the abstract service of the framework's limiters |
+| `BUILDER` | `limiter_builder`, the framework's `RateLimiterBuilder` |
 | `MAX_DEPTH` | 32, the most services followed from the one asked about |
 | `isLocal(ContainerBuilder $container, string $id): bool` | Whether that service, or the pool it is given, is local |

@@ -4,54 +4,45 @@ declare(strict_types=1);
 
 namespace Phil\RateLimitBundle\Tests\Unit\Domain;
 
-use Attribute;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
 use Phil\RateLimitBundle\Domain\Exception\InvalidRateLimit;
 use Phil\RateLimitBundle\Domain\Exception\UnknownLimiter;
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 
-#[CoversClass(RateLimit::class)]
+#[CoversClass(Rule::class)]
 #[CoversClass(InvalidRateLimit::class)]
 #[CoversClass(UnknownLimiter::class)]
-final class RateLimitTest extends TestCase
+final class RuleTest extends TestCase
 {
     public function testARuleNamesItsLimiterAndMayNameItsAmountAndKey(): void
     {
-        $rule = new RateLimit('api', 2, 'user');
+        $rule = new Rule('api', 2, 'user');
 
         self::assertSame(['api', 2, 'user'], [$rule->limiter, $rule->amount, $rule->key]);
-        self::assertSame([null, null], [new RateLimit('api')->amount, new RateLimit('api')->key]);
-        self::assertSame(1, new RateLimit('api', 1)->amount);
-    }
-
-    public function testItGoesOnClassesAndMethodsAndRepeats(): void
-    {
-        $attribute = new ReflectionClass(RateLimit::class)->getAttributes(Attribute::class)[0]->newInstance();
-
-        self::assertSame(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE, $attribute->flags);
+        self::assertSame([null, null], [new Rule('api')->amount, new Rule('api')->key]);
+        self::assertSame(1, new Rule('api', 1)->amount);
     }
 
     public function testAnEmptyNameIsRefused(): void
     {
         $this->expectExceptionObject(InvalidRateLimit::because('A rate limit names its limiter.'));
 
-        new RateLimit('');
+        new Rule('');
     }
 
     public function testAnAmountBelowOneIsRefused(): void
     {
         $this->expectExceptionObject(InvalidRateLimit::because('A rate limit consumes one or more; 0 is not.'));
 
-        new RateLimit('api', 0);
+        new Rule('api', 0);
     }
 
     public function testAnEmptyKeyIsRefused(): void
     {
         $this->expectExceptionObject(InvalidRateLimit::because("A rate limit names its key strategy, or leaves it null for the limiter's own."));
 
-        new RateLimit('api', key: '');
+        new Rule('api', key: '');
     }
 
     public function testAnUnknownNameListsWhatIsDeclared(): void

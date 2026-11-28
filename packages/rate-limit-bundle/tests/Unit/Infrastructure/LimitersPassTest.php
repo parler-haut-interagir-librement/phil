@@ -9,10 +9,12 @@ use Phil\RateLimitBundle\Application\Exception\TooManyRequests;
 use Phil\RateLimitBundle\Application\KeyResolvers;
 use Phil\RateLimitBundle\Application\Limiters;
 use Phil\RateLimitBundle\Application\RateLimitEnforcer;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
 use Phil\RateLimitBundle\Infrastructure\DependencyInjection\LimitersPass;
 use Phil\RateLimitBundle\Infrastructure\DependencyInjection\RateLimitServices;
 use Phil\RateLimitBundle\Infrastructure\Http\RateLimitCacheWarmer;
+use Phil\RateLimitBundle\Infrastructure\RateLimiter\AttributeLimiterFactory;
+use Phil\RateLimitBundle\Infrastructure\RateLimiter\AttributeLimits;
 use Phil\RateLimitBundle\PhilRateLimitBundle;
 use Phil\RateLimitBundle\Tests\Unit\Fixture\HeaderKey;
 use Phil\RateLimitBundle\Tests\Unit\Fixture\LimitedController;
@@ -23,6 +25,7 @@ use stdClass;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -54,13 +57,13 @@ final class LimitersPassTest extends TestCase
 
         $request = Request::create('/');
         $request->headers->set('X-Account', 'alice');
-        self::assertSame(1, $enforcer->enforce($request, [new RateLimit('api')])?->remaining);
-        self::assertSame(0, $enforcer->enforce($request, [new RateLimit('api', key: 'app.autoconfigured')])?->remaining);
-        self::assertNull($enforcer->enforce($request, [new RateLimit('own')])?->limit);
-        self::assertSame(0, $enforcer->enforce($request, [new RateLimit('external', key: 'form.key')])?->remaining);
+        self::assertSame(1, $enforcer->enforce($request, [new Rule('api')])?->remaining);
+        self::assertSame(0, $enforcer->enforce($request, [new Rule('api', key: 'app.autoconfigured')])?->remaining);
+        self::assertNull($enforcer->enforce($request, [new Rule('own')])?->limit);
+        self::assertSame(0, $enforcer->enforce($request, [new Rule('external', key: 'form.key')])?->remaining);
 
         $this->expectException(TooManyRequests::class);
-        $enforcer->enforce($request, [new RateLimit('api')]);
+        $enforcer->enforce($request, [new Rule('api')]);
     }
 
     public function testTheLocatorsListTheirNames(): void
@@ -84,6 +87,68 @@ final class LimitersPassTest extends TestCase
         new LimitersPass()->process($container);
 
         self::assertSame(['app.limited' => LimitedController::class, 'app.again' => LimitedController::class], $container->getDefinition(RateLimitCacheWarmer::class)->getArgument(3));
+    }
+
+    public function testSymfonysAttributeFindsEveryLimiterOfTheBundle(): void
+    {
+        $container = $this->container(['limiters' => ['api' => ['policy' => 'fixed_window', 'limit' => 2, 'interval' => '1 minute', 'key' => 'account']]], static function (ContainerBuilder $container): void {
+            $container->register('app.scripted', ScriptedLimiter::class)->setArguments([1])->addTag(RateLimitServices::LIMITER_TAG, ['name' => 'external']);
+            $container->register('app.tagged', HeaderKey::class)->addTag(RateLimitServices::KEY_TAG, ['strategy' => 'account']);
+            $container->register('limiter.framework_limit', stdClass::class)->addTag('rate_limiter', ['name' => 'framework_limit']);
+            $container->register('limiter')->setAbstract(true);
+            $container->register('rate_limiter.attribute_listener', stdClass::class);
+        });
+        new LimitersPass()->process($container);
+
+        $factory = $container->getDefinition('phil_rate_limit.attribute.api');
+        self::assertSame(AttributeLimiterFactory::class, $factory->getClass());
+        self::assertEquals([new Reference(AttributeLimits::class), 'api'], $factory->getArguments());
+        self::assertSame(['rate_limiter' => [['name' => 'api']]], $factory->getTags());
+        self::assertTrue($container->hasDefinition('phil_rate_limit.attribute.external'));
+        self::assertSame(['api', 'external', 'framework_limit'], $container->getDefinition(RateLimitCacheWarmer::class)->getArgument(4));
+    }
+
+    public function testTheAttributeFactoryConsumesThroughTheBundle(): void
+    {
+        $container = $this->container(['limiters' => ['api' => ['policy' => 'fixed_window', 'limit' => 2, 'interval' => '1 minute', 'key' => 'account']]], static function (ContainerBuilder $container): void {
+            $container->register('app.tagged', HeaderKey::class)->addTag(RateLimitServices::KEY_TAG, ['strategy' => 'account']);
+            $container->setAlias('test.api', 'phil_rate_limit.attribute.api')->setPublic(true);
+            $container->getDefinition('request_stack')->setPublic(true);
+        });
+        $container->compile(true);
+
+        $requests = $container->get('request_stack');
+        self::assertInstanceOf(RequestStack::class, $requests);
+        $request = Request::create('/');
+        $request->headers->set('X-Account', 'alice');
+
+        $requests->push($request);
+
+        $factory = $container->get('test.api');
+        self::assertInstanceOf(AttributeLimiterFactory::class, $factory);
+        self::assertSame(1, $factory->create()->consume()->getRemainingTokens());
+        self::assertSame(0, $factory->create(AttributeLimits::defaultKeyOf($request))->consume()->getRemainingTokens());
+    }
+
+    public function testWithoutSymfonysListenerTheWarmerIsTold(): void
+    {
+        $container = $this->container(['limiters' => ['api' => ['policy' => 'no_limit']]]);
+        new LimitersPass()->process($container);
+
+        self::assertNull($container->getDefinition(RateLimitCacheWarmer::class)->getArgument(4));
+        self::assertTrue($container->hasDefinition('phil_rate_limit.attribute.api'));
+    }
+
+    public function testALimiterOfTheFrameworkOfTheSameNameFailsTheBuild(): void
+    {
+        $container = $this->container(['limiters' => ['api' => ['policy' => 'no_limit']]], static function (ContainerBuilder $container): void {
+            $container->register('limiter.api', stdClass::class)->addTag('rate_limiter', ['name' => 'api']);
+            $container->register('app.unnamed', stdClass::class)->addTag('rate_limiter');
+        });
+
+        $this->expectExceptionObject(new LogicException('Two limiters are named "api": one of phil_rate_limit and the service "limiter.api", which #[RateLimit] could not tell apart; rename one.'));
+
+        new LimitersPass()->process($container);
     }
 
     public function testWhatALimiterNeedsMustExist(): void

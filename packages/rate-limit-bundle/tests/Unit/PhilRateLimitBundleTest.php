@@ -25,6 +25,7 @@ use Phil\RateLimitBundle\Infrastructure\Key\ClientIpKey;
 use Phil\RateLimitBundle\Infrastructure\Key\IpRouteKey;
 use Phil\RateLimitBundle\Infrastructure\Key\UserKey;
 use Phil\RateLimitBundle\Infrastructure\Key\UserOrIpKey;
+use Phil\RateLimitBundle\Infrastructure\RateLimiter\AttributeLimits;
 use Phil\RateLimitBundle\Infrastructure\RateLimiter\SymfonyLimiter;
 use Phil\RateLimitBundle\PhilRateLimitBundle;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -49,7 +50,7 @@ final class PhilRateLimitBundleTest extends TestCase
 
         self::assertSame('phil_rate_limit', $this->extension()->getAlias());
         self::assertSame(
-            ['service_container', RateLimitServices::IP_KEY, RateLimitServices::USER_KEY, RateLimitServices::USER_OR_IP_KEY, RateLimitServices::IP_ROUTE_KEY, RateLimitHeaders::class, Limiters::class, KeyResolvers::class, RateLimitEnforcer::class, RateLimitListener::class, RateLimitCacheWarmer::class, TooManyRequestsResponder::class, RateLimitTypeExtension::class],
+            ['service_container', RateLimitServices::IP_KEY, RateLimitServices::USER_KEY, RateLimitServices::USER_OR_IP_KEY, RateLimitServices::IP_ROUTE_KEY, RateLimitHeaders::class, Limiters::class, KeyResolvers::class, RateLimitEnforcer::class, AttributeLimits::class, RateLimitListener::class, RateLimitCacheWarmer::class, TooManyRequestsResponder::class, RateLimitTypeExtension::class],
             array_keys($container->getDefinitions()),
         );
         self::assertSame([], $container->getParameter(RateLimitServices::REQUIRED_PARAMETER));
@@ -266,11 +267,18 @@ final class PhilRateLimitBundleTest extends TestCase
         self::assertTrue(array_any($container->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof LimitersPass));
     }
 
+    public function testSymfonysAttributeConsumesThroughTheEnforcer(): void
+    {
+        $limits = $this->load(['secret' => 'attribute'])->getDefinition(AttributeLimits::class);
+
+        self::assertEquals([new Reference(RateLimitEnforcer::class), new Reference(KeyResolvers::class), new Reference('request_stack'), 'attribute'], $limits->getArguments());
+    }
+
     public function testTheWarmerIsAlwaysThere(): void
     {
         $warmer = $this->load([])->getDefinition(RateLimitCacheWarmer::class);
 
-        self::assertEquals([new Reference(Limiters::class), new Reference(KeyResolvers::class), new Reference('router', ContainerInterface::NULL_ON_INVALID_REFERENCE), []], $warmer->getArguments());
+        self::assertEquals([new Reference(Limiters::class), new Reference(KeyResolvers::class), new Reference('router', ContainerInterface::NULL_ON_INVALID_REFERENCE), [], []], $warmer->getArguments());
         self::assertTrue($warmer->hasTag('kernel.cache_warmer'));
     }
 

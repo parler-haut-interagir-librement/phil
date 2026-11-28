@@ -4,7 +4,8 @@
 
 - PHP 8.5 or later; the intl and mbstring extensions are suggested, for the speed of the normalization of the
   identifiers a key is built from, which the polyfills of `symfony/string` do the same without them;
-- Symfony 8.2 or later, with FrameworkBundle;
+- Symfony 8.2 or later, with FrameworkBundle and its `rate_limiter`, enabled by default, whose listener applies the
+  `#[RateLimit]` attribute and the `RateLimit` argument;
 - optionally TwigBundle for the refusal page, the form component for forms, SecurityBundle for the `user` and
   `user_or_ip` keys, the translator for French, symfony/lock for exact counts under concurrency,
   phil/ip-anonymizer for keys by network, and a PSR-3 logger such as MonologBundle for the warnings of a limiter in

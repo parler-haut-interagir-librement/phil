@@ -63,7 +63,7 @@ security:
 ```
 
 The bundle limits everything else: the APIs, the other forms — password reset, contact, sign-up —, and the controllers
-and routes declared with `#[RateLimit]` or `_rate_limit`.
+and routes declared with Symfony's `#[RateLimit]` or `_rate_limit`.
 
 ## A limiter
 

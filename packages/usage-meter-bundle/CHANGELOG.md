@@ -4,6 +4,15 @@ All notable changes to `phil/usage-meter-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Changed
+
+- Requires `phil/rate-limit-bundle` 0.2: Symfony's `#[RateLimit]` names the limiters that count on meters, its
+  `tokens` in place of `amount`, and the documentation follows.
+
 ## 0.1.1-alpha - 2026-11-25
 
 ### Changed

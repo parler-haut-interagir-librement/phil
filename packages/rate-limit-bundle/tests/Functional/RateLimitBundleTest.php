@@ -6,7 +6,6 @@ namespace Phil\RateLimitBundle\Tests\Functional;
 
 use LogicException;
 use Override;
-use Phil\RateLimitBundle\Application\Event\RateLimitExceeded;
 use Phil\RateLimitBundle\PhilRateLimitBundle;
 use Phil\RateLimitBundle\Tests\Functional\App\RecordingSubscriber;
 use Phil\RateLimitBundle\Tests\Functional\App\TestKernel;
@@ -18,8 +17,9 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * The bundle in a real kernel: a controller limited by its attributes answered with its page in French, an API limited
- * by its route default answered a problem in JSON, a form limited by its name, each refusal dispatched.
+ * The bundle in a real kernel: a controller limited by Symfony's attributes answered with its page in French, an
+ * explicit key kept hashed, an API limited by its route default answered a problem in JSON, a limiter of the
+ * framework's configuration answered with the page, a form limited by its name, each refusal dispatched.
  */
 #[CoversClass(PhilRateLimitBundle::class)]
 final class RateLimitBundleTest extends WebTestCase
@@ -64,12 +64,81 @@ final class RateLimitBundleTest extends WebTestCase
         $this->client->request('GET', '/search', server: ['REMOTE_ADDR' => '198.51.100.2']);
         self::assertResponseIsSuccessful();
 
-        $events = $this->events();
+        $events = $this->subscriber()->events;
         self::assertCount(1, $events);
         self::assertSame('search', $events[0]->limiter);
         self::assertSame('search', $events[0]->route);
         self::assertStringStartsWith('ip_route:', $events[0]->key);
         self::assertStringNotContainsString('203.0.113.7', $events[0]->key);
+    }
+
+    public function testAnExplicitKeyIsHashedAndTheArgumentGetsTheLimit(): void
+    {
+        foreach (['2', '0'] as $remaining) {
+            $this->client->request('GET', '/articles/42');
+
+            self::assertResponseIsSuccessful();
+            self::assertSame('42:'.$remaining, $this->client->getResponse()->getContent());
+            self::assertResponseHeaderSame('RateLimit-Policy', '"articles";q=4;w=60');
+        }
+
+        $this->client->request('GET', '/articles/42');
+        self::assertResponseStatusCodeSame(429);
+        self::assertResponseHeaderSame('RateLimit-Policy', '"articles";q=4;w=60');
+
+        $this->client->request('GET', '/articles/7');
+        self::assertResponseIsSuccessful();
+
+        $events = $this->subscriber()->events;
+        self::assertCount(1, $events);
+        self::assertSame('articles', $events[0]->limiter);
+        self::assertSame('key:'.hash_hmac('sha256', '42', hash_hkdf('sha256', 'test', 32, 'phil_rate_limit.attribute_key')), $events[0]->key);
+
+        $symfony = $this->subscriber()->symfony;
+        self::assertCount(1, $symfony);
+        self::assertSame('articles', $symfony[0]->getLimiterName());
+        self::assertSame($events[0]->key, $symfony[0]->getKey());
+        self::assertFalse($symfony[0]->getRateLimit()->isAccepted());
+    }
+
+    public function testAnAttributeWithoutKeyCountsByTheLimitersStrategy(): void
+    {
+        $this->client->request('GET', '/first', server: ['REMOTE_ADDR' => '203.0.113.7']);
+        self::assertResponseIsSuccessful();
+
+        $this->client->request('GET', '/second', server: ['REMOTE_ADDR' => '203.0.113.7']);
+        self::assertResponseStatusCodeSame(429);
+        self::assertStringStartsWith('ip:', $this->subscriber()->events[0]->key);
+
+        $this->client->request('GET', '/second', server: ['REMOTE_ADDR' => '198.51.100.2']);
+        self::assertResponseIsSuccessful();
+    }
+
+    public function testTheRouteDefaultCountsBeforeTheAttributes(): void
+    {
+        $this->client->request('GET', '/ruled');
+        self::assertResponseIsSuccessful();
+        self::assertResponseHeaderSame('RateLimit-Policy', '"api";q=1');
+
+        $this->client->request('GET', '/ruled');
+        self::assertResponseStatusCodeSame(429);
+        self::assertResponseHeaderSame('RateLimit-Policy', '"api";q=1');
+        self::assertSame(['api'], array_map(static fn (object $event): string => $event->limiter, $this->subscriber()->events));
+    }
+
+    public function testAFrameworkLimiterIsAnsweredWithThePage(): void
+    {
+        $this->client->request('GET', '/framework');
+        self::assertResponseIsSuccessful();
+        self::assertResponseHeaderSame('RateLimit-Policy', '"burst";q=50;w=60');
+
+        $this->client->request('GET', '/framework');
+        self::assertResponseStatusCodeSame(429);
+        self::assertResponseHasHeader('Retry-After');
+        self::assertResponseNotHasHeader('RateLimit-Policy');
+        self::assertStringContainsString('<title>Trop de requêtes</title>', (string) $this->client->getResponse()->getContent());
+        self::assertSame([], $this->subscriber()->events);
+        self::assertSame('framework_limit', $this->subscriber()->symfony[0]->getLimiterName());
     }
 
     public function testTheRouteDefaultLimitsAnApiAnsweredInJson(): void
@@ -116,7 +185,7 @@ final class RateLimitBundleTest extends WebTestCase
 
         $this->client->request('GET', '/contact');
         self::assertResponseIsSuccessful();
-        self::assertSame('contact', $this->events()[0]->form);
+        self::assertSame('contact', $this->subscriber()->events[0]->form);
     }
 
     public function testALocalPoolIsRefusedInProduction(): void
@@ -146,14 +215,11 @@ final class RateLimitBundleTest extends WebTestCase
         return $kernel;
     }
 
-    /**
-     * @return list<RateLimitExceeded>
-     */
-    private function events(): array
+    private function subscriber(): RecordingSubscriber
     {
         $subscriber = self::getContainer()->get(RecordingSubscriber::class);
         self::assertInstanceOf(RecordingSubscriber::class, $subscriber);
 
-        return $subscriber->events;
+        return $subscriber;
     }
 }
