@@ -1,0 +1,109 @@
+{
+    "name": "phil/email-templates-bundle",
+    "description": "Let sites edit their emails safely: templates per site and locale, with versions, sandboxed Twig, email-safe components and a preview.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "email",
+        "email-templates",
+        "twig",
+        "sandbox",
+        "mailer",
+        "multi-site",
+        "content",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-filter": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
+        "phil/content-bundle": "^0.3@dev",
+        "phil/email-address": "^0.1@dev",
+        "phil/locale-dimensions": "^0.1@dev",
+        "phil/markup": "^0.3@dev",
+        "phil/url": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/mime": "^8.2",
+        "symfony/service-contracts": "^3.8",
+        "symfony/uid": "^8.2",
+        "symfony/yaml": "^8.2",
+        "twig/twig": "^3.31.1"
+    },
+    "require-dev": {
+        "ext-gd": "*",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/persistence": "^4.2",
+        "phil/audit-bundle": "^0.1@dev",
+        "phil/tenancy-bundle": "^0.2@dev",
+        "phil/ux-kit": ">=0.5.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/browser-kit": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/mailer": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "symfony/ux-toolkit": "^3.8",
+        "symfony/ux-twig-component": "^3.8",
+        "twig/cssinliner-extra": "^3.26",
+        "twig/html-extra": "^3.31.1",
+        "twig/intl-extra": "^3.31"
+    },
+    "suggest": {
+        "phil/audit-bundle": "To record each change of a template in the audit trail",
+        "phil/tenancy-bundle": "To keep the templates per tenant, the current site being the active tenant",
+        "phil/ux-kit": "For the recipes the administration draws, through the Symfony UX Toolkit",
+        "symfony/console": "For phil:email-templates:list, check and render",
+        "symfony/mailer": "To send a template from a message, through SendTemplatedEmail",
+        "symfony/security-csrf": "For the administration (admin.enabled), with symfony/security-core and symfony/ux-twig-component",
+        "symfony/twig-bundle": "To render the house layout with the Twig of the application, and override it",
+        "twig/cssinliner-extra": "To inline the styles of the layout into each element, for the clients that read no style sheet",
+        "twig/intl-extra": "For format_date, format_number and format_currency in the templates"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\EmailTemplatesBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\EmailTemplatesBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

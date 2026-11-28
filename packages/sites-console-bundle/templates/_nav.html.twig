@@ -1,0 +1,8 @@
+{# The navigation between the screens of the console. #}
+<nav class="phil-sites-console__nav" aria-label="{{ 'nav.label'|trans({}, 'phil_sites_console') }}">
+    <a href="{{ path('phil_sites_console_dashboard') }}">{{ 'nav.dashboard'|trans({}, 'phil_sites_console') }}</a>
+    · <a href="{{ path('phil_sites_console_versions') }}">{{ 'nav.versions'|trans({}, 'phil_sites_console') }}</a>
+    · <a href="{{ path('phil_sites_console_pushes') }}">{{ 'nav.pushes'|trans({}, 'phil_sites_console') }}</a>
+    · <a href="{{ path('phil_sites_console_updates') }}">{{ 'nav.updates'|trans({}, 'phil_sites_console') }}</a>
+    · <a href="{{ path('phil_sites_console_journal') }}">{{ 'nav.journal'|trans({}, 'phil_sites_console') }}</a>
+</nav>

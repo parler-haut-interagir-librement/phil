@@ -1,0 +1,22 @@
+{# The recent update plans. #}
+{% extends layout %}
+
+{% set domain = 'phil_sites_console' %}
+
+{% block title %}{{ 'nav.updates'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <article class="phil-sites-console" aria-labelledby="phil-sites-console-title">
+        <h1 id="phil-sites-console-title">{{ 'nav.updates'|trans({}, domain) }}</h1>
+        {{ include('@PhilSitesConsole/_nav.html.twig') }}
+        {% if plans is empty %}
+            <p>{{ 'updates.empty'|trans({}, domain) }}</p>
+        {% else %}
+            <ul>
+                {% for plan in plans %}
+                    <li><a href="{{ path('phil_sites_console_update', {id: plan.id}) }}">{{ plan.package }} {{ plan.version }}</a> {{ include('@PhilSitesConsole/_state.html.twig', {state: plan.state}) }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </article>
+{% endblock %}

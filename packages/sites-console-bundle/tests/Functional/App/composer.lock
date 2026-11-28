@@ -1,0 +1,9 @@
+{
+    "packages": [
+        {"name": "phil/url", "version": "0.1.4"},
+        {"name": "symfony/http-kernel", "version": "v8.2.0"}
+    ],
+    "packages-dev": [
+        {"name": "phpunit/phpunit", "version": "13.4.6"}
+    ]
+}

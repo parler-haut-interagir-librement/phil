@@ -1,0 +1,27 @@
+{# Lines of the journal, the newest first. #}
+{% if entries is empty %}
+    <p>{{ 'journal.empty'|trans({}, 'phil_sites_console') }}</p>
+{% else %}
+    {% component (phil_sites_console_kit('Table')) %}
+        {% block content %}
+            <thead class="isTableHeader"><tr class="isTableRow">
+                <th class="isTableHead" scope="col">{{ 'column.when'|trans({}, 'phil_sites_console') }}</th>
+                <th class="isTableHead" scope="col">{{ 'column.action'|trans({}, 'phil_sites_console') }}</th>
+                <th class="isTableHead" scope="col">{{ 'column.site'|trans({}, 'phil_sites_console') }}</th>
+                <th class="isTableHead" scope="col">{{ 'column.actor'|trans({}, 'phil_sites_console') }}</th>
+                <th class="isTableHead" scope="col">{{ 'column.message'|trans({}, 'phil_sites_console') }}</th>
+            </tr></thead>
+            <tbody class="isTableBody">
+                {% for entry in entries %}
+                    <tr class="isTableRow{{ entry.succeeded ? '' : ' isDanger' }}">
+                        <td class="isTableCell"><time datetime="{{ entry.occurredAt|date('c') }}">{{ entry.occurredAt|date('Y-m-d H:i T') }}</time></td>
+                        <td class="isTableCell">{{ (('journal.' ~ entry.action.value))|trans({}, 'phil_sites_console') }}</td>
+                        <td class="isTableCell">{{ entry.siteId }}</td>
+                        <td class="isTableCell">{{ entry.actor }}</td>
+                        <td class="isTableCell">{{ entry.message }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        {% endblock %}
+    {% endcomponent %}
+{% endif %}

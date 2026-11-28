@@ -1,0 +1,18 @@
+{#-
+ # The page the administration extends when the application names none: a bare document with the blocks `title` and
+ # `content`. Name a template of the back office with `phil_email_templates.admin.layout` to draw the pages in it.
+ #}
+<!doctype html>
+<html lang="{{ app.request.locale|default('en')|replace({_: '-'}) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{% block title %}{{ 'admin.title'|trans({}, 'phil_email_templates') }}{% endblock %}</title>
+</head>
+<body>
+<main>
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

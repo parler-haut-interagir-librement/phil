@@ -1,0 +1,1 @@
+{"format":"phil-shifts/1","shifts":[{"id":"c","title":"Cl","kind":"duration","starts_at":"2026-11-28T08:00:00Z","ends_at":"2026-12-28T20:00:00Z","minutes":60,"gal":true}],"places":[{"volunteer":"a","status":"interested","at":"2026-11-28T07:00:00Z"}]}

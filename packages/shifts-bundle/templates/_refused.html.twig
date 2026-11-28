@@ -1,0 +1,8 @@
+{#
+ # The reason an operation was refused, announced to screen readers.
+ #
+ # Variables: refused.
+ #}
+{%- if refused is not null %}
+<p class="isError" role="alert">{{ refused|trans({}, 'phil_shifts') }}</p>
+{%- endif %}

@@ -1,0 +1,1 @@
+{"fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "actor": "ana", "target": "products", "action": "edit", "selection": {"kind": "identifiers", "identifiers": ["a"]}, "expires_at": "2026-11-21T10:15:00+00:00"}

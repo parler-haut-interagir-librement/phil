@@ -1,0 +1,5 @@
+# The administration of the email templates, when phil_email_templates.admin.enabled is true. Keep it behind the
+# firewall: every page asks phil_email_templates.admin.role again.
+phil_email_templates_admin:
+    resource: '@PhilEmailTemplatesBundle/config/routes_admin.php'
+    prefix: /admin/email-templates

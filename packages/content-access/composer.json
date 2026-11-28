@@ -1,0 +1,50 @@
+{
+    "name": "phil/content-access",
+    "description": "Decide who reads a content: public, members, tiers by rules, early access then public, drip and rolling access, institutions; reserved parts never sent.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "content-access",
+        "paywall",
+        "membership",
+        "early-access",
+        "drip-content"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-filter": "*",
+        "phil/rules": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "symfony/http-foundation": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ContentAccess\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ContentAccess\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

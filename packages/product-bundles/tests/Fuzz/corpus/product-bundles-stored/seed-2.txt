@@ -1,0 +1,1 @@
+{"sku":"STARTER","kind":"assembled","currency":"CAD","unit_price":4250,"quantity":3,"returned":1,"components":[{"sku":"BOOK","per_bundle":1,"unit_share":3400,"unit_cost":1800,"cost_currency":"CAD"},{"sku":"DICE","per_bundle":2,"unit_share":850,"unit_cost":null,"cost_currency":null}]}

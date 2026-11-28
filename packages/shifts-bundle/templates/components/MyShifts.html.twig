@@ -1,0 +1,21 @@
+{#
+ # The shifts to come of the person signed in, and the minutes they served; nothing when nobody is signed in.
+ #}
+{%- set domain = 'phil_shifts' -%}
+{%- if this.person is not null %}
+<section{{ attributes.defaults({class: 'phil-shifts-mine isStack'}) }}>
+    <h2>{{ 'mine.title'|trans({}, domain) }}</h2>
+    {%- set upcoming = this.upcoming %}
+    {%- if upcoming is empty %}
+    <p>{{ 'mine.none'|trans({}, domain) }}</p>
+    {%- else %}
+    <ul>
+        {%- for roster in upcoming %}
+        <li><a href="{{ path('phil_shifts_show', {id: roster.shift.id}) }}">{{ roster.shift.title }}</a> — <time datetime="{{ roster.shift.startsAt|date('Y-m-d\\TH:i:s\\Z', 'UTC') }}">{{ roster.shift.startsAt|date('Y-m-d H:i', this.zone) }}</time> <span class="isBadge">{{ ('status.' ~ roster.statusOf(this.person).value)|trans({}, domain) }}</span></li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+    {%- set served = this.served %}
+    <p>{{ 'mine.served'|trans({'%hours%': (served.minutes / 60)|round(1), '%weighted%': (served.weightedMinutes / 60)|round(1), '%count%': served.shifts|length}, domain) }}</p>
+</section>
+{%- endif %}

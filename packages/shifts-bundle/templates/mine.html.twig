@@ -1,0 +1,24 @@
+{#
+ # The shifts of the person signed in, and the minutes they served.
+ #
+ # Variables: person, rosters, served, zone, token, refused.
+ #}
+{%- set domain = 'phil_shifts' -%}
+<section class="phil-shifts isStack" lang="{{ app.request.locale|default('en') }}">
+    <h1>{{ 'mine.title'|trans({}, domain) }}</h1>
+    <p>{{ 'mine.served'|trans({'%hours%': (served.minutes / 60)|round(1), '%weighted%': (served.weightedMinutes / 60)|round(1), '%count%': served.shifts|length}, domain) }}</p>
+    {%- if rosters is empty %}
+    <p>{{ 'mine.none'|trans({}, domain) }}</p>
+    {%- else %}
+    <ul class="phil-shifts__list">
+        {%- for roster in rosters %}
+        <li>
+            <h2><a href="{{ path('phil_shifts_show', {id: roster.shift.id}) }}">{{ roster.shift.title }}</a></h2>
+            {{ include('@PhilShifts/_shift.html.twig', {roster: roster, zone: zone}) }}
+            <p class="isBadge">{{ ('status.' ~ roster.statusOf(person).value)|trans({}, domain) }}</p>
+        </li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+    <p><a href="{{ path('phil_shifts_board') }}">{{ 'board.back'|trans({}, domain) }}</a></p>
+</section>

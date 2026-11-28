@@ -1,0 +1,68 @@
+{
+    "name": "phil/waitlist-bundle",
+    "description": "Full sessions, workshops and events lose the places freed by cancellations: a waiting list offers them in turn, with a deadline, and passes lapsed offers on.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "waitlist",
+        "waiting-list",
+        "capacity",
+        "offer",
+        "draw",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/orm": "^3.8",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.6",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/persistence": "^4.2",
+        "phil/notifications-bundle": "^0.4@dev",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.8",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/messenger": "^8.2"
+    },
+    "suggest": {
+        "phil/notifications-bundle": "To tell each participant that a place is offered to them, or that their offer lapsed"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\WaitlistBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\WaitlistBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

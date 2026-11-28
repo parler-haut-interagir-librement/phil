@@ -1,0 +1,1 @@
+{"sku":"ZINES","host":"host","charity_ppm":100000,"participants":[{"id":"host","weight":5,"approved_at":null},{"id":"ana","weight":3,"approved_at":1795500000}],"locked_at":1795500000}

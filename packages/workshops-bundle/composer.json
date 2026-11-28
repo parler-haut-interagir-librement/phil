@@ -1,0 +1,68 @@
+{
+    "name": "phil/workshops-bundle",
+    "description": "Workshop sessions in Symfony: seats taken without overbooking, duplicate sign-ups ignored, waiting lists that offer freed seats in turn.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "workshop",
+        "registration",
+        "waiting-list",
+        "seats",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "doctrine/dbal": "^4.6",
+        "doctrine/orm": "^3.8",
+        "phil/reservation": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/polyfill-php86": "^1.43",
+        "symfony/translation-contracts": "^3.8",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/persistence": "^4.2",
+        "phil/waitlist-bundle": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/event-dispatcher-contracts": "^3.8",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/translation": "^8.2"
+    },
+    "suggest": {
+        "phil/waitlist-bundle": "To give each full session a waiting list that offers freed seats in turn, with a deadline"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\WorkshopsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\WorkshopsBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,1 @@
+{"format":"phil-shifts/1","shifts":[{"id":"c","title":"C","kind":"duration","starts_at":"8104-11-28T08:00:00Z","ends_at":"2026-11-28T20:00:00Z","minutes":6,"required_role":"FT:Z"}]}

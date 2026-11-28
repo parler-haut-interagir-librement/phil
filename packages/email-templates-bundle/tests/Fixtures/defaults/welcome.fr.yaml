@@ -1,0 +1,6 @@
+subject: 'Bienvenue, {{ name }}'
+format: markdown
+variables:
+    name: { type: string, required: true, sample: 'Ada' }
+body: |
+    Bonjour **{{ name }}**.

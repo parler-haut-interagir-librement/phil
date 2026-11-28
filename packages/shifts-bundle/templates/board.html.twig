@@ -1,0 +1,24 @@
+{#
+ # The shifts to come, critical ones lacking volunteers first.
+ #
+ # Variables: rosters, person, zone, token, refused.
+ #}
+{%- set domain = 'phil_shifts' -%}
+<section class="phil-shifts isStack" lang="{{ app.request.locale|default('en') }}">
+    <h1>{{ 'board.title'|trans({}, domain) }}</h1>
+    <nav><a href="{{ path('phil_shifts_mine') }}">{{ 'mine.title'|trans({}, domain) }}</a> · <a href="{{ path('phil_shifts_swaps') }}">{{ 'swaps.title'|trans({}, domain) }}</a></nav>
+    {%- if rosters is empty %}
+    <p>{{ 'board.none'|trans({}, domain) }}</p>
+    {%- else %}
+    <ul class="phil-shifts__list">
+        {%- for roster in rosters %}
+        <li>
+            <h2><a href="{{ path('phil_shifts_show', {id: roster.shift.id}) }}">{{ roster.shift.title }}</a></h2>
+            {{ include('@PhilShifts/_shift.html.twig', {roster: roster, zone: zone}) }}
+            {%- set status = roster.statusOf(person) %}
+            {%- if status is not null %}<p class="isBadge">{{ ('status.' ~ status.value)|trans({}, domain) }}</p>{% endif %}
+        </li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+</section>

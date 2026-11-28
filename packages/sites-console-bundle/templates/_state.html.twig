@@ -1,0 +1,4 @@
+{# A state — health, step, delivery, plan — as a Badge recipe, its name always written. #}
+{% component (phil_sites_console_kit('Badge')) with {variant: phil_sites_console_variant(state)} %}
+    {% block content %}{{ ('state.' ~ state.value)|trans({}, 'phil_sites_console') }}{% endblock %}
+{% endcomponent %}

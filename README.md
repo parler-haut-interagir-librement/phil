@@ -60,6 +60,7 @@ rules a change follows.
 | [`phil/outbox`](https://github.com/parler-haut-interagir-librement/outbox) | A transactional outbox: events recorded with the write they describe, relayed at least once, in order per key, with retries and dead records. |
 | [`phil/outbox-bundle`](https://github.com/parler-haut-interagir-librement/outbox-bundle) | The outbox in Symfony: a table of the Doctrine DBAL connection, a relay command safe in worker mode, a scheduled trigger and an optional bridge to Messenger. |
 | [`phil/rules`](https://github.com/parler-haut-interagir-librement/rules) | Decide prices, promotions, access or audiences with stored rules: typed all/any/not conditions, bounded cost, a trace of why, versioned JSON, no eval. |
+| [`phil/bulk-actions`](https://github.com/parler-haut-interagir-librement/bulk-actions) | Change thousands of records safely from an admin list: server-side selection, per-field edits, preview, per-item voters and versions, chunked runs, retries. |
 
 ### Text and documents
 
@@ -101,6 +102,10 @@ rules a change follows.
 | [`phil/citations`](https://github.com/parler-haut-interagir-librement/citations) | References kept as CSL-JSON, BibTeX and RIS import, and author-date, notes and numeric styles in English and French. |
 | [`phil/slides`](https://github.com/parler-haut-interagir-librement/slides) | Slides in Symfony from a UJO document or Markdown: speaker notes kept from the audience, fragments, a presenter view behind an optional protected route, and PDF export. |
 | [`phil/profile-editorial`](https://github.com/parler-haut-interagir-librement/profile-editorial) | One require for the packages that publish editorial content: safe markup, citations, footnotes and sidenotes, content warnings and schema.org data. |
+| [`phil/spreadsheet`](https://github.com/parler-haut-interagir-librement/spreadsheet) | Read and write CSV, XLSX and ODS in constant memory, with explicit cell types, formula injection guarded and untrusted files read within limits. |
+| [`phil/email-templates-bundle`](https://github.com/parler-haut-interagir-librement/email-templates-bundle) | Let sites edit their emails safely: templates per site and locale, with versions, sandboxed Twig, email-safe components and a preview. |
+| [`phil/email-preview`](https://github.com/parler-haut-interagir-librement/email-preview) | Catch what breaks an email before it is sent: a missing text part, no one-click unsubscribe, tracking pixels, leftover styles, too wide or long. |
+| [`phil/svg-blocks-bundle`](https://github.com/parler-haut-interagir-librement/svg-blocks-bundle) | Math, Mermaid, chart and QR code blocks in Symfony: drawn once and signed, rendered in documents, with a live preview and diagrams drawn in the background. |
 
 ### Forms and protection
 
@@ -135,6 +140,8 @@ rules a change follows.
 | [`phil/almanac`](https://github.com/parler-haut-interagir-librement/almanac) | Dates that are computed: Easter, equinoxes, phases of the Moon, eclipses, sunrise and sunset, and the rules of holidays. |
 | [`phil/almanac-bundle`](https://github.com/parler-haut-interagir-librement/almanac-bundle) | Computed dates in Doctrine, forms and Twig, with the places whose sun and sky they follow. |
 | [`phil/calendar-sync`](https://github.com/parler-haut-interagir-librement/calendar-sync) | Busy times read from iCalendar feeds, CalDAV, Google Calendar and Microsoft Graph, and a site's events written to them. |
+| [`phil/measurement`](https://github.com/parler-haut-interagir-librement/measurement) | Store, convert and display units of measure exactly, temperatures included, with CLDR formats and the units each sales channel uses. |
+| [`phil/measurement-bundle`](https://github.com/parler-haut-interagir-librement/measurement-bundle) | Units of measure in Symfony: form types, validation constraints, a Doctrine column and Twig formatting, on top of phil/measurement. |
 
 ### Links, addresses and places
 
@@ -212,6 +219,14 @@ rules a change follows.
 | [`phil/proposal-review`](https://github.com/parler-haut-interagir-librement/proposal-review) | Jury review for calls for papers and contests: dated phases, weighted criteria, blind review with conflicts, batch decisions, pairwise votes, DBAL storage. |
 | [`phil/event-weather`](https://github.com/parler-haut-interagir-librement/event-weather) | The weather forecast of an outdoor event's place and time: Environment Canada with its alerts in Canada, MET Norway elsewhere, each provider credited. |
 | [`phil/library-bundle`](https://github.com/parler-haut-interagir-librement/library-bundle) | Loans of a game or book library in Symfony: a catalogue searched without JavaScript, copies lent, reserved, renewed and returned, overdue notices by Messenger. |
+| [`phil/shifts`](https://github.com/parler-haut-interagir-librement/shifts) | Volunteer shifts without double bookings: fixed, task or duration shifts, sign-up, assignment or allocation by interest, a reserve and a swap board. |
+| [`phil/audience-segments`](https://github.com/parler-haut-interagir-librement/audience-segments) | Pick who receives a message by readable JSON rules on tickets, purchases, support and tags, with frozen recipient lists and global exclusions, no profiling. |
+| [`phil/benefit-deliverables`](https://github.com/parler-haut-interagir-librement/benefit-deliverables) | Track the benefits each member is owed per period as a checklist, with short-lived shipping exports, for subscriptions, memberships and donations. |
+| [`phil/code-of-conduct`](https://github.com/parler-haut-interagir-librement/code-of-conduct) | Publish a versioned code of conduct, record who accepted which version, and route encrypted reports to responsible people not named in them. |
+| [`phil/participant-safety-info`](https://github.com/parler-haut-interagir-librement/participant-safety-info) | Keep a participant's emergency contacts, allergies and needs for an event encrypted, readable only by its responsible people, each reading logged. |
+| [`phil/shifts-bundle`](https://github.com/parler-haut-interagir-librement/shifts-bundle) | Volunteer shifts in Symfony: rosters and a swap board stored with Doctrine, volunteer and coordinator pages, a shift form, Twig components, Messenger. |
+| [`phil/waitlist-bundle`](https://github.com/parler-haut-interagir-librement/waitlist-bundle) | Full sessions, workshops and events lose the places freed by cancellations: a waiting list offers them in turn, with a deadline, and passes lapsed offers on. |
+| [`phil/workshops-bundle`](https://github.com/parler-haut-interagir-librement/workshops-bundle) | Workshop sessions in Symfony: seats taken without overbooking, duplicate sign-ups ignored, waiting lists that offer freed seats in turn. |
 
 ### Print and products
 
@@ -242,6 +257,9 @@ rules a change follows.
 | [`phil/commerce-syndication-bundle`](https://github.com/parler-haut-interagir-librement/commerce-syndication-bundle) | A supplier's catalogue sold by other shops, in Symfony: signed prices and stock fed to resellers, orders forwarded and shipped, returns credited, one ledger. |
 | [`phil/product-feeds`](https://github.com/parler-haut-interagir-librement/product-feeds) | Product feeds for comparison sites and marketplaces, written in constant memory as RSS with product data or as TSV, and swapped into place whole. |
 | [`phil/licensing-bundle`](https://github.com/parler-haut-interagir-librement/licensing-bundle) | The licenses of works and products: what each requires, attribution pages in HTML, UJO or JSON-LD, and a compliance check before export or print. |
+| [`phil/receipt-email`](https://github.com/parler-haut-interagir-librement/receipt-email) | Email each payment its numbered receipt and each gift its official tax receipt: amounts as issued, a plain-text part, the PDF on request, no tracking. |
+| [`phil/local-pickup`](https://github.com/parler-haut-interagir-librement/local-pickup) | Let customers collect orders at a store or convention booth: slots with capacity, ready notices, one-time counter codes with QR, hold periods and expiry. |
+| [`phil/product-bundles`](https://github.com/parler-haut-interagir-librement/product-bundles) | Sell products as one bundle: fixed or discounted price, stock set by the scarcest part, cost composed from its parts, whole returns, bundles shared by sellers. |
 
 ### Content and search
 
@@ -265,6 +283,8 @@ rules a change follows.
 | [`phil/transcription`](https://github.com/parler-haut-interagir-librement/transcription) | Transcription of recordings behind one port: a whisper.cpp server run by the site, cloud adapters refused without the consent of the people heard, and a review before publication. |
 | [`phil/editorial-calendar`](https://github.com/parler-haut-interagir-librement/editorial-calendar) | Plans publications ahead: items by content, language and author through their workflow, all-or-nothing batches, calendar views, conflicts and gaps, iCalendar. |
 | [`phil/faq-bundle`](https://github.com/parler-haut-interagir-librement/faq-bundle) | Frequently asked questions by section, searchable without JavaScript, with stable anchors, anonymous votes and FAQPage structured data. |
+| [`phil/content-access`](https://github.com/parler-haut-interagir-librement/content-access) | Decide who reads a content: public, members, tiers by rules, early access then public, drip and rolling access, institutions; reserved parts never sent. |
+| [`phil/related-content`](https://github.com/parler-haut-interagir-librement/related-content) | Show related pages and products without profiling readers: weighted shared terms, manual pins and accessories, bought-together counts by pair, never by person. |
 
 ### Privacy, security and accessibility
 
@@ -339,6 +359,7 @@ rules a change follows.
 | [`phil/virtual-classroom`](https://github.com/parler-haut-interagir-librement/virtual-classroom) | Live online classes behind one port: BigBlueButton and Jitsi rooms, signed join links per role, attendance with arrival and departure times, recordings. |
 | [`phil/virtual-classroom-bundle`](https://github.com/parler-haut-interagir-librement/virtual-classroom-bundle) | Live classes in Symfony on BigBlueButton or Jitsi: join links by role, attendance and recordings from signed webhooks, attendance counted as course completion. |
 | [`phil/mime-reader`](https://github.com/parler-haut-interagir-librement/mime-reader) | Raw emails read as hostile input: header fields, nested MIME parts and report fields within limits, bodies decoded on demand into UTF-8. |
+| [`phil/calendar-import`](https://github.com/parler-haut-interagir-librement/calendar-import) | Keep a calendar in step with external iCalendar feeds: read by URL on a schedule, changes found, the last good state kept when a feed fails, editor edits kept. |
 
 ### Operations
 
@@ -362,6 +383,7 @@ rules a change follows.
 | [`phil/error-tracking`](https://github.com/parler-haut-interagir-librement/error-tracking) | Error tracking kept at home: events grouped by a stable fingerprint, scrubbed of personal data and secrets before anything is written. |
 | [`phil/error-tracking-bundle`](https://github.com/parler-haut-interagir-librement/error-tracking-bundle) | phil/error-tracking in Symfony: requests, workers, commands and browsers captured, groups kept with a purge, pages by role and chat alerts for new groups and regressions. |
 | [`phil/data-table-bundle`](https://github.com/parler-haut-interagir-librement/data-table-bundle) | Data tables as a Live Component: sorting, filters, pagination, row and bulk actions, inline editing, and the same state in the address without JavaScript. |
+| [`phil/sites-console-bundle`](https://github.com/parler-haut-interagir-librement/sites-console-bundle) | Operate many Symfony sites from one console: versions and health pulled by signed requests, alerts, settings pushed once, batched updates that stop on failure. |
 
 Every package is at `0.x`: its API may still change between minor versions, as its CHANGELOG records. More packages
 join the showcase by small daily groups.

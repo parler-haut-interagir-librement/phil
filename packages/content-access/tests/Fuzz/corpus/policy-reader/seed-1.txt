@@ -1,0 +1,1 @@
+{"version":1,"audience":"restricted","rule":{"version":1,"condition":{"any":[{"type":"access.role","operands":{"roles":["staff"]}},{"type":"access.feature","operands":{"feature":"tier:gold","after_days":30,"for_days":365}}]}},"preview":true,"when_denied":"locked"}

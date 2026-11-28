@@ -1,0 +1,29 @@
+{# A configuration push: its settings and where each delivery stands. #}
+{% extends layout %}
+
+{% set domain = 'phil_sites_console' %}
+
+{% block title %}{{ 'push.title'|trans({'%id%': push.id}, domain) }}{% endblock %}
+
+{% block content %}
+    <article class="phil-sites-console" aria-labelledby="phil-sites-console-title">
+        <h1 id="phil-sites-console-title">{{ 'push.title'|trans({'%id%': push.id}, domain) }}</h1>
+        {{ include('@PhilSitesConsole/_nav.html.twig') }}
+
+        <h2>{{ 'push.settings'|trans({}, domain) }}</h2>
+        <dl>
+            {% for key, value in push.settings.values %}<dt><code>{{ key }}</code></dt><dd><code>{{ value|json_encode }}</code></dd>{% endfor %}
+        </dl>
+
+        <h2>{{ 'push.deliveries'|trans({}, domain) }}</h2>
+        <ul>
+            {% for delivery in push.deliveries %}
+                <li id="delivery-{{ delivery.siteId }}">{{ delivery.siteId }} {{ include('@PhilSitesConsole/_state.html.twig', {state: delivery.outcome}) }} {{ delivery.message }}</li>
+            {% endfor %}
+        </ul>
+
+        {% if can_operate and push.undeliveredSites is not empty %}
+            {{ include('@PhilSitesConsole/_action.html.twig', {action: path('phil_sites_console_deliver', {id: push.id}), label: 'action.deliver'|trans({}, domain)}) }}
+        {% endif %}
+    </article>
+{% endblock %}

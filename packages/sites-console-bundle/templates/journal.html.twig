@@ -1,0 +1,12 @@
+{# The journal of the console. #}
+{% extends layout %}
+
+{% block title %}{{ 'nav.journal'|trans({}, 'phil_sites_console') }}{% endblock %}
+
+{% block content %}
+    <article class="phil-sites-console" aria-labelledby="phil-sites-console-title">
+        <h1 id="phil-sites-console-title">{{ 'nav.journal'|trans({}, 'phil_sites_console') }}</h1>
+        {{ include('@PhilSitesConsole/_nav.html.twig') }}
+        {{ include('@PhilSitesConsole/_journal.html.twig', {entries: entries}) }}
+    </article>
+{% endblock %}

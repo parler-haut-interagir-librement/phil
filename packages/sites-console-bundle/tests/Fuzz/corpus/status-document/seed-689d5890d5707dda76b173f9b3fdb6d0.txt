@@ -1,0 +1,1 @@
+{"site":"p","generated_at":"2-5-2T9:00:00+0:","php":"8.","symfony":"8","health":{"":[]}}

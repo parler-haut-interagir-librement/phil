@@ -1,0 +1,54 @@
+{
+    "name": "phil/related-content",
+    "description": "Show related pages and products without profiling readers: weighted shared terms, manual pins and accessories, bought-together counts by pair, never by person.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "related-content",
+        "related-products",
+        "cross-selling",
+        "recommendations",
+        "privacy"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "symfony/clock": "^8.2",
+        "symfony/service-contracts": "^3.8"
+    },
+    "require-dev": {
+        "phil/publishing": "^0.1@dev",
+        "phil/url": "^0.1@dev",
+        "phpunit/phpunit": "^13.4"
+    },
+    "suggest": {
+        "phil/publishing": "Computes the neighbours when a page goes online or offline, through Bridge\\Publishing\\PublishingListener.",
+        "phil/search-bundle": "Finds similar items by their text, behind the SimilarItems port, when its engine knows how."
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\RelatedContent\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\RelatedContent\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,22 @@
+{# The recent configuration pushes. #}
+{% extends layout %}
+
+{% set domain = 'phil_sites_console' %}
+
+{% block title %}{{ 'nav.pushes'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <article class="phil-sites-console" aria-labelledby="phil-sites-console-title">
+        <h1 id="phil-sites-console-title">{{ 'nav.pushes'|trans({}, domain) }}</h1>
+        {{ include('@PhilSitesConsole/_nav.html.twig') }}
+        {% if pushes is empty %}
+            <p>{{ 'pushes.empty'|trans({}, domain) }}</p>
+        {% else %}
+            <ul>
+                {% for push in pushes %}
+                    <li><a href="{{ path('phil_sites_console_push', {id: push.id}) }}"><code>{{ push.id }}</code></a> — {{ push.settings.keys|join(', ') }} — <time datetime="{{ push.createdAt|date('c') }}">{{ push.createdAt|date('Y-m-d H:i T') }}</time></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </article>
+{% endblock %}

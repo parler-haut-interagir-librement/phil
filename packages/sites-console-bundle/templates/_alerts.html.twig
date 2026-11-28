@@ -1,0 +1,10 @@
+{# The alerts of a site, each in words. #}
+{% if alerts is empty %}
+    {{ 'alerts.none'|trans({}, 'phil_sites_console') }}
+{% else %}
+    <ul class="phil-sites-console__alerts">
+        {% for alert in alerts %}
+            <li>{{ ('alert.' ~ alert.kind.value)|trans({'%subject%': alert.subject, '%detail%': alert.detail}, 'phil_sites_console') }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}

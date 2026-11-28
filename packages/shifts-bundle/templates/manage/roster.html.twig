@@ -1,0 +1,72 @@
+{#
+ # A roster for a coordinator: its places, reserve and interested, and the buttons to assign, take off, allocate,
+ # correct and remove the shift; once it started, the buttons to record an unannounced absence or take it back; for a
+ # volunteer past the threshold of absences, the button that lifts the block.
+ #
+ # Variables: roster, zone, token, refused, started, absent, blocked.
+ #}
+{%- set domain = 'phil_shifts' -%}
+{%- set shift = roster.shift -%}
+<section class="phil-shifts isStack" lang="{{ app.request.locale|default('en') }}">
+    <h1>{{ shift.title }}</h1>
+    {{ include('@PhilShifts/_refused.html.twig', {refused: refused}) }}
+    {{ include('@PhilShifts/_shift.html.twig', {roster: roster, zone: zone}) }}
+    <p><a href="{{ path('phil_shifts_manage_edit', {id: shift.id}) }}">{{ 'manage.edit'|trans({}, domain) }}</a></p>
+    {%- for group in ['confirmed', 'reserve', 'interested'] %}
+        {%- set places = attribute(roster, group) %}
+        {%- if places is not empty %}
+    <h2>{{ ('status.' ~ group)|trans({}, domain) }}</h2>
+    <ul>
+            {%- for place in places %}
+        <li>
+            {{ place.volunteer }}{% if place.assignedBy is not null %} <span class="isBadge">{{ 'manage.assigned_by'|trans({'%coordinator%': place.assignedBy}, domain) }}</span>{% endif %}
+            {%- if place.volunteer in absent|default([]) %} <span class="isBadge">{{ 'manage.absent'|trans({}, domain) }}</span>{% endif %}
+            {%- if place.volunteer in blocked|default([]) %} <span class="isBadge">{{ 'manage.blocked'|trans({}, domain) }}</span>
+            <form method="post" action="{{ path('phil_shifts_manage_lift', {id: shift.id}) }}">
+                <input type="hidden" name="_token" value="{{ token }}">
+                <input type="hidden" name="volunteer" value="{{ place.volunteer }}">
+                <button type="submit" class="isSecondary">{{ 'action.lift'|trans({}, domain) }}</button>
+            </form>
+            {%- endif %}
+            {%- if group == 'confirmed' and started|default(false) %}
+            <form method="post" action="{{ path(place.volunteer in absent|default([]) ? 'phil_shifts_manage_forgive' : 'phil_shifts_manage_absent', {id: shift.id}) }}">
+                <input type="hidden" name="_token" value="{{ token }}">
+                <input type="hidden" name="volunteer" value="{{ place.volunteer }}">
+                <button type="submit" class="isSecondary">{{ (place.volunteer in absent|default([]) ? 'action.forgive' : 'action.absent')|trans({}, domain) }}</button>
+            </form>
+            {%- endif %}
+            {%- if group != 'confirmed' %}
+            <form method="post" action="{{ path('phil_shifts_manage_assign', {id: shift.id}) }}">
+                <input type="hidden" name="_token" value="{{ token }}">
+                <input type="hidden" name="volunteer" value="{{ place.volunteer }}">
+                <button type="submit">{{ 'action.assign'|trans({}, domain) }}</button>
+            </form>
+            {%- endif %}
+            <form method="post" action="{{ path('phil_shifts_manage_remove', {id: shift.id}) }}">
+                <input type="hidden" name="_token" value="{{ token }}">
+                <input type="hidden" name="volunteer" value="{{ place.volunteer }}">
+                <button type="submit" class="isSecondary">{{ 'action.remove'|trans({}, domain) }}</button>
+            </form>
+        </li>
+            {%- endfor %}
+    </ul>
+        {%- endif %}
+    {%- endfor %}
+    <form method="post" action="{{ path('phil_shifts_manage_assign', {id: shift.id}) }}" class="isStack">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <label for="phil-shifts-volunteer">{{ 'manage.volunteer'|trans({}, domain) }}</label>
+        <input id="phil-shifts-volunteer" name="volunteer" maxlength="191" required>
+        <button type="submit">{{ 'action.assign'|trans({}, domain) }}</button>
+    </form>
+    {%- if shift.mode.value == 'interest' %}
+    <form method="post" action="{{ path('phil_shifts_manage_allocate', {id: shift.id}) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <button type="submit">{{ 'action.allocate'|trans({}, domain) }}</button>
+    </form>
+    {%- endif %}
+    <form method="post" action="{{ path('phil_shifts_manage_delete', {id: shift.id}) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <button type="submit" class="isDanger">{{ 'action.delete'|trans({}, domain) }}</button>
+    </form>
+    <p><a href="{{ path('phil_shifts_manage') }}">{{ 'manage.back'|trans({}, domain) }}</a></p>
+</section>

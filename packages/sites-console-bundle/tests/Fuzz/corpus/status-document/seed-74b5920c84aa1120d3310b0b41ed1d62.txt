@@ -1,0 +1,1 @@
+{"site":"sp","generated_at":"6-5-0T9:00:00+0","php":"5.1","symfony":"4.2.","packages":{"pl/url":"1.4"},"health":{"status":"up","checks":[{"name":"se","status":"up","summary":"ok"}]}}

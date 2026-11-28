@@ -1,0 +1,64 @@
+{
+    "name": "phil/local-pickup",
+    "description": "Let customers collect orders at a store or convention booth: slots with capacity, ready notices, one-time counter codes with QR, hold periods and expiry.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "local-pickup",
+        "click-and-collect",
+        "store-pickup",
+        "convention",
+        "pickup-code",
+        "qr-code",
+        "commerce"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/qr-code": "^0.1@dev",
+        "phil/reservation": "^0.1@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "suggest": {
+        "phil/commerce-logistics-bundle": "To put the goods of an expired pickup back in stock, at the stock location of its pickup point",
+        "phil/commerce-pos-bundle": "To hand an order over at a convention booth's register, through the PickupDesk port",
+        "phil/notifications-bundle": "To send the ready-for-pickup notice and the arrival notice",
+        "phil/privacy-bundle": "To export and erase the collectors' names through PickupPersonalData",
+        "symfony/lock": "To book the last place of a slot one customer at a time",
+        "symfony/messenger": "To send the ready-for-pickup notice from a worker, with NotifyPickupReadyHandler"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\LocalPickup\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\LocalPickup\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": true
+            }
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

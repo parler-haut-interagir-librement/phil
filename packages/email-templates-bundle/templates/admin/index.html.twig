@@ -1,0 +1,81 @@
+{#-
+ # The list of the templates a site sends or keeps a draft of, by key then locale, drawn with the kit's Table, Badge and
+ # Button: where what it sends comes from, the version sent, and where its own draft stands. Each locale links to the
+ # page of the template.
+ #
+ #   keys    the catalog rows, by key
+ #   site    the site the page acts for
+ #   shared  whether it is the shared scope
+ #   scope   "shared" or "site"
+ #}
+{% extends layout %}
+{%- set domain = 'phil_email_templates' -%}
+{%- set kit = {
+    Badge: phil_email_templates_kit('Badge'),
+    Button: phil_email_templates_kit('Button'),
+    Table: phil_email_templates_kit('Table'),
+    TableCaption: phil_email_templates_kit('Table:Caption'),
+    TableHeader: phil_email_templates_kit('Table:Header'),
+    TableBody: phil_email_templates_kit('Table:Body'),
+    TableRow: phil_email_templates_kit('Table:Row'),
+    TableHead: phil_email_templates_kit('Table:Head'),
+    TableCell: phil_email_templates_kit('Table:Cell'),
+} -%}
+
+{% block title %}{{ 'admin.title'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <h1>{{ 'admin.title'|trans({}, domain) }}</h1>
+    <p class="phil-email-templates-scope">
+        {%- if shared -%}
+            {{ 'admin.scope.shared'|trans({}, domain) }}
+        {%- else -%}
+            {{ 'admin.scope.site'|trans({'%site%': site.value}, domain) }}
+        {%- endif -%}
+    </p>
+    {%- if scope is same as('site') and not shared %}
+    <p>{% component (kit.Button) with {as: 'a', variant: 'outline', href: path('phil_email_templates_admin_index', {scope: 'shared'})} %}{% block content %}{{ 'admin.scope.to_shared'|trans({}, domain) }}{% endblock %}{% endcomponent %}</p>
+    {%- elseif scope is same as('shared') %}
+    <p>{% component (kit.Button) with {as: 'a', variant: 'outline', href: path('phil_email_templates_admin_index')} %}{% block content %}{{ 'admin.scope.to_site'|trans({}, domain) }}{% endblock %}{% endcomponent %}</p>
+    {%- endif %}
+
+    {%- if keys is empty %}
+    <p>{{ 'admin.none'|trans({}, domain) }}</p>
+    {%- else %}
+    {% component (kit.Table) %}
+        {% block content %}
+            {% component (kit.TableCaption) %}{% block content %}{{ 'admin.templates'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (kit.TableHeader) %}
+                {% block content %}
+                    {% component (kit.TableRow) %}
+                        {% block content %}
+                            {% component (kit.TableHead) %}{% block content %}{{ 'admin.key'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% component (kit.TableHead) %}{% block content %}{{ 'admin.locale'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% component (kit.TableHead) %}{% block content %}{{ 'admin.origin'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% component (kit.TableHead) %}{% block content %}{{ 'admin.version'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                            {% component (kit.TableHead) %}{% block content %}{{ 'admin.draft'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% endblock %}
+                    {% endcomponent %}
+                {% endblock %}
+            {% endcomponent %}
+            {% component (kit.TableBody) %}
+                {% block content %}
+                    {%- for key, rows in keys %}
+                    {%- for row in rows %}
+                    {% component (kit.TableRow) %}
+                        {% block content %}
+                            {% component (kit.TableCell) %}{% block content %}<code>{{ row.key }}</code>{% endblock %}{% endcomponent %}
+                            {% component (kit.TableCell) %}{% block content %}<a href="{{ path('phil_email_templates_admin_edit', {key: row.key, locale: row.locale}|merge(scope is same as('shared') ? {scope: 'shared'} : {})) }}">{{ row.locale }}</a>{% endblock %}{% endcomponent %}
+                            {% component (kit.TableCell) %}{% block content %}{% if row.origin is null %}{{ 'origin.fallback'|trans({}, domain) }}{% else %}{% component (kit.Badge) with {variant: row.origin.value is same as('default') ? 'outline' : 'secondary'} %}{% block content %}{{ ('origin.' ~ row.origin.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}{% endif %}{% endblock %}{% endcomponent %}
+                            {% component (kit.TableCell) %}{% block content %}{{ row.version ?? '–' }}{% endblock %}{% endcomponent %}
+                            {% component (kit.TableCell) %}{% block content %}{{ row.state is null ? '–' : ('state.' ~ row.state.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {% endblock %}
+                    {% endcomponent %}
+                    {%- endfor %}
+                    {%- endfor %}
+                {% endblock %}
+            {% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+    {%- endif %}
+{% endblock %}

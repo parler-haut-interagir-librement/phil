@@ -1,0 +1,11 @@
+# Email templates shared by the sites: the default files of email_templates/ override those of the bundle, and each
+# site drafts, publishes and versions its own as contents of phil/content-bundle — declare every locale they are
+# written in under phil_content.locales. See the configuration guide of phil/email-templates-bundle.
+phil_email_templates:
+    default_locale: '%kernel.default_locale%'
+    # from: 'Shop <shop@example.com>'
+    # brand: { name: 'Shop', logo: 'https://example.com/logo.png' }
+    # embeds: { directory: '%kernel.project_dir%/email_templates/images' }
+    admin:
+        enabled: false
+        role: ROLE_ADMIN

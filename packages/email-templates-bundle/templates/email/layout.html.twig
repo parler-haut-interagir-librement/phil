@@ -1,0 +1,89 @@
+{#-
+ # The house layout of the emails: a centred column of 600 pixels on the background colour, the preheader hidden at the
+ # top, the brand, then the body of the template. Its styles are inlined when the email is rendered; the rules of the
+ # dark mode stay in the <style> element, for the clients that apply `prefers-color-scheme`. Override it as any
+ # template of the bundle, `templates/bundles/PhilEmailTemplatesBundle/email/layout.html.twig`, or name another with
+ # `phil_email_templates.layout`.
+ #
+ #   subject, preheader   the rendered subject and preheader, as text
+ #   body                 the rendered body, as HTML
+ #   email                key, site, locale and segments of the render
+ #   theme                light and dark colours, by name, and the font
+ #   brand                name and logo address of the configuration, each null when none
+ #
+ # The colours and the font are checked by the Theme of the bundle — hexadecimal colours, a font of letters, digits,
+ # spaces, hyphens, commas and quotes —, so the font is written into the style sheet as it is.
+ #}
+{%- set light = theme.light -%}
+{%- set dark = theme.dark -%}
+<!doctype html>
+<html lang="{{ email.locale|replace({_: '-'}) }}" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{ subject }}</title>
+<style>
+:root { color-scheme: light dark; supported-color-schemes: light dark; }
+body { margin: 0; padding: 0; width: 100%; background-color: {{ light.background }}; }
+table { border-collapse: collapse; }
+img { border: 0; line-height: 100%; outline: none; text-decoration: none; }
+.phil-email-body { background-color: {{ light.background }}; }
+.phil-email-card { background-color: {{ light.surface }}; border-radius: 8px; }
+.phil-email-content { font-family: {{ theme.font|raw }}; font-size: 16px; line-height: 1.6; color: {{ light.text }}; }
+.phil-email-content h1 { font-size: 24px; line-height: 1.3; margin: 0 0 16px; }
+.phil-email-content h2 { font-size: 20px; line-height: 1.3; margin: 24px 0 12px; }
+.phil-email-content h3 { font-size: 17px; line-height: 1.3; margin: 20px 0 8px; }
+.phil-email-content p { margin: 0 0 16px; }
+.phil-email-content a { color: {{ light.primary }}; }
+.phil-email-brand { font-family: {{ theme.font|raw }}; font-size: 18px; font-weight: 700; color: {{ light.text }}; }
+@media (prefers-color-scheme: dark) {
+  body, .phil-email-body { background-color: {{ dark.background }} !important; }
+  .phil-email-card { background-color: {{ dark.surface }} !important; }
+  .phil-email-content, .phil-email-brand { color: {{ dark.text }} !important; }
+  .phil-email-content a { color: {{ dark.primary }} !important; }
+  .phil-email-button td { background-color: {{ dark.primary }} !important; }
+  .phil-email-button a { color: {{ dark.primary_text }} !important; }
+  .phil-email-panel td { background-color: {{ dark.panel }} !important; }
+  .phil-email-footer td { color: {{ dark.muted }} !important; border-top-color: {{ dark.border }} !important; }
+  .phil-email-table th, .phil-email-table td { border-color: {{ dark.border }} !important; }
+}
+@media only screen and (max-width: 620px) {
+  .phil-email-card { width: 100% !important; border-radius: 0 !important; }
+  .phil-email-content { padding: 24px 16px !important; }
+}
+</style>
+</head>
+<body class="phil-email-body">
+{%- if preheader is not empty %}
+<div data-text="skip" style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">{{ preheader }}{% for i in 1..40 %}&#847;&zwnj;&nbsp;{% endfor %}</div>
+{%- endif %}
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="phil-email-body">
+<tr>
+<td align="center" style="padding:24px 8px;">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" class="phil-email-card" style="width:600px;max-width:600px;">
+{%- if brand.name is not null or brand.logo is not null %}
+<tr>
+<td class="phil-email-brand" style="padding:24px 32px 0;">
+{%- if brand.logo is not null -%}
+<img src="{{ brand.logo }}" alt="{{ brand.name ?? '' }}" height="40" style="display:block;height:40px;width:auto;">
+{%- else -%}
+{{ brand.name }}
+{%- endif -%}
+</td>
+</tr>
+{%- endif %}
+<tr>
+<td class="phil-email-content" style="padding:32px;">
+{{ body|raw }}
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>

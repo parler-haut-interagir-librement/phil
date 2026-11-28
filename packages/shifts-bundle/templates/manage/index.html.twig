@@ -1,0 +1,49 @@
+{#
+ # The coordinators' page: every shift to come, critical ones lacking volunteers first, and the offers of the swap
+ # board waiting for an approval.
+ #
+ # Variables: rosters, entries, zone, token, refused.
+ #}
+{%- set domain = 'phil_shifts' -%}
+<section class="phil-shifts isStack" lang="{{ app.request.locale|default('en') }}">
+    <h1>{{ 'manage.title'|trans({}, domain) }}</h1>
+    {{ include('@PhilShifts/_refused.html.twig', {refused: refused}) }}
+    <p><a href="{{ path('phil_shifts_manage_create') }}">{{ 'manage.new'|trans({}, domain) }}</a></p>
+    {%- if rosters is empty %}
+    <p>{{ 'board.none'|trans({}, domain) }}</p>
+    {%- else %}
+    <table>
+        <thead>
+            <tr><th scope="col">{{ 'manage.shift'|trans({}, domain) }}</th><th scope="col">{{ 'manage.when'|trans({}, domain) }}</th><th scope="col">{{ 'manage.staffing'|trans({}, domain) }}</th></tr>
+        </thead>
+        <tbody>
+            {%- for roster in rosters %}
+            <tr>
+                <td><a href="{{ path('phil_shifts_manage_roster', {id: roster.shift.id}) }}">{{ roster.shift.title }}</a>{% if roster.understaffed %} <span class="isBadge isWarning">{{ 'manage.understaffed'|trans({}, domain) }}</span>{% endif %}</td>
+                <td>{{ roster.shift.startsAt|date('Y-m-d H:i', zone) }} – {{ roster.shift.endsAt|date('H:i', zone) }}</td>
+                <td>{{ roster.confirmed|length }} / {{ roster.shift.capacity }}{% if roster.reserve is not empty %} (+{{ roster.reserve|length }}){% endif %}{% if roster.interested is not empty %} · {{ 'manage.interested'|trans({'%count%': roster.interested|length}, domain) }}{% endif %}</td>
+            </tr>
+            {%- endfor %}
+        </tbody>
+    </table>
+    {%- endif %}
+    {%- set pending = entries|filter(entry => entry.offer.status.value == 'pending') %}
+    {%- if pending is not empty %}
+    <h2>{{ 'manage.swaps'|trans({}, domain) }}</h2>
+    <ul class="phil-shifts__list">
+        {%- for entry in pending %}
+        <li>
+            <p>{{ 'manage.swap'|trans({'%from%': entry.offer.offeredBy, '%to%': entry.offer.takenBy, '%shift%': entry.roster.shift.title}, domain) }}</p>
+            <form method="post" action="{{ path('phil_shifts_manage_approve', {offer: entry.offer.id}) }}">
+                <input type="hidden" name="_token" value="{{ token }}">
+                <button type="submit">{{ 'action.approve'|trans({}, domain) }}</button>
+            </form>
+            <form method="post" action="{{ path('phil_shifts_manage_refuse', {offer: entry.offer.id}) }}">
+                <input type="hidden" name="_token" value="{{ token }}">
+                <button type="submit" class="isSecondary">{{ 'action.refuse'|trans({}, domain) }}</button>
+            </form>
+        </li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+</section>

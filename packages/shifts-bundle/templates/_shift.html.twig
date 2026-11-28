@@ -1,0 +1,20 @@
+{#
+ # What a shift is: its title, kind, window in the time zone of the pages, location, places left and flags.
+ #
+ # Variables: roster, zone.
+ #}
+{%- set domain = 'phil_shifts' -%}
+{%- set shift = roster.shift -%}
+<p class="phil-shifts__when">
+    <time datetime="{{ shift.startsAt|date('Y-m-d\\TH:i:s\\Z', 'UTC') }}">{{ shift.startsAt|date('Y-m-d H:i', zone) }}</time>
+    –
+    <time datetime="{{ shift.endsAt|date('Y-m-d\\TH:i:s\\Z', 'UTC') }}">{{ shift.endsAt|date('Y-m-d H:i', zone) }}</time>
+    <span class="isBadge">{{ ('kind.' ~ shift.kind.value)|trans({}, domain) }}</span>
+    {%- if shift.kind.value != 'fixed' %} {{ 'shift.minutes'|trans({'%count%': shift.minutes}, domain) }}{% endif %}
+    {%- if shift.critical %} <span class="isBadge isWarning">{{ 'shift.critical'|trans({}, domain) }}</span>{% endif %}
+    {%- if shift.requiredRole is not null %} <span class="isBadge">{{ 'shift.role'|trans({'%role%': shift.requiredRole}, domain) }}</span>{% endif %}
+</p>
+{%- if shift.location is not empty %}
+<p class="phil-shifts__where">{{ shift.location }}</p>
+{%- endif %}
+<p class="phil-shifts__places">{{ 'shift.places_left'|trans({'%count%': roster.placesLeft, '%capacity%': shift.capacity}, domain) }}{% if shift.reserve > 0 %} · {{ 'shift.reserve'|trans({'%count%': roster.reserve|length, '%size%': shift.reserve}, domain) }}{% endif %}</p>

@@ -1,0 +1,30 @@
+{#
+ # A shift with its places and the buttons of the person signed in, and the offer of their place on the swap board.
+ #
+ # Variables: roster, open, person, zone, token, refused.
+ #}
+{%- set domain = 'phil_shifts' -%}
+{%- set shift = roster.shift -%}
+{%- set status = roster.statusOf(person) -%}
+<section class="phil-shifts isStack" lang="{{ app.request.locale|default('en') }}">
+    <h1>{{ shift.title }}</h1>
+    {{ include('@PhilShifts/_refused.html.twig', {refused: refused}) }}
+    {{ include('@PhilShifts/_shift.html.twig', {roster: roster, zone: zone}) }}
+    {%- if shift.description is not empty %}
+    <p class="phil-shifts__description">{{ shift.description|nl2br }}</p>
+    {%- endif %}
+    {%- if open %}
+    {{ include('@PhilShifts/_actions.html.twig', {roster: roster, status: status is null ? null : status.value, token: token}) }}
+        {%- if status is not null and status.value == 'confirmed' %}
+    <form method="post" action="{{ path('phil_shifts_swap_offer', {id: shift.id}) }}" class="isStack">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <label for="phil-shifts-note">{{ 'swaps.note'|trans({}, domain) }}</label>
+        <textarea id="phil-shifts-note" name="note" maxlength="500" rows="2"></textarea>
+        <button type="submit" class="isSecondary">{{ 'action.offer'|trans({}, domain) }}</button>
+    </form>
+        {%- endif %}
+    {%- else %}
+    <p>{{ 'shift.closed'|trans({}, domain) }}</p>
+    {%- endif %}
+    <p><a href="{{ path('phil_shifts_board') }}">{{ 'board.back'|trans({}, domain) }}</a></p>
+</section>

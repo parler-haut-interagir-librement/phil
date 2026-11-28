@@ -1,0 +1,244 @@
+{#-
+ # The page of one template in one locale, drawn with the kit's Alert, Badge, Button, Field, Input, Textarea,
+ # NativeSelect and Table: the form of its draft; its publication, the changes abandoned, the locale taken offline;
+ # its published versions, each to copy into the draft; and the preview of the draft, one sandboxed frame per variant,
+ # with its subject, its preheader and its plain-text part. Every form posts the stateless CSRF token as `_token`.
+ #
+ #   key, locale, locales     the template, its locale, and the locales it has
+ #   site, scope              the site the page acts for; "shared" or "site"
+ #   current                  the ResolvedTemplate the site sends
+ #   draft                    the TemplateDraft the site keeps in the locale, null for none
+ #   expected                 the revision of the draft, 0 for none
+ #   form                     the text of each field
+ #   formats                  the body formats
+ #   history                  the published versions: number, moments, author
+ #   previews                 each variant, its RenderedEmail or the error it renders with
+ #   errors                   the reasons a change was refused, none by default
+ #   done                     "saved", "published", "discarded", "reverted" or "reset" after a change, null otherwise
+ #   inherited                whether the site sends a template it did not publish
+ #}
+{% extends layout %}
+{%- set domain = 'phil_email_templates' -%}
+{%- set id = 'phil-email-template' -%}
+{%- set extra = scope is same as('shared') ? {scope: 'shared'} : {} -%}
+{%- set kit = {
+    Alert: phil_email_templates_kit('Alert'),
+    AlertTitle: phil_email_templates_kit('Alert:Title'),
+    AlertDescription: phil_email_templates_kit('Alert:Description'),
+    Badge: phil_email_templates_kit('Badge'),
+    Button: phil_email_templates_kit('Button'),
+    Field: phil_email_templates_kit('Field'),
+    FieldLabel: phil_email_templates_kit('Field:Label'),
+    FieldDescription: phil_email_templates_kit('Field:Description'),
+    Input: phil_email_templates_kit('Input'),
+    Textarea: phil_email_templates_kit('Textarea'),
+    NativeSelect: phil_email_templates_kit('NativeSelect'),
+    NativeSelectOption: phil_email_templates_kit('NativeSelect:Option'),
+    Table: phil_email_templates_kit('Table'),
+    TableHeader: phil_email_templates_kit('Table:Header'),
+    TableBody: phil_email_templates_kit('Table:Body'),
+    TableRow: phil_email_templates_kit('Table:Row'),
+    TableHead: phil_email_templates_kit('Table:Head'),
+    TableCell: phil_email_templates_kit('Table:Cell'),
+} -%}
+
+{% block title %}{{ 'admin.edit.title'|trans({'%key%': key, '%locale%': locale}, domain) }}{% endblock %}
+
+{% block content %}
+    <p><a href="{{ path('phil_email_templates_admin_index', extra) }}">{{ 'admin.back'|trans({}, domain) }}</a></p>
+    <h1>{{ 'admin.edit.title'|trans({'%key%': key, '%locale%': locale}, domain) }}</h1>
+    <p>
+        {% component (kit.Badge) with {variant: current.origin.value is same as('default') ? 'outline' : 'secondary'} %}{% block content %}{{ ('origin.' ~ current.origin.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {%- if current.version is not null %} {{ 'admin.version_of'|trans({'%version%': current.version}, domain) }}{% endif %}
+        {%- if current.locale is not same as(locale) %} {{ 'admin.fallback'|trans({'%locale%': current.locale}, domain) }}{% endif %}
+    </p>
+    {%- if draft is not null %}
+    <p>
+        {% component (kit.Badge) with {variant: draft.pending ? 'outline' : 'secondary'} %}{% block content %}{{ ('state.' ~ draft.state.value)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {{ 'admin.draft_of'|trans({'%version%': draft.version, '%revision%': draft.revision}, domain) }}
+    </p>
+    {%- endif %}
+    {%- if locales|length > 1 %}
+    <nav aria-label="{{ 'admin.locales'|trans({}, domain) }}">
+        <ul>
+            {%- for other in locales %}
+            <li>{% if other is same as(locale) %}<strong aria-current="page">{{ other }}</strong>{% else %}<a href="{{ path('phil_email_templates_admin_edit', {key: key, locale: other}|merge(extra)) }}">{{ other }}</a>{% endif %}</li>
+            {%- endfor %}
+        </ul>
+    </nav>
+    {%- endif %}
+
+    {%- if done is not null %}
+    {#- The region is polite: the Alert of the Shadcn kit always says role="alert", so the role is the wrapper's. #}
+    <div role="status" class="phil-email-templates-done">
+    {% component (kit.Alert) with {role: false} %}
+        {% block content %}
+            {% component (kit.AlertTitle) %}{% block content %}{{ ('admin.done.' ~ done)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+    </div>
+    {%- endif %}
+    {%- if errors is not empty %}
+    {% component (kit.Alert) with {variant: 'destructive', id: id ~ '-errors'} %}
+        {% block content %}
+            {% component (kit.AlertTitle) %}{% block content %}{{ 'admin.refused'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% component (kit.AlertDescription) %}{% block content %}<ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endblock %}{% endcomponent %}
+        {% endblock %}
+    {% endcomponent %}
+    {%- endif %}
+    {%- if inherited %}
+    <p>{{ 'admin.inherited'|trans({}, domain) }}</p>
+    {%- endif %}
+
+    <form method="post" action="{{ path('phil_email_templates_admin_edit', {key: key, locale: locale}|merge(extra)) }}" class="phil-email-templates-form"{% if errors is not empty %} aria-describedby="{{ id }}-errors"{% endif %}>
+        <input type="hidden" name="_token" value="{{ csrf_token }}">
+        <input type="hidden" name="expected" value="{{ expected }}">
+        {% component (kit.Field) %}
+            {% block content %}
+                {% component (kit.FieldLabel) with {for: id ~ '-subject'} %}{% block content %}{{ 'admin.field.subject'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {{ component(kit.Input, {id: id ~ '-subject', name: 'subject', value: form.subject, required: true, maxlength: 2000}) }}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.Field) %}
+            {% block content %}
+                {% component (kit.FieldLabel) with {for: id ~ '-preheader'} %}{% block content %}{{ 'admin.field.preheader'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {{ component(kit.Input, {id: id ~ '-preheader', name: 'preheader', value: form.preheader, maxlength: 2000, 'aria-describedby': id ~ '-preheader-help'}) }}
+                {% component (kit.FieldDescription) with {id: id ~ '-preheader-help'} %}{% block content %}{{ 'admin.help.preheader'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.Field) %}
+            {% block content %}
+                {% component (kit.FieldLabel) with {for: id ~ '-format'} %}{% block content %}{{ 'admin.field.format'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (kit.NativeSelect) with {id: id ~ '-format', name: 'format'} %}
+                    {% block content %}
+                        {%- for format in formats %}
+                        {% component (kit.NativeSelectOption) with {value: format, selected: format is same as(form.format)} %}{% block content %}{{ ('format.' ~ format)|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                        {%- endfor %}
+                    {% endblock %}
+                {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.Field) %}
+            {% block content %}
+                {% component (kit.FieldLabel) with {for: id ~ '-body'} %}{% block content %}{{ 'admin.field.body'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (kit.Textarea) with {id: id ~ '-body', name: 'body', rows: 18, required: true, spellcheck: 'false', 'aria-describedby': id ~ '-body-help'} %}{% block content %}{{ form.body }}{% endblock %}{% endcomponent %}
+                {% component (kit.FieldDescription) with {id: id ~ '-body-help'} %}{% block content %}{{ 'admin.help.body'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.Field) %}
+            {% block content %}
+                {% component (kit.FieldLabel) with {for: id ~ '-text'} %}{% block content %}{{ 'admin.field.text'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (kit.Textarea) with {id: id ~ '-text', name: 'text', rows: 8, spellcheck: 'false', 'aria-describedby': id ~ '-text-help'} %}{% block content %}{{ form.text }}{% endblock %}{% endcomponent %}
+                {% component (kit.FieldDescription) with {id: id ~ '-text-help'} %}{% block content %}{{ 'admin.help.text'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.Field) %}
+            {% block content %}
+                {% component (kit.FieldLabel) with {for: id ~ '-segments'} %}{% block content %}{{ 'admin.field.segments'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {{ component(kit.Input, {id: id ~ '-segments', name: 'segments', value: form.segments, 'aria-describedby': id ~ '-segments-help'}) }}
+                {% component (kit.FieldDescription) with {id: id ~ '-segments-help'} %}{% block content %}{{ 'admin.help.segments'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.Field) %}
+            {% block content %}
+                {% component (kit.FieldLabel) with {for: id ~ '-variables'} %}{% block content %}{{ 'admin.field.variables'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (kit.Textarea) with {id: id ~ '-variables', name: 'variables', rows: 12, spellcheck: 'false', 'aria-describedby': id ~ '-variables-help'} %}{% block content %}{{ form.variables }}{% endblock %}{% endcomponent %}
+                {% component (kit.FieldDescription) with {id: id ~ '-variables-help'} %}{% block content %}{{ 'admin.help.variables'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        {% component (kit.Field) %}
+            {% block content %}
+                {% component (kit.FieldLabel) with {for: id ~ '-embeds'} %}{% block content %}{{ 'admin.field.embeds'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                {% component (kit.Textarea) with {id: id ~ '-embeds', name: 'embeds', rows: 3, spellcheck: 'false', 'aria-describedby': id ~ '-embeds-help'} %}{% block content %}{{ form.embeds }}{% endblock %}{% endcomponent %}
+                {% component (kit.FieldDescription) with {id: id ~ '-embeds-help'} %}{% block content %}{{ 'admin.help.embeds'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+        <p>
+            {% component (kit.Button) with {type: 'submit', name: 'action', value: 'save'} %}{% block content %}{{ 'admin.save'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {%- if draft is not null and draft.pending %}
+            {% component (kit.Button) with {type: 'submit', name: 'action', value: 'publish', variant: 'secondary', formnovalidate: true} %}{% block content %}{{ 'admin.publish'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {%- endif %}
+            {%- if draft is not null and draft.state.value is same as('draft') %}
+            {% component (kit.Button) with {type: 'submit', name: 'action', value: 'discard', variant: 'outline', formnovalidate: true} %}{% block content %}{{ 'admin.discard'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {%- endif %}
+            {%- if draft is not null and draft.liveVersion is not null %}
+            {% component (kit.Button) with {type: 'submit', name: 'action', value: 'reset', variant: 'destructive', formnovalidate: true} %}{% block content %}{{ 'admin.reset'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+            {%- endif %}
+        </p>
+    </form>
+
+    <section aria-labelledby="{{ id }}-preview">
+        <h2 id="{{ id }}-preview">{{ 'admin.preview'|trans({}, domain) }}</h2>
+        {%- for preview in previews %}
+        {%- set segments = preview.variant.segmentList %}
+        <article class="phil-email-templates-variant" aria-labelledby="{{ id }}-variant-{{ loop.index }}">
+            <h3 id="{{ id }}-variant-{{ loop.index }}">{{ segments is same as('') ? 'admin.variant.none'|trans({}, domain) : 'admin.variant.segments'|trans({'%segments%': preview.variant.segments|join(', ')}, domain) }}</h3>
+            {%- if preview.error is not null %}
+            {% component (kit.Alert) with {variant: 'destructive'} %}{% block content %}{% component (kit.AlertDescription) %}{% block content %}{{ preview.error }}{% endblock %}{% endcomponent %}{% endblock %}{% endcomponent %}
+            {%- else %}
+            <dl>
+                <dt>{{ 'admin.field.subject'|trans({}, domain) }}</dt>
+                <dd>{{ preview.email.subject }}</dd>
+                <dt>{{ 'admin.field.preheader'|trans({}, domain) }}</dt>
+                <dd>{{ preview.email.preheader }}</dd>
+            </dl>
+            {%- if preview.email.clippedByGmail %}
+            <p>{% component (kit.Badge) with {variant: 'destructive'} %}{% block content %}{{ 'admin.clipped'|trans({}, domain) }}{% endblock %}{% endcomponent %}</p>
+            {%- endif %}
+            <iframe sandbox="" referrerpolicy="no-referrer" loading="lazy" width="100%" height="640" title="{{ 'admin.frame'|trans({'%key%': key}, domain) }}" src="{{ path('phil_email_templates_admin_frame', {key: key, locale: locale}|merge(segments is same as('') ? {} : {segments: segments})|merge(preview.variant.draft ? {draft: 1} : {})|merge(extra)) }}"></iframe>
+            <details>
+                <summary>{{ 'admin.field.text'|trans({}, domain) }}</summary>
+                <pre>{{ preview.email.text }}</pre>
+            </details>
+            {%- endif %}
+        </article>
+        {%- endfor %}
+    </section>
+
+    {%- if history is not empty %}
+    <section aria-labelledby="{{ id }}-history">
+        <h2 id="{{ id }}-history">{{ 'admin.history'|trans({}, domain) }}</h2>
+        {% component (kit.Table) %}
+            {% block content %}
+                {% component (kit.TableHeader) %}
+                    {% block content %}
+                        {% component (kit.TableRow) %}
+                            {% block content %}
+                                {% component (kit.TableHead) %}{% block content %}{{ 'admin.version'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (kit.TableHead) %}{% block content %}{{ 'admin.published_at'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (kit.TableHead) %}{% block content %}{{ 'admin.author'|trans({}, domain) }}{% endblock %}{% endcomponent %}
+                                {% component (kit.TableHead) %}{% block content %}<span class="phil-email-templates-hidden">{{ 'admin.actions'|trans({}, domain) }}</span>{% endblock %}{% endcomponent %}
+                            {% endblock %}
+                        {% endcomponent %}
+                    {% endblock %}
+                {% endcomponent %}
+                {% component (kit.TableBody) %}
+                    {% block content %}
+                        {%- for entry in history %}
+                        {% component (kit.TableRow) %}
+                            {% block content %}
+                                {% component (kit.TableCell) %}{% block content %}{{ entry.version }}{% endblock %}{% endcomponent %}
+                                {% component (kit.TableCell) %}{% block content %}{%- set moment = entry.published_at ?? entry.saved_at -%}<time datetime="{{ moment|date('c', 'UTC') }}">{{ moment|date('Y-m-d H:i', 'UTC') }} UTC</time>{% endblock %}{% endcomponent %}
+                                {% component (kit.TableCell) %}{% block content %}{{ entry.author ?? '–' }}{% endblock %}{% endcomponent %}
+                                {% component (kit.TableCell) %}
+                                    {% block content %}
+                                        {%- if draft is null or entry.version is not same as(draft.liveVersion) or draft.pending %}
+                                        <form method="post" action="{{ path('phil_email_templates_admin_edit', {key: key, locale: locale}|merge(extra)) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token }}">
+                                            <input type="hidden" name="expected" value="{{ expected }}">
+                                            <input type="hidden" name="version" value="{{ entry.version }}">
+                                            {% component (kit.Button) with {type: 'submit', name: 'action', value: 'revert', variant: 'outline', size: 'sm'} %}{% block content %}{{ 'admin.revert'|trans({'%version%': entry.version}, domain) }}{% endblock %}{% endcomponent %}
+                                        </form>
+                                        {%- endif %}
+                                    {% endblock %}
+                                {% endcomponent %}
+                            {% endblock %}
+                        {% endcomponent %}
+                        {%- endfor %}
+                    {% endblock %}
+                {% endcomponent %}
+            {% endblock %}
+        {% endcomponent %}
+    </section>
+    {%- endif %}
+{% endblock %}

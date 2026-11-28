@@ -1,0 +1,101 @@
+# Un reçu officiel de don aux fins de l’impôt sur le revenu, avec chaque mention que l’autorité fiscale demande.
+subject: 'Reçu officiel de don {{ receipt.serial_number }} de {{ charity.name }}'
+preheader: 'Reçu officiel aux fins de l’impôt sur le revenu : montant admissible {{ receipt.eligible_amount|replace({".": ","}) }} {{ receipt.currency }}.'
+format: html
+variables:
+    recipient:
+        type: object
+        fields:
+            name: { type: string, max_length: 200, sample: 'Ada B. Lovelace' }
+    receipt:
+        type: object
+        required: true
+        fields:
+            serial_number: { type: string, required: true, max_length: 32, sample: 'D-2026-000017' }
+            issued_at: { type: datetime, required: true, sample: '2026-11-20T10:00:00-05:00' }
+            issued_in: { type: string, required: true, max_length: 500, sample: 'Montréal' }
+            received_on: { type: datetime, sample: '2026-11-18' }
+            received_year: { type: integer, required: true, sample: 2026 }
+            kind: { type: string, required: true, max_length: 16, sample: 'cash' }
+            currency: { type: string, required: true, max_length: 3, sample: 'CAD' }
+            amount: { type: string, required: true, max_length: 32, sample: '150.00' }
+            advantage: { type: string, required: true, max_length: 32, sample: '40.00' }
+            advantage_description: { type: string, max_length: 500, sample: 'Un billet pour le souper-bénéfice' }
+            eligible_amount: { type: string, required: true, max_length: 32, sample: '110.00' }
+            gift_description: { type: string, max_length: 500 }
+            signatory: { type: string, required: true, max_length: 500, sample: 'Grace Hopper, trésorière' }
+    charity:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 500, sample: 'Le Cercle de lecture' }
+            address: { type: list, max_items: 10, items: { type: string, max_length: 500 }, sample: ['8, ruelle de la Bibliothèque', 'Montréal (Québec)  H2X 2Z9'] }
+            registration_number: { type: string, required: true, max_length: 64, sample: '123456789 RR 0001' }
+    donor:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 500, sample: 'Ada B. Lovelace' }
+            address: { type: list, max_items: 10, items: { type: string, max_length: 500 }, sample: ['1, chemin Analytique', 'Québec (Québec)  G1R 4P5'] }
+    appraiser:
+        type: object
+        fields:
+            name: { type: string, required: true, max_length: 500 }
+            address: { type: list, max_items: 10, items: { type: string, max_length: 500 } }
+    authority:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 100, sample: 'Agence du revenu du Canada' }
+            website: { type: string, required: true, max_length: 100, sample: 'canada.ca/charities-giving' }
+body: |
+    <h1 style="margin:0 0 8px;">Reçu officiel aux fins de l’impôt sur le revenu</h1>
+    <p style="margin:0 0 16px;">{% if recipient.name is not null %}Bonjour {{ recipient.name }}, merci{% else %}Merci{% endif %} pour votre don à {{ charity.name }}. En voici le reçu officiel ; gardez-le avec vos documents fiscaux.</p>
+    {{ table([
+        ['Numéro de série', receipt.serial_number],
+        ['Date de délivrance', receipt.issued_at|date('Y-m-d', false)],
+        ['Lieu de délivrance', receipt.issued_in],
+        [receipt.received_on is null ? 'Année de réception du don' : 'Date de réception du don', receipt.received_on is null ? receipt.received_year : receipt.received_on|date('Y-m-d', false)],
+        ['Donateur', donor.name ~ ((donor.address ?? []) is empty ? '' : ', ' ~ donor.address|join(', '))],
+    ]) }}
+    {% if receipt.gift_description is not null %}<p style="margin:0 0 8px;">Description du don : {{ receipt.gift_description }}</p>{% endif %}
+    {% if appraiser is not null %}<p style="margin:0 0 8px;">Évaluateur : {{ appraiser.name }}{% for line in appraiser.address ?? [] %}, {{ line }}{% endfor %}</p>{% endif %}
+    {{ table([
+        ['Montant du don', receipt.amount|replace({'.': ','}) ~ ' ' ~ receipt.currency],
+        ['Montant de l’avantage', receipt.advantage|replace({'.': ','}) ~ ' ' ~ receipt.currency],
+        ['Montant admissible du don', receipt.eligible_amount|replace({'.': ','}) ~ ' ' ~ receipt.currency],
+    ]) }}
+    {% if receipt.advantage_description is not null %}<p style="margin:0 0 8px;">Avantage : {{ receipt.advantage_description }}</p>{% endif %}
+    <p style="margin:16px 0 0;">Signature autorisée : {{ receipt.signatory }}</p>
+    {% apply footer %}<p style="margin:0;">{{ charity.name }}{% for line in charity.address ?? [] %} · {{ line }}{% endfor %}</p><p style="margin:4px 0 0;">Numéro d’enregistrement {{ charity.registration_number }}</p><p style="margin:4px 0 0;">{{ authority.name }} : {{ authority.website }}</p>{% endapply %}
+text: |
+    Reçu officiel aux fins de l’impôt sur le revenu
+
+    {% if recipient.name is not null %}Bonjour {{ recipient.name }}, merci{% else %}Merci{% endif %} pour votre don à {{ charity.name }}. En voici le reçu officiel ; gardez-le avec vos documents fiscaux.
+
+    {{ charity.name }}
+    {% for line in charity.address ?? [] %}{{ line }}
+    {% endfor %}Numéro d’enregistrement : {{ charity.registration_number }}
+
+    Numéro de série : {{ receipt.serial_number }}
+    Date de délivrance : {{ receipt.issued_at|date('Y-m-d', false) }}
+    Lieu de délivrance : {{ receipt.issued_in }}
+    {% if receipt.received_on is null %}Année de réception du don : {{ receipt.received_year }}{% else %}Date de réception du don : {{ receipt.received_on|date('Y-m-d', false) }}{% endif %}
+
+
+    Donateur : {{ donor.name }}
+    {% for line in donor.address ?? [] %}{{ line }}
+    {% endfor %}
+    {% if receipt.gift_description is not null %}Description du don : {{ receipt.gift_description }}
+    {% endif %}{% if appraiser is not null %}Évaluateur : {{ appraiser.name }}{% for line in appraiser.address ?? [] %}, {{ line }}{% endfor %}
+
+    {% endif %}
+
+    Montant du don : {{ receipt.amount|replace({'.': ','}) }} {{ receipt.currency }}
+    Montant de l’avantage : {{ receipt.advantage|replace({'.': ','}) }} {{ receipt.currency }}
+    {% if receipt.advantage_description is not null %}Avantage : {{ receipt.advantage_description }}
+    {% endif %}Montant admissible du don : {{ receipt.eligible_amount|replace({'.': ','}) }} {{ receipt.currency }}
+
+    Signature autorisée : {{ receipt.signatory }}
+
+    {{ authority.name }} : {{ authority.website }}

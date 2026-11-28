@@ -1,0 +1,42 @@
+# La confirmation d’une inscription, d’une réservation ou d’une commande.
+subject: 'Confirmé : {{ item.title }}'
+preheader: 'Votre référence est {{ reference }}.'
+format: markdown
+segments: [first-time]
+variables:
+    recipient:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 200, sample: 'Ada' }
+    item:
+        type: object
+        required: true
+        fields:
+            title: { type: string, required: true, max_length: 300, sample: 'Atelier du printemps' }
+            starts_at: { type: datetime, sample: '2026-04-18T19:00:00-04:00' }
+            location: { type: string, max_length: 300, sample: '12, rue du Marché' }
+    reference: { type: string, required: true, max_length: 64, sample: 'A-1042' }
+    manage_url: { type: url, sample: 'https://example.com/compte/reservations/A-1042' }
+body: |
+    # C’est confirmé, {{ recipient.name }}
+
+    Votre place pour **{{ item.title }}** est confirmée.
+
+    {{ table([
+        ['Référence', reference],
+        ['Quand', item.starts_at is null ? 'À venir' : item.starts_at|date('Y-m-d \\à H \\h i', false)],
+        ['Où', item.location ?? 'À venir'],
+    ]) }}
+
+    {% if manage_url is not null %}{{ button('Gérer ma réservation', manage_url) }}{% endif %}
+
+    {% if segment('first-time') %}
+    {% apply panel %}
+    **Bienvenue !** C’est votre première réservation : gardez ce courriel, il contient votre référence.
+    {% endapply %}
+    {% endif %}
+
+    {% apply footer %}
+    Vous recevez ce courriel parce que vous avez fait cette réservation.
+    {% endapply %}

@@ -1,0 +1,71 @@
+{# A site: its agent, its alerts, its checks, its packages and its recent lines of the journal. #}
+{% extends layout %}
+
+{% set domain = 'phil_sites_console' %}
+{% set site = overview.site %}
+{% set snapshot = overview.snapshot %}
+
+{% block title %}{{ site.name }}{% endblock %}
+
+{% block content %}
+    <article class="phil-sites-console" aria-labelledby="phil-sites-console-title">
+        <h1 id="phil-sites-console-title">{{ site.name }} {{ include('@PhilSitesConsole/_state.html.twig', {state: overview.health}) }}</h1>
+        {{ include('@PhilSitesConsole/_nav.html.twig') }}
+
+        {% component (phil_sites_console_kit('Card')) with {size: 'sm'} %}
+            {% block content %}
+                <dl>
+                    <dt>{{ 'site.id'|trans({}, domain) }}</dt><dd><code>{{ site.id }}</code></dd>
+                    <dt>{{ 'site.agent'|trans({}, domain) }}</dt><dd><code>{{ site.agentUrl.value }}</code></dd>
+                    <dt>{{ 'site.groups'|trans({}, domain) }}</dt><dd>{{ site.groups|join(', ') }}</dd>
+                    <dt>{{ 'column.read_at'|trans({}, domain) }}</dt><dd>{% if snapshot %}<time datetime="{{ snapshot.takenAt|date('c') }}">{{ snapshot.takenAt|date('Y-m-d H:i T') }}</time>{% else %}{{ 'dashboard.never'|trans({}, domain) }}{% endif %}</dd>
+                </dl>
+                {% if can_operate %}
+                    {{ include('@PhilSitesConsole/_action.html.twig', {action: path('phil_sites_console_pull', {id: site.id}), label: 'action.pull'|trans({}, domain)}) }}
+                {% endif %}
+            {% endblock %}
+        {% endcomponent %}
+
+        <section aria-labelledby="phil-sites-console-alerts">
+            <h2 id="phil-sites-console-alerts">{{ 'column.alerts'|trans({}, domain) }}</h2>
+            {{ include('@PhilSitesConsole/_alerts.html.twig', {alerts: overview.alerts}) }}
+        </section>
+
+        {% if snapshot %}
+            <section aria-labelledby="phil-sites-console-checks">
+                <h2 id="phil-sites-console-checks">{{ 'site.checks'|trans({}, domain) }}</h2>
+                {% if snapshot.health.checks is empty %}
+                    <p>{{ 'site.no_checks'|trans({}, domain) }}</p>
+                {% else %}
+                    <ul>
+                        {% for check in snapshot.health.checks %}
+                            <li>{{ check.name }} {{ include('@PhilSitesConsole/_state.html.twig', {state: check.state}) }} {{ check.summary }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </section>
+
+            <section aria-labelledby="phil-sites-console-packages">
+                <h2 id="phil-sites-console-packages">{{ 'site.packages'|trans({}, domain) }}</h2>
+                {% component (phil_sites_console_kit('Table')) %}
+                    {% block content %}
+                        <thead class="isTableHeader"><tr class="isTableRow">
+                            <th class="isTableHead" scope="col">{{ 'column.package'|trans({}, domain) }}</th>
+                            <th class="isTableHead" scope="col">{{ 'column.version'|trans({}, domain) }}</th>
+                        </tr></thead>
+                        <tbody class="isTableBody">
+                            {% for package, version in snapshot.packages %}
+                                <tr class="isTableRow"><td class="isTableCell">{{ package }}</td><td class="isTableCell">{{ version }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    {% endblock %}
+                {% endcomponent %}
+            </section>
+        {% endif %}
+
+        <section aria-labelledby="phil-sites-console-journal">
+            <h2 id="phil-sites-console-journal">{{ 'nav.journal'|trans({}, domain) }}</h2>
+            {{ include('@PhilSitesConsole/_journal.html.twig', {entries: journal}) }}
+        </section>
+    </article>
+{% endblock %}

@@ -1,0 +1,14 @@
+# The console that operates several sites, and the agent each site runs for it. Generate a key pair for each side with
+# `php bin/console phil:sites-console:keys`, keep the private keys in secrets, and turn on the half this application
+# is. See the configuration guide of phil/sites-console-bundle.
+phil_sites_console:
+    # console:
+    #     enabled: true
+    #     private_key: '%env(SITES_CONSOLE_PRIVATE_KEY)%'
+    #     # next_private_key: '%env(SITES_CONSOLE_NEXT_PRIVATE_KEY)%'   # during a rotation of the console key
+    # agent:
+    #     enabled: true
+    #     site_id: my-site
+    #     private_key: '%env(SITES_CONSOLE_AGENT_KEY)%'
+    #     console_public_key: '%env(SITES_CONSOLE_PUBLIC_KEY)%'
+    #     # key_pool: cache.persistent   # the console keys a rotation stages; shared, surviving deploys

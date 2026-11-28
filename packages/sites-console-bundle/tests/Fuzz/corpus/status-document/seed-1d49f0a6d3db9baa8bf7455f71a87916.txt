@@ -1,0 +1,1 @@
+{"site":"`","generated_at":"2-2-0T4:00:00+1","php":"1","symfony":"8.0","pc":{"cr":"9"},"health":{"status":"up","checks":[{"am":"d","status":"k"}]}}
