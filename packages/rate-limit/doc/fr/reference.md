@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=a7718dc7c058c326c1113bd92f5e1748965f667b6942a3aa038a62f579846c30 -->
+<!-- phil-dev source-sha256=ad81a293dea2829b91b6251f6dc91ffbe880bd8c3c971bb4a52b6fe650915d3a -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.
@@ -25,5 +25,7 @@ Chaque type public du paquet, avec son rôle.
 |---|---|
 | `LOCAL_ADAPTERS` | Les adaptateurs abstraits du framework dont les pools sont locaux |
 | `LOCAL_CLASSES` | Les classes des pools et stockages locaux |
+| `LIMITER` | `limiter`, le service abstrait des limiteurs du framework |
+| `BUILDER` | `limiter_builder`, le `RateLimiterBuilder` du framework |
 | `MAX_DEPTH` | 32, le plus de services suivis depuis celui qui est demandé |
 | `isLocal(ContainerBuilder $container, string $id): bool` | Si ce service, ou le pool qu'il reçoit, est local |

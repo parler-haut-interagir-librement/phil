@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8b927a316e7fe02ce1593c842a8f67ade2aea0c76cc969fcc4d78c6f38184ffb -->
+<!-- phil-dev source-sha256=c77368d73405a811515a744578eea7bfd9d8d34747f80c6ae89d8944f4051f52 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension ne sont stables qu'à partir de sa version 1.0. D'ici là, une version
@@ -52,9 +52,11 @@ automatiquement sont des stratégies sous leur identifiant ; une étiquette `phi
 | `Phil\RateLimitBundle\Application\RateLimitEnforcer` (public) | Soumet une requête à des règles, depuis du code qui limite à sa façon |
 | `phil_rate_limit.key.ip`, `.user`, `.user_or_ip`, `.ip_route` | Les stratégies de clé |
 | `phil_rate_limit.limiter.<name>`, `phil_rate_limit.factory.<name>` | Chaque limiteur configuré et sa fabrique |
+| `phil_rate_limit.attribute.<name>` | Chaque limiteur, étiqueté ou d'un autre paquet, comme le nomme le `#[RateLimit]` de Symfony : une fabrique étiquetée `rate_limiter` |
+| `Phil\RateLimitBundle\Infrastructure\RateLimiter\AttributeLimits` | Ce par quoi ces fabriques consomment |
 
 ```php
-$decision = $enforcer->enforce($request, [new RateLimit('exports', 5)]);
+$decision = $enforcer->enforce($request, [new Rule('exports', 5)]);
 ```
 
 ## Événements
@@ -63,6 +65,7 @@ $decision = $enforcer->enforce($request, [new RateLimit('exports', 5)]);
 |---|---|
 | `Phil\RateLimitBundle\Application\Event\RateLimitExceeded` | Un limiteur a refusé une requête ou une soumission, avant la réponse |
 | `Phil\RateLimitBundle\Application\Event\RateLimitObserved` | Un limiteur en observation aurait refusé une requête ou une soumission, qui continue |
+| `Symfony\Component\RateLimiter\Event\RateLimitExceededEvent` | L'événement de Symfony pour un refus : réparti par le bundle après `RateLimitExceeded` sur ses limiteurs, avec la clé hachée, et par l'écouteur de Symfony sur les limiteurs de la configuration du framework, avec la clé telle que Symfony l'a calculée |
 
 ## Gabarits et traductions
 
