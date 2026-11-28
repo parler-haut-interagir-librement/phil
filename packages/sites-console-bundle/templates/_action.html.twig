@@ -1,0 +1,8 @@
+{# A POST action of an operator: a form with the CSRF token and a Button recipe. #}
+<form method="post" action="{{ action }}" class="phil-sites-console__action">
+    <input type="hidden" name="_token" value="{{ csrf_token }}">
+    {% for name, value in fields|default({}) %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+    {% component (phil_sites_console_kit('Button')) with {type: 'submit', variant: 'secondary', size: 'sm'} %}
+        {% block content %}{{ label }}{% endblock %}
+    {% endcomponent %}
+</form>

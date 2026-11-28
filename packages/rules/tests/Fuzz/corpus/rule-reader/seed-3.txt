@@ -1,0 +1,1 @@
+{"version":1,"condition":{"type":"fact.contains","operands":{"fact":"b","value":"x"}}}

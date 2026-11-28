@@ -1,0 +1,28 @@
+{#
+ # The buttons the mode of a shift gives the person signed in, each a form that works without JavaScript.
+ #
+ # Variables: roster, status (confirmed, reserve, interested or null), token.
+ #}
+{%- set domain = 'phil_shifts' -%}
+{%- set shift = roster.shift -%}
+{%- if status is null %}
+    {%- if shift.mode.value == 'self_sign_up' %}
+    <form method="post" action="{{ path('phil_shifts_sign_up', {id: shift.id}) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <button type="submit">{{ (roster.placesLeft > 0 ? 'action.sign_up' : 'action.join_reserve')|trans({}, domain) }}</button>
+    </form>
+    {%- elseif shift.mode.value == 'interest' %}
+    <form method="post" action="{{ path('phil_shifts_interest', {id: shift.id}) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <button type="submit">{{ 'action.interest'|trans({}, domain) }}</button>
+    </form>
+    {%- else %}
+    <p>{{ 'shift.assigned_only'|trans({}, domain) }}</p>
+    {%- endif %}
+{%- else %}
+    <p class="isBadge">{{ ('status.' ~ status)|trans({}, domain) }}</p>
+    <form method="post" action="{{ path('phil_shifts_withdraw', {id: shift.id}) }}">
+        <input type="hidden" name="_token" value="{{ token }}">
+        <button type="submit" class="isSecondary">{{ 'action.withdraw'|trans({}, domain) }}</button>
+    </form>
+{%- endif %}

@@ -1,0 +1,121 @@
+# Un reçu de paiement ou une note de crédit, tel que l’émetteur l’a numéroté : transactionnel, sans offre ni suivi.
+subject: '{{ receipt.document == "credit_note" ? "Note de crédit" : "Reçu" }} {{ receipt.number }} de {{ issuer.name }}'
+preheader: '{{ receipt.document == "credit_note" ? "Note de crédit" : "Reçu" }} {{ receipt.number }} de la commande {{ receipt.order }} : {{ receipt.total|replace({".": ","}) }} {{ receipt.currency }}.'
+format: html
+variables:
+    recipient:
+        type: object
+        fields:
+            name: { type: string, max_length: 200, sample: 'Ada Lovelace' }
+    receipt:
+        type: object
+        required: true
+        fields:
+            number: { type: string, required: true, max_length: 64, sample: 'R-000042' }
+            document: { type: string, required: true, max_length: 16, sample: 'receipt' }
+            order: { type: string, required: true, max_length: 64, sample: 'A-1001' }
+            credits: { type: string, max_length: 64 }
+            issued_at: { type: datetime, required: true, sample: '2026-11-20T14:30:00-05:00' }
+            currency: { type: string, required: true, max_length: 3, sample: 'CAD' }
+            subtotal: { type: string, required: true, max_length: 32, sample: '45.00' }
+            total: { type: string, required: true, max_length: 32, sample: '61.74' }
+            included_total: { type: string, max_length: 32 }
+    issuer:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 500, sample: 'La boutique' }
+            address: { type: list, max_items: 10, items: { type: string, max_length: 500 }, sample: ['12, rue Principale', 'Montréal (Québec)  H2X 1Y4'] }
+            tax_numbers: { type: list, max_items: 20, items: { type: string, max_length: 200 }, sample: ['TPS 123456789 RT0001', 'TVQ 1234567890 TQ0001'] }
+    lines:
+        type: list
+        required: true
+        max_items: 500
+        sample:
+            - { description: 'Thé', quantity: 3, unit_price: '5.00', amount: '15.00', taxes: ['TPS 0.75', 'TVQ 1.50'], options: ['Format : 100 g'], pending: [] }
+            - { description: 'Théière', quantity: 1, unit_price: '30.00', amount: '30.00', taxes: ['TPS 1.50', 'TVQ 2.99'], options: [], pending: [] }
+        items:
+            type: object
+            fields:
+                description: { type: string, required: true, max_length: 500 }
+                quantity: { type: integer, required: true }
+                unit_price: { type: string, required: true, max_length: 32 }
+                amount: { type: string, required: true, max_length: 32 }
+                taxes: { type: list, max_items: 20, items: { type: string, max_length: 100 } }
+                options: { type: list, max_items: 20, items: { type: string, max_length: 500 } }
+                pending: { type: list, max_items: 20, items: { type: string, max_length: 500 } }
+    charges:
+        type: list
+        max_items: 500
+        sample: [{ label: 'Livraison', amount: '10.00' }]
+        items:
+            type: object
+            fields:
+                label: { type: string, required: true, max_length: 500 }
+                amount: { type: string, required: true, max_length: 32 }
+    taxes:
+        type: list
+        max_items: 500
+        sample: [{ code: 'TPS', amount: '2.25' }, { code: 'TVQ', amount: '4.49' }]
+        items:
+            type: object
+            fields:
+                code: { type: string, required: true, max_length: 64 }
+                amount: { type: string, required: true, max_length: 32 }
+    included_taxes:
+        type: list
+        max_items: 500
+        sample: []
+        items:
+            type: object
+            fields:
+                code: { type: string, required: true, max_length: 64 }
+                amount: { type: string, required: true, max_length: 32 }
+body: |
+    <h1 style="margin:0 0 8px;">{{ receipt.document == 'credit_note' ? 'Note de crédit' : 'Reçu' }} {{ receipt.number }}</h1>
+    <p style="margin:0 0 16px;">{% if recipient.name is not null %}Bonjour {{ recipient.name }}, voici{% else %}Voici{% endif %} {{ receipt.document == 'credit_note' ? 'la note de crédit' : 'le reçu' }} de la commande {{ receipt.order }}{% if receipt.credits is not null %}, qui crédite le reçu {{ receipt.credits }}{% endif %}, délivré le {{ receipt.issued_at|date('Y-m-d', false) }}. Les montants sont en {{ receipt.currency }}.</p>
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%;border-collapse:collapse;margin:0 0 16px;">
+    <thead><tr><th align="left" style="padding:6px 0;border-bottom:1px solid #d0d0d0;">Description</th><th align="right" style="padding:6px 0;border-bottom:1px solid #d0d0d0;">Qté</th><th align="right" style="padding:6px 0;border-bottom:1px solid #d0d0d0;">Prix unitaire</th><th align="right" style="padding:6px 0;border-bottom:1px solid #d0d0d0;">Montant</th></tr></thead>
+    <tbody>
+    {% for line in lines %}
+    <tr><td style="padding:6px 0 0;">{{ line.description }}</td><td align="right" style="padding:6px 0 0;">{{ line.quantity }}</td><td align="right" style="padding:6px 0 0;">{{ line.unit_price|replace({'.': ','}) }}</td><td align="right" style="padding:6px 0 0;">{{ line.amount|replace({'.': ','}) }}</td></tr>
+    <tr><td colspan="4" style="padding:0 0 6px 12px;font-size:13px;color:#555555;border-bottom:1px solid #eeeeee;">{{ (line.options ?? [])|join(' · ') }}{% for label in line.pending ?? [] %}{{ loop.first and (line.options ?? []) is not empty ? ' · ' : '' }}{{ label }} : tiré après le paiement{{ loop.last ? '' : ' · ' }}{% endfor %}{% if (line.taxes ?? []) is not empty %}{% if (line.options ?? []) is not empty or (line.pending ?? []) is not empty %}<br>{% endif %}Taxes : {{ line.taxes|join(' ; ')|replace({'.': ','}) }}{% endif %}</td></tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%;border-collapse:collapse;margin:0 0 16px;">
+    <tr><td style="padding:4px 0;">Sous-total</td><td align="right" style="padding:4px 0;">{{ receipt.subtotal|replace({'.': ','}) }}</td></tr>
+    {% for charge in charges ?? [] %}<tr><td style="padding:4px 0;">{{ charge.label }}</td><td align="right" style="padding:4px 0;">{{ charge.amount|replace({'.': ','}) }}</td></tr>{% endfor %}
+    {% for tax in taxes ?? [] %}<tr><td style="padding:4px 0;">{{ tax.code }}</td><td align="right" style="padding:4px 0;">{{ tax.amount|replace({'.': ','}) }}</td></tr>{% endfor %}
+    <tr><td style="padding:8px 0;font-weight:700;border-top:1px solid #d0d0d0;">Total</td><td align="right" style="padding:8px 0;font-weight:700;border-top:1px solid #d0d0d0;">{{ receipt.total|replace({'.': ','}) }} {{ receipt.currency }}</td></tr>
+    {% for tax in included_taxes ?? [] %}<tr><td style="padding:4px 0;font-size:13px;">{{ tax.code }} incluse</td><td align="right" style="padding:4px 0;font-size:13px;">{{ tax.amount|replace({'.': ','}) }}</td></tr>{% endfor %}
+    {% if receipt.included_total is not null %}<tr><td style="padding:4px 0;font-size:13px;">Taxes incluses</td><td align="right" style="padding:4px 0;font-size:13px;">{{ receipt.included_total|replace({'.': ','}) }}</td></tr>{% endif %}
+    </table>
+    {% apply footer %}<p style="margin:0;">{{ issuer.name }}{% for line in issuer.address ?? [] %} · {{ line }}{% endfor %}</p>{% if (issuer.tax_numbers ?? []) is not empty %}<p style="margin:4px 0 0;">{{ issuer.tax_numbers|join(' · ') }}</p>{% endif %}<p style="margin:4px 0 0;">Vous recevez ce courriel parce que vous avez payé la commande {{ receipt.order }}. Gardez-le comme reçu.</p>{% endapply %}
+text: |
+    {{ receipt.document == 'credit_note' ? 'Note de crédit' : 'Reçu' }} {{ receipt.number }}
+
+    {% if recipient.name is not null %}Bonjour {{ recipient.name }}, voici{% else %}Voici{% endif %} {{ receipt.document == 'credit_note' ? 'la note de crédit' : 'le reçu' }} de la commande {{ receipt.order }}{% if receipt.credits is not null %}, qui crédite le reçu {{ receipt.credits }}{% endif %}, délivré le {{ receipt.issued_at|date('Y-m-d', false) }}. Les montants sont en {{ receipt.currency }}.
+
+    {% for line in lines %}
+    {{ line.description }} : {{ line.quantity }} × {{ line.unit_price|replace({'.': ','}) }} = {{ line.amount|replace({'.': ','}) }}
+    {% for option in line.options ?? [] %}  {{ option }}
+    {% endfor %}{% for label in line.pending ?? [] %}  {{ label }} : tiré après le paiement
+    {% endfor %}{% if (line.taxes ?? []) is not empty %}  Taxes : {{ line.taxes|join(' ; ')|replace({'.': ','}) }}
+    {% endif %}
+
+    {% endfor %}
+    Sous-total : {{ receipt.subtotal|replace({'.': ','}) }}
+    {% for charge in charges ?? [] %}{{ charge.label }} : {{ charge.amount|replace({'.': ','}) }}
+    {% endfor %}{% for tax in taxes ?? [] %}{{ tax.code }} : {{ tax.amount|replace({'.': ','}) }}
+    {% endfor %}Total : {{ receipt.total|replace({'.': ','}) }} {{ receipt.currency }}
+    {% for tax in included_taxes ?? [] %}{{ tax.code }} incluse : {{ tax.amount|replace({'.': ','}) }}
+    {% endfor %}{% if receipt.included_total is not null %}Taxes incluses : {{ receipt.included_total|replace({'.': ','}) }}
+    {% endif %}
+
+    {{ issuer.name }}
+    {% for line in issuer.address ?? [] %}{{ line }}
+    {% endfor %}{% for number in issuer.tax_numbers ?? [] %}{{ number }}
+    {% endfor %}
+
+    Vous recevez ce courriel parce que vous avez payé la commande {{ receipt.order }}. Gardez-le comme reçu.

@@ -1,0 +1,1 @@
+{"format":"phil-shifts/1","shifts":[{"id":"c","title":"Clo","kind":"duration","starts_at":"4054-11-28T08:00:00Z","ends_at":"1013-11-28T20:00:00Z","critical":true,"wett,d":"2::0Z"}]}

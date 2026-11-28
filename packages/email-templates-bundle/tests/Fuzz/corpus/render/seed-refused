@@ -1,0 +1,1 @@
+{% include "x" %}{{ constant("PHP_VERSION") }}

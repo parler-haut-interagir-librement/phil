@@ -1,0 +1,60 @@
+{
+    "name": "phil/bulk-actions",
+    "description": "Change thousands of records safely from an admin list: server-side selection, per-field edits, preview, per-item voters and versions, chunked runs, retries.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "bulk-actions",
+        "batch",
+        "admin",
+        "mass-edit",
+        "optimistic-locking",
+        "messenger"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-sodium": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "suggest": {
+        "phil/audit-bundle": "To record who ran which bulk action on how many items, through the AuditTrail port",
+        "phil/outbox": "To record an action's effects outside the database under each item's idempotency key",
+        "phil/trash-bundle": "To make a bulk delete a move to the trash",
+        "symfony/messenger": "To execute the runs chunk by chunk in a worker, with ExecuteBulkRunHandler"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\BulkActions\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\BulkActions\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": true
+            }
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,4 @@
+# The pages of the volunteer shifts, under the prefix of your choice.
+phil_shifts:
+    resource: '@PhilShiftsBundle/config/routes.php'
+    prefix: /shifts

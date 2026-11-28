@@ -1,0 +1,41 @@
+{# The watched packages against the sites; a version older than the newest one is marked. #}
+{% extends layout %}
+
+{% set domain = 'phil_sites_console' %}
+
+{% block title %}{{ 'nav.versions'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <article class="phil-sites-console" aria-labelledby="phil-sites-console-title">
+        <h1 id="phil-sites-console-title">{{ 'nav.versions'|trans({}, domain) }}</h1>
+        {{ include('@PhilSitesConsole/_nav.html.twig') }}
+
+        {% if matrix.packages is empty %}
+            <p>{{ 'versions.empty'|trans({}, domain) }}</p>
+        {% else %}
+            {% component (phil_sites_console_kit('Table')) %}
+                {% block content %}
+                    <thead class="isTableHeader"><tr class="isTableRow">
+                        <th class="isTableHead" scope="col">{{ 'column.package'|trans({}, domain) }}</th>
+                        <th class="isTableHead" scope="col">{{ 'versions.newest'|trans({}, domain) }}</th>
+                        {% for site in matrix.sites %}<th class="isTableHead" scope="col">{{ site }}</th>{% endfor %}
+                    </tr></thead>
+                    <tbody class="isTableBody">
+                        {% for package in matrix.packages %}
+                            <tr class="isTableRow">
+                                <th class="isTableHead" scope="row">{{ package }}</th>
+                                <td class="isTableCell">{{ matrix.newest[package] }}</td>
+                                {% for site in matrix.sites %}
+                                    {% set version = matrix.version(site, package) %}
+                                    <td class="isTableCell"{% if matrix.isBehind(site, package) %} data-behind="true"{% endif %}>
+                                        {% if version is null %}—{% elseif matrix.isBehind(site, package) %}{% component (phil_sites_console_kit('Badge')) with {variant: 'destructive'} %}{% block content %}{{ version }}{% endblock %}{% endcomponent %}{% else %}{{ version }}{% endif %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                {% endblock %}
+            {% endcomponent %}
+        {% endif %}
+    </article>
+{% endblock %}

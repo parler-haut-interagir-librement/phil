@@ -1,0 +1,15 @@
+{#
+ # A shift as a card, with the buttons of the person signed in; nothing for a shift unknown.
+ #}
+{%- set roster = this.current -%}
+{%- if roster is not null %}
+<article{{ attributes.defaults({class: 'phil-shifts-card'}) }}>
+    <h3><a href="{{ path('phil_shifts_show', {id: roster.shift.id}) }}">{{ roster.shift.title }}</a></h3>
+    {{ include('@PhilShifts/_shift.html.twig', {roster: roster, zone: this.zone}) }}
+    {%- if this.actions and this.open %}
+    {{ include('@PhilShifts/_actions.html.twig', {roster: roster, status: this.status, token: this.token}) }}
+    {%- elseif this.status is not null %}
+    <p class="isBadge">{{ ('status.' ~ this.status)|trans({}, 'phil_shifts') }}</p>
+    {%- endif %}
+</article>
+{%- endif %}

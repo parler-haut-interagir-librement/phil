@@ -1,0 +1,49 @@
+{#
+ # The dashboard: each site with its health, its versions of PHP and Symfony, when it was last read and its alerts.
+ # Its parts are recipes of the kit — Table, Badge, Button —, called by the names `phil_sites_console_kit()` gives.
+ #}
+{% extends layout %}
+
+{% set domain = 'phil_sites_console' %}
+
+{% block title %}{{ 'dashboard.title'|trans({}, domain) }}{% endblock %}
+
+{% block content %}
+    <article class="phil-sites-console" aria-labelledby="phil-sites-console-title">
+        <h1 id="phil-sites-console-title">{{ 'dashboard.title'|trans({}, domain) }}</h1>
+        {{ include('@PhilSitesConsole/_nav.html.twig') }}
+
+        {% if can_operate %}
+            {{ include('@PhilSitesConsole/_action.html.twig', {action: path('phil_sites_console_pull_all'), label: 'action.pull_all'|trans({}, domain)}) }}
+        {% endif %}
+
+        {% if overviews is empty %}
+            <p>{{ 'dashboard.empty'|trans({}, domain) }}</p>
+        {% else %}
+            {% component (phil_sites_console_kit('Table')) %}
+                {% block content %}
+                    <thead class="isTableHeader"><tr class="isTableRow">
+                        <th class="isTableHead" scope="col">{{ 'column.site'|trans({}, domain) }}</th>
+                        <th class="isTableHead" scope="col">{{ 'column.health'|trans({}, domain) }}</th>
+                        <th class="isTableHead" scope="col">PHP</th>
+                        <th class="isTableHead" scope="col">Symfony</th>
+                        <th class="isTableHead" scope="col">{{ 'column.read_at'|trans({}, domain) }}</th>
+                        <th class="isTableHead" scope="col">{{ 'column.alerts'|trans({}, domain) }}</th>
+                    </tr></thead>
+                    <tbody class="isTableBody">
+                        {% for overview in overviews %}
+                            <tr class="isTableRow" id="site-{{ overview.site.id }}">
+                                <td class="isTableCell"><a href="{{ path('phil_sites_console_site', {id: overview.site.id}) }}">{{ overview.site.name }}</a></td>
+                                <td class="isTableCell">{{ include('@PhilSitesConsole/_state.html.twig', {state: overview.health}) }}</td>
+                                <td class="isTableCell">{{ overview.snapshot ? overview.snapshot.php : '' }}</td>
+                                <td class="isTableCell">{{ overview.snapshot ? overview.snapshot.symfony : '' }}</td>
+                                <td class="isTableCell">{% if overview.snapshot %}<time datetime="{{ overview.snapshot.takenAt|date('c') }}">{{ overview.snapshot.takenAt|date('Y-m-d H:i T') }}</time>{% else %}{{ 'dashboard.never'|trans({}, domain) }}{% endif %}</td>
+                                <td class="isTableCell">{{ include('@PhilSitesConsole/_alerts.html.twig', {alerts: overview.alerts}) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                {% endblock %}
+            {% endcomponent %}
+        {% endif %}
+    </article>
+{% endblock %}

@@ -1,0 +1,9 @@
+# The volunteer shifts: see vendor/phil/shifts-bundle/doc/configuration.md for every option.
+phil_shifts:
+    # The time zone the pages show the shifts in and the form reads them in, UTC unless set.
+    # time_zone: America/Toronto
+    # The minutes a volunteer rests between two fixed shifts they hold, none unless set.
+    # rest_minutes: 30
+    # roles:
+    #     The coordinators, who plan shifts, assign volunteers and approve swaps.
+    #     coordinator: ROLE_SHIFTS_COORDINATOR

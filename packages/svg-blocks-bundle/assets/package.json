@@ -1,0 +1,24 @@
+{
+    "name": "@phil/svg-blocks-bundle",
+    "description": "The preview controller of the math, mermaid, chart and qrCode blocks: the drawing the server makes of a block, shown while its author writes it",
+    "version": "0.1.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "src/preview_controller.js",
+    "symfony": {
+        "controllers": {
+            "preview": {
+                "main": "src/preview_controller.js",
+                "webpackMode": "eager",
+                "fetch": "lazy",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0"
+        }
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0"
+    }
+}

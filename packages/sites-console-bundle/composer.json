@@ -1,0 +1,94 @@
+{
+    "name": "phil/sites-console-bundle",
+    "description": "Operate many Symfony sites from one console: versions and health pulled by signed requests, alerts, settings pushed once, batched updates that stop on failure.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "fleet",
+        "monitoring",
+        "multi-site",
+        "operations",
+        "updates",
+        "symfony-bundle"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "phil/idempotency": "^0.3@dev",
+        "phil/url": "^0.1@dev",
+        "psr/cache": "^3.0",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/config": "^8.2",
+        "symfony/console": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/http-client-contracts": "^3.8",
+        "symfony/http-foundation": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/lock": "^8.2",
+        "symfony/routing": "^8.2",
+        "symfony/security-core": "^8.2",
+        "symfony/security-csrf": "^8.2",
+        "symfony/uid": "^8.2",
+        "symfony/ux-twig-component": "^3.8",
+        "twig/twig": "^3.31.1"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.6",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/orm": "^3.8",
+        "phil/monitoring-bundle": "^0.1@dev",
+        "phil/ux-kit": ">=0.1.0-alpha <1.0",
+        "phpunit/phpunit": "^13.4",
+        "symfony/browser-kit": "^8.2",
+        "symfony/cache": "^8.2",
+        "symfony/clock": "^8.2",
+        "symfony/css-selector": "^8.2",
+        "symfony/dom-crawler": "^8.2",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/filesystem": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-client": "^8.2",
+        "symfony/messenger": "^8.2",
+        "symfony/security-bundle": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2"
+    },
+    "suggest": {
+        "doctrine/doctrine-bundle": "For the console's tables: sites, snapshots, pushes, update plans and journal",
+        "phil/monitoring-bundle": "For the health of each site, read from its checks",
+        "phil/ux-kit": "For the recipes the screens draw — Table, Card, Badge, Button —, through the Symfony UX Toolkit",
+        "symfony/http-client": "For the console to reach the agents",
+        "symfony/messenger": "To pull sites, deliver pushes and run update plans in a worker",
+        "symfony/translation": "For the screens in English and French"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\SitesConsoleBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\SitesConsoleBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

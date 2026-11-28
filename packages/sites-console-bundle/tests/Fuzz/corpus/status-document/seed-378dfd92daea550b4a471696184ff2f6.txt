@@ -1,0 +1,1 @@
+{"site":"h","generated_at":"6-5-0T9:00:00+1","php":"1","symfony":"8","health":{"status":"up","checks":[{"name":"b","status":"up","summary":"k"}]}}

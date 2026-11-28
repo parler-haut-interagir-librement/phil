@@ -1,0 +1,8 @@
+# The console's screens, behind a firewall that gives the roles of the console, and the agent's signed endpoints,
+# outside any firewall. Keep the import of the half this application is.
+# phil_sites_console:
+#     resource: '@PhilSitesConsoleBundle/config/routes/console.php'
+#     prefix: /admin/sites
+# phil_sites_console_agent:
+#     resource: '@PhilSitesConsoleBundle/config/routes/agent.php'
+#     prefix: /_sites-console

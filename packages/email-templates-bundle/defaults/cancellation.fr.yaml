@@ -1,0 +1,35 @@
+# L’annulation d’une date, d’une réservation ou d’une commande.
+subject: 'Annulé : {{ item.title }}'
+preheader: 'Nous sommes désolés : {{ item.title }} n’aura pas lieu comme prévu.'
+format: markdown
+segments: [refunded]
+variables:
+    recipient:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 200, sample: 'Ada' }
+    item:
+        type: object
+        required: true
+        fields:
+            title: { type: string, required: true, max_length: 300, sample: 'Atelier du printemps' }
+            starts_at: { type: datetime, sample: '2026-04-18T19:00:00-04:00' }
+    reason: { type: string, max_length: 1000, sample: 'La conférencière est malade.' }
+    contact_url: { type: url, sample: 'https://example.com/contact' }
+body: |
+    Bonjour {{ recipient.name }},
+
+    Nous sommes désolés de vous annoncer que **{{ item.title }}**{% if item.starts_at is not null %}, prévu le {{ item.starts_at|date('Y-m-d', false) }},{% endif %} est annulé.
+
+    {% if reason is not null %}{% apply panel %}{{ reason }}{% endapply %}{% endif %}
+
+    {% if segment('refunded') %}
+    Vous serez remboursé en entier, sur le moyen de paiement utilisé, d’ici dix jours.
+    {% endif %}
+
+    {% if contact_url is not null %}{{ button('Nous écrire', contact_url) }}{% endif %}
+
+    {% apply footer %}
+    Vous recevez ce courriel parce que vous étiez inscrit.
+    {% endapply %}

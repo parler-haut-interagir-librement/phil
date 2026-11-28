@@ -1,0 +1,38 @@
+# A ticket for an event, to show at the door.
+subject: 'Your ticket for {{ event.title }}'
+preheader: 'Ticket {{ ticket.number }}: show it at the door.'
+format: html
+variables:
+    recipient:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 200, sample: 'Ada' }
+    event:
+        type: object
+        required: true
+        fields:
+            title: { type: string, required: true, max_length: 300, sample: 'Autumn concert' }
+            starts_at: { type: datetime, required: true, sample: '2026-10-03T20:00:00-04:00' }
+            venue: { type: string, max_length: 300, sample: 'Main hall' }
+    ticket:
+        type: object
+        required: true
+        fields:
+            number: { type: string, required: true, max_length: 64, sample: 'T-7781' }
+            category: { type: string, max_length: 100, sample: 'General admission' }
+            seat: { type: string, max_length: 50 }
+    ticket_url: { type: url, required: true, sample: 'https://example.com/tickets/T-7781' }
+body: |
+    <h1>Here is your ticket, {{ recipient.name }}</h1>
+    <p>See you at <strong>{{ event.title }}</strong>.</p>
+    {{ table([
+        ['Ticket', ticket.number],
+        ['Category', ticket.category ?? '–'],
+        ['Seat', ticket.seat ?? 'Free seating'],
+        ['When', event.starts_at|date('l, F j, Y \\a\\t g:i A', false)],
+        ['Where', event.venue ?? 'To be announced'],
+    ]) }}
+    {{ button('Show my ticket', ticket_url, {align: 'center'}) }}
+    {% apply panel %}<p style="margin:0;">Show the ticket on your phone or on paper at the door. It can be scanned once.</p>{% endapply %}
+    {% apply footer %}<p style="margin:0;">You receive this email because a ticket was issued in your name.</p>{% endapply %}

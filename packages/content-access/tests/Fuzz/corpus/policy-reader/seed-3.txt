@@ -1,0 +1,1 @@
+{"version":1,"audience":"restricted","rule":{"version":1,"condition":{"all":[{"type":"access.institution","operands":{"domains":["library.example"],"networks":["192.0.2.0/24"]}},{"type":"date.compare","operands":{"fact":"now","operator":"before","date":"2027-01-01"}}]}}}

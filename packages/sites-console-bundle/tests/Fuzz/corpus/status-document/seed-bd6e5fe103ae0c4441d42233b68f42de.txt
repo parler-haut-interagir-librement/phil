@@ -1,0 +1,1 @@
+{"site":"hp","generated_at":"62-5-2T5:00:00+0","php":"8.","symfony":"70","health":{"status":"up"}}

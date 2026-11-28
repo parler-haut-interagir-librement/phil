@@ -1,0 +1,54 @@
+{
+    "name": "phil/email-preview",
+    "description": "Catch what breaks an email before it is sent: a missing text part, no one-click unsubscribe, tracking pixels, leftover styles, too wide or long.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "email",
+        "email-preview",
+        "newsletter",
+        "deliverability",
+        "rfc8058",
+        "list-unsubscribe",
+        "html-email"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-intl": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "phil/email-templates-bundle": "^0.1@dev",
+        "symfony/mime": "^8.2"
+    },
+    "require-dev": {
+        "egulias/email-validator": "^4.0",
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\EmailPreview\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\EmailPreview\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

@@ -1,0 +1,1 @@
+{"sku":"STARTER","kind":"assembled","currency":"CAD","components":[{"sku":"BOOK","quantity":1},{"sku":"DICE","quantity":2}],"price":{"fixed":null,"discount_ppm":150000,"rounding":"HalfAwayFromZero"}}

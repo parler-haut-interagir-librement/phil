@@ -1,0 +1,35 @@
+# The cancellation of a date, a booking or an order.
+subject: 'Cancelled: {{ item.title }}'
+preheader: 'We are sorry: {{ item.title }} will not take place as planned.'
+format: markdown
+segments: [refunded]
+variables:
+    recipient:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 200, sample: 'Ada' }
+    item:
+        type: object
+        required: true
+        fields:
+            title: { type: string, required: true, max_length: 300, sample: 'Spring workshop' }
+            starts_at: { type: datetime, sample: '2026-04-18T19:00:00-04:00' }
+    reason: { type: string, max_length: 1000, sample: 'The speaker is ill.' }
+    contact_url: { type: url, sample: 'https://example.com/contact' }
+body: |
+    Hello {{ recipient.name }},
+
+    We are sorry to tell you that **{{ item.title }}**{% if item.starts_at is not null %}, planned on {{ item.starts_at|date('F j, Y', false) }},{% endif %} is cancelled.
+
+    {% if reason is not null %}{% apply panel %}{{ reason }}{% endapply %}{% endif %}
+
+    {% if segment('refunded') %}
+    You will be refunded in full, on the payment you used, within ten days.
+    {% endif %}
+
+    {% if contact_url is not null %}{{ button('Contact us', contact_url) }}{% endif %}
+
+    {% apply footer %}
+    You receive this email because you were registered.
+    {% endapply %}

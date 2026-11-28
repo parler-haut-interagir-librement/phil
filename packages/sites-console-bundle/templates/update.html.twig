@@ -1,0 +1,39 @@
+{# An update plan and its report: one line per site, by batch. #}
+{% extends layout %}
+
+{% set domain = 'phil_sites_console' %}
+
+{% block title %}{{ plan.package }} {{ plan.version }}{% endblock %}
+
+{% block content %}
+    <article class="phil-sites-console" aria-labelledby="phil-sites-console-title">
+        <h1 id="phil-sites-console-title">{{ plan.package }} {{ plan.version }} {{ include('@PhilSitesConsole/_state.html.twig', {state: plan.state}) }}</h1>
+        {{ include('@PhilSitesConsole/_nav.html.twig') }}
+
+        {% component (phil_sites_console_kit('Table')) %}
+            {% block content %}
+                <thead class="isTableHeader"><tr class="isTableRow">
+                    <th class="isTableHead" scope="col">{{ 'column.batch'|trans({}, domain) }}</th>
+                    <th class="isTableHead" scope="col">{{ 'column.site'|trans({}, domain) }}</th>
+                    <th class="isTableHead" scope="col">{{ 'column.outcome'|trans({}, domain) }}</th>
+                    <th class="isTableHead" scope="col">{{ 'column.message'|trans({}, domain) }}</th>
+                </tr></thead>
+                <tbody class="isTableBody">
+                    {% for step in plan.steps %}
+                        <tr class="isTableRow" id="step-{{ step.siteId }}">
+                            <td class="isTableCell">{{ step.batch }}</td>
+                            <td class="isTableCell">{{ step.siteId }}</td>
+                            <td class="isTableCell">{{ include('@PhilSitesConsole/_state.html.twig', {state: step.outcome}) }}</td>
+                            <td class="isTableCell">{{ step.message }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            {% endblock %}
+        {% endcomponent %}
+
+        {% if can_operate and not plan.state.finished %}
+            {{ include('@PhilSitesConsole/_action.html.twig', {action: path('phil_sites_console_run', {id: plan.id}), label: 'action.run_batch'|trans({}, domain), fields: {batches: 1}}) }}
+            {{ include('@PhilSitesConsole/_action.html.twig', {action: path('phil_sites_console_run', {id: plan.id}), label: 'action.run_all'|trans({}, domain)}) }}
+        {% endif %}
+    </article>
+{% endblock %}

@@ -1,0 +1,58 @@
+{
+    "name": "phil/receipt-email",
+    "description": "Email each payment its numbered receipt and each gift its official tax receipt: amounts as issued, a plain-text part, the PDF on request, no tracking.",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "phil/money": "^0.1@dev",
+        "symfony/mime": "^8.2"
+    },
+    "require-dev": {
+        "ext-zlib": "*",
+        "phil/commerce-bundle": "^0.5@dev",
+        "phil/email-templates-bundle": "^0.1@dev",
+        "phil/paged-media": "^0.1@dev",
+        "phpunit/phpunit": "^13.4",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/mailer": "^8.2",
+        "symfony/messenger": "^8.2",
+        "twig/twig": "^3.31.1"
+    },
+    "suggest": {
+        "phil/commerce-bundle": "To read the receipts and credit notes it issues, and attach their PDF",
+        "phil/email-templates-bundle": "To render the receipts from templates each site and locale may change",
+        "phil/paged-media": "To attach the PDF of a donation receipt",
+        "symfony/mailer": "To send the receipts from a Messenger worker, through a transport",
+        "symfony/messenger": "To send the receipts asynchronously, with messages that carry identifiers only"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\ReceiptEmail\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\ReceiptEmail\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

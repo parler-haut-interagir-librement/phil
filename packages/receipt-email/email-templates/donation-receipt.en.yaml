@@ -1,0 +1,101 @@
+# An official donation receipt for income tax purposes, with every statement the tax authority asks for.
+subject: 'Official donation receipt {{ receipt.serial_number }} from {{ charity.name }}'
+preheader: 'Official receipt for income tax purposes: eligible amount {{ receipt.eligible_amount }} {{ receipt.currency }}.'
+format: html
+variables:
+    recipient:
+        type: object
+        fields:
+            name: { type: string, max_length: 200, sample: 'Ada B. Lovelace' }
+    receipt:
+        type: object
+        required: true
+        fields:
+            serial_number: { type: string, required: true, max_length: 32, sample: 'D-2026-000017' }
+            issued_at: { type: datetime, required: true, sample: '2026-11-20T10:00:00-05:00' }
+            issued_in: { type: string, required: true, max_length: 500, sample: 'Montréal' }
+            received_on: { type: datetime, sample: '2026-11-18' }
+            received_year: { type: integer, required: true, sample: 2026 }
+            kind: { type: string, required: true, max_length: 16, sample: 'cash' }
+            currency: { type: string, required: true, max_length: 3, sample: 'CAD' }
+            amount: { type: string, required: true, max_length: 32, sample: '150.00' }
+            advantage: { type: string, required: true, max_length: 32, sample: '40.00' }
+            advantage_description: { type: string, max_length: 500, sample: 'A ticket to the gala dinner' }
+            eligible_amount: { type: string, required: true, max_length: 32, sample: '110.00' }
+            gift_description: { type: string, max_length: 500 }
+            signatory: { type: string, required: true, max_length: 500, sample: 'Grace Hopper, treasurer' }
+    charity:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 500, sample: 'The Reading Circle' }
+            address: { type: list, max_items: 10, items: { type: string, max_length: 500 }, sample: ['8 Library Lane', 'Montréal QC  H2X 2Z9'] }
+            registration_number: { type: string, required: true, max_length: 64, sample: '123456789 RR 0001' }
+    donor:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 500, sample: 'Ada B. Lovelace' }
+            address: { type: list, max_items: 10, items: { type: string, max_length: 500 }, sample: ['1 Analytical Road', 'Québec QC  G1R 4P5'] }
+    appraiser:
+        type: object
+        fields:
+            name: { type: string, required: true, max_length: 500 }
+            address: { type: list, max_items: 10, items: { type: string, max_length: 500 } }
+    authority:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 100, sample: 'Canada Revenue Agency' }
+            website: { type: string, required: true, max_length: 100, sample: 'canada.ca/charities-giving' }
+body: |
+    <h1 style="margin:0 0 8px;">Official receipt for income tax purposes</h1>
+    <p style="margin:0 0 16px;">{% if recipient.name is not null %}Hello {{ recipient.name }}, thank{% else %}Thank{% endif %} you for your gift to {{ charity.name }}. Here is its official receipt; keep it with your tax records.</p>
+    {{ table([
+        ['Serial number', receipt.serial_number],
+        ['Date issued', receipt.issued_at|date('Y-m-d', false)],
+        ['Location issued', receipt.issued_in],
+        [receipt.received_on is null ? 'Year gift received' : 'Date gift received', receipt.received_on is null ? receipt.received_year : receipt.received_on|date('Y-m-d', false)],
+        ['Donor', donor.name ~ ((donor.address ?? []) is empty ? '' : ', ' ~ donor.address|join(', '))],
+    ]) }}
+    {% if receipt.gift_description is not null %}<p style="margin:0 0 8px;">Description of the gift: {{ receipt.gift_description }}</p>{% endif %}
+    {% if appraiser is not null %}<p style="margin:0 0 8px;">Appraiser: {{ appraiser.name }}{% for line in appraiser.address ?? [] %}, {{ line }}{% endfor %}</p>{% endif %}
+    {{ table([
+        ['Amount of the gift', receipt.amount ~ ' ' ~ receipt.currency],
+        ['Amount of the advantage', receipt.advantage ~ ' ' ~ receipt.currency],
+        ['Eligible amount of the gift', receipt.eligible_amount ~ ' ' ~ receipt.currency],
+    ]) }}
+    {% if receipt.advantage_description is not null %}<p style="margin:0 0 8px;">Advantage: {{ receipt.advantage_description }}</p>{% endif %}
+    <p style="margin:16px 0 0;">Authorized signature: {{ receipt.signatory }}</p>
+    {% apply footer %}<p style="margin:0;">{{ charity.name }}{% for line in charity.address ?? [] %} · {{ line }}{% endfor %}</p><p style="margin:4px 0 0;">Registration number {{ charity.registration_number }}</p><p style="margin:4px 0 0;">{{ authority.name }}: {{ authority.website }}</p>{% endapply %}
+text: |
+    Official receipt for income tax purposes
+
+    {% if recipient.name is not null %}Hello {{ recipient.name }}, thank{% else %}Thank{% endif %} you for your gift to {{ charity.name }}. Here is its official receipt; keep it with your tax records.
+
+    {{ charity.name }}
+    {% for line in charity.address ?? [] %}{{ line }}
+    {% endfor %}Registration number: {{ charity.registration_number }}
+
+    Serial number: {{ receipt.serial_number }}
+    Date issued: {{ receipt.issued_at|date('Y-m-d', false) }}
+    Location issued: {{ receipt.issued_in }}
+    {% if receipt.received_on is null %}Year gift received: {{ receipt.received_year }}{% else %}Date gift received: {{ receipt.received_on|date('Y-m-d', false) }}{% endif %}
+
+
+    Donor: {{ donor.name }}
+    {% for line in donor.address ?? [] %}{{ line }}
+    {% endfor %}
+    {% if receipt.gift_description is not null %}Description of the gift: {{ receipt.gift_description }}
+    {% endif %}{% if appraiser is not null %}Appraiser: {{ appraiser.name }}{% for line in appraiser.address ?? [] %}, {{ line }}{% endfor %}
+
+    {% endif %}
+
+    Amount of the gift: {{ receipt.amount }} {{ receipt.currency }}
+    Amount of the advantage: {{ receipt.advantage }} {{ receipt.currency }}
+    {% if receipt.advantage_description is not null %}Advantage: {{ receipt.advantage_description }}
+    {% endif %}Eligible amount of the gift: {{ receipt.eligible_amount }} {{ receipt.currency }}
+
+    Authorized signature: {{ receipt.signatory }}
+
+    {{ authority.name }}: {{ authority.website }}

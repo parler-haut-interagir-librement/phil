@@ -1,0 +1,19 @@
+subject: 'Welcome, {{ name }}'
+preheader: 'Your account is ready.'
+format: html
+segments: [vip, new]
+embeds: { logo: logo.png }
+variables:
+    name: { type: string, required: true, sample: 'Ada' }
+    link: { type: url, sample: 'https://example.com/start' }
+    items:
+        type: list
+        items: { type: string }
+        sample: ['Tea', 'Cake']
+body: |
+    <p>Hello {{ name }}.</p>
+    {{ image('cid:logo', 'Logo', {width: 40}) }}
+    {% if segment('vip') %}<p class="vip">Thank you for being a VIP.</p>{% endif %}
+    {% if segment('new') %}<p class="new">Welcome aboard.</p>{% endif %}
+    {% if link is not null %}{{ button('Start', link) }}{% endif %}
+    {% for item in items ?? [] %}<p class="item">{{ item }}</p>{% endfor %}

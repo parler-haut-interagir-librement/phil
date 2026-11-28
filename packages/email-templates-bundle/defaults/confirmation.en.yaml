@@ -1,0 +1,42 @@
+# The confirmation of a registration, a booking or an order.
+subject: 'Confirmed: {{ item.title }}'
+preheader: 'Your reference is {{ reference }}.'
+format: markdown
+segments: [first-time]
+variables:
+    recipient:
+        type: object
+        required: true
+        fields:
+            name: { type: string, required: true, max_length: 200, sample: 'Ada' }
+    item:
+        type: object
+        required: true
+        fields:
+            title: { type: string, required: true, max_length: 300, sample: 'Spring workshop' }
+            starts_at: { type: datetime, sample: '2026-04-18T19:00:00-04:00' }
+            location: { type: string, max_length: 300, sample: '12 Market Street' }
+    reference: { type: string, required: true, max_length: 64, sample: 'A-1042' }
+    manage_url: { type: url, sample: 'https://example.com/account/bookings/A-1042' }
+body: |
+    # You are all set, {{ recipient.name }}
+
+    Your place for **{{ item.title }}** is confirmed.
+
+    {{ table([
+        ['Reference', reference],
+        ['When', item.starts_at is null ? 'To be announced' : item.starts_at|date('l, F j, Y \\a\\t g:i A', false)],
+        ['Where', item.location ?? 'To be announced'],
+    ]) }}
+
+    {% if manage_url is not null %}{{ button('Manage my booking', manage_url) }}{% endif %}
+
+    {% if segment('first-time') %}
+    {% apply panel %}
+    **Welcome!** This is your first booking with us: keep this email, it holds your reference.
+    {% endapply %}
+    {% endif %}
+
+    {% apply footer %}
+    You receive this email because you made this booking.
+    {% endapply %}

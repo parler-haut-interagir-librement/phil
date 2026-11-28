@@ -1,0 +1,71 @@
+{
+    "name": "phil/measurement-bundle",
+    "description": "Units of measure in Symfony: form types, validation constraints, a Doctrine column and Twig formatting, on top of phil/measurement.",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "keywords": [
+        "units",
+        "measurement",
+        "symfony",
+        "form",
+        "validator",
+        "twig",
+        "doctrine"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-intl": "*",
+        "ext-mbstring": "*",
+        "phil/measurement": "^0.1@dev",
+        "symfony/config": "^8.2",
+        "symfony/dependency-injection": "^8.2",
+        "symfony/form": "^8.2",
+        "symfony/options-resolver": "^8.2",
+        "symfony/validator": "^8.2"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^4.6",
+        "doctrine/doctrine-bundle": "^3.4",
+        "doctrine/orm": "^3.8",
+        "doctrine/persistence": "^4.2",
+        "phpunit/phpunit": "^13.4",
+        "psr/log": "^3.0",
+        "symfony/event-dispatcher": "^8.2",
+        "symfony/framework-bundle": "^8.2",
+        "symfony/http-kernel": "^8.2",
+        "symfony/translation": "^8.2",
+        "symfony/twig-bridge": "^8.2",
+        "symfony/twig-bundle": "^8.2",
+        "twig/twig": "^3.31.1"
+    },
+    "suggest": {
+        "doctrine/dbal": "For the phil_measurement column type",
+        "twig/twig": "For the format_measurement, measurement_in_channel and preferred_units filters"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\MeasurementBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\MeasurementBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

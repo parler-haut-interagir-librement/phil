@@ -1,0 +1,1 @@
+{"version":1,"condition":{"all":[{"type":"fact.in","operands":{"fact":"a","values":["CA","FR"]}},{"not":{"type":"fact.present","operands":{"fact":"d"}}}]}}

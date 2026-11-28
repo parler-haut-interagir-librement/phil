@@ -1,0 +1,53 @@
+{
+    "name": "phil/code-of-conduct",
+    "description": "Publish a versioned code of conduct, record who accepted which version, and route encrypted reports to responsible people not named in them.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "code-of-conduct",
+        "community",
+        "events",
+        "moderation",
+        "reports",
+        "safety"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*",
+        "ext-sodium": "*",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "symfony/key-management": "^8.2",
+        "symfony/uid": "^8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4",
+        "symfony/clock": "^8.2"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\CodeOfConduct\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\CodeOfConduct\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

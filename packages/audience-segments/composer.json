@@ -1,0 +1,48 @@
+{
+    "name": "phil/audience-segments",
+    "description": "Pick who receives a message by readable JSON rules on tickets, purchases, support and tags, with frozen recipient lists and global exclusions, no profiling.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "audience",
+        "segments",
+        "newsletter",
+        "mailing-list",
+        "privacy"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "phil/rules": "^0.1@dev",
+        "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\AudienceSegments\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\AudienceSegments\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

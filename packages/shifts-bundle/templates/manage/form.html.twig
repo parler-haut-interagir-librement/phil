@@ -1,0 +1,17 @@
+{#
+ # The form of a shift, new or corrected; its errors translated in the bundle's domain.
+ #
+ # Variables: form, roster (null for a new shift), zone, token, refused.
+ #}
+{%- set domain = 'phil_shifts' -%}
+<section class="phil-shifts isStack" lang="{{ app.request.locale|default('en') }}">
+    <h1>{{ roster is null ? 'manage.new'|trans({}, domain) : 'manage.edit_title'|trans({'%title%': roster.shift.title}, domain) }}</h1>
+    {%- for error in form.vars.errors %}
+    <p class="isError" role="alert">{{ error.message|trans({}, domain) }}</p>
+    {%- endfor %}
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button type="submit">{{ 'action.save'|trans({}, domain) }}</button>
+    {{ form_end(form) }}
+    <p><a href="{{ roster is null ? path('phil_shifts_manage') : path('phil_shifts_manage_roster', {id: roster.shift.id}) }}">{{ 'manage.back'|trans({}, domain) }}</a></p>
+</section>

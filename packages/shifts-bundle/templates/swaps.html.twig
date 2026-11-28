@@ -1,0 +1,38 @@
+{#
+ # The swap board: the places offered on shifts still open, the button to take one, or to cancel one's own.
+ #
+ # Variables: entries, person, zone, token, refused.
+ #}
+{%- set domain = 'phil_shifts' -%}
+<section class="phil-shifts isStack" lang="{{ app.request.locale|default('en') }}">
+    <h1>{{ 'swaps.title'|trans({}, domain) }}</h1>
+    {{ include('@PhilShifts/_refused.html.twig', {refused: refused}) }}
+    {%- if entries is empty %}
+    <p>{{ 'swaps.none'|trans({}, domain) }}</p>
+    {%- else %}
+    <ul class="phil-shifts__list">
+        {%- for entry in entries %}
+        <li>
+            <h2><a href="{{ path('phil_shifts_show', {id: entry.roster.shift.id}) }}">{{ entry.roster.shift.title }}</a></h2>
+            {{ include('@PhilShifts/_shift.html.twig', {roster: entry.roster, zone: zone}) }}
+            <p>{{ 'swaps.offered_by'|trans({'%volunteer%': entry.offer.offeredBy}, domain) }}{% if entry.offer.note is not empty %} — {{ entry.offer.note }}{% endif %}</p>
+            {%- if entry.offer.status.value == 'pending' %}
+            <p class="isBadge">{{ 'swaps.pending'|trans({'%volunteer%': entry.offer.takenBy}, domain) }}</p>
+            {%- endif %}
+            {%- if entry.offer.offeredBy == person %}
+            <form method="post" action="{{ path('phil_shifts_swap_cancel', {offer: entry.offer.id}) }}">
+                <input type="hidden" name="_token" value="{{ token }}">
+                <button type="submit" class="isSecondary">{{ 'action.cancel_offer'|trans({}, domain) }}</button>
+            </form>
+            {%- elseif entry.offer.status.value == 'open' %}
+            <form method="post" action="{{ path('phil_shifts_swap_take', {offer: entry.offer.id}) }}">
+                <input type="hidden" name="_token" value="{{ token }}">
+                <button type="submit">{{ 'action.take'|trans({}, domain) }}</button>
+            </form>
+            {%- endif %}
+        </li>
+        {%- endfor %}
+    </ul>
+    {%- endif %}
+    <p><a href="{{ path('phil_shifts_board') }}">{{ 'board.back'|trans({}, domain) }}</a></p>
+</section>

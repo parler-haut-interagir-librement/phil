@@ -1,0 +1,59 @@
+{
+    "name": "phil/spreadsheet",
+    "description": "Read and write CSV, XLSX and ODS in constant memory, with explicit cell types, formula injection guarded and untrusted files read within limits.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "spreadsheet",
+        "csv",
+        "xlsx",
+        "ods",
+        "streaming",
+        "export",
+        "import"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-xmlreader": "*",
+        "ext-zip": "*"
+    },
+    "require-dev": {
+        "ext-dom": "*",
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Spreadsheet\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Spreadsheet\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": true
+            }
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}
