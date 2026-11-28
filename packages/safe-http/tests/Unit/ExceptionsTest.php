@@ -9,8 +9,10 @@ use Phil\SafeHttp\Exception\FetchFailed;
 use Phil\SafeHttp\Exception\InvalidRequest;
 use Phil\SafeHttp\Exception\RefusedAddress;
 use Phil\SafeHttp\Exception\RefusedRedirect;
+use Phil\SafeHttp\Exception\ShownAddress;
 use Phil\SafeHttp\Exception\TooManyRedirects;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
@@ -19,6 +21,7 @@ use Throwable;
 #[CoversClass(TooManyRedirects::class)]
 #[CoversClass(InvalidRequest::class)]
 #[CoversClass(RefusedRedirect::class)]
+#[CoversClass(ShownAddress::class)]
 final class ExceptionsTest extends TestCase
 {
     /**
@@ -55,10 +58,44 @@ final class ExceptionsTest extends TestCase
     {
         $previous = new Exception('why');
 
-        self::assertSame($previous, FetchFailed::transport('https://example.com/', $previous)->getPrevious());
         self::assertSame($previous, RefusedAddress::notPublic('x', $previous)->getPrevious());
         self::assertSame($previous, RefusedAddress::redirect('x', $previous)->getPrevious());
-        self::assertSame($previous, RefusedAddress::privateNetwork('x', $previous)->getPrevious());
         self::assertNull(RefusedAddress::notPublic('x')->getPrevious());
+    }
+
+    public function testATransportErrorIsNotKeptAsItHoldsTheWholeAddress(): void
+    {
+        $previous = new Exception('Host "intranet.example" is blocked for "https://intranet.example/?token=t0k3n".');
+
+        self::assertNull(FetchFailed::transport('https://example.com/', $previous)->getPrevious());
+        self::assertNull(RefusedAddress::privateNetwork('https://intranet.example/?token=t0k3n', $previous)->getPrevious());
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function addresses(): iterable
+    {
+        yield 'a plain address' => ['https://example.com/feed.ics', 'https://example.com/feed.ics'];
+        yield 'a query' => ['https://example.com/feed.ics?token=t0k3n&x=1', 'https://example.com/feed.ics?…'];
+        yield 'a fragment' => ['https://example.com/cb#access_token=t0k3n', 'https://example.com/cb?…'];
+        yield 'user information' => ['https://user:pa55@example.com/x', 'https://…@example.com/x'];
+        yield 'an at sign in the path stays' => ['https://example.com/@ada/posts', 'https://example.com/@ada/posts'];
+        yield 'a line break' => ["https://example.com/a\r\nb", 'https://example.com/ab'];
+        yield 'not an address' => ['x', 'x'];
+    }
+
+    #[DataProvider('addresses')]
+    public function testAnAddressIsShownWithoutItsSecrets(string $address, string $shown): void
+    {
+        self::assertSame($shown, ShownAddress::of($address));
+        self::assertSame('"'.$shown.'" redirects more than 3 times.', TooManyRedirects::after(3, $address)->getMessage());
+    }
+
+    public function testTheAddressesOfATransportErrorAreShownWithoutTheirSecrets(): void
+    {
+        $failed = FetchFailed::transport('https://u:p@example.com/feed?key=k3y', new Exception("Timeout was reached for \"https://u:p@example.com/feed?key=k3y\".\nThen https://cdn.example/x#sig=s1g failed"));
+
+        self::assertSame('"https://…@example.com/feed?…" could not be read: Timeout was reached for "https://…@example.com/feed?…". Then https://cdn.example/x?… failed', $failed->getMessage());
     }
 }

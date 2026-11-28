@@ -553,7 +553,7 @@ final class SafeHttpClientTest extends TestCase
             self::fail('The host is refused.');
         } catch (RefusedAddress $refusedAddress) {
             self::assertSame(\sprintf('"%s" is or resolves to a private, loopback, link-local or reserved network.', $url), $refusedAddress->getMessage());
-            self::assertInstanceOf(TransportException::class, $refusedAddress->getPrevious());
+            self::assertNull($refusedAddress->getPrevious());
         }
     }
 
@@ -595,7 +595,7 @@ final class SafeHttpClientTest extends TestCase
             self::fail('The read fails.');
         } catch (FetchFailed $fetchFailed) {
             self::assertSame('"https://example.com/x" could not be read: Connection refused', $fetchFailed->getMessage());
-            self::assertInstanceOf(TransportException::class, $fetchFailed->getPrevious());
+            self::assertNull($fetchFailed->getPrevious());
         }
     }
 

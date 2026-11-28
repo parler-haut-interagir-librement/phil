@@ -16,6 +16,11 @@ The next version is 0.2.3-alpha.
   (`301`, `302`, `303`, `307`, `308`) and its host: the headers, the body a `307` or a `308` sends again, and the answer
   would travel in clear text, where they can be read or changed. A redirect from HTTP to HTTPS, or one that keeps its
   scheme, is still followed.
+- The messages of `FetchFailed`, `RefusedAddress`, `RefusedRedirect` and `TooManyRedirects` show an address without
+  its user information (`…@`), its query and its fragment (`?…`), where a calendar feed, a signed link or a webhook
+  keeps its secret. The message of a transport error is added with its addresses shown the same way, and that error
+  is no longer the previous exception of `FetchFailed::transport()` and `RefusedAddress::privateNetwork()`: the HTTP
+  client writes the whole address in it, which a log or a failed message would keep.
 
 ## 0.2.2-alpha - 2026-11-24
 
