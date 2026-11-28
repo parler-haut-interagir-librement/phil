@@ -12,6 +12,7 @@ use Phil\GuardianConsent\Contract\MinorStore;
 use Phil\GuardianConsent\Contract\Notifier;
 use Phil\GuardianConsent\Contract\ProofStore;
 use Phil\GuardianConsent\Contract\RequestStore;
+use Phil\GuardianConsent\Contract\Transactions;
 use Phil\GuardianConsent\Event\ConsentDecided;
 use Phil\GuardianConsent\Event\ConsentRequested;
 use Phil\GuardianConsent\Event\ConsentRevoked;
@@ -54,8 +55,9 @@ final readonly class GuardianConsent
     public const int MAX_SWEEP = 1000;
 
     /**
-     * @param int $requestLifetimeDays the days a request may be answered, 1 to 30
-     * @param int $retentionDays       the days an unanswered request is kept after it expires, 0 to 365, before it is erased
+     * @param int          $requestLifetimeDays the days a request may be answered, 1 to 30
+     * @param int          $retentionDays       the days an unanswered request is kept after it expires, 0 to 365, before it is erased
+     * @param Transactions $transactions        the transactions of the stores' database, so that an answer or a handover is written whole
      *
      * @throws InvalidConfiguration when a delay is out of bounds
      */
@@ -72,6 +74,7 @@ final readonly class GuardianConsent
         private int $requestLifetimeDays = 7,
         private int $retentionDays = 30,
         private Randomizer $randomizer = new Randomizer(),
+        private Transactions $transactions = new NoTransactions(),
     ) {
         if ($requestLifetimeDays < 1 || $requestLifetimeDays > self::MAX_REQUEST_LIFETIME_DAYS) {
             throw InvalidConfiguration::because(\sprintf('A request may be answered for 1 to %d days.', self::MAX_REQUEST_LIFETIME_DAYS));
@@ -222,7 +225,8 @@ final readonly class GuardianConsent
 
     /**
      * The guardian's answer to a request: the features granted, the others of the request refused. The token is used
-     * up, and a proof recorded for every feature of the request.
+     * up, and a proof recorded for every feature of the request, in one transaction: when a write fails, the token
+     * answers again.
      *
      * @param list<Feature> $granted
      *
@@ -253,16 +257,22 @@ final readonly class GuardianConsent
             throw $consentNotRequired;
         }
 
-        if (!$this->requests->consume($request->id)) {
-            throw InvalidToken::rejected();
-        }
-
         $now = $this->now();
-        $proofs = [];
 
-        foreach ($request->features as $feature) {
-            $proofs[] = $this->record($request->member, $feature, \in_array($feature->name, $grantedNames, true) ? Decision::Granted : Decision::Refused, Actor::Guardian, $request->guardian->id, $request->notice, $request->id, $now);
-        }
+        // The request is used up and every proof written in one transaction: a write that fails gives the request back.
+        $proofs = $this->transactions->run(function () use ($request, $grantedNames, $now): array {
+            if (!$this->requests->consume($request->id)) {
+                throw InvalidToken::rejected();
+            }
+
+            $proofs = [];
+
+            foreach ($request->features as $feature) {
+                $proofs[] = $this->record($request->member, $feature, \in_array($feature->name, $grantedNames, true) ? Decision::Granted : Decision::Refused, Actor::Guardian, $request->guardian->id, $request->notice, $request->id, $now);
+            }
+
+            return $proofs;
+        });
 
         $this->events?->dispatch(new ConsentDecided($request->id, $request->member->value));
 
@@ -316,25 +326,31 @@ final readonly class GuardianConsent
         }
 
         $now = $this->now();
-        $proofs = [];
 
-        foreach ($this->latestOf($member, Actor::Member) as $proof) {
-            if (Decision::Granted === $proof->decision && !\in_array($proof->feature->name, $grantedNames, true)) {
-                $proofs[] = $this->record($member, $proof->feature, Decision::Revoked, Actor::Member, null, $notice, null, $now);
+        // The member's choices, the requests dropped and the record of the handover are written whole, or not at all.
+        $proofs = $this->transactions->run(function () use ($member, $minor, $granted, $grantedNames, $notice, $now): array {
+            $proofs = [];
+
+            foreach ($this->latestOf($member, Actor::Member) as $proof) {
+                if (Decision::Granted === $proof->decision && !\in_array($proof->feature->name, $grantedNames, true)) {
+                    $proofs[] = $this->record($member, $proof->feature, Decision::Revoked, Actor::Member, null, $notice, null, $now);
+                }
             }
-        }
 
-        foreach ($granted as $feature) {
-            $proofs[] = $this->record($member, $feature, Decision::Granted, Actor::Member, null, $notice, null, $now);
-        }
+            foreach ($granted as $feature) {
+                $proofs[] = $this->record($member, $feature, Decision::Granted, Actor::Member, null, $notice, null, $now);
+            }
 
-        foreach ($this->requests->ofMember($member) as $request) {
-            $this->requests->consume($request->id);
-        }
+            foreach ($this->requests->ofMember($member) as $request) {
+                $this->requests->consume($request->id);
+            }
 
-        if (!$minor->isHandedOver()) {
-            $this->minors->save($minor->withHandedOver($now));
-        }
+            if (!$minor->isHandedOver()) {
+                $this->minors->save($minor->withHandedOver($now));
+            }
+
+            return $proofs;
+        });
 
         $this->events?->dispatch(new HandoverCompleted($member->value));
 

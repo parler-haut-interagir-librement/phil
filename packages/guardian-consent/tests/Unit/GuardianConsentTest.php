@@ -40,20 +40,25 @@ use Phil\GuardianConsent\Memory\InMemoryRequestStore;
 use Phil\GuardianConsent\Minor;
 use Phil\GuardianConsent\NoGuardianLink;
 use Phil\GuardianConsent\NoticeVersion;
+use Phil\GuardianConsent\NoTransactions;
 use Phil\GuardianConsent\SweepReport;
+use Phil\GuardianConsent\Tests\Unit\Fixture\FailingProofStore;
 use Phil\GuardianConsent\Tests\Unit\Fixture\FixedGuardianLink;
 use Phil\GuardianConsent\Tests\Unit\Fixture\RacingRequestStore;
 use Phil\GuardianConsent\Tests\Unit\Fixture\RecordingEvents;
 use Phil\GuardianConsent\Tests\Unit\Fixture\RecordingNotifier;
+use Phil\GuardianConsent\Tests\Unit\Fixture\RollbackTransactions;
 use Phil\GuardianConsent\TokenHasher;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Symfony\Component\Clock\MockClock;
 
 #[CoversClass(GuardianConsent::class)]
 #[CoversClass(SweepReport::class)]
 #[CoversClass(NoGuardianLink::class)]
+#[CoversClass(NoTransactions::class)]
 #[CoversClass(ConsentRequested::class)]
 #[CoversClass(ConsentDecided::class)]
 #[CoversClass(ConsentRevoked::class)]
@@ -209,6 +214,85 @@ final class GuardianConsentTest extends TestCase
 
         self::assertSame([], $this->proofs->ofMember($this->kid));
         self::assertNotInstanceOf(ConsentDecided::class, end($this->events->events));
+    }
+
+    public function testAFailedWriteGivesTheRequestBack(): void
+    {
+        $proofs = new FailingProofStore($this->proofs);
+        $transactions = new RollbackTransactions($this->requests, $this->proofs);
+        $consent = new GuardianConsent($this->minors, $this->requests, $proofs, $this->notifier, new TokenHasher(self::KEY), $this->clock, events: $this->events, transactions: $transactions);
+        $this->register();
+        $request = $consent->request($this->kid, $this->parent, [$this->messages, $this->profile], $this->notice);
+        $token = $this->notifier->lastToken();
+        $this->events->events = [];
+        $proofs->failFrom = 2;
+
+        try {
+            $consent->decide($token, [$this->messages]);
+            self::fail('A write that failed was not reported.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('The database is gone.', $runtimeException->getMessage());
+        }
+
+        self::assertSame(1, $transactions->rollbacks);
+        self::assertSame([], $this->proofs->ofMember($this->kid));
+        self::assertInstanceOf(ConsentRequest::class, $this->requests->get($request->id));
+        self::assertSame([], $this->events->events);
+
+        $proofs->failFrom = null;
+        $decided = $consent->decide($token, [$this->messages]);
+
+        self::assertSame([Decision::Granted, Decision::Refused], array_map(static fn (ConsentProof $proof): Decision => $proof->decision, $decided));
+        self::assertCount(2, $this->proofs->ofMember($this->kid));
+        self::assertNull($this->requests->get($request->id));
+        self::assertSame(2, $transactions->runs);
+    }
+
+    public function testARequestUsedUpByAnotherAnswerIsRefusedInsideTheTransaction(): void
+    {
+        $transactions = new RollbackTransactions($this->proofs);
+        $consent = new GuardianConsent($this->minors, new RacingRequestStore(), $this->proofs, $this->notifier, new TokenHasher(self::KEY), $this->clock, transactions: $transactions);
+        $this->register();
+        $consent->request($this->kid, $this->parent, [$this->messages], $this->notice);
+
+        try {
+            $consent->decide($this->notifier->lastToken(), [$this->messages]);
+            self::fail('A request used up by another answer was decided.');
+        } catch (InvalidToken) {
+        }
+
+        self::assertSame(1, $transactions->rollbacks);
+    }
+
+    public function testAFailedHandoverWritesNothing(): void
+    {
+        $proofs = new FailingProofStore($this->proofs);
+        $transactions = new RollbackTransactions($this->minors, $this->requests, $this->proofs);
+        $consent = new GuardianConsent($this->minors, $this->requests, $proofs, $this->notifier, new TokenHasher(self::KEY), $this->clock, events: $this->events, transactions: $transactions);
+        $this->register();
+        $consent->request($this->kid, $this->parent, [$this->messages], $this->notice);
+        $this->clock->modify('2026-11-20 09:00:00');
+        $this->events->events = [];
+        $proofs->failFrom = 2;
+
+        try {
+            $consent->handOver($this->kid, [$this->messages, $this->profile], $this->notice);
+            self::fail('A write that failed was not reported.');
+        } catch (RuntimeException) {
+        }
+
+        self::assertSame(1, $transactions->rollbacks);
+        self::assertSame([], $this->proofs->ofMember($this->kid));
+        self::assertCount(1, $this->requests->ofMember($this->kid));
+        self::assertNull($consent->minor($this->kid)?->handedOverAt);
+        self::assertSame([], $this->events->events);
+
+        $proofs->failFrom = null;
+
+        self::assertCount(2, $consent->handOver($this->kid, [$this->messages, $this->profile], $this->notice));
+        self::assertSame([], $this->requests->ofMember($this->kid));
+        self::assertNotNull($consent->minor($this->kid)?->handedOverAt);
+        self::assertSame(2, $transactions->runs);
     }
 
     public function testARequestIsSentToTheGuardian(): void

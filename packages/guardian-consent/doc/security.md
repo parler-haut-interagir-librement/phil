@@ -20,7 +20,9 @@ identifier and verifier under the application's key, so the link is signed by th
 request, and a copy of the store opens no link. Hashes are compared with `hash_equals()`, under every key at once.
 
 A token is used once: `decide()` removes the request through `RequestStore::consume()`, which a shared store does
-atomically, so that two answers racing get one proof. A forged verifier leaves the request untouched. Every refusal
+atomically, so that two answers racing get one proof. The request is removed and every proof of the answer written in
+one call to `Transactions::run()`: when a write fails, the transaction rolls back, the request is back and its link
+answers again, instead of a used token over an answer half recorded. A forged verifier leaves the request untouched. Every refusal
 reads the same, so that it tells nothing of which check failed; only an expired request says so, once the verifier has
 matched.
 
