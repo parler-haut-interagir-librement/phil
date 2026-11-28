@@ -19,6 +19,7 @@ composer require phil/social-cards-bundle
 | `symfony/console` | ^8.2, optional | `phil:social-cards:check` |
 | `symfony/ux-twig-component` | ^3.7, optional | The `LinkPreview` component |
 | `symfony/rate-limiter` | ^8.2, optional | The rate limit of the pasted links |
+| `symfony/security-core` | ^8.2, optional | The access attribute of the pasted links; without it, their endpoint is refused to everyone |
 | `symfony/stimulus-bundle` | ^3.7, optional | The `link-preview` controller, from `assets/` |
 | `ext-imagick` | optional | `cards.renderer: imagick`, the text of Arabic, Hebrew and the scripts of India shaped when ImageMagick is built with libraqm |
 | `phil/media-bundle` | ^0.1 or ^0.2, optional | A medium as a page's image |
@@ -46,7 +47,8 @@ phil_social_cards:
 |---|---|
 | `phil_social_cards_image` | `/social-cards/{fingerprint}.png`, `GET` and `HEAD`, the fingerprint 32 hexadecimal digits |
 
-The endpoint of pasted links is imported apart, behind the firewall of the members who write:
+The endpoint of pasted links is imported apart, behind the firewall of the members who write; it answers only a visitor
+the authorization checker grants `preview.access`, `IS_AUTHENTICATED` by default, and needs `symfony/security-core`:
 
 ```yaml
 # config/routes/phil_social_cards.yaml

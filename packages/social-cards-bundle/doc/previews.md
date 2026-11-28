@@ -91,11 +91,15 @@ phil_social_cards:
 | `200` | The page gives a preview | The JSON of `LinkPreview::toArray()` |
 | `204` | The page gives none, or cannot be fetched | Empty |
 | `400` | `url` is missing, or is not an address the client fetches | `{"error": "…"}` |
+| `403` | The visitor is not granted `preview.access` | `{"error": "…"}` |
 | `429` | The visitor's rate limiter is spent | `{"error": "…"}`, with `Retry-After` |
 
-Each answer is `private`, kept five minutes by the browser, and `nosniff`. Each call may fetch a page of another site:
-import the route behind the firewall of the members who write, and give `preview.limiter` a rate limiter, keyed by the
-client's address. An address refused does not count against the limit.
+Each answer is `private`, kept five minutes by the browser, and `nosniff`. Each call may fetch a page of another site,
+so the endpoint asks the authorization checker for `preview.access` — `IS_AUTHENTICATED`, a signed-in visitor, by
+default — before it reads the address, and refuses everyone when the application has no authorization checker. Import
+the route behind the firewall of the members who write, so that the checker knows them, and give `preview.limiter` a
+rate limiter, keyed by the client's address. An address refused, or a visitor refused, does not count against the
+limit.
 
 ```twig
 <div data-controller="phil--social-cards-bundle--link-preview"

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=ed689d8693b6ce2aee66937d897ea5378060e30f01894fe2ad80d629deff58a5 -->
+<!-- phil-dev source-sha256=b0a0c02373daeaba0e4fe572afdc6783a2899678db03c9fad187f117a3c089ca -->
 # Configuration
 
 ```yaml
@@ -34,6 +34,7 @@ phil_social_cards:
         cache_ttl: 86400
         user_agent: 'PhilSocialCards/0.1 (link preview)'
         limiter: ~                        # limiter.<name> of framework.rate_limiter, for pasted links
+        access: IS_AUTHENTICATED          # the attribute a visitor needs to have pasted links previewed
 ```
 
 | Option | Valeur par défaut | Règle |
@@ -54,6 +55,7 @@ phil_social_cards:
 | `preview.cache_ttl` | 86 400 | Les secondes pendant lesquelles un aperçu reste dans `cache.app` |
 | `preview.user_agent` | `PhilSocialCards/0.1 (link preview)` | Non vide, sur une ligne, sans caractère de contrôle ; nommez le site et un moyen de joindre la personne qui l'exploite |
 | `preview.limiter` | null | L'identifiant d'une fabrique de limiteur de débit ; le point de terminaison des liens collés consomme un jeton par adresse qu'il lit, par adresse de client |
+| `preview.access` | `IS_AUTHENTICATED` | L'attribut que le vérificateur d'autorisation doit accorder à un visiteur du point de terminaison des liens collés ; sans `symfony/security-core` et son vérificateur, le point de terminaison est refusé à tous. Un rôle comme `ROLE_WRITER` le restreint ; null l'ouvre à tout visiteur |
 
 Les polices et les images d'un gabarit sont lues la première fois que le gabarit sert, là où elles sont installées ;
 la configuration ne vérifie que la forme d'un gabarit.

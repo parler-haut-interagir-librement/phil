@@ -4,6 +4,18 @@ All notable changes to `phil/social-cards-bundle` will be documented in this fil
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.3-alpha.
+
+### Security
+
+- `LinkPreviewController` asks the authorization checker for `preview.access`, `IS_AUTHENTICATED` by default, before
+  it reads the address, and answers `403` otherwise: the endpoint of pasted links, which fetches pages of other sites,
+  no longer serves a visitor who is not signed in when its route is imported outside the members' firewall. Without
+  `symfony/security-core` and its authorization checker the endpoint is refused to everyone; a null `preview.access`
+  opens it to every visitor.
+
 ## 0.1.2-alpha - 2026-11-25
 
 ### Changed

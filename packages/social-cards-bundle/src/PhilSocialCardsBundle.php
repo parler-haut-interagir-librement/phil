@@ -12,6 +12,7 @@ use Phil\SocialCards\Exception\SocialCardsException;
 use Phil\SocialCards\ShareMetadata;
 use Phil\SocialCardsBundle\Infrastructure\DependencyInjection\RequiredServicesPass;
 use Phil\SocialCardsBundle\Infrastructure\DependencyInjection\SocialCardsServices;
+use Phil\SocialCardsBundle\Infrastructure\Http\LinkPreviewController;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -94,6 +95,9 @@ final class PhilSocialCardsBundle extends AbstractBundle
                             ->validate()->ifTrue(static fn (mixed $agent): bool => !\is_string($agent) || !Limits::isHeaderValue($agent))->thenInvalid('%s is not a header value: one line, without a control character.')->end()
                         ->end()
                         ->scalarNode('limiter')->info('The id of the rate limiter factory that bounds the pasted links one visitor has previewed, limiter.<name> of framework.rate_limiter.')->defaultNull()->end()
+                        ->scalarNode('access')->info('The attribute a visitor must be granted to have pasted links previewed; refused to everyone without an authorization checker. Null opens the endpoint to every visitor.')->defaultValue(LinkPreviewController::ACCESS_ATTRIBUTE)
+                            ->validate()->ifTrue(static fn (mixed $attribute): bool => null !== $attribute && (!\is_string($attribute) || '' === trim($attribute)))->thenInvalid('%s is not an attribute: a non-empty string, or null.')->end()
+                        ->end()
                     ->end()
                 ->end()
             ->end();
@@ -155,7 +159,7 @@ final class PhilSocialCardsBundle extends AbstractBundle
     #[Override]
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        /** @var array{site_name: ?string, locale: ?string, twitter_site: ?string, fediverse_creator: ?string, default_image: array<string, mixed>|string|null, cards: array{enabled: bool, directory: string, cache_max_age: int, async: bool, renderer: 'gd'|'imagick', default_template: string, templates: array<string, array<string, mixed>>}, preview: array{enabled: bool, timeout: float, max_duration: float, max_bytes: int, max_redirects: int, cache_ttl: int, user_agent: string, limiter: ?string}} $config */
+        /** @var array{site_name: ?string, locale: ?string, twitter_site: ?string, fediverse_creator: ?string, default_image: array<string, mixed>|string|null, cards: array{enabled: bool, directory: string, cache_max_age: int, async: bool, renderer: 'gd'|'imagick', default_template: string, templates: array<string, array<string, mixed>>}, preview: array{enabled: bool, timeout: float, max_duration: float, max_bytes: int, max_redirects: int, cache_ttl: int, user_agent: string, limiter: ?string, access: ?string}} $config */
         SocialCardsServices::register($builder, $config);
     }
 }

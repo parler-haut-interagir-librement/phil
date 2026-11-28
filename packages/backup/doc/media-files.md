@@ -43,7 +43,9 @@ anything, when a path names a directory the archive was not given, or holds an e
 backslash, or a segment that opens with a drive letter (`C:`): none of them names the same place on every system. Then
 each file is written to its directory:
 
-- over the file of the same path, with the permission bits and modification time it was archived with;
+- over the file of the same path, with the permission bits and modification time it was archived with, except that
+  a file is never left writable by other users, nor setuid, setgid or sticky: those bits are cleared, whatever the
+  archive holds;
 - a symbolic link in the way of a file is removed, never written through;
 - a directory that leads out of its media directory through a link is refused;
 - missing directories are created, once the nearest directory that exists above them is found inside the media

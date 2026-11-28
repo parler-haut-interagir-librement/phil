@@ -24,6 +24,12 @@ use Throwable;
 final readonly class MediaArchive
 {
     /**
+     * The permission bits a restored file may keep: never writable by other users, never setuid, setgid or sticky,
+     * whatever the archive holds.
+     */
+    private const int RESTORED_MODE_MASK = 0o775;
+
+    /**
      * @param array<string, string> $directories each name to its directory
      */
     public function __construct(
@@ -143,7 +149,7 @@ final readonly class MediaArchive
             }
 
             $copy($target);
-            chmod($target, $entry->mode & 0o777);
+            chmod($target, $entry->mode & self::RESTORED_MODE_MASK);
             touch($target, $entry->modified);
             ++$files;
         });

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=f3819201caa7df2624630ea5236b5b9aa301f9c76a42798c574bacde17f967e0 -->
+<!-- phil-dev source-sha256=e0c8efe207e5e18099d2be2ee2e492b5a746d2ea9e02dd15e0e991df7506077c -->
 # Aperçus de liens
 
 Le bundle affiche la carte d'un lien vers un autre site à deux endroits : un lien qu'écrit un gabarit, par le composant
@@ -94,11 +94,15 @@ phil_social_cards:
 | `200` | La page donne un aperçu | Le JSON de `LinkPreview::toArray()` |
 | `204` | La page n'en donne aucun, ou ne peut pas être récupérée | Vide |
 | `400` | `url` manque, ou n'est pas une adresse que le client récupère | `{"error": "…"}` |
+| `403` | Le visiteur n'a pas reçu `preview.access` | `{"error": "…"}` |
 | `429` | Le limiteur de débit du visiteur est épuisé | `{"error": "…"}`, avec `Retry-After` |
 
 Chaque réponse est `private`, gardée cinq minutes par le navigateur, et `nosniff`. Chaque appel peut récupérer une page
-d'un autre site : importez la route derrière le pare-feu des membres qui écrivent, et donnez à `preview.limiter` un
-limiteur de débit, par adresse du client. Une adresse refusée ne compte pas dans la limite.
+d'un autre site, si bien que le point de terminaison demande au vérificateur d'autorisation `preview.access` —
+`IS_AUTHENTICATED`, un visiteur connecté, par défaut — avant de lire l'adresse, et refuse tout le monde lorsque
+l'application n'a pas de vérificateur d'autorisation. Importez la route derrière le pare-feu des membres qui écrivent,
+pour que le vérificateur les connaisse, et donnez à `preview.limiter` un limiteur de débit, par adresse du client. Une
+adresse refusée, ou un visiteur refusé, ne compte pas dans la limite.
 
 ```twig
 <div data-controller="phil--social-cards-bundle--link-preview"

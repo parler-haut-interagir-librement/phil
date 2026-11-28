@@ -33,6 +33,7 @@ phil_social_cards:
         cache_ttl: 86400
         user_agent: 'PhilSocialCards/0.1 (link preview)'
         limiter: ~                        # limiter.<name> of framework.rate_limiter, for pasted links
+        access: IS_AUTHENTICATED          # the attribute a visitor needs to have pasted links previewed
 ```
 
 | Option | Default | Rule |
@@ -53,6 +54,7 @@ phil_social_cards:
 | `preview.cache_ttl` | 86,400 | Seconds a preview stays in `cache.app` |
 | `preview.user_agent` | `PhilSocialCards/0.1 (link preview)` | Not empty, one line, no control character; name the site and a way to reach whoever runs it |
 | `preview.limiter` | null | The id of a rate limiter factory; the endpoint of pasted links consumes one token per address it reads, by client address |
+| `preview.access` | `IS_AUTHENTICATED` | The attribute the authorization checker must grant a visitor of the endpoint of pasted links; without `symfony/security-core` and its checker the endpoint is refused to everyone. A role such as `ROLE_WRITER` narrows it; null opens it to every visitor |
 
 The fonts and images of a template are read the first time the template is used, where they are installed; the
 configuration checks only the shape of a template.

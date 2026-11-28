@@ -190,10 +190,12 @@ final class PhilSocialCardsBundleTest extends TestCase
         self::assertSame([60.0, 0.1, 16_777_216, 10, 'PhilSocialCards/0.1 (link preview)'], $upper->getArguments());
 
         $controller = $container->getDefinition(LinkPreviewController::class);
-        self::assertEquals([new Reference(LinkPreviews::class), null], $controller->getArguments());
+        self::assertEquals([new Reference(LinkPreviews::class), null, new Reference('security.authorization_checker', ContainerInterface::NULL_ON_INVALID_REFERENCE), 'IS_AUTHENTICATED'], $controller->getArguments());
         self::assertTrue($controller->isPublic());
         self::assertTrue($controller->hasTag('controller.service_arguments'));
         self::assertEquals(new Reference('limiter.previews'), $this->load(['preview' => ['limiter' => 'limiter.previews']])->getDefinition(LinkPreviewController::class)->getArgument(1));
+        self::assertSame('ROLE_WRITER', $this->load(['preview' => ['access' => 'ROLE_WRITER']])->getDefinition(LinkPreviewController::class)->getArgument(3));
+        self::assertNull($this->load(['preview' => ['access' => null]])->getDefinition(LinkPreviewController::class)->getArgument(3));
     }
 
     /**
@@ -228,6 +230,8 @@ final class PhilSocialCardsBundleTest extends TestCase
         yield 'no user agent' => [['preview' => ['user_agent' => '']], 'user_agent'];
         yield 'a user agent that is a number' => [['preview' => ['user_agent' => 5]], 'is not a header value'];
         yield 'a user agent on two lines' => [['preview' => ['user_agent' => "Bot\r\nX-Evil: 1"]], 'is not a header value: one line, without a control character.'];
+        yield 'an empty access attribute' => [['preview' => ['access' => ' ']], 'is not an attribute: a non-empty string, or null.'];
+        yield 'an access attribute that is a number' => [['preview' => ['access' => 5]], 'is not an attribute: a non-empty string, or null.'];
         yield 'an unknown renderer' => [['cards' => ['renderer' => 'cairo']], 'renderer'];
         yield 'no default template' => [['cards' => ['default_template' => '']], 'default_template'];
     }

@@ -4,6 +4,16 @@ All notable changes to `phil/backup` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.5-alpha.
+
+### Security
+
+- `MediaArchive::extract()` clears the write bit for other users, and the setuid, setgid and sticky bits, of every
+  file it restores, whatever mode the archive holds: a crafted or careless archive no longer leaves a file anyone on
+  the machine can rewrite.
+
 ## 0.1.4-alpha - 2026-11-24
 
 ### Added
