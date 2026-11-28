@@ -49,6 +49,11 @@ return [
                     '.*\\$temporary = \\\\sprintf\\(\'%s\\.%08x\\.tmp\', \\$path, random_int\\(0, 0xFFFFFFFF\\)\\);.*',
                 ],
             ],
+            // A response with a max-age and neither `public` nor `s-maxage` is sent `private` by Symfony's header bag
+            // itself: calling setPrivate() first gives the same Cache-Control, it only says the intent.
+            'MethodCallRemoval' => [
+                'ignoreSourceCodeByRegex' => ['\\$response->setPrivate\\(\\);'],
+            ],
         ],
     ],
     'docs' => ['public' => true],
