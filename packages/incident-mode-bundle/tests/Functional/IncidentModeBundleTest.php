@@ -26,7 +26,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Messenger\Stamp\DelayStamp;
-use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
 
@@ -338,9 +337,8 @@ final class IncidentModeBundleTest extends WebTestCase
     {
         $activation = $this->incidents()->start('suspend-signups', Duration::ofHours(2), Actor::of('admin-7'));
 
-        $transport = self::getContainer()->get('messenger.transport.async');
-        $this->assertInstanceOf(InMemoryTransport::class, $transport);
-        $sent = $transport->getSent();
+        self::assertQueuedMessageCount(1, 'async', LiftIncident::class);
+        $sent = self::getQueuedMessages('async');
         self::assertCount(1, $sent);
         self::assertEquals(new LiftIncident($activation->id), $sent[0]->getMessage());
         self::assertSame(7_200_000, $sent[0]->last(DelayStamp::class)?->getDelay());

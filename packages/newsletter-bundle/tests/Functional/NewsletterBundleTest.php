@@ -34,7 +34,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -318,8 +317,6 @@ final class NewsletterBundleTest extends WebTestCase
     private function assertNothingQueued(): void
     {
         self::assertQueuedEmailCount(0);
-        $queue = self::getContainer()->get('messenger.transport.async');
-        self::assertInstanceOf(InMemoryTransport::class, $queue);
-        self::assertSame([], $queue->getSent());
+        self::assertQueuedMessageCount(0, 'async');
     }
 }

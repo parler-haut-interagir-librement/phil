@@ -20,7 +20,6 @@ use Phil\Url\Url;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Twig\Environment;
 
@@ -164,9 +163,8 @@ final class FeedBundleTest extends WebTestCase
         $dispatcher->dispatch(new PageRetired(Url::fromString('https://example.com/news/1'), 'en', true, 'news:1'));
         $dispatcher->dispatch(new PagePublished(Url::fromString('https://example.com/about'), 'en', true, 'page:about'));
 
-        $transport = self::getContainer()->get('messenger.transport.async');
-        self::assertInstanceOf(InMemoryTransport::class, $transport);
-        $messages = array_map(static fn (Envelope $envelope): object => $envelope->getMessage(), $transport->getSent());
+        self::assertQueuedMessageCount(2, 'async', AnnounceFeedUpdate::class);
+        $messages = array_map(static fn (Envelope $envelope): object => $envelope->getMessage(), self::getQueuedMessages('async'));
         self::assertEquals([new AnnounceFeedUpdate('news'), new AnnounceFeedUpdate('news')], $messages);
     }
 
@@ -179,9 +177,7 @@ final class FeedBundleTest extends WebTestCase
         self::assertInstanceOf(EventDispatcherInterface::class, $dispatcher);
         $dispatcher->dispatch(new PagePublished(Url::fromString('https://example.com/news/3'), 'en', true, 'news:3'));
 
-        $transport = self::getContainer()->get('messenger.transport.async');
-        self::assertInstanceOf(InMemoryTransport::class, $transport);
-        self::assertSame([], $transport->getSent());
+        self::assertQueuedMessageCount(0, 'async');
     }
 
     public function testOnlyTheConfiguredFormatsAreServed(): void

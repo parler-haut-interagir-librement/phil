@@ -20,7 +20,6 @@ use Symfony\Component\Mailer\Messenger\SendEmailMessage;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\ReceivedStamp;
-use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Mime\Email;
 
 /**
@@ -118,11 +117,9 @@ final class SitesTest extends WebTestCase
     {
         $browser->request('GET', 'http://'.$shop.'.shop.test/mail');
         self::assertResponseStatusCodeSame(204);
-        $transport = self::getContainer()->get('messenger.transport.async');
-        self::assertInstanceOf(InMemoryTransport::class, $transport);
         $bus = self::getContainer()->get('messenger.bus.default');
         self::assertInstanceOf(MessageBusInterface::class, $bus);
-        [$envelope] = array_values([...$transport->getSent()]);
+        [$envelope] = array_values([...self::getMessengerTransport('async')->getSent()]);
         self::assertInstanceOf(Envelope::class, $envelope);
         // The worker is another process, in no tenant.
         $context = self::getContainer()->get(TenantContext::class);

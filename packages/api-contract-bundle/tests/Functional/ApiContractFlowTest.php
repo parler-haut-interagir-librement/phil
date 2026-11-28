@@ -11,13 +11,15 @@ use Phil\ApiContractBundle\PhilApiContractBundle;
 use Phil\ApiContractBundle\Tests\Functional\App\ApiController;
 use Phil\ApiContractBundle\Tests\Functional\App\OrderVoter;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\User\InMemoryUser;
 
 /**
  * Requests through the kernel: problems under `/api/`, an order created once per key and replayed, a conflict, a
- * failure forgotten, the deprecation headers, keys of their own for each tenant and each user, the access checks of a
- * controller run again before a replay, and anonymous callers refused.
+ * failure forgotten, the deprecation headers, keys of their own for each tenant, each user and each client of a user,
+ * the access checks of a controller run again before a replay, and anonymous callers refused.
  */
 #[CoversClass(PhilApiContractBundle::class)]
 final class ApiContractFlowTest extends FunctionalTestCase
@@ -126,6 +128,33 @@ final class ApiContractFlowTest extends FunctionalTestCase
         $grace = $this->post('/api/orders', '{"item":"a"}', 'key-6', user: 'grace');
 
         self::assertSame(['{"order":1}', '{"order":2}', null], [$ada->getContent(), $grace->getContent(), $grace->headers->get('Idempotent-Replayed')]);
+    }
+
+    /**
+     * The test client signs the user in on the stateless firewall with the attribute an authenticator of access tokens
+     * sets: one user through two clients holds a key of their own for each client.
+     */
+    public function testTwoClientsOfOneUserNeverShareAKey(): void
+    {
+        $client = self::getContainer()->get('test.client');
+        self::assertInstanceOf(KernelBrowser::class, $client);
+        $client->disableReboot();
+        $ada = new InMemoryUser('ada', 'ada', ['ROLE_USER']);
+        $order = static function (string $clientId) use ($client, $ada): Response {
+            $client->loginUser($ada, 'api', ['client_id' => $clientId]);
+            $client->request('POST', '/api/orders', server: ['HTTP_IDEMPOTENCY_KEY' => '"key-12"'], content: '{"item":"a"}');
+
+            return $client->getResponse();
+        };
+
+        $first = $order('mobile-app');
+        $replay = $order('mobile-app');
+        $other = $order('dashboard');
+
+        self::assertSame([201, '{"order":1}', null], [$first->getStatusCode(), $first->getContent(), $first->headers->get('Idempotent-Replayed')]);
+        self::assertSame([201, '{"order":1}', 'true'], [$replay->getStatusCode(), $replay->getContent(), $replay->headers->get('Idempotent-Replayed')]);
+        self::assertSame([201, '{"order":2}', null], [$other->getStatusCode(), $other->getContent(), $other->headers->get('Idempotent-Replayed')], 'Another client of the same user has keys of its own.');
+        self::assertSame(2, $this->keys());
     }
 
     /**

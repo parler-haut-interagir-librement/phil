@@ -23,7 +23,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\ReceivedStamp;
-use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Twig\Environment;
 
 /**
@@ -65,18 +64,14 @@ final class ImportFlowTest extends KernelTestCase
 
         $claim = $queue->submit(new DocumentExporter()->export(new Document([new Block('a', 'paragraph', ['text' => 'Hello'])]), Format::Docx)->bytes, filename: 'Jane Doe — chapter.docx');
 
-        $transport = self::getContainer()->get('messenger.transport.imports');
-        self::assertInstanceOf(InMemoryTransport::class, $transport);
-        $sent = $transport->getSent();
-        self::assertCount(1, $sent);
-        $message = $sent[0]->getMessage();
+        self::assertQueuedMessageCount(1, 'imports', ImportDocument::class);
+        $message = self::getQueuedMessages('imports')[0]->getMessage();
         self::assertEquals(new ImportDocument($claim), $message);
         self::assertStringNotContainsString('Jane', serialize($message));
         self::assertSame([], $this->events());
 
-        $bus = self::getContainer()->get(MessageBusInterface::class);
-        self::assertInstanceOf(MessageBusInterface::class, $bus);
-        $bus->dispatch($message, [new ReceivedStamp('imports')]);
+        self::assertSame(1, self::consumeQueuedMessages('imports'));
+        self::assertQueuedMessageCount(0, 'imports');
 
         self::assertCount(1, $this->events());
         $event = $this->events()[0];

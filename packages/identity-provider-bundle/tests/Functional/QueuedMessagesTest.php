@@ -15,7 +15,6 @@ use Symfony\Component\Mailer\Header\TrackingHeader;
 use Symfony\Component\Mailer\Messenger\SendEmailMessage;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Notifier\Message\SmsMessage;
 
@@ -52,7 +51,7 @@ final class QueuedMessagesTest extends FunctionalTestCase
         $bus->dispatch(new SendEmailMessage(new Email()->from('a@example.com')->to('b@example.com')->subject('Hello')->text('Hello')));
         $bus->dispatch(new SmsMessage('+15145550123', 'Hello'));
 
-        self::assertSame([SendEmailMessage::class, SmsMessage::class], array_map(static fn (Envelope $envelope): string => $envelope->getMessage()::class, $this->queue()->getSent()), 'The routing of the test application queues the emails and text messages put on the bus, as `MailerInterface` and the texter `texter` do.');
+        self::assertSame([SendEmailMessage::class, SmsMessage::class], array_map(static fn (Envelope $envelope): string => $envelope->getMessage()::class, self::getQueuedMessages('async')), 'The routing of the test application queues the emails and text messages put on the bus, as `MailerInterface` and the texter `texter` do.');
     }
 
     public function testNoLinkNorCodeWaitsInTheQueue(): void
@@ -82,13 +81,8 @@ final class QueuedMessagesTest extends FunctionalTestCase
         self::assertSame('+15145550123', $sms->getRecipientId());
         self::assertMatchesRegularExpression('/\b\d{6}\b/', $sms->getSubject());
 
-        self::assertSame([], array_map(static fn (Envelope $envelope): string => $envelope->getMessage()::class, $this->queue()->getSent()), 'Nothing waits in the queue: no link, no code, no address.');
-        self::assertSame([], $this->queue()->getRejected());
-    }
-
-    private function queue(): InMemoryTransport
-    {
-        return $this->service(InMemoryTransport::class, 'messenger.transport.async');
+        self::assertSame([], array_map(static fn (Envelope $envelope): string => $envelope->getMessage()::class, self::getQueuedMessages('async')), 'Nothing waits in the queue after any of the requests: no link, no code, no address.');
+        self::assertSame([], self::getMessengerTransport('async')->getRejected());
     }
 
     /**

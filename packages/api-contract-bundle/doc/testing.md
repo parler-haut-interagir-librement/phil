@@ -14,7 +14,8 @@
 A functional suite boots a kernel with FrameworkBundle, DoctrineBundle on SQLite, SecurityBundle with two users and
 the bundle, one tenant per host, and sends requests to the endpoints of `ApiController`: an order created once per key
 and replayed, a reused key, a missing key, a failure run again, two tenants and two users on one store with the same
-key, a permission revoked during the retention refused by `#[IsGranted]` without the stored body, a refused request
+key, two clients of one user signed in by the test client with the `client_id` attribute of their token, each with
+keys of its own, a permission revoked during the retention refused by `#[IsGranted]` without the stored body, a refused request
 that reserves no key, an anonymous caller refused, problems under `/api/` and not elsewhere, the deprecation headers,
 on a replay too; the verifier is built and
 its command verifies a document in the application's console. Installed on its own, where
@@ -32,3 +33,18 @@ vendor/bin/phil-dev services up
 eval "$(vendor/bin/phil-dev services env)"
 vendor/bin/phpunit packages/api-contract-bundle/tests/Integration
 ```
+
+## Testing an application
+
+On a stateless firewall that uses the `access_token` authenticator, the test client signs a user in with the
+attributes the application's token handler would set, and sends that token again with each request. The client part of
+the idempotency scope reads `idempotency.client_attribute` (`client_id` by default), so two clients of one user are
+tested without issuing tokens:
+
+```php
+$client->loginUser($user, 'api', ['client_id' => 'mobile-app']);
+$client->request('POST', '/api/orders', server: ['HTTP_IDEMPOTENCY_KEY' => '"order-1"'], content: '{"item":"a"}');
+```
+
+A firewall without `access_token` does not read that token back on the next request: the test then sends credentials
+with each request, as an HTTP Basic header does.
