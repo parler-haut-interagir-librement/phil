@@ -8,7 +8,12 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 The next version is 0.2.1-alpha.
 
-Development only.
+### Security
+
+- `GitHubSecretScanningController` read the whole body before it compared its length with `LeakReport::MAX_BYTES` and
+  checked its signature, so that a request without a valid signature could make it hold any body the front server
+  let through. It reads the stream to one byte past 1 MiB and no further, answers `413` beyond it, and verifies the
+  signature on the bytes received.
 
 ### Changed
 

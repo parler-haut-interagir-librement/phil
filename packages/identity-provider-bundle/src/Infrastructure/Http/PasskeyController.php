@@ -13,7 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * The passkeys of an account: their page, the options and the answer of a registration — JSON, for the Stimulus
  * controller `passkey` —, the options of a sign-in, a new name, and the removal. Adding or removing a passkey needs a
- * recent proof of the account's strongest method; the last way to sign in cannot be removed.
+ * recent proof of the account's strongest method; the last way to sign in cannot be removed. The answer of a
+ * registration is read to one byte past `Passkeys::MAX_RESPONSE` and no further.
  */
 final readonly class PasskeyController
 {
@@ -52,7 +53,8 @@ final readonly class PasskeyController
         }
 
         try {
-            $passkey = $this->passkeys->register($account, $request->getContent(), $request->query->getString('name', 'Passkey'));
+            // One byte past the longest answer is enough for Passkeys to refuse a longer one.
+            $passkey = $this->passkeys->register($account, (string) stream_get_contents($request->getContent(true), Passkeys::MAX_RESPONSE + 1), $request->query->getString('name', 'Passkey'));
         } catch (Refused $refused) {
             return Pages::noStore(new JsonResponse(['error' => $refused->reasons[0] ?? 'passkey.refused'], Response::HTTP_UNPROCESSABLE_ENTITY));
         }

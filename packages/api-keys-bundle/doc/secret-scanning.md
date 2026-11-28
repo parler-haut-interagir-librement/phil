@@ -49,7 +49,7 @@ underscore, 12 characters of `[0-9A-Za-z]`, an underscore and 38 more — and th
 |---|---|
 | Signed by GitHub, a list of matches | `200`, a label per match |
 | No `Github-Public-Key-Identifier` or `Github-Public-Key-Signature`, a key GitHub does not publish, a signature that does not verify | `403`, the body not read |
-| A body longer than 1 MiB | `413` |
+| A body longer than 1 MiB | `413`, read to one byte past 1 MiB and no further |
 | Signed, but not a list of matches of a token and a type | `400` |
 
 The signature is ECDSA with SHA-256 over the raw body, in base64, under the key GitHub publishes with that identifier.

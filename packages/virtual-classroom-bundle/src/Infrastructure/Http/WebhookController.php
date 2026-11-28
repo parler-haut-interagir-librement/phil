@@ -18,10 +18,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Receives the notifications of the servers. The address carries its proof ({@see WebhookSigner}): a wrong one is a
- * 404, as an address that does not exist. A body over the ceiling is a 413; a notification the provider refuses —
- * its own signature, its age, its form — a 401, which BigBlueButton reads as a secret that does not match and stops
- * retrying; what the application knows is applied and answered with a 204, the events of rooms it does not know
- * ignored.
+ * 404, as an address that does not exist. A body over the ceiling is a 413, read to one byte past it and no further,
+ * whether a `Content-Length` was sent or not; a notification the provider refuses — its own signature, its age, its
+ * form — a 401, which BigBlueButton reads as a secret that does not match and stops retrying; what the application
+ * knows is applied and answered with a 204, the events of rooms it does not know ignored.
  */
 final readonly class WebhookController
 {
@@ -47,7 +47,8 @@ final readonly class WebhookController
             return new Response('', Response::HTTP_REQUEST_ENTITY_TOO_LARGE);
         }
 
-        $body = $request->getContent();
+        // Read to one byte past the ceiling whatever the header says, absent or false.
+        $body = (string) stream_get_contents($request->getContent(true), self::MAX_BYTES + 1);
 
         if (\strlen($body) > self::MAX_BYTES) {
             return new Response('', Response::HTTP_REQUEST_ENTITY_TOO_LARGE);

@@ -4,6 +4,15 @@ All notable changes to `phil/virtual-classroom-bundle` will be documented in thi
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.2-alpha.
+
+### Security
+
+- `WebhookController` checked its ceiling of 1 MiB after reading the whole body when no `Content-Length` was sent. It
+  reads the stream to one byte past the ceiling and no further, and answers `413` beyond it.
+
 ## 0.1.1-alpha - 2026-11-24
 
 ### Changed

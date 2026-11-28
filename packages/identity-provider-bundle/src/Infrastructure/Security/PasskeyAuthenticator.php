@@ -29,7 +29,8 @@ use Symfony\Component\Security\Http\Util\TargetPathTrait;
  * `phil_identity_provider_passkey_login` by the Stimulus controller `passkey`. Signed out, any passkey of the site
  * signs its account in; signed in, only a passkey of the same account does, as a re-authentication. The proofs are
  * `hwk` and `user` (RFC 8176), and `mfa` when the authenticator verified the person by a PIN or a biometric. The answer
- * is JSON: where to go next, or the refusal.
+ * is JSON: where to go next, or the refusal. The body is read to one byte past `Passkeys::MAX_RESPONSE` and no
+ * further, so that a longer one is refused without being held.
  */
 final class PasskeyAuthenticator extends AbstractAuthenticator implements InteractiveAuthenticatorInterface
 {
@@ -56,7 +57,9 @@ final class PasskeyAuthenticator extends AbstractAuthenticator implements Intera
         $current = $this->tokens->getToken()?->getUser();
 
         try {
-            [$account, $verified] = $this->passkeys->signIn($request->getContent(), $current instanceof AccountUser ? $current->account : null);
+            // Signed out, anyone may post here: the body is read to one byte past the longest answer and no further.
+            $json = (string) stream_get_contents($request->getContent(true), Passkeys::MAX_RESPONSE + 1);
+            [$account, $verified] = $this->passkeys->signIn($json, $current instanceof AccountUser ? $current->account : null);
         } catch (Refused $refused) {
             throw new CustomUserMessageAuthenticationException($refused->reasons[0] ?? 'passkey.refused', [], 0, $refused);
         }

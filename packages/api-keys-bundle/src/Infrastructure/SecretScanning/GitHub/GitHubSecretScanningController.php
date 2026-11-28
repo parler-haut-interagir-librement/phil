@@ -17,9 +17,10 @@ use Symfony\Component\HttpFoundation\Response;
  * The endpoint of GitHub's secret scanning partner program: GitHub posts the tokens it finds in public repositories,
  * signed with one of its keys; each one that is a token of this application is revoked at once.
  *
- * The body is read only once its ECDSA signature, over the raw body, verifies under the key its identifier names. The
- * answer lists each match by the SHA-256 of its token, in hexadecimal, as a `true_positive` when it is a token of
- * this application, a `false_positive` otherwise; it never holds a token.
+ * The body is read to one byte past 1 MiB and no further, and acted on only once its ECDSA signature, over the raw
+ * body, verifies under the key its identifier names. The answer lists each match by the SHA-256 of its token, in
+ * hexadecimal, as a `true_positive` when it is a token of this application, a `false_positive` otherwise; it never
+ * holds a token.
  *
  * | Request | Answer |
  * |---|---|
@@ -58,7 +59,8 @@ final readonly class GitHubSecretScanningController
             return new Response('', Response::HTTP_FORBIDDEN);
         }
 
-        $body = $request->getContent();
+        // One byte past the limit tells a body too long, without holding more of it than the limit allows.
+        $body = (string) stream_get_contents($request->getContent(true), LeakReport::MAX_BYTES + 1);
 
         if (\strlen($body) > LeakReport::MAX_BYTES) {
             return new Response('', Response::HTTP_REQUEST_ENTITY_TOO_LARGE);
