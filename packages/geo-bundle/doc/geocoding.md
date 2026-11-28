@@ -110,6 +110,42 @@ $places = $this->geocoder->geocode($address, $request->getLocale());
 
 The places, the failures and the providers are `phil/geo`'s: see its geocoding document.
 
+## Mirrors of a self-hosted server
+
+A Nominatim or Photon server of one's own often runs on several hosts. A scoped client of Symfony's HTTP client
+names them: `base_uri` is the first one asked, and `retry_failed.base_uris` lists the others, tried in turn, one per
+retry, when a request fails. The geocoder takes that client as `http.client`, and a `base_url` that is a path:
+
+```yaml
+framework:
+    http_client:
+        scoped_clients:
+            geocoding.client:
+                base_uri: 'https://geo-a.example.org'
+                retry_failed:
+                    max_retries: 2
+                    delay: 200
+                    base_uris: ['https://geo-b.example.org', 'https://geo-c.example.org']
+
+phil_geo:
+    http:
+        client: geocoding.client
+    geocoding:
+        providers: [nominatim]
+        nominatim:
+            user_agent: 'Example (contact@example.com)'
+            base_url: '/nominatim'      # a path: the client puts the host in front of it
+```
+
+The client resolves the path against the host of each attempt: `https://geo-a.example.org/nominatim/search`, then
+`https://geo-b.example.org/nominatim/search`. A `base_url` that is a whole address keeps its host on every retry, so a
+mirror is never asked. Each attempt has the timeouts of `http`: one lookup may hold a worker for `max_retries + 1`
+times `http.max_duration`, plus the delays between the attempts.
+
+`http.client` serves every provider, ipstack and the MaxMind updater. A public provider listed beside the self-hosted
+one goes through the same client with an address of its own: its failures are retried too, on its own host, and each
+retry is a request its quota counts.
+
 ## Keeping the MaxMind database up to date
 
 ```sh

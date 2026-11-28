@@ -23,6 +23,9 @@ use RuntimeException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\JsonMockResponse;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\HttpClient\Retry\GenericRetryStrategy;
+use Symfony\Component\HttpClient\RetryableHttpClient;
+use Symfony\Component\HttpClient\ScopingHttpClient;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 use Throwable;
@@ -177,6 +180,32 @@ final class AdaptersTest extends TestCase
         new NominatimGeocoder($this->client([new JsonMockResponse([])]), 'Site')->geocode('a');
 
         self::assertSame('https://nominatim.openstreetmap.org/search?q=a&limit=5&format=jsonv2&addressdetails=1', $this->requests[0][1]);
+    }
+
+    /**
+     * A base URL that is a path is resolved by the client: a scoped client with fallback base URIs, as
+     * `retry_failed.base_uris` builds it, asks the next mirror when one fails. An absolute base URL stays on its host.
+     */
+    public function testAPathAsBaseUrlLetsTheClientFallBackToAMirror(): void
+    {
+        $mirrors = ['https://geo-a.example.org', 'https://geo-b.example.org'];
+        $client = $this->client([new MockResponse('', ['http_code' => 503]), new JsonMockResponse([['lat' => '45.5', 'lon' => '-73.5', 'address' => []]])]);
+        $retrying = new RetryableHttpClient(ScopingHttpClient::forBaseUris($client, $mirrors), new GenericRetryStrategy(delayMs: 0), 1)->withOptions(['base_uri' => $mirrors]);
+
+        $places = new NominatimGeocoder($retrying, 'Site', '/nominatim/')->geocode('a');
+
+        self::assertSame(['45.5,-73.5'], array_map(static fn (Place $place): string => $place->coordinates->toString(), $places));
+        self::assertSame([
+            'https://geo-a.example.org/nominatim/search?q=a&limit=5&format=jsonv2&addressdetails=1',
+            'https://geo-b.example.org/nominatim/search?q=a&limit=5&format=jsonv2&addressdetails=1',
+        ], array_column($this->requests, 1));
+
+        $this->requests = [];
+        $client = $this->client([new MockResponse('', ['http_code' => 503]), new MockResponse('', ['http_code' => 503])]);
+        $retrying = new RetryableHttpClient(ScopingHttpClient::forBaseUris($client, $mirrors), new GenericRetryStrategy(delayMs: 0), 1)->withOptions(['base_uri' => $mirrors]);
+
+        $this->assertFails(static fn (): array => new NominatimGeocoder($retrying, 'Site', 'https://geo-a.example.org/nominatim')->geocode('a'), 'The geocoding provider "nominatim" failed: it answered HTTP 503.');
+        self::assertSame(['https://geo-a.example.org', 'https://geo-a.example.org'], array_map(static fn (string $url): string => substr($url, 0, 25), array_column($this->requests, 1)));
     }
 
     public function testGoogleMapsFindsAndReverses(): void
