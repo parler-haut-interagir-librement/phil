@@ -48,6 +48,7 @@
         "symfony/http-client-contracts": "^3.8",
         "symfony/messenger": "^8.2",
         "symfony/rate-limiter": "^8.2",
+        "symfony/security-core": "^8.2",
         "symfony/twig-bundle": "^8.2",
         "symfony/ux-twig-component": "^3.8"
     },
@@ -58,6 +59,7 @@
         "symfony/console": "For phil:social-cards:check",
         "symfony/messenger": "To draw the cards in a worker",
         "symfony/rate-limiter": "To bound the pasted links one visitor has previewed",
+        "symfony/security-core": "For the attribute the endpoint of pasted links asks for; without an authorization checker it is refused to everyone",
         "symfony/ux-twig-component": "For the card of a link to another site, <twig:PhilSocialCards:LinkPreview>"
     },
     "minimum-stability": "dev",

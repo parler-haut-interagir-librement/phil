@@ -11,7 +11,8 @@ use ShipMonk\ComposerDependencyAnalyser\Config\ErrorType;
  * Messenger, the console, the rate limiter, Symfony UX, phil/media-bundle and phil/http-cache-tags-bundle are used by
  * the production code but only required in development and suggested: the bundle registers the queue, the command, the
  * component and the integrations only when their packages are there, and the endpoint of pasted links takes a rate
- * limiter only when the configuration names one.
+ * limiter only when the configuration names one; without symfony/security-core and its authorization checker, that
+ * endpoint is refused to everyone unless its access attribute is null.
  */
 return new Configuration()
     ->addPathToScan(__DIR__.'/src', isDev: false)
@@ -22,5 +23,6 @@ return new Configuration()
         'symfony/console',
         'symfony/messenger',
         'symfony/rate-limiter',
+        'symfony/security-core',
         'symfony/ux-twig-component',
     ], [ErrorType::DEV_DEPENDENCY_IN_PROD]);

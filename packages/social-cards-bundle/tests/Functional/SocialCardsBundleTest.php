@@ -95,7 +95,7 @@ final class SocialCardsBundleTest extends WebTestCase
 
     public function testThePastedLinksArePreviewedWithinTheRateLimit(): void
     {
-        $client = self::createClient(server: ['HTTP_HOST' => 'example.com', 'HTTPS' => 'on']);
+        $client = self::createClient(server: ['HTTP_HOST' => 'example.com', 'HTTPS' => 'on', 'HTTP_X_TEST_MEMBER' => '1']);
         // The limiter counts in a pool of the cache directory, emptied before the test.
         $pool = self::getContainer()->get('test.limiter_pool');
         self::assertInstanceOf(CacheItemPoolInterface::class, $pool);
@@ -126,6 +126,24 @@ final class SocialCardsBundleTest extends WebTestCase
         self::assertLessThanOrEqual(3601, $retry, 'Whole seconds, the end of the window rounded down and now rounded down.');
         $client->request('POST', '/social-cards/link-preview?url=https%3A%2F%2Fexample.org%2Fpost');
         self::assertResponseStatusCodeSame(405);
+    }
+
+    public function testAVisitorWhoIsNotAMemberHasNoLinkPreviewed(): void
+    {
+        $client = self::createClient(server: ['HTTP_HOST' => 'example.com', 'HTTPS' => 'on']);
+        $pool = self::getContainer()->get('test.limiter_pool');
+        self::assertInstanceOf(CacheItemPoolInterface::class, $pool);
+        $pool->clear();
+
+        foreach (['https%3A%2F%2Fexample.org%2Fpost', 'http%3A%2F%2F10.0.0.1%2F', 'https%3A%2F%2Fexample.org%2Fpost', 'https%3A%2F%2Fexample.org%2Fpost'] as $url) {
+            $client->request('GET', '/social-cards/link-preview?url='.$url);
+            self::assertResponseStatusCodeSame(403, 'Refused before the address is read or the limiter consumed.');
+            self::assertSame(['error' => 'Previewing links is for the members who write.'], json_decode((string) $client->getResponse()->getContent(), true));
+            self::assertTrue($client->getResponse()->headers->hasCacheControlDirective('private'));
+        }
+
+        $client->request('GET', '/social-cards/link-preview?url=https%3A%2F%2Fexample.org%2Fpost', server: ['HTTP_X_TEST_MEMBER' => '1']);
+        self::assertResponseIsSuccessful('The refusals consumed nothing of the limiter.');
     }
 
     public function testTheCommandChecksAPage(): void

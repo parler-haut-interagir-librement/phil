@@ -47,7 +47,7 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
  * route and, with Messenger, their queue; the link previews, their component and the check command; the integrations
  * with phil/media-bundle and phil/http-cache-tags-bundle when they are there.
  *
- * @phpstan-type Config array{site_name: ?string, locale: ?string, twitter_site: ?string, fediverse_creator: ?string, default_image: array<string, mixed>|string|null, cards: array{enabled: bool, directory: string, cache_max_age: int, async: bool, renderer: 'gd'|'imagick', default_template: string, templates: array<string, array<string, mixed>>}, preview: array{enabled: bool, timeout: float, max_duration: float, max_bytes: int, max_redirects: int, cache_ttl: int, user_agent: string, limiter: ?string}}
+ * @phpstan-type Config array{site_name: ?string, locale: ?string, twitter_site: ?string, fediverse_creator: ?string, default_image: array<string, mixed>|string|null, cards: array{enabled: bool, directory: string, cache_max_age: int, async: bool, renderer: 'gd'|'imagick', default_template: string, templates: array<string, array<string, mixed>>}, preview: array{enabled: bool, timeout: float, max_duration: float, max_bytes: int, max_redirects: int, cache_ttl: int, user_agent: string, limiter: ?string, access: ?string}}
  */
 final class SocialCardsServices
 {
@@ -148,7 +148,7 @@ final class SocialCardsServices
     }
 
     /**
-     * @param array{enabled: bool, timeout: float, max_duration: float, max_bytes: int, max_redirects: int, cache_ttl: int, user_agent: string, limiter: ?string} $config
+     * @param array{enabled: bool, timeout: float, max_duration: float, max_bytes: int, max_redirects: int, cache_ttl: int, user_agent: string, limiter: ?string, access: ?string} $config
      */
     private static function previews(ContainerBuilder $container, array $config): void
     {
@@ -168,7 +168,12 @@ final class SocialCardsServices
             ->setPublic(true);
 
         $container->register(LinkPreviewController::class, LinkPreviewController::class)
-            ->setArguments([new Reference(LinkPreviews::class), null === $config['limiter'] ? null : new Reference($config['limiter'])])
+            ->setArguments([
+                new Reference(LinkPreviews::class),
+                null === $config['limiter'] ? null : new Reference($config['limiter']),
+                new Reference('security.authorization_checker', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                $config['access'],
+            ])
             ->setPublic(true)
             ->addTag('controller.service_arguments');
 
