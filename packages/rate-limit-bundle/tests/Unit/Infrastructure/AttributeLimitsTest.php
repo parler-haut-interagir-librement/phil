@@ -154,6 +154,8 @@ final class AttributeLimitsTest extends TestCase
     {
         yield 'an IPv4 address' => [Request::create('/search', server: ['REMOTE_ADDR' => '203.0.113.7']), '203.0.113.7~/search'];
         yield 'an IPv6 address by its /64' => [Request::create('/search', server: ['REMOTE_ADDR' => '2001:db8:1:2:3:4:5:6']), '2001:db8:1:2::~/search'];
+        yield 'an IPv6 address by its /64, whatever its ninth byte' => [Request::create('/search', server: ['REMOTE_ADDR' => '2001:db8:1:2:300:4:5:6']), '2001:db8:1:2::~/search'];
+        yield 'an IPv4 address mapped in IPv6, kept whole' => [Request::create('/search', server: ['REMOTE_ADDR' => '::ffff:203.0.113.7']), '::ffff:203.0.113.7~/search'];
         yield 'the path decoded and encoded again' => [Request::create('/a%20b/%7Ec', server: ['REMOTE_ADDR' => '203.0.113.7']), '203.0.113.7~/a%20b/~c'];
         $anonymous = Request::create('/search');
         $anonymous->server->remove('REMOTE_ADDR');

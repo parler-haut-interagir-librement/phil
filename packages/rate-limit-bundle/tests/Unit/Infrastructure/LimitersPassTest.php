@@ -95,6 +95,7 @@ final class LimitersPassTest extends TestCase
             $container->register('app.scripted', ScriptedLimiter::class)->setArguments([1])->addTag(RateLimitServices::LIMITER_TAG, ['name' => 'external']);
             $container->register('app.tagged', HeaderKey::class)->addTag(RateLimitServices::KEY_TAG, ['strategy' => 'account']);
             $container->register('limiter.framework_limit', stdClass::class)->addTag('rate_limiter', ['name' => 'framework_limit']);
+            $container->register('limiter.first', stdClass::class)->addTag('rate_limiter', ['name' => 'first']);
             $container->register('limiter')->setAbstract(true);
             $container->register('rate_limiter.attribute_listener', stdClass::class);
         });
@@ -105,7 +106,7 @@ final class LimitersPassTest extends TestCase
         self::assertEquals([new Reference(AttributeLimits::class), 'api'], $factory->getArguments());
         self::assertSame(['rate_limiter' => [['name' => 'api']]], $factory->getTags());
         self::assertTrue($container->hasDefinition('phil_rate_limit.attribute.external'));
-        self::assertSame(['api', 'external', 'framework_limit'], $container->getDefinition(RateLimitCacheWarmer::class)->getArgument(4));
+        self::assertSame(['api', 'external', 'first', 'framework_limit'], $container->getDefinition(RateLimitCacheWarmer::class)->getArgument(4));
     }
 
     public function testTheAttributeFactoryConsumesThroughTheBundle(): void
@@ -137,6 +138,18 @@ final class LimitersPassTest extends TestCase
 
         self::assertNull($container->getDefinition(RateLimitCacheWarmer::class)->getArgument(4));
         self::assertTrue($container->hasDefinition('phil_rate_limit.attribute.api'));
+    }
+
+    public function testTheWarmerIsToldOfNoLimiterWhenEitherHalfOfSymfonysIsMissing(): void
+    {
+        foreach (['limiter', 'rate_limiter.attribute_listener'] as $present) {
+            $container = $this->container(['limiters' => ['api' => ['policy' => 'no_limit']]], static function (ContainerBuilder $container) use ($present): void {
+                $container->register($present, stdClass::class);
+            });
+            new LimitersPass()->process($container);
+
+            self::assertNull($container->getDefinition(RateLimitCacheWarmer::class)->getArgument(4), $present);
+        }
     }
 
     public function testALimiterOfTheFrameworkOfTheSameNameFailsTheBuild(): void

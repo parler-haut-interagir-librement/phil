@@ -96,6 +96,11 @@ final class TooManyRequestsResponderTest extends TestCase
 
         self::assertSame(0, $this->retryAfter($dated));
 
+        $none = $this->event(new TooManyRequestsHttpException(null, '', new RateLimitExceededException($limit)), $this->request(accept: 'application/json'));
+        new TooManyRequestsResponder()->onKernelException($none);
+
+        self::assertSame(0, $this->retryAfter($none));
+
         $negative = $this->event(new TooManyRequestsHttpException(-5, '', new RateLimitExceededException($limit)), $this->request(accept: 'application/json'));
         new TooManyRequestsResponder()->onKernelException($negative);
 

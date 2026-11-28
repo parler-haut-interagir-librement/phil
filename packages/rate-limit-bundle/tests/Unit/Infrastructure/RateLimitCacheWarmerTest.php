@@ -71,6 +71,7 @@ final class RateLimitCacheWarmerTest extends TestCase
     public static function invalid(): iterable
     {
         yield 'an unknown limiter' => [['_rate_limit' => 'nothing'], 'The rate limits of the route "page": No rate limiter is named "nothing"; the limiters declared are "known", "other".'];
+        yield 'an unknown limiter with a key' => [['_rate_limit' => ['limiter' => 'nothing', 'key' => 'ip']], 'The rate limits of the route "page": No rate limiter is named "nothing"'];
         yield 'an unknown key' => [['_rate_limit' => ['limiter' => 'known', 'key' => 'nothing']], 'The rate limits of the route "page": No key strategy is named "nothing"'];
         yield 'a wrong shape' => [['_rate_limit' => ['limiter' => 3]], 'The rate limits of the route "page": A rate limit is'];
         yield 'an attribute, unknown limiter' => [['_controller' => LimitedController::class.'::unknown'], 'The route "page" is limited by #[RateLimit("nothing")], which no limiter is named; the limiters declared are "framework_limit", "known", "other".'];

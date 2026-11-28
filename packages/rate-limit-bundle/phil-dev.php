@@ -36,6 +36,23 @@ return [
                     '\$detail = \$this->translated\(self::DETAIL, \[.%seconds%. => \(string\) \$seconds\]\);',
                 ],
             ],
+            'DecrementInteger' => [
+                'ignoreSourceCodeByRegex' => [
+                    // The default of the wait of a refusal of the framework without a Retry-After: -1 is clamped to 0 by
+                    // the max() that follows, as 0 is, so no observable output differs.
+                    '\$retryAfter = \$exception->getHeaders\(\)\[.Retry-After.\] \?\? 0;',
+                    // The default of the tokens of reserve(), which refuses every call whatever its arguments: the
+                    // signature only repeats the one of LimiterInterface.
+                    'public function reserve\(int \$tokens = 1, \?float \$maxTime = null\): Reservation',
+                ],
+            ],
+            'IncrementInteger' => [
+                'ignoreSourceCodeByRegex' => [
+                    // The default of the tokens of reserve(), which refuses every call whatever its arguments: the
+                    // signature only repeats the one of LimiterInterface.
+                    'public function reserve\(int \$tokens = 1, \?float \$maxTime = null\): Reservation',
+                ],
+            ],
             'CastFloat' => [
                 'ignoreSourceCodeByRegex' => [
                     // A moment's "U.u" text is a numeric string, which PHP subtracts as the same float; the cast only
