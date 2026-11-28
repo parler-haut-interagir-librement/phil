@@ -86,6 +86,15 @@ final class EncryptedExportArchiveTest extends TestCase
         self::assertFileExists($this->directory.'/'.self::A.'.1769904000.export', 'The purge removes the file; the read refuses it first.');
     }
 
+    public function testAnExpiredFileDoesNotHideTheLiveOneOfTheSameReference(): void
+    {
+        $archive = $this->archive();
+        $archive->put(self::A, 'old', new DateTimeImmutable('2026-01-10T00:00:00Z'));
+        $archive->put(self::A, 'live', new DateTimeImmutable('2026-02-01T00:00:00Z'));
+
+        self::assertSame('live', $archive->get(self::A));
+    }
+
     public function testAnExportWithoutAnExpiryReadsAsAbsent(): void
     {
         $archive = $this->archive();
