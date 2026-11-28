@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=efcca7be1a5e0c9c6623f9656685ab29e47b66d451e311367fa18ad2f9d05a51 -->
+<!-- phil-dev source-sha256=e5b896da13c197a1e74c975382321f25be27fb7ab8ed888f8731033389960c7a -->
 # Comment les requêtes reçoivent leur réponse
 
 Le bundle enregistre un seul écouteur, `phil_cors.listener`, sur deux événements du noyau. Les deux ne regardent que les
@@ -22,7 +22,7 @@ La réponse est toujours `204 No Content`, avec :
 | `Access-Control-Allow-Methods` | Autorisé : les méthodes du chemin. |
 | `Access-Control-Allow-Headers` | Autorisé : les en-têtes du chemin, ou ceux demandés quand le chemin les autorise tous ; non envoyé quand il n'y en a aucun. |
 | `Access-Control-Max-Age` | Autorisé, et le chemin donne `max_age`. |
-| `Access-Control-Allow-Private-Network: true` | Autorisé, le chemin l'autorise, et la requête envoie `Access-Control-Request-Private-Network: true`. |
+| `Access-Control-Allow-Private-Network: true` | Autorisé, le chemin l'autorise, et la requête envoie `Access-Control-Request-Private-Network: true` ; Chrome ne l'envoie plus, voir [Le réseau privé](configuration.md#le-réseau-privé). |
 
 Quand l'origine, la méthode ou l'un des en-têtes demandés n'est pas autorisé, la réponse n'a que `Vary` : le navigateur
 lit l'absence de `Access-Control-Allow-Origin` comme un refus et n'envoie jamais la requête elle-même. La raison n'est

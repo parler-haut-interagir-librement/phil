@@ -68,6 +68,18 @@ final class CorsPolicyTest extends TestCase
         self::assertFalse($policy->allowsOrigin('https://example.com'));
     }
 
+    public function testASubdomainLabelPatternKeepsTheDotBoundaryThatAWildcardLoses(): void
+    {
+        $label = new CorsPolicy([], ['^https://[a-z0-9-]+\.example\.com$']);
+        $wildcard = new CorsPolicy([], ['^https://.*example\.com$']);
+
+        self::assertTrue($label->allowsOrigin('https://shop-2.example.com'));
+        self::assertFalse($label->allowsOrigin('https://evil-example.com'));
+        self::assertFalse($label->allowsOrigin('https://a.b.example.com'));
+        self::assertFalse($label->allowsOrigin('https://.example.com'));
+        self::assertTrue($wildcard->allowsOrigin('https://evil-example.com'));
+    }
+
     public function testAnOriginLongerThanTheBoundIsNeverCompared(): void
     {
         $policy = new CorsPolicy([], ['^https://a+\.test$']);

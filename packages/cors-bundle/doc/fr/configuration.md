@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=2cd1547243b4924b0a9482584ab49a29b3d4a877654fb74d79d3161f974b4eb2 -->
+<!-- phil-dev source-sha256=37004f88b4251ed4ae5485137ba5796de86d5074d49be0075c3398b8b0e5fc1c -->
 # Configuration
 
 La configuration du bundle se trouve sous `phil_cors` :
@@ -47,7 +47,7 @@ Chaque chemin accepte ces options :
 | `expose_headers` | `[]` | Les en-têtes de réponse que sa page peut lire, en plus de ceux de la liste sûre, ou `*` seul pour n'importe lesquels. |
 | `allow_credentials` | `false` | Si les témoins, les certificats client TLS et l'authentification HTTP accompagnent la requête. |
 | `max_age` | `null` | Les secondes pendant lesquelles un navigateur garde la réponse à un préambule, de 0 à 86400 ; `null` n'envoie aucun `Access-Control-Max-Age`, et le navigateur la garde 5 secondes. |
-| `allow_private_network` | `false` | Si une page publique peut joindre ce serveur sur un réseau privé, pour les navigateurs qui le demandent avec `Access-Control-Request-Private-Network`. |
+| `allow_private_network` | `false` | Si une page publique peut joindre ce serveur sur un réseau privé, pour les navigateurs qui le demandent encore avec `Access-Control-Request-Private-Network`. Voir [Le réseau privé](#le-réseau-privé). |
 
 Chaque chemin a besoin d'au moins une origine, dans `allow_origins` ou `allow_origin_patterns`, et d'une méthode.
 
@@ -62,12 +62,36 @@ Un motif correspond à l'origine entière : il commence par `^` et se termine pa
 `https://app.example.com.evil.test` ou `https://evilexample.com` ne passent jamais pour une origine autorisée. Échappez
 les points : `^https://[a-z0-9-]+\.example\.com$`.
 
+Écrivez un sous-domaine `[a-z0-9-]+`, jamais `.*` ni `.+` : une étiquette d'hôte contient des lettres, des chiffres et
+des traits d'union, jamais un point, une barre oblique ni un deux-points. `^https://.*example\.com$` autorise
+`https://evil-example.com`, un hôte que n'importe qui peut enregistrer, puisque rien n'exige un point avant
+`example.com` ; `^https://.+\.example\.com$` autorise tous les niveaux de sous-domaine. Avec `[a-z0-9-]+\.`, le
+sous-domaine est une seule étiquette, et le point qui la termine est la frontière. N'ajoutez un port que si l'origine en
+a un, comme `(:[0-9]+)?` pour un serveur de développement.
+
 ### En-têtes
 
 `allow_headers` énumère les en-têtes qu'une requête peut envoyer en plus de ceux que tout navigateur peut envoyer sans
 demander (`Accept`, `Accept-Language`, `Content-Language`, et `Content-Type` avec une valeur de formulaire ou de texte).
 Les noms sont comparés sans tenir compte de la casse. Avec `*`, la réponse à un préambule nomme les en-têtes que le
 navigateur a demandés, `Authorization` compris, plutôt que d'envoyer `*`, auquel `Authorization` ne correspond pas.
+
+### Le réseau privé
+
+`allow_private_network` répond au préambule de Private Network Access : une page d'une origine publique qui appelle un
+serveur sur une adresse privée ou sur la boucle locale envoie `Access-Control-Request-Private-Network: true`, et le
+bundle répond `Access-Control-Allow-Private-Network: true` quand l'origine, la méthode et les en-têtes sont autorisés et
+que le chemin l'autorise.
+
+Chrome a remplacé ces en-têtes par Local Network Access, qui demande plutôt à l'utilisateur : une page publique qui
+joint le réseau local ou la boucle locale a besoin de la permission de l'utilisateur, `local-network` ou
+`loopback-network`, et aucun en-tête du serveur ne l'accorde. Chrome n'envoie plus `Access-Control-Request-Private-Network`,
+si bien que l'option ne change rien pour lui ; elle garde son effet pour les navigateurs qui envoient encore l'en-tête.
+La page demande cette permission comme le décrit
+[Local Network Access de Chrome](https://developer.chrome.com/blog/local-network-access).
+
+Laissez l'option désactivée, sauf si une page publique doit appeler ce serveur sur un réseau privé : la permission de
+l'utilisateur et les origines du chemin s'appliquent toujours.
 
 ### Variables d'environnement
 

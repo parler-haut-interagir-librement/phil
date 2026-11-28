@@ -97,3 +97,28 @@ longest import it waits for.
 `async.transport` routes `ImportDocument` to a Messenger transport, before the application's own routing, which wins
 when it names the message too. Without it, the application routes the message, or Messenger handles it at once in
 the request.
+
+## Running the worker
+
+An import may take seconds or minutes. Route `ImportDocument` to a transport of its own, and consume it with workers
+of its own, so that a long import never holds back the messages a user is waiting for, such as an email:
+
+```yaml
+# config/packages/phil_document_import.yaml
+phil_document_import:
+    async:
+        transport: document_import
+```
+
+```sh
+php bin/console messenger:consume document_import --time-limit=3600
+```
+
+A worker checks `--time-limit` between messages and never stops an import under way: set it longer than the slowest
+import, so that a worker does not restart after nearly every message, and give the process manager a stop timeout
+longer than that import.
+
+To import more at once, run several workers on the transport rather than `messenger:consume --concurrency`. Until
+[symfony/symfony#68459](https://github.com/symfony/symfony/pull/68459) is merged, a handler longer than about fifteen
+seconds holds the parent process of `--concurrency` until it ends, and no other message starts meanwhile: keep
+`--concurrency` for transports whose handlers are short.

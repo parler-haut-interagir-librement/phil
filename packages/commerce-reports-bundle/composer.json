@@ -30,7 +30,7 @@
         "symfony/dependency-injection": "^8.2"
     },
     "require-dev": {
-        "phil/commerce-logistics-bundle": "^0.2@dev",
+        "phil/commerce-logistics-bundle": "^0.3@dev",
         "phil/commerce-pos-bundle": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
         "psr/log": "^3.0",

@@ -22,3 +22,29 @@ framework:
         routing:
             Phil\EpubBundle\Application\Message\WriteEpub: async
 ```
+
+## Running the worker
+
+Building a long book takes time. Give `WriteEpub` a transport of its own when other messages share the worker, so that
+a book never holds back the messages a user is waiting for, such as an email:
+
+```yaml
+framework:
+    messenger:
+        transports:
+            epub: '%env(EPUB_TRANSPORT_DSN)%'
+        routing:
+            Phil\EpubBundle\Application\Message\WriteEpub: epub
+```
+
+```sh
+php bin/console messenger:consume epub --time-limit=3600
+```
+
+A worker checks `--time-limit` between messages and never stops a book under way: set it longer than the slowest book,
+so that a worker does not restart after nearly every message.
+
+To write more books at once, run several workers on the transport rather than `messenger:consume --concurrency`. Until
+[symfony/symfony#68459](https://github.com/symfony/symfony/pull/68459) is merged, a handler longer than about fifteen
+seconds holds the parent process of `--concurrency` until it ends, and no other message starts meanwhile: keep
+`--concurrency` for transports whose handlers are short.

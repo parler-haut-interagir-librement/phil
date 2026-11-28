@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=38f78d62fde98a4d501c50660045ab9753423affc489c95b7e35503062432e12 -->
+<!-- phil-dev source-sha256=2d26cbdec605e6d84b6fc1ae85991b8910a099995eb72cb488941a18bc2287a7 -->
 # Importations sur un worker
 
 Une grande archive ou un grand PDF est lu en mémoire et ses images sont stockées une par une : importer un livre est une
@@ -100,3 +100,30 @@ plus vieux que la plus longue importation qu'elle attend.
 `async.transport` achemine `ImportDocument` vers un transport de Messenger, avant l'acheminement propre à l'application,
 qui l'emporte lorsqu'il nomme aussi le message. Sans lui, l'application achemine le message, ou Messenger le traite aussitôt
 dans la requête.
+
+## Exécuter le *worker*
+
+Une importation peut durer des secondes ou des minutes. Acheminez `ImportDocument` vers un transport à part, et
+consommez-le avec des *workers* à part, pour qu'une longue importation ne retarde jamais les messages qu'un utilisateur
+attend, comme un courriel :
+
+```yaml
+# config/packages/phil_document_import.yaml
+phil_document_import:
+    async:
+        transport: document_import
+```
+
+```sh
+php bin/console messenger:consume document_import --time-limit=3600
+```
+
+Un *worker* vérifie `--time-limit` entre les messages et n'arrête jamais une importation en cours : fixez-le plus long
+que l'importation la plus lente, pour qu'un *worker* ne redémarre pas après presque chaque message, et donnez au
+gestionnaire de processus un délai d'arrêt plus long que cette importation.
+
+Pour importer plus de documents à la fois, lancez plusieurs *workers* sur le transport plutôt que
+`messenger:consume --concurrency`. Tant que [symfony/symfony#68459](https://github.com/symfony/symfony/pull/68459)
+n'est pas fusionnée, un gestionnaire de plus de quinze secondes environ retient le processus parent de `--concurrency`
+jusqu'à sa fin, et aucun autre message ne démarre entre-temps : gardez `--concurrency` pour les transports dont les
+gestionnaires sont courts.
