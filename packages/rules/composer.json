@@ -1,0 +1,46 @@
+{
+    "name": "phil/rules",
+    "description": "Decide prices, promotions, access or audiences with stored rules: typed all/any/not conditions, bounded cost, a trace of why, versioned JSON, no eval.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "rules",
+        "conditions",
+        "rule-engine",
+        "json",
+        "explainable"
+    ],
+    "authors": [
+        {
+            "name": "Philippe Gamache",
+            "email": "philippe@ph-il.ca",
+            "homepage": "https://github.com/ph-il",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://ph-il.ca",
+    "require": {
+        "php": ">=8.5",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Phil\\Rules\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phil\\Rules\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

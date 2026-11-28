@@ -59,6 +59,7 @@ rules a change follows.
 | [`phil/settings-bundle`](https://github.com/parler-haut-interagir-librement/settings-bundle) | Settings people change themselves: declared by packages, read typed with their default, a preferences centre and site settings, and display preferences applied to the page. |
 | [`phil/outbox`](https://github.com/parler-haut-interagir-librement/outbox) | A transactional outbox: events recorded with the write they describe, relayed at least once, in order per key, with retries and dead records. |
 | [`phil/outbox-bundle`](https://github.com/parler-haut-interagir-librement/outbox-bundle) | The outbox in Symfony: a table of the Doctrine DBAL connection, a relay command safe in worker mode, a scheduled trigger and an optional bridge to Messenger. |
+| [`phil/rules`](https://github.com/parler-haut-interagir-librement/rules) | Decide prices, promotions, access or audiences with stored rules: typed all/any/not conditions, bounded cost, a trace of why, versioned JSON, no eval. |
 
 ### Text and documents
 

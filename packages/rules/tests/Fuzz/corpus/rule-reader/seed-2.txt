@@ -1,0 +1,1 @@
+{"version":1,"condition":{"any":[{"type":"fact.compare","operands":{"fact":"n","operator":"gte","value":2}},{"type":"date.compare","operands":{"fact":"when","operator":"before","date":"2026-12-01"}}]}}
