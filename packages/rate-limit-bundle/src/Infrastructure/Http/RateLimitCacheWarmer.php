@@ -9,17 +9,20 @@ use Override;
 use Phil\RateLimitBundle\Application\KeyResolvers;
 use Phil\RateLimitBundle\Application\Limiters;
 use Phil\RateLimitBundle\Application\RateLimitRules;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
 use Phil\RateLimitBundle\Domain\Exception\RateLimitException;
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 use Symfony\Component\Routing\RouterInterface;
 
 /**
  * Stops the build on a rule of a route or a controller that a request would only discover: the `_rate_limit` default
- * and the `#[RateLimit]` attributes of the controller of every route, each naming a declared limiter and key strategy.
+ * of every route, each rule naming a declared limiter and key strategy, and Symfony's `#[RateLimit]` attributes of its
+ * controller, each naming a limiter tagged `rate_limiter` — one of this bundle or of the framework's configuration —,
+ * where Symfony's attribute listener is there to apply them.
  *
  * It runs when the routes can be read, after the container is compiled, and it is not optional: Symfony runs it each
  * time it builds the container. A controller written as a closure has no class to read and waits for its first request.
@@ -27,13 +30,17 @@ use Symfony\Component\Routing\RouterInterface;
 final readonly class RateLimitCacheWarmer implements CacheWarmerInterface
 {
     /**
-     * @param array<string, string> $controllers the class of each controller service whose id is not a class
+     * @param array<string, string> $controllers       the class of each controller service whose id is not a class
+     * @param list<string>|null     $attributeLimiters the names of the limiters Symfony's `#[RateLimit]` can name; null
+     *                                                 when its listener is not there, the framework's `rate_limiter`
+     *                                                 being disabled
      */
     public function __construct(
         private Limiters $limiters,
         private KeyResolvers $resolvers,
         private ?RouterInterface $router = null,
         private array $controllers = [],
+        private ?array $attributeLimiters = [],
     ) {
     }
 
@@ -53,26 +60,42 @@ final readonly class RateLimitCacheWarmer implements CacheWarmerInterface
     {
         foreach ($this->router?->getRouteCollection() ?? [] as $name => $route) {
             try {
-                foreach ([...$this->attributes($route->getDefault('_controller')), ...RateLimitRules::from($route->getDefault('_rate_limit'))] as $rule) {
+                foreach (RateLimitRules::from($route->getDefault('_rate_limit')) as $rule) {
                     $this->check($rule);
                 }
             } catch (RateLimitException $rateLimitException) {
                 throw new LogicException(\sprintf('The rate limits of the route "%s": %s', $name, $rateLimitException->getMessage()), 0, $rateLimitException);
+            }
+
+            foreach ($this->attributes($route->getDefault('_controller')) as $attribute) {
+                $this->checkAttribute($name, $attribute);
             }
         }
 
         return [];
     }
 
-    private function check(RateLimit $rule): void
+    private function check(Rule $rule): void
     {
         $this->resolvers->get($rule->key ?? $this->limiters->keyOf($rule->limiter));
         $this->limiters->get($rule->limiter);
     }
 
+    private function checkAttribute(string $route, RateLimit $attribute): void
+    {
+        if (null === $this->attributeLimiters) {
+            throw new LogicException(\sprintf('The route "%s" is limited by #[RateLimit("%s")], which nothing applies: enable the framework\'s rate_limiter, whose listener applies the attribute.', $route, $attribute->limiter));
+        }
+
+        if (!\in_array($attribute->limiter, $this->attributeLimiters, true)) {
+            throw new LogicException(\sprintf('The route "%s" is limited by #[RateLimit("%s")], which no limiter is named; the limiters declared are "%s".', $route, $attribute->limiter, implode('", "', $this->attributeLimiters)));
+        }
+    }
+
     /**
-     * The attributes of a controller, written `class::method`, `service::method`, `class` for an invokable, or as a
-     * pair of strings: those of the class, then those of the method. A pair holding an object has no class to read.
+     * Symfony's `#[RateLimit]` attributes of a controller, written `class::method`, `service::method`, `class` for an
+     * invokable, or as a pair of strings: those of the class, then those of the method. A pair holding an object has no
+     * class to read.
      *
      * @return list<RateLimit>
      */

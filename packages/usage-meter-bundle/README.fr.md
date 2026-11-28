@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bf982fd4ba1d17a5655463688f61f23ebe564c6da7ee7331e4296b0e1b48cf3d -->
+<!-- phil-dev source-sha256=515f1ee278fd0f904f37af9843f3c87d179f91a5e29306076feed5aa15482c18 -->
 # phil/usage-meter-bundle
 
 **Des compteurs déclarés dans la configuration, gardés dans la base de données, et des limiteurs de débit qui
@@ -69,7 +69,7 @@ phil_usage_meter:
 
 ```php
 use Phil\UsageMeter\UsageMeter;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 
 final class ExportController
 {

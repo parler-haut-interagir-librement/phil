@@ -13,8 +13,8 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /**
  * An application as small as the bundle needs: FrameworkBundle with forms and the translator in `fr`, TwigBundle,
- * the limiters' state in a filesystem pool, and actions limited by attribute, by route default and by form name, one
- * by a limiter in observation. In the
+ * the limiters' state in a filesystem pool, and actions limited by Symfony's attribute, by route default, by both, by a
+ * limiter of the framework's configuration and by form name, one by a limiter in observation. In the
  * `invalid` environment, one more route names a limiter nothing declares.
  *
  * The compiled container is kept between tests in a directory of this checkout and environment: another checkout of
@@ -67,6 +67,9 @@ final class TestKernel extends Kernel
             'cache' => ['pools' => ['cache.limits' => ['adapter' => 'cache.adapter.filesystem']]],
         ]);
         $container->extension('twig', ['strict_variables' => true]);
+        $container->extension('rate_limiter', [
+            'limiters' => ['framework_limit' => ['policy' => 'fixed_window', 'limit' => 1, 'interval' => '1 minute', 'cache_pool' => 'cache.limits', 'lock_factory' => null]],
+        ]);
         $container->extension('phil_rate_limit', [
             'cache_pool' => 'cache.limits',
             'limiters' => [
@@ -75,6 +78,8 @@ final class TestKernel extends Kernel
                 'api' => ['policy' => 'token_bucket', 'limit' => 1, 'rate' => ['interval' => '1 hour']],
                 'forms' => ['policy' => 'fixed_window', 'limit' => 1, 'interval' => '10 minutes'],
                 'watched' => ['policy' => 'fixed_window', 'limit' => 1, 'interval' => '1 minute', 'observe' => true],
+                'articles' => ['policy' => 'fixed_window', 'limit' => 4, 'interval' => '1 minute'],
+                'shared' => ['policy' => 'fixed_window', 'limit' => 1, 'interval' => '1 minute'],
             ],
             'forms' => ['contact' => 'forms'],
         ]);
@@ -93,6 +98,11 @@ final class TestKernel extends Kernel
         }
 
         $routes->add('search', '/search')->controller([TestController::class, 'search']);
+        $routes->add('article', '/articles/{id}')->controller([TestController::class, 'article']);
+        $routes->add('first', '/first')->controller([TestController::class, 'first']);
+        $routes->add('second', '/second')->controller([TestController::class, 'second']);
+        $routes->add('framework', '/framework')->controller([TestController::class, 'framework']);
+        $routes->add('ruled', '/ruled')->controller([TestController::class, 'search'])->defaults(['_rate_limit' => 'api']);
         $routes->add('api', '/api')->controller([TestController::class, 'api'])->defaults(['_rate_limit' => 'api', '_format' => 'json']);
         $routes->add('watched', '/watched')->controller([TestController::class, 'api'])->defaults(['_rate_limit' => 'watched', '_format' => 'json']);
         $routes->add('contact', '/contact')->controller([TestController::class, 'contact']);

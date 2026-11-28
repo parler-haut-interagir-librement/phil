@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3acb872539ff4e6c2c418692fc58f7af3c27de61a4a87e1cb5ba339aa1e4baca -->
+<!-- phil-dev source-sha256=6b2adfb3c34e69559fc299021b1dadc84a0a4c9c9ec2e4663204a977e311efa6 -->
 # Intégrations
 
 Chaque intégration est utilisée quand son paquet est installé, ou quand la configuration la demande; aucune n'est
@@ -24,14 +24,15 @@ phil_usage_meter:
 ```
 
 ```php
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 
 #[RateLimit('api')]
 #[RequiresScope('projects:read')]
 final class ProjectController
 ```
 
-La règle s'exécute sur `kernel.controller`, après le pare-feu : le jeton est donc connu. Un refus reçoit la réponse
+L'attribut de Symfony nomme le limiteur, et la stratégie de clé du limiteur compte la requête par son jeton. La règle
+s'exécute sur `kernel.controller`, après le pare-feu : le jeton est donc connu. Un refus reçoit la réponse
 `429` avec `Retry-After` et les en-têtes de limite de débit, que portent aussi les réponses comptées. Sur un compteur,
 le sujet d'un fournisseur de limites est `api_token:` suivi de l'identifiant. Associez la règle à une règle par adresse
 du client pour les requêtes sans jeton.

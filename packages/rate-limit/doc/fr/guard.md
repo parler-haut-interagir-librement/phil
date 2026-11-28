@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=90566eb91c31e587ee0eaaae753e68f7f086d403e1240e3c0f5cb44ca0b88843 -->
+<!-- phil-dev source-sha256=ef6f3213bbf42e15d6ad051302f7cf9e90a01ea314b9714a005b650b82ad1d43 -->
 # La garde
 
 `RateLimitGuard` fait échouer la construction du conteneur sur une limite de débit qui ne limiterait rien. Elle vérifie
@@ -56,6 +56,7 @@ Un magasin dont le service n'est pas défini est laissé au conteneur, qui le si
 | Un `CacheStorage` dont le premier argument, ou `$pool`, est une référence à un pool local | Oui |
 | Une `RateLimiterFactory` dont le deuxième argument, ou `$storage`, est une référence à un stockage local | Oui |
 | Un limiteur de la configuration du framework, `limiter.<nom>`, enfant de l'abstrait `limiter`, dont le stockage est local | Oui |
+| Un `RateLimiterBuilder`, comme le `limiter_builder` du framework, dont le premier argument, ou `$storage`, est une référence à un stockage local | Oui |
 | Un alias de l'un d'eux | Oui |
 | Tout autre adaptateur ou stockage : Redis, Memcached, PDO, DBAL, une classe de l'application | Non |
 | Une chaîne de plus de 32 services, ou qui boucle | Non, laissée au conteneur |
@@ -64,3 +65,27 @@ Le `cache.app` du framework est un enfant de `cache.adapter.filesystem` sauf si 
 adaptateur : un bundle qui compte dans `cache.app` par défaut est donc refusé en production tant que l'application ne
 nomme pas un pool partagé. Un `ChainAdapter` est jugé partagé, quels que soient ses membres : nommez un pool sur un seul
 adaptateur partagé pour une limite de débit.
+
+## Les limiteurs bâtis à l'exécution
+
+Le `RateLimiterBuilder` de Symfony crée des fabriques pendant que l'application tourne (`slidingWindow()`,
+`fixedWindow()`, `tokenBucket()`, `compound()`), pour une limite qui dépend du forfait du client, par exemple. Le
+conteneur ne détient jamais ces fabriques : la garde ne peut donc pas les lire. Elle lit le constructeur à la place :
+chaque fabrique qu'il crée compte dans le stockage du constructeur, si bien qu'un constructeur sur un stockage partagé
+donne des limiteurs partagés.
+
+```php
+RateLimitGuard::watch($builder, StoreLocality::BUILDER, 'acme.plans', singleServer: false);
+```
+
+Le framework définit `limiter_builder` sur le stockage de `rate_limiter.builder` : son `storage_service`, ou un
+`CacheStorage` sur son `cache_pool`, `cache.rate_limiter` par défaut, un enfant de `cache.app`. Un bundle qui crée ses
+limiteurs avec le constructeur surveille `limiter_builder` à côté de ses autres magasins.
+
+Ce que la garde ne peut pas voir :
+
+- un `RateLimiterBuilder` ou une `RateLimiterFactory` bâtis avec `new` dans le code de l'application, avec leur propre
+  stockage ;
+- un stockage choisi à l'exécution, une fois le conteneur compilé.
+
+Un tel limiteur est vérifié par son auteur : donnez-lui un service de stockage du conteneur, et surveillez ce service.

@@ -2,27 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Phil\RateLimitBundle\Domain\Attribute;
+namespace Phil\RateLimitBundle\Domain\ValueObject;
 
-use Attribute;
 use Phil\RateLimitBundle\Domain\Exception\InvalidRateLimit;
 
 /**
- * A controller, or an action, held to a named limiter: each request consumes `$amount` for the key of the request
- * before the controller runs, and is answered 429 Too Many Requests when the limiter refuses it.
+ * One rule of the route default `_rate_limit` or of the `rate_limit` option of a form: a named limiter, what one
+ * request consumes on it, and who the request counts for.
  *
- * ```php
- * #[RateLimit('api')]
- * #[RateLimit('exports', amount: 5, key: 'user')]
- * public function export(): Response
+ * ```yaml
+ * defaults:
+ *     _rate_limit: [api, { limiter: exports, amount: 5, key: user }]
  * ```
  *
- * Repeated, every limiter consumes, those of the class before those of the action, in the order written; the first
- * that refuses stops the request, and the ones before it keep what they consumed. The same rule is written as the route
- * default `_rate_limit`, and as the `rate_limit` option of a form.
+ * Controllers carry Symfony's own `#[RateLimit]` attribute instead, which names the same limiters.
  */
-#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-final readonly class RateLimit
+final readonly class Rule
 {
     /**
      * @throws InvalidRateLimit when the name or the key is empty, or the amount below one

@@ -64,7 +64,7 @@ phil_usage_meter:
 
 ```php
 use Phil\UsageMeter\UsageMeter;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 
 final class ExportController
 {

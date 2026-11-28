@@ -31,8 +31,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  * ```
  *
  * The bundle builds the limiters over `symfony/rate-limiter`, their state in a cache pool, and collects those of other
- * packages tagged `phil_rate_limit.limiter`. `#[RateLimit]`, the route default `_rate_limit` and the form option
- * `rate_limit` name them; a refusal is answered `429 Too Many Requests` with `Retry-After` and the rate-limit headers,
+ * packages tagged `phil_rate_limit.limiter`. Symfony's `#[RateLimit]`, the route default `_rate_limit` and the form
+ * option `rate_limit` name them; a refusal is answered `429 Too Many Requests` with `Retry-After` and the rate-limit headers,
  * as a problem in JSON to an API, a Twig page to the others.
  */
 final class PhilRateLimitBundle extends AbstractBundle

@@ -10,10 +10,10 @@ use Phil\RateLimitBundle\Application\Exception\TooManyRequests;
 use Phil\RateLimitBundle\Application\KeyResolvers;
 use Phil\RateLimitBundle\Application\Limiters;
 use Phil\RateLimitBundle\Application\RateLimitEnforcer;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
 use Phil\RateLimitBundle\Domain\Exception\UnknownLimiter;
 use Phil\RateLimitBundle\Domain\HeaderStyle;
 use Phil\RateLimitBundle\Domain\ValueObject\Decision;
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
 use Phil\RateLimitBundle\Tests\Unit\Fixture\Enforcers;
 use Phil\RateLimitBundle\Tests\Unit\Fixture\RecordingEvents;
 use Phil\RateLimitBundle\Tests\Unit\Fixture\RecordingLogger;
@@ -21,7 +21,9 @@ use Phil\RateLimitBundle\Tests\Unit\Fixture\ScriptedLimiter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\RateLimiter\Event\RateLimitExceededEvent;
 
 #[CoversClass(RateLimitEnforcer::class)]
 #[CoversClass(Limiters::class)]
@@ -38,14 +40,14 @@ final class RateLimitEnforcerTest extends TestCase
         $enforcer = Enforcers::of(['api' => $api], $events);
 
         foreach ([2, 1, 0] as $remaining) {
-            self::assertEquals(new Decision(true, 3, $remaining, 60, 0, 60, 'api'), $enforcer->enforce($this->request(), [new RateLimit('api')]));
+            self::assertEquals(new Decision(true, 3, $remaining, 60, 0, 60, 'api'), $enforcer->enforce($this->request(), [new Rule('api')]));
         }
 
         $request = $this->request();
         $request->attributes->set('_route', 'search');
 
         try {
-            $enforcer->enforce($request, [new RateLimit('api')]);
+            $enforcer->enforce($request, [new Rule('api')]);
             self::fail('The fourth request is refused.');
         } catch (TooManyRequests $tooManyRequests) {
             $refused = new Decision(false, 3, 0, 60, 60, null, 'api');
@@ -54,7 +56,11 @@ final class RateLimitEnforcerTest extends TestCase
             self::assertSame('Too many requests.', $tooManyRequests->getMessage());
             self::assertSame(0, $tooManyRequests->getCode());
             self::assertSame(['RateLimit-Policy' => '"api";q=3', 'RateLimit' => '"api";r=0;t=60', 'Retry-After' => 60], $tooManyRequests->getHeaders());
-            self::assertEquals([new RateLimitExceeded('api', 'alice', $refused, 'search')], $events->events);
+            self::assertCount(2, $events->events);
+            self::assertEquals(new RateLimitExceeded('api', 'alice', $refused, 'search'), $events->events[0]);
+            $symfony = $events->events[1];
+            self::assertInstanceOf(RateLimitExceededEvent::class, $symfony);
+            self::assertSame(['api', 'alice', false, 3, 0], [$symfony->getLimiterName(), $symfony->getKey(), $symfony->getRateLimit()->isAccepted(), $symfony->getRateLimit()->getLimit(), $symfony->getRateLimit()->getRemainingTokens()]);
         }
 
         self::assertSame([['alice', 1], ['alice', 1], ['alice', 1], ['alice', 1]], $api->calls);
@@ -64,14 +70,14 @@ final class RateLimitEnforcerTest extends TestCase
     {
         $events = new RecordingEvents();
         $enforcer = Enforcers::of(['api' => new ScriptedLimiter(1)], $events);
-        $enforcer->enforce($this->request(), [new RateLimit('api')]);
+        $enforcer->enforce($this->request(), [new Rule('api')]);
 
         try {
-            $enforcer->enforce($this->request(), [new RateLimit('api')], 'contact');
-            $enforcer->enforce($this->request(), [new RateLimit('api')], 'contact');
+            $enforcer->enforce($this->request(), [new Rule('api')], 'contact');
+            $enforcer->enforce($this->request(), [new Rule('api')], 'contact');
             self::fail('The second submission is refused.');
         } catch (TooManyRequests) {
-            self::assertCount(1, $events->events);
+            self::assertCount(2, $events->events);
             self::assertInstanceOf(RateLimitExceeded::class, $events->events[0]);
             self::assertNull($events->events[0]->route);
             self::assertSame('contact', $events->events[0]->form);
@@ -80,7 +86,7 @@ final class RateLimitEnforcerTest extends TestCase
 
         $this->expectException(TooManyRequests::class);
         $quiet = Enforcers::of(['api' => new ScriptedLimiter(1)]);
-        $quiet->enforce($this->request(), [new RateLimit('api', 2)]);
+        $quiet->enforce($this->request(), [new Rule('api', 2)]);
     }
 
     public function testALimiterInObservationReportsAndLetsTheRequestGoOn(): void
@@ -90,14 +96,14 @@ final class RateLimitEnforcerTest extends TestCase
         $logger = new RecordingLogger();
         $enforcer = Enforcers::of(['watched' => $watched, 'wide' => new ScriptedLimiter(10, 30)], $events, observed: ['watched'], logger: $logger);
 
-        $first = $enforcer->enforce($this->request(), [new RateLimit('watched'), new RateLimit('wide')], 'contact');
+        $first = $enforcer->enforce($this->request(), [new Rule('watched'), new Rule('wide')], 'contact');
         self::assertSame(['watched', 0], [$first?->limiter, $first?->remaining]);
         self::assertSame([], $events->events);
 
         $request = $this->request();
         $request->attributes->set('_route', 'search');
 
-        $second = $enforcer->enforce($request, [new RateLimit('watched'), new RateLimit('wide')], 'contact');
+        $second = $enforcer->enforce($request, [new Rule('watched'), new Rule('wide')], 'contact');
 
         self::assertSame(['wide', 8], [$second?->limiter, $second?->remaining], 'The refusal is left out of the headers.');
         $refused = new Decision(false, 1, 0, 60, 60, null, 'watched');
@@ -105,8 +111,8 @@ final class RateLimitEnforcerTest extends TestCase
         self::assertSame([[LogLevel::WARNING, 'The rate limit "{limiter}" in observation would have refused a request.', ['limiter' => 'watched', 'route' => 'search', 'form' => 'contact', 'limit' => 1, 'retry_after' => 60]]], $logger->records);
 
         $quiet = Enforcers::of(['watched' => new ScriptedLimiter(1)], observed: ['watched']);
-        $quiet->enforce($this->request(), [new RateLimit('watched')]);
-        self::assertNull($quiet->enforce($this->request(), [new RateLimit('watched')]), 'Neither a dispatcher nor a logger is needed.');
+        $quiet->enforce($this->request(), [new Rule('watched')]);
+        self::assertNull($quiet->enforce($this->request(), [new Rule('watched')]), 'Neither a dispatcher nor a logger is needed.');
     }
 
     public function testAnEnforcedLimiterBesideAnObservedOneStillRefuses(): void
@@ -114,16 +120,17 @@ final class RateLimitEnforcerTest extends TestCase
         $events = new RecordingEvents();
         $logger = new RecordingLogger();
         $enforcer = Enforcers::of(['watched' => new ScriptedLimiter(1), 'api' => new ScriptedLimiter(1)], $events, observed: ['watched'], logger: $logger);
-        $enforcer->enforce($this->request(), [new RateLimit('watched'), new RateLimit('api')]);
+        $enforcer->enforce($this->request(), [new Rule('watched'), new Rule('api')]);
 
         try {
-            $enforcer->enforce($this->request(), [new RateLimit('watched'), new RateLimit('api')]);
+            $enforcer->enforce($this->request(), [new Rule('watched'), new Rule('api')]);
             self::fail('The enforced limiter refuses.');
         } catch (TooManyRequests $tooManyRequests) {
             self::assertSame('api', $tooManyRequests->decision->limiter);
-            self::assertCount(2, $events->events);
+            self::assertCount(3, $events->events);
             self::assertInstanceOf(RateLimitObserved::class, $events->events[0]);
             self::assertInstanceOf(RateLimitExceeded::class, $events->events[1]);
+            self::assertInstanceOf(RateLimitExceededEvent::class, $events->events[2]);
             self::assertNull($events->events[0]->route);
             self::assertNull($events->events[0]->form);
             self::assertCount(1, $logger->records);
@@ -136,7 +143,7 @@ final class RateLimitEnforcerTest extends TestCase
         $request = $this->request();
         $request->headers->set('X-Other', 'bob');
 
-        Enforcers::of(['api' => $api])->enforce($request, [new RateLimit('api', 4, 'account'), new RateLimit('api')]);
+        Enforcers::of(['api' => $api])->enforce($request, [new Rule('api', 4, 'account'), new Rule('api')]);
 
         self::assertSame([['bob', 4], ['alice', 1]], $api->calls);
     }
@@ -145,26 +152,26 @@ final class RateLimitEnforcerTest extends TestCase
     {
         $enforcer = Enforcers::of();
 
-        $decision = $enforcer->enforce($this->request(), [new RateLimit('wide'), new RateLimit('api'), new RateLimit('free')]);
+        $decision = $enforcer->enforce($this->request(), [new Rule('wide'), new Rule('api'), new Rule('free')]);
         self::assertSame(['api', 2], [$decision?->limiter, $decision?->remaining]);
 
-        $decision = $enforcer->enforce($this->request(), [new RateLimit('free'), new RateLimit('api'), new RateLimit('wide', 8)]);
+        $decision = $enforcer->enforce($this->request(), [new Rule('free'), new Rule('api'), new Rule('wide', 8)]);
         self::assertSame(['api', 1], [$decision?->limiter, $decision?->remaining]);
 
-        $decision = $enforcer->enforce($this->request(), [new RateLimit('api'), new RateLimit('wide')]);
+        $decision = $enforcer->enforce($this->request(), [new Rule('api'), new Rule('wide')]);
         self::assertSame(['api', 0], [$decision?->limiter, $decision?->remaining]);
 
-        self::assertNull($enforcer->enforce($this->request(), [new RateLimit('free')])?->limit);
+        self::assertNull($enforcer->enforce($this->request(), [new Rule('free')])?->limit);
     }
 
     public function testARequestWithoutKeyIsNotCounted(): void
     {
         $api = new ScriptedLimiter(1);
 
-        self::assertNull(Enforcers::of(['api' => $api])->enforce(Request::create('/'), [new RateLimit('api'), new RateLimit('api')]));
+        self::assertNull(Enforcers::of(['api' => $api])->enforce(Request::create('/'), [new Rule('api'), new Rule('api')]));
         self::assertSame([], $api->calls);
 
-        Enforcers::of(['api' => $api])->enforce($this->request(), [new RateLimit('api', key: 'account'), new RateLimit('api')]);
+        Enforcers::of(['api' => $api])->enforce($this->request(), [new Rule('api', key: 'account'), new Rule('api')]);
         self::assertSame([['alice', 1]], $api->calls, 'A rule without key does not stop the next.');
         self::assertNull(Enforcers::of()->enforce($this->request(), []));
     }
@@ -175,11 +182,77 @@ final class RateLimitEnforcerTest extends TestCase
         $enforcer = Enforcers::of(['api' => $api]);
         $long = str_repeat('k', 200);
 
-        $enforcer->enforce($this->request($long), [new RateLimit('api')]);
-        $enforcer->enforce($this->request($long.'k'), [new RateLimit('api')]);
+        $enforcer->enforce($this->request($long), [new Rule('api')]);
+        $enforcer->enforce($this->request($long.'k'), [new Rule('api')]);
 
         self::assertSame([[$long, 1], ['sha256:'.hash('sha256', $long.'k'), 1]], $api->calls);
         self::assertSame(200, RateLimitEnforcer::MAX_KEY_LENGTH);
+    }
+
+    public function testTheKeyOfAStrategyOrOfTheLimiter(): void
+    {
+        $enforcer = Enforcers::of();
+        $request = $this->request();
+        $request->headers->set('X-Other', 'bob');
+
+        self::assertSame('alice', $enforcer->keyOf($request, 'api'));
+        self::assertSame('bob', $enforcer->keyOf($request, 'api', 'account'));
+        self::assertNull($enforcer->keyOf(Request::create('/'), 'api'));
+    }
+
+    public function testOneConsumptionForAKeyAlreadyHashed(): void
+    {
+        $api = new ScriptedLimiter(1);
+        $events = new RecordingEvents();
+        $enforcer = Enforcers::of(['api' => $api, 'watched' => new ScriptedLimiter(1)], $events, observed: ['watched']);
+        $request = $this->request();
+
+        self::assertTrue($enforcer->consume($request, 'api', 'key:1', 1)->accepted);
+        self::assertSame([['key:1', 1]], $api->calls);
+
+        $enforcer->consume($request, 'watched', 'key:1', 1);
+        $observed = $enforcer->consume($request, 'watched', 'key:1', 1);
+        self::assertFalse($observed->accepted);
+        self::assertSame('watched', $observed->limiter);
+        self::assertInstanceOf(RateLimitObserved::class, $events->events[0]);
+
+        $this->expectException(TooManyRequests::class);
+        $enforcer->consume($request, 'api', 'key:1', 1);
+    }
+
+    public function testTheTightestAcceptedDecisionIsRemembered(): void
+    {
+        $enforcer = Enforcers::of();
+        $request = Request::create('/');
+        $wide = Decision::accepted(10, 8, 30)->named('wide');
+        $tight = Decision::accepted(3, 1, 60)->named('api');
+
+        $enforcer->remember($request, $wide);
+        self::assertSame($wide, $request->attributes->get(RateLimitEnforcer::DECISION_ATTRIBUTE));
+
+        $enforcer->remember($request, $tight);
+        $enforcer->remember($request, $wide);
+        $enforcer->remember($request, Decision::refused(3, 0, 60, 60)->named('refused'));
+        self::assertSame($tight, $request->attributes->get(RateLimitEnforcer::DECISION_ATTRIBUTE));
+        self::assertSame('_phil_rate_limit', RateLimitEnforcer::DECISION_ATTRIBUTE);
+    }
+
+    public function testADecisionAsSymfonysRateLimit(): void
+    {
+        $clock = new MockClock('2026-11-28 12:00:00');
+        $enforcer = Enforcers::of(clock: $clock);
+
+        $refused = $enforcer->rateLimitOf(Decision::refused(3, 0, 60, 20)->named('api'));
+        self::assertSame([false, 0, 3], [$refused->isAccepted(), $refused->getRemainingTokens(), $refused->getLimit()]);
+        self::assertSame('2026-11-28 12:00:20', $refused->getRetryAfter()->format('Y-m-d H:i:s'));
+        self::assertSame('2026-11-28 12:01:00', $refused->getResetAt()?->format('Y-m-d H:i:s'));
+
+        $forced = $enforcer->rateLimitOf(Decision::refused(3, 0, 60, 20), true);
+        self::assertTrue($forced->isAccepted());
+
+        $unlimited = $enforcer->rateLimitOf(Decision::accepted(null, 0, 0));
+        self::assertSame([true, \PHP_INT_MAX], [$unlimited->isAccepted(), $unlimited->getLimit()]);
+        self::assertSame('2026-11-28 12:00:00', $unlimited->getRetryAfter()->format('Y-m-d H:i:s'));
     }
 
     public function testTheHeadersOfADecision(): void
@@ -192,7 +265,7 @@ final class RateLimitEnforcerTest extends TestCase
         $enforcer = Enforcers::of();
 
         try {
-            $enforcer->enforce(Request::create('/'), [new RateLimit('nope')]);
+            $enforcer->enforce(Request::create('/'), [new Rule('nope')]);
             self::fail('An unknown limiter is refused.');
         } catch (UnknownLimiter $unknownLimiter) {
             self::assertSame('No rate limiter is named "nope"; the limiters declared are "api", "wide", "free".', $unknownLimiter->getMessage());
@@ -200,7 +273,7 @@ final class RateLimitEnforcerTest extends TestCase
 
         $this->expectExceptionObject(UnknownLimiter::key('nope', ['header', 'account']));
 
-        $enforcer->enforce($this->request(), [new RateLimit('api', key: 'nope')]);
+        $enforcer->enforce($this->request(), [new Rule('api', key: 'nope')]);
     }
 
     private function request(string $account = 'alice'): Request

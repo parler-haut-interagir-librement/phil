@@ -8,7 +8,7 @@ use Override;
 use Phil\RateLimitBundle\Application\Exception\TooManyRequests;
 use Phil\RateLimitBundle\Application\RateLimitEnforcer;
 use Phil\RateLimitBundle\Application\RateLimitRules;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -33,7 +33,7 @@ final class RateLimitTypeExtension extends AbstractTypeExtension
 {
     public const string MESSAGE = 'Too many submissions of this form. Try again in %seconds% seconds.';
 
-    /** @var array<string, list<RateLimit>> */
+    /** @var array<string, list<Rule>> */
     private readonly array $forms;
 
     /**
@@ -59,7 +59,7 @@ final class RateLimitTypeExtension extends AbstractTypeExtension
     {
         $resolver->define('rate_limit')
             ->default(null)
-            ->allowedTypes('null', 'bool', 'string', 'array', RateLimit::class)
+            ->allowedTypes('null', 'bool', 'string', 'array', Rule::class)
             ->info("The rate limits of the form's submissions: a limiter's name, a rule, a list of them, or false for none.");
     }
 

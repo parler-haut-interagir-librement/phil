@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phil\UsageMeterBundle\Tests\Functional\App;
 
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 
 /**
  * Two actions behind limiters that count on meters: one by IP address, one by the account a header names.
@@ -18,7 +18,7 @@ final class TestController
         return new Response('found');
     }
 
-    #[RateLimit('accounts', amount: 2)]
+    #[RateLimit('accounts', tokens: 2)]
     public function export(): Response
     {
         return new Response('exported');

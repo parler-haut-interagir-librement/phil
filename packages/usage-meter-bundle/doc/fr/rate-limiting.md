@@ -1,8 +1,8 @@
-<!-- phil-dev source-sha256=a2fc6384b226e31d00b2cdefe55275e588de868b3e15499ccbcc63050208c1ba -->
+<!-- phil-dev source-sha256=38cf15829141c0d10e78d90376e4a597957c1adb8c233ad3045e0b8425d0d474 -->
 # Limitation de débit
 
 Les limiteurs de débit de ce bundle sont des limiteurs de `phil/rate-limit-bundle` qui comptent sur un compteur. Ce
-bundle-là leur soumet les requêtes (par `#[RateLimit]`, la valeur par défaut de route `_rate_limit` ou l'option
+bundle-là leur soumet les requêtes (par le `#[RateLimit]` de Symfony, la valeur par défaut de route `_rate_limit` ou l'option
 `rate_limit` d'un formulaire) et répond aux refus ; celui-ci compte chaque requête sur le compteur du limiteur, pour la
 clé de la requête. Un compteur reste un compteur : une fenêtre glissante donne une limite glissante (600 requêtes dans
 la dernière heure, en compartiments d'une minute), une période du calendrier une allocation quotidienne, un cycle de
@@ -28,12 +28,12 @@ limiteurs d'un même nom font échouer la construction du conteneur. `PhilRateLi
 ## Limiter un contrôleur
 
 ```php
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 
 #[RateLimit('api')]
 final class SearchController
 {
-    #[RateLimit('reports', amount: 5)]
+    #[RateLimit('reports', tokens: 5)]
     public function report(): Response
     {
         // ...

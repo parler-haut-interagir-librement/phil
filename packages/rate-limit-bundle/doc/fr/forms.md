@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=bf1b89fe8eee09f62a3745679fcc3e7be06388eaab1e4ccc6fd3fdb63a3e29dd -->
+<!-- phil-dev source-sha256=12ed9f19c0be9fb15b2035e982465beaea5a9eb61c6436431e9736b089b63e35 -->
 # Formulaires
 
 Le bundle limite les soumissions d'un formulaire par son nom, avec symfony/form installé.
@@ -12,12 +12,14 @@ phil_rate_limit:
 ```
 
 ```php
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
+
 $form = $formFactory->createNamed('contact', ContactType::class);
-$form = $formFactory->createNamed('signup', SignupType::class, options: ['rate_limit' => [new RateLimit('signups', key: 'ip_route')]]);
+$form = $formFactory->createNamed('signup', SignupType::class, options: ['rate_limit' => [new Rule('signups', key: 'ip_route')]]);
 $form = $formFactory->createNamed('contact', ContactType::class, options: ['rate_limit' => false]);
 ```
 
-L'option `rate_limit` contient les règles du formulaire, écrites comme l'est une valeur par défaut de route ; `null` ou
+L'option `rate_limit` contient les règles du formulaire, écrites comme l'est une valeur par défaut de route ou comme des `Domain\ValueObject\Rule` ; `null` ou
 `true` prend celles que la section `forms` donne au nom du formulaire, et `false` aucune. Un formulaire limité par un
 limiteur que rien ne déclare fait échouer la construction du conteneur.
 

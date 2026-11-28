@@ -11,6 +11,8 @@ use Phil\RateLimitBundle\Application\Contract\Limiter;
 use Phil\RateLimitBundle\Application\KeyResolvers;
 use Phil\RateLimitBundle\Application\Limiters;
 use Phil\RateLimitBundle\Infrastructure\Http\RateLimitCacheWarmer;
+use Phil\RateLimitBundle\Infrastructure\RateLimiter\AttributeLimiterFactory;
+use Phil\RateLimitBundle\Infrastructure\RateLimiter\AttributeLimits;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -25,6 +27,10 @@ use Symfony\Component\DependencyInjection\Reference;
  * A limiter is any service tagged `phil_rate_limit.limiter` with a `name`, and optionally the `key` and `amount` its
  * rules take by default and `observe`, true for a limiter whose refusals are reported but not enforced. A key strategy is a service tagged `phil_rate_limit.key_resolver`, under its `strategy` or
  * its id; a service id a limiter or a form names as its key joins them when it implements `KeyResolver`.
+ *
+ * Each limiter is also given to Symfony's `#[RateLimit]`: an `AttributeLimiterFactory` tagged `rate_limiter` with its
+ * name, so that the attribute names it as it names a limiter of the framework's configuration. A limiter of the
+ * framework's configuration of the same name fails the build.
  */
 final class LimitersPass implements CompilerPassInterface
 {
@@ -46,7 +52,54 @@ final class LimitersPass implements CompilerPassInterface
         $container->getDefinition(KeyResolvers::class)
             ->setArguments([ServiceLocatorTagPass::register($container, $resolvers), array_keys($resolvers)]);
 
-        $container->getDefinition(RateLimitCacheWarmer::class)->replaceArgument(3, $this->controllerClasses($container));
+        $container->getDefinition(RateLimitCacheWarmer::class)
+            ->replaceArgument(3, $this->controllerClasses($container))
+            ->replaceArgument(4, $this->attributeLimiters($container, array_keys($limiters)));
+    }
+
+    /**
+     * The factories Symfony's `#[RateLimit]` finds the limiters of the bundle by, and the names of every limiter it can
+     * name; null when its listener is not there, the framework's `rate_limiter` being disabled.
+     *
+     * @param list<string> $names
+     *
+     * @return list<string>|null
+     */
+    private function attributeLimiters(ContainerBuilder $container, array $names): ?array
+    {
+        $others = [];
+
+        /** @var array<string, list<array<string, mixed>>> $tagged */
+        $tagged = $container->findTaggedServiceIds(RateLimitServices::SYMFONY_LIMITER_TAG);
+
+        foreach ($tagged as $id => $tags) {
+            foreach ($tags as $tag) {
+                $name = $tag['name'] ?? null;
+
+                if (\is_string($name) && !str_starts_with($id, RateLimitServices::ATTRIBUTE_FACTORY_PREFIX)) {
+                    $others[$name] = $id;
+                }
+            }
+        }
+
+        foreach ($names as $name) {
+            if (isset($others[$name])) {
+                throw new LogicException(\sprintf('Two limiters are named "%s": one of phil_rate_limit and the service "%s", which #[RateLimit] could not tell apart; rename one.', $name, $others[$name]));
+            }
+
+            $container->register(RateLimitServices::ATTRIBUTE_FACTORY_PREFIX.$name, AttributeLimiterFactory::class)
+                ->setArguments([new Reference(AttributeLimits::class), $name])
+                ->addTag(RateLimitServices::SYMFONY_LIMITER_TAG, ['name' => $name]);
+        }
+
+        if (!$container->has('limiter') || !$container->has('rate_limiter.attribute_listener')) {
+            return null;
+        }
+
+        $all = [...$names, ...array_keys($others)];
+        sort($all);
+
+        return $all;
     }
 
     /**

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phil\RateLimitBundle\Tests\Unit\Application;
 
 use Phil\RateLimitBundle\Application\RateLimitRules;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
 use Phil\RateLimitBundle\Domain\Exception\InvalidRateLimit;
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -22,19 +22,19 @@ final class RateLimitRulesTest extends TestCase
 
     public function testOneRule(): void
     {
-        $rule = new RateLimit('api');
+        $rule = new Rule('api');
 
-        self::assertEquals([new RateLimit('api')], RateLimitRules::from('api'));
+        self::assertEquals([new Rule('api')], RateLimitRules::from('api'));
         self::assertSame([$rule], RateLimitRules::from($rule));
-        self::assertEquals([new RateLimit('api', 2, 'user')], RateLimitRules::from(['limiter' => 'api', 'amount' => 2, 'key' => 'user']));
-        self::assertEquals([new RateLimit('api')], RateLimitRules::from(['limiter' => 'api', 'amount' => null, 'key' => null]));
+        self::assertEquals([new Rule('api', 2, 'user')], RateLimitRules::from(['limiter' => 'api', 'amount' => 2, 'key' => 'user']));
+        self::assertEquals([new Rule('api')], RateLimitRules::from(['limiter' => 'api', 'amount' => null, 'key' => null]));
     }
 
     public function testAListOfRules(): void
     {
         self::assertEquals(
-            [new RateLimit('api'), new RateLimit('search', key: 'ip_route'), new RateLimit('x', 3)],
-            RateLimitRules::from(['api', ['limiter' => 'search', 'key' => 'ip_route'], new RateLimit('x', 3)]),
+            [new Rule('api'), new Rule('search', key: 'ip_route'), new Rule('x', 3)],
+            RateLimitRules::from(['api', ['limiter' => 'search', 'key' => 'ip_route'], new Rule('x', 3)]),
         );
         self::assertCount(16, RateLimitRules::from(array_fill(0, 16, 'api')));
         self::assertSame(16, RateLimitRules::MAX_RULES);

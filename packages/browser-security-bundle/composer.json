@@ -43,7 +43,7 @@
         "doctrine/doctrine-bundle": "^3.4",
         "doctrine/orm": "^3.8",
         "phil/ip-anonymizer": "^0.1@dev",
-        "phil/rate-limit-bundle": "^0.1@dev",
+        "phil/rate-limit-bundle": "^0.2@dev",
         "phil/structured-data-bundle": "^0.1@dev",
         "phpunit/phpunit": "^13.4",
         "psr/cache": "^3.0",

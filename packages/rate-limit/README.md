@@ -14,8 +14,9 @@ phil/rate-limit turns both into errors of the container build:
   turns it off;
 - `RateLimitGuard::watch()` notes each store a bundle configures, and the compiler pass `RateLimitGuard` refuses, in the
   `prod` environment, one that `StoreLocality` finds local to the server: a pool on the filesystem, APCu, array or
-  system adapter of `symfony/cache`, the `InMemoryStorage` of `symfony/rate-limiter`, or a `CacheStorage` given such a
-  pool. An application on one server says so, and its stores are not noted.
+  system adapter of `symfony/cache`, the `InMemoryStorage` of `symfony/rate-limiter`, a `CacheStorage` given such a
+  pool, or a rate limiter factory or `RateLimiterBuilder` given such a storage. An application on one server says so,
+  and its stores are not noted.
 
 It reads the service definitions only: limiting stays the work of `symfony/rate-limiter`, which the library neither
 wraps nor replaces. Several bundles share one hidden parameter and one check, however many of them add the pass.
@@ -29,7 +30,7 @@ rate limiter components are named by their classes and need not be installed.
 |---|---|
 | A rate limit refused without `symfony/rate-limiter` | Implemented and tested |
 | Stores noted by configuration path, `single_server`, the option that turns a limit off | Implemented and tested |
-| Local pools by adapter or class, `InMemoryStorage`, `CacheStorage` followed to its pool, rate limiter factories followed to their storage, aliases and parents followed, bounded | Implemented and tested |
+| Local pools by adapter or class, `InMemoryStorage`, `CacheStorage` followed to its pool, rate limiter factories and the `RateLimiterBuilder` followed to their storage, aliases and parents followed, bounded | Implemented and tested |
 | The check in `prod` only, once for every bundle | Implemented and tested |
 
 ## Documentation
@@ -37,7 +38,7 @@ rate limiter components are named by their classes and need not be installed.
 | Document | What it covers |
 |---|---|
 | [Installation](doc/installation.md) | Requirements, installing, adding the guard to a bundle. |
-| [The guard](doc/guard.md) | What is refused, when, the messages, what is local and what is shared. |
+| [The guard](doc/guard.md) | What is refused, when, the messages, what is local and what is shared, the limiters built at runtime. |
 | [Extension points](doc/extension-points.md) | Using the guard from a bundle, deciding locality yourself. |
 | [Testing](doc/testing.md) | The package's tests. |
 | [Reference](doc/reference.md) | Every public type, with its role. |

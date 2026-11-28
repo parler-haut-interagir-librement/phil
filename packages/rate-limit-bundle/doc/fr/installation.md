@@ -1,11 +1,12 @@
-<!-- phil-dev source-sha256=e426a03200657b97383252fbff01b3dd5e8a030b297c6caf5ddf3e96a4723ec0 -->
+<!-- phil-dev source-sha256=bfcb1f3e636cd24a8c4b5062bbbc833509a0a831294c81ce79c6d2ea6b2f5fe7 -->
 # Installation
 
 ## Prérequis
 
 - PHP 8.5 ou plus récent ; les extensions intl et mbstring sont suggérées, pour la vitesse de la normalisation des
   identifiants dont une clé est construite, que les polyfills de `symfony/string` font de la même façon sans elles ;
-- Symfony 8.2 ou plus récent, avec FrameworkBundle ;
+- Symfony 8.2 ou plus récent, avec FrameworkBundle et son `rate_limiter`, activé par défaut, dont l'écouteur applique
+  l'attribut `#[RateLimit]` et l'argument `RateLimit` ;
 - au besoin TwigBundle pour la page de refus, le composant de formulaire pour les formulaires, SecurityBundle pour les
   clés `user` et `user_or_ip`, le traducteur pour le français, symfony/lock pour des décomptes exacts sous la
   concurrence, phil/ip-anonymizer pour des clés par réseau, et un journal PSR-3 comme MonologBundle pour les

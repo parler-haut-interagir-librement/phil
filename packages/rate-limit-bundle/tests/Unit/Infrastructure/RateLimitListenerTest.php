@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phil\RateLimitBundle\Tests\Unit\Infrastructure;
 
 use Phil\RateLimitBundle\Application\Exception\TooManyRequests;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
 use Phil\RateLimitBundle\Domain\Exception\InvalidRateLimit;
 use Phil\RateLimitBundle\Domain\ValueObject\Decision;
 use Phil\RateLimitBundle\Infrastructure\Http\RateLimitListener;
@@ -22,13 +21,13 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 #[CoversClass(RateLimitListener::class)]
 final class RateLimitListenerTest extends TestCase
 {
-    public function testTheAttributesCountAndTheResponseCarriesTheHeaders(): void
+    public function testTheRouteDefaultCountsAndTheResponseCarriesTheHeaders(): void
     {
         $listener = new RateLimitListener(Enforcers::of());
 
         foreach (['2', '1', '0'] as $remaining) {
-            $request = $this->request();
-            $listener->onKernelController($this->controllerEvent($request, [new RateLimit('api')]));
+            $request = $this->request('api');
+            $listener->onKernelController($this->controllerEvent($request));
 
             $response = $this->respond($listener, $request);
 
@@ -37,36 +36,38 @@ final class RateLimitListenerTest extends TestCase
         }
 
         $this->expectException(TooManyRequests::class);
-        $listener->onKernelController($this->controllerEvent($this->request(), [new RateLimit('api')]));
+        $listener->onKernelController($this->controllerEvent($this->request('api')));
     }
 
-    public function testTheRouteDefaultCountsAfterTheAttributes(): void
+    public function testTheRulesAreReadThenRemovedForSymfonysAttribute(): void
     {
         $api = new ScriptedLimiter(10);
         $listener = new RateLimitListener(Enforcers::of(['api' => $api]));
-        $request = $this->request();
-        $request->attributes->set(RateLimitListener::ROUTE_DEFAULT, ['limiter' => 'api', 'amount' => 3]);
+        $request = $this->request([['limiter' => 'api', 'amount' => 3], 'api']);
 
-        $listener->onKernelController($this->controllerEvent($request, [new RateLimit('api', 2)]));
+        $listener->onKernelController($this->controllerEvent($request));
 
-        self::assertSame([['alice', 2], ['alice', 3]], $api->calls);
-        self::assertSame(5, $this->decision($request)->remaining);
+        self::assertSame([['alice', 3], ['alice', 1]], $api->calls);
+        self::assertSame(6, $this->decision($request)->remaining);
+        self::assertFalse($request->attributes->has(RateLimitListener::ROUTE_DEFAULT));
+    }
 
-        $route = $this->request();
-        $route->attributes->set(RateLimitListener::ROUTE_DEFAULT, 'api');
+    public function testAnEarlierDecisionThatLeavesLessIsKept(): void
+    {
+        $listener = new RateLimitListener(Enforcers::of());
+        $request = $this->request('wide');
+        $tighter = Decision::accepted(10, 1, 30)->named('attribute');
+        $request->attributes->set(RateLimitListener::DECISION_ATTRIBUTE, $tighter);
 
-        $listener->onKernelController($this->controllerEvent($route, []));
+        $listener->onKernelController($this->controllerEvent($request));
 
-        self::assertSame(4, $this->decision($route)->remaining);
+        self::assertSame($tighter, $this->decision($request));
     }
 
     public function testABadRouteDefaultFails(): void
     {
-        $request = $this->request();
-        $request->attributes->set(RateLimitListener::ROUTE_DEFAULT, 3);
-
         $this->expectException(InvalidRateLimit::class);
-        new RateLimitListener(Enforcers::of())->onKernelController($this->controllerEvent($request, []));
+        new RateLimitListener(Enforcers::of())->onKernelController($this->controllerEvent($this->request(3)));
     }
 
     public function testNothingIsCountedWithoutRuleOrKeyOrOnASubRequest(): void
@@ -74,19 +75,33 @@ final class RateLimitListenerTest extends TestCase
         $api = new ScriptedLimiter(10);
         $listener = new RateLimitListener(Enforcers::of(['api' => $api]));
 
-        $request = $this->request();
-        $listener->onKernelController($this->controllerEvent($request, []));
+        $request = $this->request(null);
+        $listener->onKernelController($this->controllerEvent($request));
         self::assertFalse($request->attributes->has(RateLimitListener::DECISION_ATTRIBUTE));
 
         $anonymous = Request::create('/');
-        $listener->onKernelController($this->controllerEvent($anonymous, [new RateLimit('api')]));
+        $anonymous->attributes->set(RateLimitListener::ROUTE_DEFAULT, 'api');
+
+        $listener->onKernelController($this->controllerEvent($anonymous));
         self::assertFalse($anonymous->attributes->has(RateLimitListener::DECISION_ATTRIBUTE));
         self::assertSame([], $this->respond($listener, $anonymous)->headers->all('ratelimit'));
 
-        $sub = $this->request();
-        $listener->onKernelController($this->controllerEvent($sub, [new RateLimit('api')], HttpKernelInterface::SUB_REQUEST));
+        $sub = $this->request(3);
+        $listener->onKernelController($this->controllerEvent($sub, HttpKernelInterface::SUB_REQUEST));
         self::assertFalse($sub->attributes->has(RateLimitListener::DECISION_ATTRIBUTE));
+        self::assertFalse($sub->attributes->has(RateLimitListener::ROUTE_DEFAULT));
         self::assertSame([], $api->calls);
+    }
+
+    public function testNoHeaderOnASubRequestNorOnARefusal(): void
+    {
+        $listener = new RateLimitListener(Enforcers::of());
+        $request = $this->request(null);
+        $request->attributes->set(RateLimitListener::DECISION_ATTRIBUTE, Decision::accepted(3, 1, 9)->named('api'));
+
+        self::assertSame([], $this->respond($listener, $request, HttpKernelInterface::SUB_REQUEST)->headers->all('ratelimit'));
+        self::assertSame([], $this->respond($listener, $request, status: 429)->headers->all('ratelimit'));
+        self::assertSame('"api";r=1;t=9', $this->respond($listener, $request)->headers->get('RateLimit'));
     }
 
     public function testTheNames(): void
@@ -103,28 +118,26 @@ final class RateLimitListenerTest extends TestCase
         return $decision;
     }
 
-    private function request(): Request
+    private function request(mixed $rules): Request
     {
         $request = Request::create('/');
         $request->headers->set('X-Account', 'alice');
 
+        if (null !== $rules) {
+            $request->attributes->set(RateLimitListener::ROUTE_DEFAULT, $rules);
+        }
+
         return $request;
     }
 
-    /**
-     * @param list<RateLimit> $attributes
-     */
-    private function controllerEvent(Request $request, array $attributes, int $type = HttpKernelInterface::MAIN_REQUEST): ControllerEvent
+    private function controllerEvent(Request $request, int $type = HttpKernelInterface::MAIN_REQUEST): ControllerEvent
     {
-        $event = new ControllerEvent(self::createStub(HttpKernelInterface::class), static fn (): Response => new Response(), $request, $type);
-        $event->setController($event->getController(), $attributes);
-
-        return $event;
+        return new ControllerEvent(self::createStub(HttpKernelInterface::class), static fn (): Response => new Response(), $request, $type);
     }
 
-    private function respond(RateLimitListener $listener, Request $request): Response
+    private function respond(RateLimitListener $listener, Request $request, int $type = HttpKernelInterface::MAIN_REQUEST, int $status = 200): Response
     {
-        $event = new ResponseEvent(self::createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST, new Response());
+        $event = new ResponseEvent(self::createStub(HttpKernelInterface::class), $request, $type, new Response('', $status));
         $listener->onKernelResponse($event);
 
         return $event->getResponse();

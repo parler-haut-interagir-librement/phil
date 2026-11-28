@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=c488814c72979a3629e9eb9a100031ceebccf4c37e9a0005f5b79b66aa44cbb1 -->
+<!-- phil-dev source-sha256=eecf7b64c5c4bf0c9155175a2966462816a8ce5e9d2bc23c5923e65ca8d14c9f -->
 # Configuration
 
 ```yaml
@@ -64,7 +64,7 @@ security:
 ```
 
 Le bundle limite tout le reste : les API, les autres formulaires (réinitialisation du mot de passe, contact,
-inscription), et les contrôleurs et les routes déclarés avec `#[RateLimit]` ou `_rate_limit`.
+inscription), et les contrôleurs et les routes déclarés avec le `#[RateLimit]` de Symfony ou `_rate_limit`.
 
 ## Un limiteur
 

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phil\RateLimitBundle\Application;
 
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
 use Phil\RateLimitBundle\Domain\Exception\InvalidRateLimit;
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
 
 /**
- * The rules a route default `_rate_limit` or a form's `rate_limit` option holds, read as `RateLimit` attributes.
+ * The rules a route default `_rate_limit` or a form's `rate_limit` option holds, read as `Rule`s.
  *
- * One rule is a limiter's name, a `RateLimit`, or a map with `limiter` and, optionally, `amount` and `key`; the value
+ * One rule is a limiter's name, a `Rule`, or a map with `limiter` and, optionally, `amount` and `key`; the value
  * is one rule or a list of up to sixteen. Null is no rule.
  *
  * ```yaml
@@ -24,7 +24,7 @@ final class RateLimitRules
     public const int MAX_RULES = 16;
 
     /**
-     * @return list<RateLimit>
+     * @return list<Rule>
      *
      * @throws InvalidRateLimit when the value is of another shape
      */
@@ -45,14 +45,14 @@ final class RateLimitRules
         return array_map(self::one(...), $value);
     }
 
-    private static function one(mixed $rule): RateLimit
+    private static function one(mixed $rule): Rule
     {
-        if ($rule instanceof RateLimit) {
+        if ($rule instanceof Rule) {
             return $rule;
         }
 
         if (\is_string($rule)) {
-            return new RateLimit($rule);
+            return new Rule($rule);
         }
 
         if (\is_array($rule) && \is_string($rule['limiter'] ?? null) && [] === array_diff(array_keys($rule), ['limiter', 'amount', 'key'])) {
@@ -60,7 +60,7 @@ final class RateLimitRules
             $key = $rule['key'] ?? null;
 
             if ((null === $amount || \is_int($amount)) && (null === $key || \is_string($key))) {
-                return new RateLimit($rule['limiter'], $amount, $key);
+                return new Rule($rule['limiter'], $amount, $key);
             }
         }
 

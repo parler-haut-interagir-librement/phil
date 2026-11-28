@@ -1,7 +1,7 @@
 # Rate limiting
 
 The rate limiters of this bundle are limiters of `phil/rate-limit-bundle` that count on a meter. That bundle holds the
-requests to them — by `#[RateLimit]`, the route default `_rate_limit` or the `rate_limit` option of a form — and answers
+requests to them — by Symfony's `#[RateLimit]`, the route default `_rate_limit` or the `rate_limit` option of a form — and answers
 the refusals; this one counts each request on the limiter's meter, for the request's key. A meter is a meter: a rolling
 window makes a sliding limit — 600 requests in the last hour, in buckets of a minute —, a calendar period a daily
 allowance, a billing cycle a plan's allowance.
@@ -26,12 +26,12 @@ name fail the container build. `PhilRateLimitBundle` must be registered.
 ## Limiting a controller
 
 ```php
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 
 #[RateLimit('api')]
 final class SearchController
 {
-    #[RateLimit('reports', amount: 5)]
+    #[RateLimit('reports', tokens: 5)]
     public function report(): Response
     {
         // ...

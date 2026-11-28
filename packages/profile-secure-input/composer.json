@@ -25,7 +25,7 @@
     "homepage": "https://ph-il.ca",
     "require": {
         "php": ">=8.5",
-        "phil/rate-limit-bundle": "^0.1",
+        "phil/rate-limit-bundle": "^0.2",
         "phil/safe-http": "^0.2",
         "phil/spam-protection-bundle": "^0.3",
         "phil/upload-scan-bundle": "^0.1.1",

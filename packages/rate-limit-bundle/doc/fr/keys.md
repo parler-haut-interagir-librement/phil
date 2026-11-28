@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=5784e20efc4ad8bebba6f199ef1a958d8fdb162033af933a4270f689658ef8cb -->
+<!-- phil-dev source-sha256=bce7415b7f37196927ee320d6b49dea2433cb0ddc2dae225edc074a3140d20a7 -->
 # Clés
 
 Une clé, c'est pour qui compte une requête. Un limiteur nomme sa stratégie par défaut avec `key` ; une règle en nomme
@@ -80,6 +80,7 @@ final readonly class ApiClientKey implements KeyResolver
 ```
 
 Avec la configuration automatique, le service est une stratégie sous son identifiant, que nomme une règle ou un
-limiteur : `#[RateLimit('api', key: ApiClientKey::class)]`. Un service qu'un limiteur ou un formulaire nomme comme sa
+limiteur : `#[RateLimit('api', key: ApiClientKey::class)]` avec l'attribut de Symfony, ou
+`{ limiter: api, key: App\RateLimit\ApiClientKey }` dans une valeur par défaut de route. Un service qu'un limiteur ou un formulaire nomme comme sa
 clé rejoint les stratégies même sans configuration automatique. Une clé ne contient aucun secret ni aucun renseignement
 personnel en clair : hachez ce qui identifie une personne.

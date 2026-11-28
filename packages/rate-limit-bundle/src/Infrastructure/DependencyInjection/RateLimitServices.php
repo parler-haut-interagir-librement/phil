@@ -24,6 +24,7 @@ use Phil\RateLimitBundle\Infrastructure\Key\ClientIpKey;
 use Phil\RateLimitBundle\Infrastructure\Key\IpRouteKey;
 use Phil\RateLimitBundle\Infrastructure\Key\UserKey;
 use Phil\RateLimitBundle\Infrastructure\Key\UserOrIpKey;
+use Phil\RateLimitBundle\Infrastructure\RateLimiter\AttributeLimits;
 use Phil\RateLimitBundle\Infrastructure\RateLimiter\SymfonyLimiter;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -39,7 +40,8 @@ use Throwable;
 
 /**
  * The services of the configuration: the key strategies, the limiters over `symfony/rate-limiter` with their storage,
- * the enforcer, the listener of the controllers and routes, the responder of the refusals, and the form extension.
+ * the enforcer, what Symfony's `#[RateLimit]` consumes through, the listener of the routes, the responder of the
+ * refusals, and the form extension.
  *
  * Every limiter's options are checked here, by building it once on a memory storage, so that a bad one fails the
  * container build; `LimitersPass` then checks that the storage, the lock factories and the key strategies exist.
@@ -70,6 +72,12 @@ final class RateLimitServices
 
     /** The tag of a limiter, with its `name` and, optionally, its default `key` and `amount` and `observe`. */
     public const string LIMITER_TAG = 'phil_rate_limit.limiter';
+
+    /** The tag Symfony's `#[RateLimit]` finds its limiters by, with their `name`. */
+    public const string SYMFONY_LIMITER_TAG = 'rate_limiter';
+
+    /** The prefix of the factories `LimitersPass` tags `rate_limiter` for each limiter of the bundle. */
+    public const string ATTRIBUTE_FACTORY_PREFIX = 'phil_rate_limit.attribute.';
 
     /** The tag of a key strategy, with its `strategy` name; a service implementing `KeyResolver` is tagged by its id. */
     public const string KEY_TAG = 'phil_rate_limit.key_resolver';
@@ -118,12 +126,15 @@ final class RateLimitServices
             ->addTag('monolog.logger', ['channel' => 'rate_limit'])
             ->setPublic(true);
 
+        $container->register(AttributeLimits::class, AttributeLimits::class)
+            ->setArguments([new Reference(RateLimitEnforcer::class), new Reference(KeyResolvers::class), new Reference('request_stack'), $config['secret']]);
+
         $container->register(RateLimitListener::class, RateLimitListener::class)
             ->setArguments([new Reference(RateLimitEnforcer::class)])
             ->addTag('kernel.event_listener', ['event' => 'kernel.controller', 'method' => 'onKernelController'])
             ->addTag('kernel.event_listener', ['event' => 'kernel.response', 'method' => 'onKernelResponse']);
         $container->register(RateLimitCacheWarmer::class, RateLimitCacheWarmer::class)
-            ->setArguments([new Reference(Limiters::class), new Reference(KeyResolvers::class), new Reference('router', ContainerInterface::NULL_ON_INVALID_REFERENCE), []])
+            ->setArguments([new Reference(Limiters::class), new Reference(KeyResolvers::class), new Reference('router', ContainerInterface::NULL_ON_INVALID_REFERENCE), [], []])
             ->addTag('kernel.cache_warmer');
         $container->register(TooManyRequestsResponder::class, TooManyRequestsResponder::class)
             ->setArguments([new Reference('twig', ContainerInterface::IGNORE_ON_INVALID_REFERENCE), $config['error_template'], new Reference('translator', ContainerInterface::IGNORE_ON_INVALID_REFERENCE)])

@@ -4,6 +4,17 @@ All notable changes to `phil/open-badges-bundle` will be documented in this file
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.1.6-alpha.
+
+Development only.
+
+### Changed
+
+- The development requirements take `phil/rate-limit-bundle` 0.2, whose listener still reads the route default
+  `_rate_limit` the verification page sets.
+
 ## 0.1.5-alpha - 2026-11-25
 
 ### Security

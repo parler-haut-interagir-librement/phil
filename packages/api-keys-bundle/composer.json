@@ -45,7 +45,7 @@
         "phil/api-contract": "^0.1@dev",
         "phil/api-contract-bundle": "^0.3@dev",
         "phil/ip-anonymizer": "^0.1@dev",
-        "phil/rate-limit-bundle": "^0.1@dev",
+        "phil/rate-limit-bundle": "^0.2@dev",
         "phil/url": "^0.1@dev",
         "phil/usage-meter-bundle": "^0.1@dev",
         "phpunit/phpunit": "^13.4",

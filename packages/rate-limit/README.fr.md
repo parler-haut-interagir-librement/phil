@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=113b7662fa6383fa03fbfb2abce5299874177043025c6dd99851a292cefc6ede -->
+<!-- phil-dev source-sha256=d1c595966d71d2d847d49ce824aff54411edf8d05003524667d6b6739ee1df43 -->
 # phil/rate-limit
 
 **La garde de production des limites de débit sur `symfony/rate-limiter` : un conteneur qui bâtirait une limite qui ne
@@ -15,7 +15,8 @@ phil/rate-limit fait de ces deux cas des erreurs de construction du conteneur :
 - `RateLimitGuard::watch()` note chaque magasin qu'un bundle configure, et la passe de compilation `RateLimitGuard`
   refuse, dans l'environnement `prod`, celui que `StoreLocality` juge local au serveur : un pool sur l'adaptateur
   filesystem, APCu, array ou system de `symfony/cache`, le `InMemoryStorage` de `symfony/rate-limiter`, ou un
-  `CacheStorage` qui reçoit un tel pool. Une application sur un seul serveur le dit, et ses magasins ne sont pas notés.
+  `CacheStorage` qui reçoit un tel pool, ou une fabrique de limiteurs ou un `RateLimiterBuilder` qui reçoit un tel
+  stockage. Une application sur un seul serveur le dit, et ses magasins ne sont pas notés.
 
 Elle ne lit que les définitions de services : limiter reste le travail de `symfony/rate-limiter`, que la bibliothèque
 n'enveloppe ni ne remplace. Plusieurs bundles partagent un seul paramètre caché et une seule vérification, quel que soit
@@ -30,7 +31,7 @@ composants cache et rate limiter sont nommés par leurs classes et n'ont pas à 
 |---|---|
 | Une limite refusée sans `symfony/rate-limiter` | Implémenté et testé |
 | Magasins notés par chemin de configuration, `single_server`, l'option qui coupe une limite | Implémenté et testé |
-| Pools locaux par adaptateur ou par classe, `InMemoryStorage`, `CacheStorage` suivi jusqu'à son pool, fabriques de limiteurs suivies jusqu'à leur stockage, alias et parents suivis, avec une borne | Implémenté et testé |
+| Pools locaux par adaptateur ou par classe, `InMemoryStorage`, `CacheStorage` suivi jusqu'à son pool, fabriques de limiteurs et `RateLimiterBuilder` suivis jusqu'à leur stockage, alias et parents suivis, avec une borne | Implémenté et testé |
 | La vérification en `prod` seulement, une fois pour tous les bundles | Implémenté et testé |
 
 ## Documentation
@@ -38,7 +39,7 @@ composants cache et rate limiter sont nommés par leurs classes et n'ont pas à 
 | Document | Ce qu'il couvre |
 |---|---|
 | [Installation](doc/fr/installation.md) | Prérequis, installation, ajout de la garde à un bundle. |
-| [La garde](doc/fr/guard.md) | Ce qui est refusé, quand, les messages, ce qui est local et ce qui est partagé. |
+| [La garde](doc/fr/guard.md) | Ce qui est refusé, quand, les messages, ce qui est local et ce qui est partagé, les limiteurs bâtis à l'exécution. |
 | [Points d'extension](doc/fr/extension-points.md) | Utiliser la garde depuis un bundle, juger soi-même de la localité. |
 | [Tests](doc/fr/testing.md) | Les tests du paquet. |
 | [Référence](doc/fr/reference.md) | Chaque type public, avec son rôle. |

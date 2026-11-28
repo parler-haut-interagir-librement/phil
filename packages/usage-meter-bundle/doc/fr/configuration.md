@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=8710cdd580bbca60cea754672183cd7af74d161215e2258f87e987a76c7aac4e -->
+<!-- phil-dev source-sha256=bfed376bda70e6f7ea2dce3e172d725813a306898792117fd76bf270e2b5a0fa -->
 # Configuration
 
 ```yaml
@@ -84,7 +84,7 @@ l'autre, `UsageMeter` lit seulement les limites des compteurs.
 |---|---|---|
 | `rate_limiters.<name>.meter` | obligatoire | Le compteur sur lequel compte le limiteur, déclaré dans `meters` |
 | `rate_limiters.<name>.key` | `ip` | Pour qui compte une requête quand une règle ne nomme aucune clé : une stratégie de clé de `phil/rate-limit-bundle` (`ip`, `user`, `user_or_ip`, `ip_route`) ou l'identifiant d'un service qui implémente son `KeyResolver` |
-| `rate_limiters.<name>.amount` | `1` | Ce que compte une requête quand une règle ne nomme aucune quantité, un ou plus |
+| `rate_limiters.<name>.amount` | `1` | Ce que compte une requête quand une valeur par défaut de route ou une règle de formulaire ne nomme aucune quantité, un ou plus ; le `#[RateLimit]` de Symfony compte ses `tokens` |
 | `rate_limiters.<name>.idempotency_key` | `false` | Si une requête POST, PUT, PATCH ou DELETE est comptée une fois par en-tête `Idempotency-Key` ; voir [rate-limiting.md](rate-limiting.md) |
 | `idempotency_secret` | `%kernel.secret%` | La clé des empreintes sous lesquelles les clés d'idempotence sont gardées |
 

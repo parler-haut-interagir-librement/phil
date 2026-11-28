@@ -10,6 +10,7 @@ use Phil\RateLimitBundle\Application\Limiters;
 use Phil\RateLimitBundle\Application\RateLimitEnforcer;
 use Phil\RateLimitBundle\Application\RateLimitHeaders;
 use Phil\RateLimitBundle\Domain\HeaderStyle;
+use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 
@@ -23,7 +24,7 @@ final class Enforcers
      * @param array<string, Limiter>|null $limiters
      * @param list<string>                $observed
      */
-    public static function of(?array $limiters = null, ?EventDispatcherInterface $events = null, HeaderStyle $style = HeaderStyle::Draft, array $observed = [], ?LoggerInterface $logger = null): RateLimitEnforcer
+    public static function of(?array $limiters = null, ?EventDispatcherInterface $events = null, HeaderStyle $style = HeaderStyle::Draft, array $observed = [], ?LoggerInterface $logger = null, ?ClockInterface $clock = null): RateLimitEnforcer
     {
         $limiters ??= ['api' => new ScriptedLimiter(3), 'wide' => new ScriptedLimiter(10, 30), 'free' => new ScriptedLimiter(null)];
         $defaults = [];
@@ -34,6 +35,6 @@ final class Enforcers
 
         $keys = ['header' => new HeaderKey(), 'account' => new HeaderKey('X-Other')];
 
-        return new RateLimitEnforcer(new Limiters(new Locator($limiters), $defaults), new KeyResolvers(new Locator($keys), array_keys($keys)), new RateLimitHeaders($style), $events, $logger);
+        return new RateLimitEnforcer(new Limiters(new Locator($limiters), $defaults), new KeyResolvers(new Locator($keys), array_keys($keys)), new RateLimitHeaders($style), $events, $logger, $clock);
     }
 }

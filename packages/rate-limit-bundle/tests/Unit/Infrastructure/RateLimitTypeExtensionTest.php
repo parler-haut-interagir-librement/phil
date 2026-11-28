@@ -6,7 +6,7 @@ namespace Phil\RateLimitBundle\Tests\Unit\Infrastructure;
 
 use Phil\RateLimitBundle\Application\Event\RateLimitExceeded;
 use Phil\RateLimitBundle\Application\Exception\TooManyRequests;
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Phil\RateLimitBundle\Domain\ValueObject\Rule;
 use Phil\RateLimitBundle\Infrastructure\Form\RateLimitTypeExtension;
 use Phil\RateLimitBundle\Tests\Unit\Fixture\Enforcers;
 use Phil\RateLimitBundle\Tests\Unit\Fixture\RecordingEvents;
@@ -60,7 +60,7 @@ final class RateLimitTypeExtensionTest extends TestCase
 
         $this->submit($factory->createNamed('contact', FormType::class));
         $this->submit($factory->createNamed('contact', FormType::class, null, ['rate_limit' => true]));
-        $this->submit($factory->createNamed('contact', FormType::class, null, ['rate_limit' => new RateLimit('forms', 1)]));
+        $this->submit($factory->createNamed('contact', FormType::class, null, ['rate_limit' => new Rule('forms', 1)]));
         $this->submit($factory->createNamed('contact', FormType::class, null, ['rate_limit' => false]));
         $this->submit($factory->createNamed('search', FormType::class));
 

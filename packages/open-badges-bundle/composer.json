@@ -34,7 +34,7 @@
     },
     "require-dev": {
         "ext-openssl": "*",
-        "phil/rate-limit-bundle": "^0.1@dev",
+        "phil/rate-limit-bundle": "^0.2@dev",
         "phpunit/phpunit": "^13.4",
         "psr/cache": "^3.0",
         "psr/log": "^3.0",

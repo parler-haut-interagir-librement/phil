@@ -47,6 +47,7 @@ final class RateLimitCacheWarmerTest extends TestCase
         yield 'an invokable' => [['_controller' => LimitedController::class]];
         yield 'a pair' => [['_controller' => [LimitedController::class, 'listed']]];
         yield 'a service' => [['_controller' => 'app.limited::listed']];
+        yield 'a limiter of the framework' => [['_controller' => LimitedController::class.'::framework']];
         yield 'a closure' => [['_controller' => static fn (): null => null]];
         yield 'an unknown class' => [['_controller' => 'Unknown\\Thing::go']];
         yield 'an unknown method' => [['_controller' => LimitedController::class.'::gone']];
@@ -70,15 +71,13 @@ final class RateLimitCacheWarmerTest extends TestCase
     public static function invalid(): iterable
     {
         yield 'an unknown limiter' => [['_rate_limit' => 'nothing'], 'The rate limits of the route "page": No rate limiter is named "nothing"; the limiters declared are "known", "other".'];
+        yield 'an unknown limiter with a key' => [['_rate_limit' => ['limiter' => 'nothing', 'key' => 'ip']], 'The rate limits of the route "page": No rate limiter is named "nothing"'];
         yield 'an unknown key' => [['_rate_limit' => ['limiter' => 'known', 'key' => 'nothing']], 'The rate limits of the route "page": No key strategy is named "nothing"'];
         yield 'a wrong shape' => [['_rate_limit' => ['limiter' => 3]], 'The rate limits of the route "page": A rate limit is'];
-        yield 'an attribute, unknown limiter' => [['_controller' => LimitedController::class.'::unknown'], 'No rate limiter is named "nothing"'];
-        yield 'an attribute, unknown key' => [['_controller' => LimitedController::class.'::unknownKey'], 'No key strategy is named "nothing"'];
-        yield 'an attribute written wrong' => [['_controller' => LimitedController::class.'::invalid'], 'A rate limit names its limiter.'];
-        yield 'an attribute of a pair' => [['_controller' => [LimitedController::class, 'unknown']], 'No rate limiter is named "nothing"'];
-        yield 'an attribute of a service' => [['_controller' => 'app.limited::unknown'], 'No rate limiter is named "nothing"'];
-        yield 'an attribute, unknown limiter, declared key' => [['_controller' => LimitedController::class.'::unknownLimiter'], 'No rate limiter is named "nothing"'];
-        yield 'the second attribute of a class' => [['_controller' => TwoRulesController::class], 'No rate limiter is named "nothing"'];
+        yield 'an attribute, unknown limiter' => [['_controller' => LimitedController::class.'::unknown'], 'The route "page" is limited by #[RateLimit("nothing")], which no limiter is named; the limiters declared are "framework_limit", "known", "other".'];
+        yield 'an attribute of a pair' => [['_controller' => [LimitedController::class, 'unknown']], 'is limited by #[RateLimit("nothing")]'];
+        yield 'an attribute of a service' => [['_controller' => 'app.limited::unknown'], 'is limited by #[RateLimit("nothing")]'];
+        yield 'the second attribute of a class' => [['_controller' => TwoRulesController::class], 'is limited by #[RateLimit("nothing")]'];
     }
 
     /**
@@ -92,6 +91,20 @@ final class RateLimitCacheWarmerTest extends TestCase
         $this->expectExceptionCode(0);
 
         $this->warmer($defaults)->warmUp('/tmp');
+    }
+
+    public function testAnAttributeNothingAppliesStopsTheBuild(): void
+    {
+        $warmer = new RateLimitCacheWarmer($this->limiters(), $this->resolvers(), $this->router(['_controller' => LimitedController::class.'::listed']), [], null);
+
+        $this->expectExceptionObject(new LogicException('The route "page" is limited by #[RateLimit("known")], which nothing applies: enable the framework\'s rate_limiter, whose listener applies the attribute.'));
+
+        $warmer->warmUp('/tmp');
+    }
+
+    public function testARouteWithoutAttributeNeedsNoListener(): void
+    {
+        self::assertSame([], new RateLimitCacheWarmer($this->limiters(), $this->resolvers(), $this->router(['_rate_limit' => 'known']), [], null)->warmUp('/tmp'));
     }
 
     public function testTheKeyOfTheLimiterIsChecked(): void
@@ -113,7 +126,7 @@ final class RateLimitCacheWarmerTest extends TestCase
      */
     private function warmer(array $defaults): RateLimitCacheWarmer
     {
-        return new RateLimitCacheWarmer($this->limiters(), $this->resolvers(), $this->router($defaults), ['app.limited' => LimitedController::class]);
+        return new RateLimitCacheWarmer($this->limiters(), $this->resolvers(), $this->router($defaults), ['app.limited' => LimitedController::class], ['framework_limit', 'known', 'other']);
     }
 
     private function limiters(): Limiters

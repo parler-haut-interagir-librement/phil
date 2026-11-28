@@ -22,6 +22,7 @@ The next version is 0.2.2-alpha.
   `csp_meta()` writes nothing, and `importmap()` and the HTML error page write no `nonce` attribute.
   `ContentSecurityPolicyContext` takes the `HeaderBuilder` as a second, optional argument. Without a policy declared
   with `nonces: false`, every method still returns a nonce.
+- The development requirements take `phil/rate-limit-bundle` 0.2.
 
 ## 0.2.1-alpha - 2026-11-25
 

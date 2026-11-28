@@ -1,27 +1,27 @@
-<!-- phil-dev source-sha256=6f884c89f3ae6be50bcb6cef0b40aa71c0eebd748399fdc30216694123c84077 -->
+<!-- phil-dev source-sha256=a990e0331bf434ed223426036ab852ef8247b287ea4a5d5e74c35f0054dd81d2 -->
 # phil/rate-limit-bundle
 
 **Des limites de débit déclarées sur les contrôleurs, les routes et les formulaires Symfony.**
 
-phil/rate-limit-bundle soumet les requêtes à des limiteurs nommés : `#[RateLimit]` sur un contrôleur ou une action, la
-valeur par défaut de route `_rate_limit`, et l'option `rate_limit` d'un formulaire. Les limiteurs sont les fenêtres
+phil/rate-limit-bundle soumet les requêtes à des limiteurs nommés : le `#[RateLimit]` de Symfony sur un contrôleur ou une
+action, la valeur par défaut de route `_rate_limit`, et l'option `rate_limit` d'un formulaire. Les limiteurs sont les fenêtres
 fixes, les fenêtres glissantes, les seaux à jetons et les composés de `symfony/rate-limiter`, déclarés dans la
 configuration du bundle avec leur stockage, ou ceux d'autres paquets. Chaque requête compte sous une clé (l'adresse du
 client, l'utilisateur connecté, l'adresse et la route, ou celle de l'application), toujours une empreinte à clé, jamais
 une adresse en clair. Un refus reçoit la réponse `429 Too Many Requests` avec `Retry-After` et les champs
 `RateLimit-Policy` et `RateLimit` du brouillon de l'IETF : un problème en JSON pour une API, une page Twig pour un
-navigateur, une erreur sur le formulaire. Chaque refus est réparti comme un événement.
+navigateur, une erreur sur le formulaire. Chaque refus est réparti comme un événement, celui du bundle et le `RateLimitExceededEvent` de Symfony.
 
 ## État
 
 | Partie | État |
 |---|---|
-| `#[RateLimit]` sur les classes et les actions, la valeur par défaut de route `_rate_limit` | Implémenté et testé |
+| Le `#[RateLimit]` de Symfony sur les classes et les actions, avec son `if`, son argument `RateLimit` et sa consommation avant les arguments ; la valeur par défaut de route `_rate_limit` | Implémenté et testé |
 | Les limiteurs à fenêtre fixe, à fenêtre glissante, à seau de jetons, composés et par fabrique, vérifiés à la construction | Implémenté et testé |
 | Les clés `ip`, `user`, `user_or_ip`, `ip_route` et celles de l'application, le réseau avec phil/ip-anonymizer | Implémenté et testé |
 | `429` avec `Retry-After`, les en-têtes `RateLimit` du brouillon ou anciens, le problème en JSON, la page Twig en anglais et en français | Implémenté et testé |
 | Les soumissions de formulaire limitées par nom de formulaire | Implémenté et testé |
-| L'événement `RateLimitExceeded`, les limiteurs d'autres paquets par étiquette | Implémenté et testé |
+| L'événement `RateLimitExceeded` et le `RateLimitExceededEvent` de Symfony, les limiteurs d'autres paquets par étiquette | Implémenté et testé |
 | Les limiteurs en observation : l'événement `RateLimitObserved` et un avertissement, sans refus | Implémenté et testé |
 | Un stockage propre à chaque serveur refusé en `prod`, avec la garde de phil/rate-limit | Implémenté et testé |
 
@@ -31,7 +31,7 @@ navigateur, une erreur sur le formulaire. Chaque refus est réparti comme un év
 |---|---|
 | [Installation](doc/fr/installation.md) | Les prérequis, le bundle, le stockage. |
 | [Configuration](doc/fr/configuration.md) | Chaque option, avec un exemple. |
-| [Limiter les requêtes](doc/fr/rules.md) | L'attribut, la valeur par défaut de route, l'ordre des règles. |
+| [Limiter les requêtes](doc/fr/rules.md) | L'attribut de Symfony, la valeur par défaut de route, l'ordre des règles à côté de `#[IsGranted]`. |
 | [Clés](doc/fr/keys.md) | Pour qui compte une requête, et comment les clés sont hachées. |
 | [Réponses](doc/fr/responses.md) | Le `429`, ses en-têtes, le problème en JSON, la page, l'événement. |
 | [Formulaires](doc/fr/forms.md) | Limiter les soumissions d'un formulaire par son nom. |
@@ -59,7 +59,7 @@ phil_rate_limit:
 ```
 
 ```php
-use Phil\RateLimitBundle\Domain\Attribute\RateLimit;
+use Symfony\Component\HttpKernel\Attribute\RateLimit;
 
 #[RateLimit('api')]
 final class SearchController
@@ -69,13 +69,15 @@ final class SearchController
 }
 ```
 
+L'attribut est celui de Symfony : le bundle lui donne ses limiteurs, garde leurs clés hachées et répond à leurs refus.
+
 Un formulaire de connexion est limité par Symfony lui-même : `security.firewalls.<name>.login_throttling` compte chaque
 tentative avant la vérification du mot de passe et regroupe les adresses IPv6 par /64. Le bundle limite tout le reste :
 les API, les autres formulaires, les contrôleurs et les routes. Voir [Formulaires de connexion](doc/fr/configuration.md#formulaires-de-connexion).
 
 ## Prérequis
 
-PHP 8.5 ou plus récent et Symfony 8.2 ou plus récent avec FrameworkBundle ; TwigBundle pour la page de refus, le
+PHP 8.5 ou plus récent et Symfony 8.2 ou plus récent avec FrameworkBundle et son `rate_limiter` ; TwigBundle pour la page de refus, le
 composant de formulaire pour les formulaires, la sécurité pour les clés d'utilisateur, phil/ip-anonymizer pour les clés
 de réseau, un journal PSR-3 pour les avertissements d'un limiteur en observation. phil/rate-limit, requis, garde les
 stockages en production.

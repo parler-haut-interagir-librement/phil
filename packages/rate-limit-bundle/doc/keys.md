@@ -74,5 +74,5 @@ final readonly class ApiClientKey implements KeyResolver
 ```
 
 With autoconfiguration, the service is a strategy under its id, which a rule or a limiter names:
-`#[RateLimit('api', key: ApiClientKey::class)]`. A service a limiter or a form names as its key joins the strategies
+`#[RateLimit('api', key: ApiClientKey::class)]` with Symfony's attribute, or `{ limiter: api, key: App\RateLimit\ApiClientKey }` in a route default. A service a limiter or a form names as its key joins the strategies
 even without autoconfiguration. A key holds no secret and no personal data in clear: hash what identifies a person.

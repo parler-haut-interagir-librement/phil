@@ -4,6 +4,63 @@ All notable changes to `phil/rate-limit-bundle` will be documented in this file.
 
 Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## Unreleased
+
+The next version is 0.2.0-alpha: controllers carry Symfony's own `#[RateLimit]`, which names the bundle's limiters.
+
+### Upgrading
+
+1. Replace `use Phil\RateLimitBundle\Domain\Attribute\RateLimit;` by
+   `use Symfony\Component\HttpKernel\Attribute\RateLimit;` on the controllers, and rename the `amount:` argument of
+   each attribute `tokens:`. The `key:` argument keeps naming a key strategy: `ip`, `user`, `user_or_ip`, `ip_route` or a
+   `KeyResolver` service id.
+2. Keep the framework's `rate_limiter` enabled, as it is by default: its listener applies the attribute.
+3. Rename a limiter of `phil_rate_limit.limiters` that shares its name with a limiter of the framework's `rate_limiter`
+   configuration: the build refuses two limiters of one name.
+4. In code, replace `new RateLimit(...)` given to `RateLimitEnforcer::enforce()` or to a form's `rate_limit` option by
+   `new Phil\RateLimitBundle\Domain\ValueObject\Rule(...)`, whose arguments are the same.
+5. A listener of every refusal may listen to Symfony's `RateLimitExceededEvent`, which the bundle now dispatches too; a
+   listener of both events hears each refusal of the bundle twice.
+
+### Added
+
+- `Infrastructure\RateLimiter\AttributeLimiterFactory`, one for each limiter of the bundle and of other packages,
+  tagged `rate_limiter` with its name, so that Symfony's `#[RateLimit]` names it; `AttributeLimiter`, the limiter of one
+  key it creates, which consumes and neither reserves nor resets.
+- `Infrastructure\RateLimiter\AttributeLimits`: the key Symfony's attribute computes turned into a key of the bundle —
+  Symfony's default key into the limiter's own strategy, the name of a strategy into that strategy, any other value into
+  `key:` and its HMAC-SHA-256 under a key derived from the secret (`USAGE` `phil_rate_limit.attribute_key`) —, consumed
+  through the enforcer, so that the attribute keeps the observation, the events, the headers and the responder of the
+  bundle, and hands its `RateLimit` argument the decision.
+- `RateLimitEnforcer::keyOf()`, `consume()`, `remember()` and `rateLimitOf()`: the key of a strategy, one consumption
+  for a key already hashed, the tightest accepted decision kept on the request for the headers, and a decision as the
+  `RateLimit` of `symfony/rate-limiter`; `RateLimitEnforcer::DECISION_ATTRIBUTE`; an optional PSR-20 clock.
+- `KeyResolvers::has()`.
+- The documentation of Symfony's attribute on the bundle's limiters, and of the order of the limits beside the
+  resolution of the arguments and `#[IsGranted]`.
+- The benchmark of one consumption of Symfony's attribute.
+
+### Changed
+
+- `Domain\Attribute\RateLimit` is now `Domain\ValueObject\Rule`, a plain value of the route default and of the form
+  option, no longer an attribute; `RateLimitRules` reads it.
+- A refusal also dispatches Symfony's `RateLimitExceededEvent`, after `RateLimitExceeded`, with the hashed key.
+- The route default is counted before the attributes, on `kernel.controller` before Symfony's attribute listener, and
+  its request attribute `_rate_limit`, the name under which Symfony's listener keeps what it consumed, is removed once
+  read, on every request.
+- The response carries the headers of the tightest limiter of the route default and of the attributes; a `429` keeps
+  those of the limiter that refused, and a sub-request's response gets none.
+- `TooManyRequestsResponder` also answers a refusal of Symfony's attribute on a limiter of the framework's
+  configuration, with its `Retry-After`.
+- `RateLimitCacheWarmer` checks the limiter of each Symfony `#[RateLimit]` among those tagged `rate_limiter`, and stops
+  the build on a controller that carries the attribute when the framework's `rate_limiter` is disabled.
+- `LimitersPass` fails the build on a limiter of the bundle that shares its name with one of the framework's
+  configuration.
+
+### Removed
+
+- `Domain\Attribute\RateLimit`: Symfony's `Symfony\Component\HttpKernel\Attribute\RateLimit` takes its place.
+
 ## 0.1.3-alpha - 2026-11-25
 
 ### Changed

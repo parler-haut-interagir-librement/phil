@@ -83,7 +83,7 @@ reads the meters' limits alone.
 |---|---|---|
 | `rate_limiters.<name>.meter` | required | The meter the limiter counts on, declared in `meters` |
 | `rate_limiters.<name>.key` | `ip` | Who a request counts for when a rule names no key: a key strategy of `phil/rate-limit-bundle` — `ip`, `user`, `user_or_ip`, `ip_route` — or the id of a service implementing its `KeyResolver` |
-| `rate_limiters.<name>.amount` | `1` | What one request counts when a rule names no amount, one or more |
+| `rate_limiters.<name>.amount` | `1` | What one request counts when a route default or a form rule names no amount, one or more; Symfony's `#[RateLimit]` counts its `tokens` |
 | `rate_limiters.<name>.idempotency_key` | `false` | Whether a POST, PUT, PATCH or DELETE request is counted once per `Idempotency-Key` header; see [rate-limiting.md](rate-limiting.md) |
 | `idempotency_secret` | `%kernel.secret%` | The key of the hashes the idempotency keys are kept as |
 
