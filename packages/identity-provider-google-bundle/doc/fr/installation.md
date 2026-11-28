@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=9b22eb4d6f2aec805320acb010c0c3f4bd6e3f6e936b391e317f5bd2a1ed1491 -->
+<!-- phil-dev source-sha256=9154ad6c56edb6e1dc8279b01cea54e01dac8e5492d7cd6ea4e5405659aef9fd -->
 # Installation
 
 ## Prérequis
@@ -31,7 +31,7 @@ php bin/console secrets:set GOOGLE_CLIENT_SECRET
 ## Le paquet
 
 ```sh
-composer require phil/identity-provider-google
+composer require phil/identity-provider-google-bundle
 ```
 
 Avec Symfony Flex, la recette enregistre le bundle, écrit `config/packages/phil_identity_provider_google.yaml` et
@@ -43,7 +43,7 @@ bundle et écrivez la configuration :
 return [
     // ...
     Phil\IdentityProviderBundle\PhilIdentityProviderBundle::class => ['all' => true],
-    Phil\IdentityProviderGoogle\PhilIdentityProviderGoogleBundle::class => ['all' => true],
+    Phil\IdentityProviderGoogleBundle\PhilIdentityProviderGoogleBundle::class => ['all' => true],
 ];
 ```
 

@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=3afbf24fc0e79317b31a7f4d41346dc72d949ccb94f5fc409dec8ab0ff647b0e -->
+<!-- phil-dev source-sha256=a743d2e42834ec6415c070928b8760b7180dae0e4a93b53f0e3836b08b3b4b9f -->
 # Référence
 
 Chaque type public du paquet, avec son rôle.
@@ -55,12 +55,12 @@ La connexion utilise les routes de phil/identity-provider-bundle : `phil_identit
 
 | Service | Ce que c'est |
 |---|---|
-| `Phil\IdentityProviderGoogle\Infrastructure\Federation\GoogleProvider` | Le fournisseur, étiqueté pour le bundle. |
-| `Phil\IdentityProviderGoogle\Application\GoogleSignIn` | Le flux. |
-| `Phil\IdentityProviderGoogle\Application\GoogleSettings` | Les réglages. |
+| `Phil\IdentityProviderGoogleBundle\Infrastructure\Federation\GoogleProvider` | Le fournisseur, étiqueté pour le bundle. |
+| `Phil\IdentityProviderGoogleBundle\Application\GoogleSignIn` | Le flux. |
+| `Phil\IdentityProviderGoogleBundle\Application\GoogleSettings` | Les réglages. |
 | `phil_identity_provider_google.transport` | Le client HTTP des pièces OpenID Connect de Symfony, sur phil/safe-http. |
 | `phil_identity_provider_google.discovery`, `phil_identity_provider_google.signatures` | `OidcDiscovery` et `OidcSignatureVerifier` de Symfony pour la connexion avec Google. |
 | `phil_identity_provider_google.risc_discovery`, `phil_identity_provider_google.risc_signatures` | Les mêmes pour les événements de sécurité, avec `risc.enabled`. |
-| `Phil\IdentityProviderGoogle\Application\SecurityEventReceiver`, `Phil\IdentityProviderGoogle\Application\TransmitterSettings` | Le récepteur et l'émetteur de Google, avec `risc.enabled`. |
-| `Phil\IdentityProviderGoogle\Application\Contract\SubjectHolds` | Un alias de `CacheSubjectHolds`, avec `risc.enabled` et `risc.hold_hijacked`. |
-| `Phil\IdentityProviderGoogle\Infrastructure\Http\RiscController` | Le point de terminaison. |
+| `Phil\IdentityProviderGoogleBundle\Application\SecurityEventReceiver`, `Phil\IdentityProviderGoogleBundle\Application\TransmitterSettings` | Le récepteur et l'émetteur de Google, avec `risc.enabled`. |
+| `Phil\IdentityProviderGoogleBundle\Application\Contract\SubjectHolds` | Un alias de `CacheSubjectHolds`, avec `risc.enabled` et `risc.hold_hijacked`. |
+| `Phil\IdentityProviderGoogleBundle\Infrastructure\Http\RiscController` | Le point de terminaison. |

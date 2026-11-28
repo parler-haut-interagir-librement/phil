@@ -1,11 +1,11 @@
-<!-- phil-dev source-sha256=0a0239e05aec5f4fb761827b5be0153cbda930f489641a0896a46f6fa235412d -->
-# phil/identity-provider-google
+<!-- phil-dev source-sha256=e8b90454d52192b061b00a8b6d37a7be7689ba280b7a4e7bddddbc6fdd888e57 -->
+# phil/identity-provider-google-bundle
 
 **Permettre de se connecter avec Google à une application qui exécute phil/identity-provider-bundle, et lier le compte
 Google au compte que la personne a déjà — jamais fusionné sur une adresse dont Google ne répond pas —, pendant que la
 Cross-Account Protection de Google ferme ses sessions quand son compte Google est révoqué, désactivé ou supprimé.**
 
-phil/identity-provider-google est Google comme fournisseur fédéré de phil/identity-provider-bundle. Il se branche sur
+phil/identity-provider-google-bundle est Google comme fournisseur fédéré de phil/identity-provider-bundle. Il se branche sur
 le module `external` du bundle : `/login/with/google` envoie la personne chez Google, et la fonction de rappel du bundle
 la relit par ce paquet, puis connecte, lie ou crée le compte selon les règles du bundle.
 
@@ -56,7 +56,7 @@ durée et taille bornées.
 ## Démarrage rapide
 
 ```sh
-composer require phil/identity-provider-google
+composer require phil/identity-provider-google-bundle
 php bin/console secrets:set GOOGLE_CLIENT_SECRET
 ```
 

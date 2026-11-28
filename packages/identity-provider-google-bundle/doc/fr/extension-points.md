@@ -1,4 +1,4 @@
-<!-- phil-dev source-sha256=403c4dfff2524e2cc50f04da32ad2210fe1dd4f6a83fbb815ab55956dae129eb -->
+<!-- phil-dev source-sha256=567a114c1c6ab497a80be4f7449b0798d90c58542195e34068f706908493fb95 -->
 # Points d'extension
 
 Le paquet est en `0.x` : ses points d'extension ne sont stables qu'à partir de sa version 1.0. D'ici là, une version
@@ -15,7 +15,7 @@ mineure peut les changer, et son CHANGELOG dit comment.
 ## Les comptes retenus
 
 ```php
-namespace Phil\IdentityProviderGoogle\Application\Contract;
+namespace Phil\IdentityProviderGoogleBundle\Application\Contract;
 
 interface SubjectHolds
 {
@@ -33,7 +33,7 @@ implémentation :
 ```yaml
 services:
     App\Identity\DoctrineSubjectHolds: ~
-    Phil\IdentityProviderGoogle\Application\Contract\SubjectHolds: '@App\Identity\DoctrineSubjectHolds'
+    Phil\IdentityProviderGoogleBundle\Application\Contract\SubjectHolds: '@App\Identity\DoctrineSubjectHolds'
 ```
 
 Le magasin doit être durable : un magasin qui oublie laisse un compte Google détourné se reconnecter.
@@ -52,8 +52,8 @@ fermé les sessions et retenu ou libéré le sujet. Il ne porte que des identifi
 | `sessionsClosed` | Les sessions fermées |
 
 ```php
-use Phil\IdentityProviderGoogle\Application\Event\SecurityEventReceived;
-use Phil\IdentityProviderGoogle\Domain\Risc\SecurityEventType;
+use Phil\IdentityProviderGoogleBundle\Application\Event\SecurityEventReceived;
+use Phil\IdentityProviderGoogleBundle\Domain\Risc\SecurityEventType;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 #[AsEventListener]
